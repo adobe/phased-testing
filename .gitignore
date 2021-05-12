@@ -2,3 +2,5 @@
 .classpath
 .project
 .settings/
+ac_test_output/
+test-output/

@@ -1,0 +1,1237 @@
+/*
+ * MIT License
+ *
+ * © Copyright 2020 Adobe. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+package com.adobe.campaign.tests.integro.phased;
+
+import org.testng.ITestNGMethod;
+import org.testng.ITestResult;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
+import org.testng.internal.ConstructorOrMethod;
+
+import com.adobe.campaign.tests.integro.core.utils.GeneralTestUtils;
+import com.adobe.campaign.tests.integro.phased.data.NormalSeries_A;
+import com.adobe.campaign.tests.integro.phased.data.PhasedDataBrokerTestImplementation;
+import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_A;
+import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_B_NoInActive;
+import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_F_Shuffle;
+import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClassWithError;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.testng.Assert.assertThrows;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+
+import org.hamcrest.Matchers;
+import org.mockito.Mockito;
+
+public class PhasedTestManagerTests {
+    @BeforeClass
+    public void cleanCache() {
+        PhasedTestManager.clearCache();
+
+        System.clearProperty(PhasedTestManager.PROP_PHASED_DATA_PATH);
+        System.clearProperty(PhasedTestManager.PROP_SELECTED_PHASE);
+        System.clearProperty(PhasedTestManager.PROP_PHASED_TEST_DATABROKER);
+
+        //Delete temporary cache
+        File l_newFile = GeneralTestUtils
+                .createEmptyCacheFile(GeneralTestUtils.createCacheDirectory("phased2"), "newFile.properties");
+
+        l_newFile.delete();
+
+        PhasedTestManager.clearDataBroker();
+
+    }
+
+    @AfterMethod
+    public void clearAllData() {
+        cleanCache();
+    }
+
+    @Test
+    public void testStorage() {
+        assertThat("We should have correctly constructed the key ", PhasedTestManager.produce("Hello"),
+                equalTo("com.adobe.campaign.tests.integro.phased.PhasedTestManagerTests.testStorage"));
+
+        assertThat("We should have successfully stored the given value", PhasedTestManager.phasedCache
+                .containsKey("com.adobe.campaign.tests.integro.phased.PhasedTestManagerTests.testStorage"));
+
+        assertThat("We should have successfully fetched the correct value",
+                PhasedTestManager.consume("testStorage"), equalTo("Hello"));
+    }
+
+    @Test
+    public void testStorageMethod() throws NoSuchMethodException, SecurityException {
+        final Method l_myTest = PhasedTestManagerTests.class.getMethod("testStorageMethod");
+
+        String l_producedKey = PhasedTestManager.storeTestData(l_myTest, "DP_A", "myValue");
+        assertThat("We should have stored a key in the cache",
+                PhasedTestManager.getPhasedCache().containsKey(l_producedKey));
+
+        assertThat("We should have stored a value for the key in the cache",
+                PhasedTestManager.getPhasedCache().get(l_producedKey), equalTo("myValue"));
+
+    }
+
+    @Test
+    public void testProduceOnBehalphOf() {
+
+        String l_myKeyPrefix = this.getClass().getTypeName() + PhasedTestManager.STD_KEY_CLASS_SEPARATOR;
+
+        assertThat("We should have correctly constructed the key ", PhasedTestManager.produceWithKey("A", "Hello"),
+                equalTo(l_myKeyPrefix + "A"));
+
+        assertThat("We should have successfully stored the given value",
+                PhasedTestManager.phasedCache.containsKey(l_myKeyPrefix + "A"));
+
+        assertThat("We should have successfully fetched the correct value",
+                PhasedTestManager.phasedCache.get(l_myKeyPrefix + "A"), equalTo("Hello"));
+
+        assertThat("We should have successfully fetched the correct value",
+                PhasedTestManager.consumeWithKey("A"), equalTo("Hello"));
+    }
+
+    @Test
+    public void testProduceOnBehalphOf_withContext() {
+
+        final String l_dataProducerValue = "plop";
+        PhasedTestManager.phaseContext.put(
+                this.getClass().getTypeName() + ".testProduceOnBehalphOf_withContext", l_dataProducerValue);
+
+        String l_myKeyPrefix = this.getClass().getTypeName() + "(" + l_dataProducerValue + ")"
+                + PhasedTestManager.STD_KEY_CLASS_SEPARATOR;
+
+        assertThat("We should have correctly constructed the key ", PhasedTestManager.produceWithKey("A", "Hello"),
+                equalTo(l_myKeyPrefix + "A"));
+
+        assertThat("We should have successfully stored the given value",
+                PhasedTestManager.phasedCache.containsKey(l_myKeyPrefix + "A"));
+
+        assertThat("We should have successfully fetched the correct value",
+                PhasedTestManager.phasedCache.get(l_myKeyPrefix + "A"), equalTo("Hello"));
+
+        assertThat("We should have successfully fetched the correct value",
+                PhasedTestManager.consumeWithKey("A"), equalTo("Hello"));
+    }
+
+    @Test
+    public void testProduceOnBehalphOf_RepetitiveProduce_Negative() {
+        PhasedTestManager.produceWithKey("A", "Bye");
+        assertThrows(PhasedTestException.class, () -> PhasedTestManager.produceWithKey("A", "Hello"));
+    }
+
+    @Test
+    public void testconsumeByKey_NonExistingKey_Negative() {
+        assertThrows(PhasedTestException.class, () -> PhasedTestManager.consumeWithKey("A"));
+    }
+
+    @Test
+    public void testReset() {
+        PhasedTestManager.produce("Hello");
+
+        assertThat(PhasedTestManager.phasedCache.size(), Matchers.greaterThan(0));
+        PhasedTestManager.clearCache();
+        assertThat(PhasedTestManager.phasedCache.size(), equalTo(0));
+    }
+
+    @Test
+    public void duplicateExceptionWhenStoring() {
+        PhasedTestManager.produce("Hello");
+
+        try {
+            PhasedTestManager.produce("Bye");
+        } catch (Exception e) {
+            assertThat("The exception should be an instance of PhasedTestStorageException",
+                    e instanceof PhasedTestException);
+            return;
+        }
+
+        assertThat("We should not reach this line of code", false);
+    }
+
+    @Test
+    public void missingDataForPhasedTests() {
+        assertThrows(PhasedTestException.class, () -> PhasedTestManager.consume("something"));
+    }
+
+    @Test
+    public void exportingData() throws FileNotFoundException, IOException {
+        PhasedTestManager.produce("Hello");
+
+        File l_phasedTestFile = PhasedTestManager.exportPhaseData();
+
+        assertThat("The file should exist", l_phasedTestFile.exists());
+        assertThat("The file should exist", l_phasedTestFile.length(), Matchers.greaterThan(0l));
+        Properties prop = new Properties();
+
+        try (InputStream input = new FileInputStream(l_phasedTestFile)) {
+
+            // load a properties file
+            prop.load(input);
+        }
+
+        assertThat("We should find our property", prop.size(), equalTo(1));
+        assertThat("We should find our property", prop
+                .containsKey("com.adobe.campaign.tests.integro.phased.PhasedTestManagerTests.exportingData"));
+        assertThat("We should find our property",
+                prop.getProperty(
+                        "com.adobe.campaign.tests.integro.phased.PhasedTestManagerTests.exportingData"),
+                equalTo("Hello"));
+
+    }
+
+    /**
+     * Testing that when the property
+     * ({@value PhasedTestManager#PROP_PHASED_DATA_PATH} is set, that path is
+     * used.
+     *
+     * Author : gandomi
+     *
+     * @throws FileNotFoundException
+     * @throws IOException
+     *
+     */
+    @Test
+    public void exportingData_UsingSystemValues() throws FileNotFoundException, IOException {
+        PhasedTestManager.produce("Hello");
+
+        File l_newFile = GeneralTestUtils
+                .createEmptyCacheFile(GeneralTestUtils.createCacheDirectory("phased2"), "newFile.properties");
+        assertThat("The new file should be empty", !l_newFile.exists());
+
+        System.setProperty(PhasedTestManager.PROP_PHASED_DATA_PATH, l_newFile.getPath());
+
+        File l_phasedTestFile = PhasedTestManager.exportPhaseData();
+
+        assertThat("The file should exist", l_phasedTestFile.exists());
+        assertThat("The file should exist", l_phasedTestFile.length(), Matchers.greaterThan(0l));
+        assertThat("The exported file should be the same is the one we sent", l_phasedTestFile.getPath(),
+                Matchers.equalTo(l_newFile.getPath()));
+
+        Properties prop = new Properties();
+
+        try (InputStream input = new FileInputStream(l_phasedTestFile)) {
+
+            // load a properties file
+            prop.load(input);
+        }
+
+        assertThat("We should find our property", prop.size(), equalTo(1));
+        assertThat("We should find our property", prop.containsKey(
+                "com.adobe.campaign.tests.integro.phased.PhasedTestManagerTests.exportingData_UsingSystemValues"));
+        assertThat("We should find our property", prop.getProperty(
+                "com.adobe.campaign.tests.integro.phased.PhasedTestManagerTests.exportingData_UsingSystemValues"),
+                equalTo("Hello"));
+
+    }
+
+    @Test
+    public void testExportCache_NegativeIOException() {
+
+        File l_phasedTestFile = new File("skjdfhqskdj", "kjhkjhkjh");
+        assertThat("The file should not exist", !l_phasedTestFile.exists());
+
+        assertThrows(PhasedTestException.class, () -> PhasedTestManager.exportCache(l_phasedTestFile));
+    }
+
+    @Test
+    public void testCleanDataBroker() {
+        PhasedTestManager.setDataBroker(new PhasedDataBrokerTestImplementation());
+
+        assertThat(PhasedTestManager.getDataBroker(), Matchers.notNullValue());
+
+        PhasedTestManager.clearDataBroker();
+
+        assertThat(PhasedTestManager.getDataBroker(), Matchers.nullValue());
+
+    }
+
+    @Test
+    public void exportingData_dataBroker() throws FileNotFoundException, IOException {
+        PhasedTestManager.produce("Hello");
+
+        File l_phasedTestFile = PhasedTestManager.exportPhaseData();
+
+        PhasedDataBroker l_myDataBroker = new PhasedDataBrokerTestImplementation();
+        l_myDataBroker.store(l_phasedTestFile);
+
+        File l_fetchedTestFile = l_myDataBroker.fetch(l_phasedTestFile.getName());
+        assertThat("The file should have been successfully fetched", l_fetchedTestFile,
+                Matchers.notNullValue());
+
+        assertThat("The fetched file should exist", l_fetchedTestFile.exists());
+
+        assertThat("The two tests should be the same.", GeneralTestUtils.fetchFileContent(l_fetchedTestFile),
+                equalTo(GeneralTestUtils.fetchFileContent(l_fetchedTestFile)));
+    }
+
+    /**
+     * In this test when we export the file should be stored by the broker, and
+     * fetched by the broker
+     *
+     * Author : gandomi
+     *
+     * @throws FileNotFoundException
+     * @throws IOException
+     *
+     */
+    @Test
+    public void exportingData_dataBrokerPhasedTestManager() throws FileNotFoundException, IOException {
+
+        assertThat("At first the data broker should be null", PhasedTestManager.getDataBroker(),
+                Matchers.nullValue());
+
+        final PhasedDataBrokerTestImplementation l_myDataBroker = new PhasedDataBrokerTestImplementation();
+        l_myDataBroker.deleteData(PhasedTestManager.STD_STORE_FILE);
+        PhasedTestManager.setDataBroker(l_myDataBroker);
+
+        //Generate data
+        final String l_phaseContent = "noHello";
+        PhasedTestManager.produce(l_phaseContent);
+
+        //Store data
+        File l_phasedTestFile = PhasedTestManager.exportPhaseData();
+
+        //Fetch data
+        File l_fetchedTestFile = PhasedTestManager.getDataBroker().fetch(l_phasedTestFile.getName());
+        assertThat("The fetched file should exist", l_fetchedTestFile.exists());
+
+        assertThat("The two tests should be the same.", GeneralTestUtils.fetchFileContent(l_fetchedTestFile),
+                equalTo(GeneralTestUtils.fetchFileContent(l_fetchedTestFile)));
+
+        //delete file and then import it
+        l_phasedTestFile.delete();
+        PhasedTestManager.clearCache();
+
+        //import cache
+        PhasedTestManager.importPhaseData();
+
+        assertThat("We should have successfully fetched the contents of the stored file.",
+                PhasedTestManager.consume("exportingData_dataBrokerPhasedTestManager"),
+                Matchers.equalTo(l_phaseContent));
+    }
+
+    /**
+     * Tsting the initializing of the databroker
+     *
+     * Author : gandomi
+     *
+     * @throws FileNotFoundException
+     * @throws IOException
+     * @throws PhasedTestConfigurationException
+     * @throws IllegalAccessException
+     * @throws InstantiationException
+     * @throws ClassNotFoundException
+     *
+     */
+    @Test
+    public void dataBrokerPhasedTestManagerInitializing() throws PhasedTestConfigurationException {
+
+        assertThat("At first the data broker should be null", PhasedTestManager.getDataBroker(),
+                Matchers.nullValue());
+
+        final PhasedDataBrokerTestImplementation l_myDataBroker = new PhasedDataBrokerTestImplementation();
+        l_myDataBroker.deleteData(PhasedTestManager.STD_STORE_FILE);
+
+        PhasedTestManager.setDataBroker(PhasedDataBrokerTestImplementation.class.getTypeName());
+
+        //Generate data
+        final String l_phaseContent = "noHello";
+        PhasedTestManager.produce(l_phaseContent);
+
+        //Store data
+        File l_phasedTestFile = PhasedTestManager.exportPhaseData();
+
+        //Fetch data
+        File l_fetchedTestFile = PhasedTestManager.getDataBroker().fetch(l_phasedTestFile.getName());
+        assertThat("The fetched file should exist", l_fetchedTestFile.exists());
+
+        assertThat("The two tests should be the same.", GeneralTestUtils.fetchFileContent(l_fetchedTestFile),
+                equalTo(GeneralTestUtils.fetchFileContent(l_fetchedTestFile)));
+
+        //delete file and then import it
+        l_phasedTestFile.delete();
+        PhasedTestManager.clearCache();
+
+        //import cache
+        PhasedTestManager.importPhaseData();
+
+        assertThat("We should have successfully fetched the contents of the stored file.",
+                PhasedTestManager.consume("dataBrokerPhasedTestManagerInitializing"),
+                Matchers.equalTo(l_phaseContent));
+    }
+
+    @Test
+    public void dataBrokerPhasedTestManagerInitializing_negativeNotInstanceOfDataBroker()
+            throws FileNotFoundException, IOException, ClassNotFoundException, InstantiationException,
+            IllegalAccessException, PhasedTestConfigurationException {
+
+        assertThat("At first the data broker should be null", PhasedTestManager.getDataBroker(),
+                Matchers.nullValue());
+
+        final PhasedDataBrokerTestImplementation l_myDataBroker = new PhasedDataBrokerTestImplementation();
+        l_myDataBroker.deleteData(PhasedTestManager.STD_STORE_FILE);
+
+        assertThrows(PhasedTestConfigurationException.class,
+                () -> PhasedTestManager.setDataBroker(NormalSeries_A.class.getTypeName()));
+    }
+
+    @Test
+    public void dataBrokerPhasedTestManagerInitializing_negativeNotAClass()
+            throws FileNotFoundException, IOException, ClassNotFoundException, InstantiationException,
+            IllegalAccessException, PhasedTestConfigurationException {
+
+        assertThat("At first the data broker should be null", PhasedTestManager.getDataBroker(),
+                Matchers.nullValue());
+
+        final PhasedDataBrokerTestImplementation l_myDataBroker = new PhasedDataBrokerTestImplementation();
+        l_myDataBroker.deleteData(PhasedTestManager.STD_STORE_FILE);
+
+        assertThrows(PhasedTestConfigurationException.class,
+                () -> PhasedTestManager.setDataBroker("a.b.c.d.F"));
+    }
+
+    @Test
+    public void importingData() throws IOException {
+        PhasedTestManager.produce("Hello");
+        File l_phasedTestFile = PhasedTestManager.exportPhaseData();
+        PhasedTestManager.clearCache();
+
+        Properties l_phasedTestdata = PhasedTestManager.importCache(l_phasedTestFile);
+
+        assertThat("We should find our property", l_phasedTestdata, Matchers.notNullValue());
+        assertThat("We should find our property", l_phasedTestdata.size(), equalTo(1));
+        assertThat("We should find our property", l_phasedTestdata
+                .containsKey("com.adobe.campaign.tests.integro.phased.PhasedTestManagerTests.importingData"));
+        assertThat("We should find our property",
+                l_phasedTestdata.getProperty(
+                        "com.adobe.campaign.tests.integro.phased.PhasedTestManagerTests.importingData"),
+                equalTo("Hello"));
+    }
+
+    @Test
+    public void importingData_NegativeBadFile() throws IOException {
+        File l_phasedTestFile = new File("skjdfhqskdj", "kjhkjhkjh");
+        assertThat("The file should not exist", !l_phasedTestFile.exists());
+        PhasedTestManager.clearCache();
+
+        assertThrows(PhasedTestException.class, () -> PhasedTestManager.importCache(l_phasedTestFile));
+    }
+
+    @Test
+    public void importingDataSTD() throws FileNotFoundException, IOException {
+        PhasedTestManager.produce("Hello");
+        PhasedTestManager.exportPhaseData();
+        PhasedTestManager.clearCache();
+
+        Properties l_phasedTestdata = PhasedTestManager.importPhaseData();
+
+        assertThat("We should find our property", l_phasedTestdata, Matchers.notNullValue());
+        assertThat("We should find our property", l_phasedTestdata.size(), equalTo(1));
+        assertThat("We should find our property", l_phasedTestdata.containsKey(
+                "com.adobe.campaign.tests.integro.phased.PhasedTestManagerTests.importingDataSTD"));
+        assertThat("We should find our property",
+                l_phasedTestdata.getProperty(
+                        "com.adobe.campaign.tests.integro.phased.PhasedTestManagerTests.importingDataSTD"),
+                equalTo("Hello"));
+    }
+
+    @Test
+    public void importingDataSTD_UsingSystemValues() throws FileNotFoundException, IOException {
+        PhasedTestManager.produce("Hello");
+        File l_phasedTestData = PhasedTestManager.exportPhaseData();
+
+        File l_newFile = GeneralTestUtils
+                .createEmptyCacheFile(GeneralTestUtils.createCacheDirectory("phased2"), "newFile.properties");
+        assertThat("moving should succeed", l_phasedTestData.renameTo(l_newFile));
+        assertThat("The new file should now exist", l_newFile.exists());
+        assertThat("The old file should now be empty", !l_phasedTestData.exists());
+
+        PhasedTestManager.clearCache();
+        System.setProperty(PhasedTestManager.PROP_PHASED_DATA_PATH, l_newFile.getPath());
+        Properties l_phasedTestdata = PhasedTestManager.importPhaseData();
+
+        assertThat("We should find our property", l_phasedTestdata, Matchers.notNullValue());
+        assertThat("We should find our property", l_phasedTestdata.size(), equalTo(1));
+        assertThat("We should find our property", l_phasedTestdata.containsKey(
+                "com.adobe.campaign.tests.integro.phased.PhasedTestManagerTests.importingDataSTD_UsingSystemValues"));
+        assertThat("We should find our property", l_phasedTestdata.getProperty(
+                "com.adobe.campaign.tests.integro.phased.PhasedTestManagerTests.importingDataSTD_UsingSystemValues"),
+                equalTo("Hello"));
+    }
+
+    @Test
+    public void testCreateDataProviderData() {
+        Phases.PRODUCER.activate();
+
+        Map<Class, List<String>> l_myMap = new HashMap<Class, List<String>>();
+
+        l_myMap.put(PhasedSeries_F_Shuffle.class, Arrays.asList("a", "b", "c"));
+
+        Map<String, MethodMapping> l_result = PhasedTestManager.generatePhasedProviders(l_myMap);
+
+        assertThat("we need to have the expected key", l_result.containsKey("a"));
+        assertThat("The first method should have three entries", l_result.get("a").nrOfProviders, equalTo(3));
+
+        assertThat("The first method should have two entries", l_result.get("b").nrOfProviders, equalTo(2));
+
+        assertThat("The first method should have one entry", l_result.get("c").nrOfProviders, equalTo(1));
+
+        assertThat("We should have the same amount of total sizes", l_result.get("a").totalClassMethods,
+                equalTo(l_result.get("b").totalClassMethods));
+        assertThat("We should have the same amount of total sizes", l_result.get("a").totalClassMethods,
+                equalTo(l_result.get("c").totalClassMethods));
+
+        Object[][] l_providerA = PhasedTestManager.fetchProvidersShuffled("a");
+
+        assertThat(l_providerA[0].length, equalTo(1));
+
+        assertThat(l_providerA[0][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0"));
+        assertThat(l_providerA[1][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1"));
+        assertThat(l_providerA[2][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2"));
+
+        Object[][] l_providerB = PhasedTestManager.fetchProvidersShuffled("b");
+
+        assertThat(l_providerB[0].length, equalTo(1));
+
+        assertThat(l_providerB[0][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0"));
+        assertThat(l_providerB[1][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1"));
+
+        Object[][] l_providerC = PhasedTestManager.fetchProvidersShuffled("c");
+
+        assertThat(l_providerC[0].length, equalTo(1));
+
+        assertThat(l_providerC[0][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0"));
+
+    }
+
+    @Test
+    public void testCreateDataProviderData_modeConsumer() throws NoSuchMethodException, SecurityException {
+        Map<Class, List<String>> l_myMap = new HashMap<Class, List<String>>();
+
+        final Class<PhasedSeries_F_Shuffle> l_myClass = PhasedSeries_F_Shuffle.class;
+        l_myMap.put(l_myClass, Arrays.asList("a", "b", "c"));
+
+        Map<String, MethodMapping> l_result = PhasedTestManager.generatePhasedProviders(l_myMap,
+                Phases.CONSUMER);
+
+        assertThat("we need to have the expected key", l_result.containsKey("a"));
+        assertThat("The first method should have three entries", l_result.get("a").nrOfProviders, equalTo(1));
+
+        assertThat("The first method should have three entries", l_result.get("b").nrOfProviders, equalTo(2));
+
+        assertThat("The first method should have three entries", l_result.get("c").totalClassMethods,
+                equalTo(3));
+
+        Object[][] l_providerA = PhasedTestManager.fetchProvidersShuffled("a");
+
+        assertThat(l_providerA[0].length, equalTo(1));
+
+        assertThat(l_providerA[0][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "0_3"));
+
+        Object[][] l_providerB = PhasedTestManager.fetchProvidersShuffled("b");
+
+        assertThat(l_providerB[0].length, equalTo(1));
+
+        assertThat(l_providerB[0][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "0_3"));
+        assertThat(l_providerB[1][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2"));
+
+        Object[][] l_providerC = PhasedTestManager.fetchProvidersShuffled("c");
+
+        assertThat(l_providerC[0].length, equalTo(1));
+
+        assertThat(l_providerC[0][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "0_3"));
+        assertThat(l_providerC[1][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2"));
+        assertThat(l_providerC[2][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1"));
+
+    }
+
+    @Test
+    public void testPhasedManagerContext() {
+        Map<Class, List<String>> l_myMap = new HashMap<Class, List<String>>();
+
+        l_myMap.put(this.getClass(), Arrays.asList("a", "b", "c", "testPhasedManagerContext"));
+
+        final String l_phasedGroupId = "phasedGroupShuffled_4";
+        PhasedTestManager.storePhasedContext(
+                "com.adobe.campaign.tests.integro.phased.PhasedTestManagerTests.testPhasedManagerContext",
+                l_phasedGroupId);
+
+        assertThat("We should have stored the correct property", PhasedTestManager.phaseContext.getProperty(
+                "com.adobe.campaign.tests.integro.phased.PhasedTestManagerTests.testPhasedManagerContext"),
+                equalTo(l_phasedGroupId));
+
+        PhasedTestManager.produce("myVal");
+
+        assertThat("We should have stored the correct key", PhasedTestManager.getPhasedCache().containsKey(
+                "com.adobe.campaign.tests.integro.phased.PhasedTestManagerTests.testPhasedManagerContext("
+                        + l_phasedGroupId + ")"));
+
+        assertThat(PhasedTestManager.consume("testPhasedManagerContext"), equalTo("myVal"));
+    }
+
+    /**** Single Executions ****/
+
+    @Test
+    public void testIsExecutedProducer_Producer() throws NoSuchMethodException, SecurityException {
+
+        final Method l_myMethod = PhasedSeries_A.class.getMethod("step1", String.class);
+
+        assertThat("step1 should be considered as a producer execution",
+                PhasedTestManager.isExecutedInProducerMode(l_myMethod));
+    }
+
+    @Test
+    public void testIsExecutedProducer_ProducerLimit() throws NoSuchMethodException, SecurityException {
+
+        final Method l_myMethod = PhasedSeries_A.class.getMethod("step2", String.class);
+
+        assertThat("step1 should be considered as a producer execution. But it is also the limit",
+                PhasedTestManager.isExecutedInProducerMode(l_myMethod));
+    }
+
+    @Test
+    public void testIsExecutedProducer_Consumer() throws NoSuchMethodException, SecurityException {
+
+        final Method l_myMethod = PhasedSeries_A.class.getMethod("step3", String.class);
+
+        assertThat("step1 should be executed in producer mode",
+                !PhasedTestManager.isExecutedInProducerMode(l_myMethod));
+    }
+
+    @Test
+    public void testFetchProvidersSingle_Producer_Producer() throws NoSuchMethodException, SecurityException {
+
+        final Method l_myMethod = PhasedSeries_A.class.getMethod("step1", String.class);
+
+        Phases.PRODUCER.activate();
+
+        Object[] l_providerStep1 = PhasedTestManager.fetchProvidersSingle(l_myMethod);
+
+        assertThat(l_providerStep1.length, equalTo(1));
+
+        assertThat(l_providerStep1[0], equalTo(PhasedTestManager.STD_PHASED_GROUP_SINGLE));
+    }
+
+    @Test
+    public void testFetchProvidersSingle_Producer_Consumer() throws NoSuchMethodException, SecurityException {
+
+        final Method l_myMethod = PhasedSeries_A.class.getMethod("step1", String.class);
+
+        Phases.CONSUMER.activate();
+
+        Object[] l_providerStep1 = PhasedTestManager.fetchProvidersSingle(l_myMethod);
+
+        assertThat(l_providerStep1.length, equalTo(0));
+    }
+
+    @Test
+    public void testFetchProvidersSingle_Producer_Inactive() throws NoSuchMethodException, SecurityException {
+
+        final Method l_myMethod = PhasedSeries_A.class.getMethod("step1", String.class);
+
+        Object[] l_providerStep1 = PhasedTestManager.fetchProvidersSingle(l_myMethod);
+
+        assertThat(l_providerStep1.length, equalTo(1));
+
+        assertThat(l_providerStep1[0], equalTo(PhasedTestManager.STD_PHASED_GROUP_SINGLE));
+    }
+
+    @Test
+    public void testFetchProvidersSingle_Producer_InactiveNoExec()
+            throws NoSuchMethodException, SecurityException {
+
+        final Method l_myMethod = PhasedSeries_B_NoInActive.class.getMethod("step1", String.class);
+
+        Object[] l_providerStep1 = PhasedTestManager.fetchProvidersSingle(l_myMethod);
+
+        assertThat(l_providerStep1.length, equalTo(0));
+    }
+
+    @Test
+    public void testFetchProvidersSingle_Limt_Producer() throws NoSuchMethodException, SecurityException {
+
+        final Method l_myMethod = PhasedSeries_A.class.getMethod("step2", String.class);
+
+        Phases.PRODUCER.activate();
+
+        Object[] l_providerStep1 = PhasedTestManager.fetchProvidersSingle(l_myMethod);
+
+        assertThat(l_providerStep1.length, equalTo(1));
+
+        assertThat(l_providerStep1[0], equalTo(PhasedTestManager.STD_PHASED_GROUP_SINGLE));
+    }
+
+    @Test
+    public void testFetchProvidersSingle_Limit_Consumer() throws NoSuchMethodException, SecurityException {
+
+        final Method l_myMethod = PhasedSeries_A.class.getMethod("step2", String.class);
+
+        Phases.CONSUMER.activate();
+
+        Object[] l_providerStep1 = PhasedTestManager.fetchProvidersSingle(l_myMethod);
+
+        assertThat(l_providerStep1.length, equalTo(0));
+    }
+
+    @Test
+    public void testFetchProvidersSingle_Limit_Inactive() throws NoSuchMethodException, SecurityException {
+
+        final Method l_myMethod = PhasedSeries_A.class.getMethod("step2", String.class);
+
+        Object[] l_providerStep1 = PhasedTestManager.fetchProvidersSingle(l_myMethod);
+
+        assertThat(l_providerStep1.length, equalTo(1));
+
+        assertThat(l_providerStep1[0], equalTo(PhasedTestManager.STD_PHASED_GROUP_SINGLE));
+    }
+
+    @Test
+    public void testFetchProvidersSingle_Consumer_Producer() throws NoSuchMethodException, SecurityException {
+
+        final Method l_myMethod = PhasedSeries_A.class.getMethod("step3", String.class);
+
+        Phases.PRODUCER.activate();
+
+        Object[] l_providerStep1 = PhasedTestManager.fetchProvidersSingle(l_myMethod);
+
+        assertThat(l_providerStep1.length, equalTo(0));
+
+    }
+
+    @Test
+    public void testFetchProvidersSingle_Consumer_Consumer() throws NoSuchMethodException, SecurityException {
+
+        final Method l_myMethod = PhasedSeries_A.class.getMethod("step3", String.class);
+
+        Phases.CONSUMER.activate();
+
+        Object[] l_providerStep1 = PhasedTestManager.fetchProvidersSingle(l_myMethod);
+
+        assertThat(l_providerStep1.length, equalTo(1));
+
+        assertThat(l_providerStep1[0], equalTo(PhasedTestManager.STD_PHASED_GROUP_SINGLE));
+    }
+
+    @Test
+    public void testFetchProvidersSingle_Consumer_Inactive() throws NoSuchMethodException, SecurityException {
+
+        final Method l_myMethod = PhasedSeries_A.class.getMethod("step3", String.class);
+
+        Object[] l_providerStep1 = PhasedTestManager.fetchProvidersSingle(l_myMethod);
+
+        assertThat(l_providerStep1.length, equalTo(1));
+
+        assertThat(l_providerStep1[0], equalTo(PhasedTestManager.STD_PHASED_GROUP_SINGLE));
+    }
+
+    @Test
+    public void testFetchProvidersSingle_Consumer_InactiveNoExec()
+            throws NoSuchMethodException, SecurityException {
+
+        final Method l_myMethod = PhasedSeries_B_NoInActive.class.getMethod("step3", String.class);
+
+        Object[] l_providerStep1 = PhasedTestManager.fetchProvidersSingle(l_myMethod);
+
+        assertThat(l_providerStep1.length, equalTo(0));
+
+    }
+
+    /**
+     * Testing issue #33 When we are in Inactive state the Shuffling should not
+     * be executed
+     *
+     * Author : gandomi
+     *
+     * @throws NoSuchMethodException
+     * @throws SecurityException
+     *
+     */
+    @Test
+    public void testIsInCascadeMode() throws NoSuchMethodException, SecurityException {
+        final Method l_myMethod = PhasedSeries_F_Shuffle.class.getMethod("step3", String.class);
+
+        Phases.CONSUMER.activate();
+        assertThat("We should be in Shuffled mode", PhasedTestManager.isPhasedTestShuffledMode(l_myMethod));
+
+    }
+
+    /**
+     * Testing issue #33 When we are in Inactive state the Shuffled should not
+     * happen
+     *
+     * Author : gandomi
+     *
+     * @throws NoSuchMethodException
+     * @throws SecurityException
+     *
+     */
+    @Test
+    public void testIsInCascadeMode_Negative() throws NoSuchMethodException, SecurityException {
+        final Method l_myMethod = PhasedSeries_F_Shuffle.class.getMethod("step3", String.class);
+
+        assertThat("We should not be in Shuffled mode",
+                !PhasedTestManager.isPhasedTestShuffledMode(l_myMethod));
+
+    }
+
+    @Test
+    public void testIsInCascadeMode_Negative2() throws NoSuchMethodException, SecurityException {
+        final Method l_myMethod = NormalSeries_A.class.getMethod("firstTest");
+
+        Phases.CONSUMER.activate();
+        assertThat("We should not be in Shuffled mode",
+                !PhasedTestManager.isPhasedTestShuffledMode(l_myMethod));
+
+    }
+
+    @Test(description = "Testing with a single mode")
+    public void testIsInCascadeMode_Negative3() throws NoSuchMethodException, SecurityException {
+        final Method l_myMethod = PhasedSeries_A.class.getMethod("step1", String.class);
+
+        Phases.CONSUMER.activate();
+        assertThat("We should not be in Shuffled mode",
+                !PhasedTestManager.isPhasedTestShuffledMode(l_myMethod));
+
+    }
+
+    /****** Single mode tests *******/
+
+    @Test(description = "Testing with a single mode")
+    public void testIsInSingleMode_STD() throws NoSuchMethodException, SecurityException {
+        final Method l_myMethod = PhasedSeries_A.class.getMethod("step1", String.class);
+
+        Phases.CONSUMER.activate();
+        assertThat("We should not be in Shuffled mode", PhasedTestManager.isPhasedTestSingleMode(l_myMethod));
+    }
+
+    @Test(description = "Testing with a single mode")
+    public void testIsInSingleMode_InActiveState() throws NoSuchMethodException, SecurityException {
+        final Method l_myMethod = PhasedSeries_A.class.getMethod("step1", String.class);
+
+        assertThat("We should not be in Shuffled mode", PhasedTestManager.isPhasedTestSingleMode(l_myMethod));
+    }
+
+    @Test
+    public void testIsInSingleMode_TestIsCascadingButTheStateIsInActive()
+            throws NoSuchMethodException, SecurityException {
+        final Method l_myMethod = PhasedSeries_F_Shuffle.class.getMethod("step3", String.class);
+
+        assertThat("We should not be in single mode", PhasedTestManager.isPhasedTestSingleMode(l_myMethod));
+
+    }
+
+    @Test
+    public void testIsInSingleMode_Negative2() throws NoSuchMethodException, SecurityException {
+        final Method l_myMethod = NormalSeries_A.class.getMethod("firstTest");
+
+        Phases.CONSUMER.activate();
+        assertThat("We should not be in single mode", !PhasedTestManager.isPhasedTestSingleMode(l_myMethod));
+
+    }
+
+    @Test
+    public void testIsInSingleMode() throws NoSuchMethodException, SecurityException {
+        final Method l_myMethod = PhasedSeries_F_Shuffle.class.getMethod("step3", String.class);
+
+        Phases.CONSUMER.activate();
+        assertThat("We should be in Shuffled mode", PhasedTestManager.isPhasedTestShuffledMode(l_myMethod));
+
+    }
+
+    /****** Key Identity Methods *****/
+    @Test
+    public void testGenerateStepKeyIdentity() {
+        assertThat(PhasedTestManager.generateStepKeyIdentity("A", "B"),
+                equalTo("A" + PhasedTestManager.STD_KEY_CLASS_SEPARATOR + "B"));
+    }
+
+    @Test
+    public void testGenerateStepKeyIdentity2() {
+        PhasedTestManager.phaseContext.put("A", "C");
+        assertThat(PhasedTestManager.generateStepKeyIdentity("A", "B"),
+                equalTo("A(C)" + PhasedTestManager.STD_KEY_CLASS_SEPARATOR + "B"));
+    }
+
+    @Test
+    public void testGenerateStepKeyIdentity3() {
+        PhasedTestManager.phaseContext.put("A", "C");
+        assertThat(PhasedTestManager.generateStepKeyIdentity("A", "E", "B"),
+                equalTo("E(C)" + PhasedTestManager.STD_KEY_CLASS_SEPARATOR + "B"));
+    }
+
+    @Test
+    public void testGenerateStepKeyIdentity_nullStorageKey() {
+        assertThat(PhasedTestManager.generateStepKeyIdentity("A", null), equalTo("A"));
+    }
+
+    @Test
+    public void testGenerateStepKeyIdentity_nullStorageKeyWithContext() {
+        PhasedTestManager.phaseContext.put("A", "C");
+        assertThat(PhasedTestManager.generateStepKeyIdentity("A", null), equalTo("A(C)"));
+        assertThat(PhasedTestManager.generateStepKeyIdentity("A", ""), equalTo("A(C)"));
+        assertThat(PhasedTestManager.generateStepKeyIdentity("A", " "), equalTo("A(C)"));
+    }
+
+    @Test
+    public void testSB() {
+        String x = "com.adobe.campaign.tests.integro.phased.data.PhasedSeries_E_FullMonty.step1";
+
+        StringBuilder sb = new StringBuilder(x);
+
+        assertThat(x, equalTo(sb.toString()));
+    }
+
+    @Test
+    public void testIsPhaseLimit() throws NoSuchMethodException, SecurityException {
+
+        final Method l_myMethod = PhasedSeries_A.class.getMethod("step3", String.class);
+
+        assertThat("step3 should be the phase limit", PhasedTestManager.isPhaseLimit(l_myMethod));
+    }
+
+    /*******
+     * Keeping test context between phases
+     * 
+     * @throws SecurityException
+     * @throws NoSuchMethodException
+     ******/
+    @Test
+    public void testFetchScenarioID() throws NoSuchMethodException, SecurityException {
+        //On Test End we need to add context of test. The context is the state of the scenario
+
+        //If a test fails, the test state should be logged in the context
+        //This logging should be separate from the produce data Class + dataprovider
+        //We should have a log
+        //Do we only log failures
+
+        final Method l_myTestWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
+                String.class);
+
+        ITestResult l_itr = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
+        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
+
+        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
+        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "Q" });
+        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
+        Mockito.when(l_com.getMethod()).thenReturn(l_myTestWithOneArg);
+
+        assertThat("We should have the correct full name", PhasedTestManager.fetchScenarioName(l_itr),
+                equalTo("com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClassWithError(Q)"));
+    }
+
+    @Test
+    public void testStateIstKeptBetweenPhases_Continue() throws NoSuchMethodException, SecurityException {
+        //On Test End we need to add context of test. The context is the state of the scenario
+
+        //If a test fails, the test state should be logged in the context
+        //This logging should be separate from the produce data Class + dataprovider
+        //We should have a log
+        //Do we only log failures
+        final Method l_myTestWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
+                String.class);
+
+        ITestResult l_itr = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
+        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
+
+        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
+        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
+        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "Q" });
+        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
+        Mockito.when(l_com.getMethod()).thenReturn(l_myTestWithOneArg);
+
+        assertThat("Before storing the context the value is true",
+                PhasedTestManager.scenarioStateContinue(l_itr));
+
+        PhasedTestManager.scenarioStateStore(l_itr);
+        
+        String l_name = PhasedTestManager.fetchScenarioName(l_itr);
+        assertThat("The context should have been stored", PhasedTestManager.phasedCache.containsKey(l_name));
+        assertThat("We should havee the correct value", PhasedTestManager.phasedCache.get(l_name),
+                equalTo(Boolean.TRUE.toString()));
+
+        assertThat("We should be able to continue with the phase group",
+                PhasedTestManager.scenarioStateContinue(l_itr));
+
+    }
+
+    @Test
+    public void testStateIstKeptBetweenPhases_Negative() throws NoSuchMethodException, SecurityException {
+        //On Test End we need to add context of test. The context is the state of the scenario
+
+        //If a test fails, the test state should be logged in the context
+        //This logging should be separate from the produce data Class + dataprovider
+        //We should have a log
+        //Do we only log failures
+        final Method l_myTestWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
+                String.class);
+
+        ITestResult l_itr = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
+        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
+
+        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
+        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.FAILURE);
+        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "Q" });
+        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
+        Mockito.when(l_com.getMethod()).thenReturn(l_myTestWithOneArg);
+
+        PhasedTestManager.scenarioStateStore(l_itr);
+        String l_scenarioName = PhasedTestManager.fetchScenarioName(l_itr);
+        
+        assertThat("The context should have been stored", PhasedTestManager.phasedCache.containsKey(l_scenarioName));
+        
+        assertThat("We should have the correct value", PhasedTestManager.phasedCache.get(l_scenarioName),
+                equalTo(GeneralTestUtils.fetchFullName(l_itr)));
+
+        assertThat("We should be able to continue with the phase group",
+                PhasedTestManager.scenarioStateContinue(l_itr));
+
+    }
+
+    @Test
+    public void testStateIstKeptBetweenPhases_NegativeSkipped()
+            throws NoSuchMethodException, SecurityException {
+        //On Test End we need to add context of test. The context is the state of the scenario
+
+        //If a test fails, the test state should be logged in the context
+        //This logging should be separate from the produce data Class + dataprovider
+        //We should have a log
+        //Do we only log failures
+        final Method l_myTestWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
+                String.class);
+
+        ITestResult l_itr = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
+        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
+
+        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
+        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SKIP);
+        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "Q" });
+        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
+        Mockito.when(l_com.getMethod()).thenReturn(l_myTestWithOneArg);
+
+        PhasedTestManager.scenarioStateStore(l_itr);
+
+        assertThat("We should be able to continue with the phase group",
+                PhasedTestManager.scenarioStateContinue(l_itr));
+
+        String l_name = PhasedTestManager.fetchScenarioName(l_itr);
+        assertThat("We should have the correct value", PhasedTestManager.phasedCache.get(l_name),
+                equalTo(GeneralTestUtils.fetchFullName(l_itr)));
+
+    }
+
+    @Test
+    public void testStateIstKeptBetweenPhases_NegativeStaysNegative()
+            throws NoSuchMethodException, SecurityException {
+        //On Test End we need to add context of test. The context is the state of the scenario
+
+        //If a test fails, the test state should be logged in the context
+        //This logging should be separate from the produce data Class + dataprovider
+        //We should have a log
+        //Do we only log failures
+        final Method l_myTestWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step2",
+                String.class);
+
+        ITestResult l_itr = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
+        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
+
+        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
+        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.FAILURE);
+        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "Q" });
+        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
+        Mockito.when(l_com.getMethod()).thenReturn(l_myTestWithOneArg);
+
+        PhasedTestManager.scenarioStateStore(l_itr);
+        
+        String l_name = PhasedTestManager.fetchScenarioName(l_itr);
+        assertThat("We should have the correct value", PhasedTestManager.phasedCache.get(l_name),
+                equalTo(GeneralTestUtils.fetchFullName(l_itr)));
+
+        final Method l_myTestWithOneArg2 = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
+                String.class);
+
+        ITestResult l_itr2 = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod2 = Mockito.mock(ITestNGMethod.class);
+        ConstructorOrMethod l_com2 = Mockito.mock(ConstructorOrMethod.class);
+
+        Mockito.when(l_itr2.getMethod()).thenReturn(l_itrMethod2);
+        Mockito.when(l_itr2.getStatus()).thenReturn(ITestResult.FAILURE);
+        Mockito.when(l_itr2.getParameters()).thenReturn(new Object[] { "Q" });
+        Mockito.when(l_itrMethod2.getConstructorOrMethod()).thenReturn(l_com2);
+        Mockito.when(l_com2.getMethod()).thenReturn(l_myTestWithOneArg2);
+
+        assertThat("We should not be able to continue with the phase group",
+                !PhasedTestManager.scenarioStateContinue(l_itr2));
+        
+        PhasedTestManager.scenarioStateStore(l_itr2);
+        
+        assertThat("The step that caused the failure should not change", PhasedTestManager.phasedCache.get(l_name),
+                equalTo(GeneralTestUtils.fetchFullName(l_itr)));
+
+    }
+
+    @Test
+    public void testStateIstKeptBetweenPhases_NegativeStaysNegativeUnlessSameTest()
+            throws NoSuchMethodException, SecurityException {
+        //On Test End we need to add context of test. The context is the state of the scenario
+
+        //If a test fails, the test state should be logged in the context
+        //This logging should be separate from the produce data Class + dataprovider
+        //We should have a log
+        //Do we only log failures
+        final Method l_myTestWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step2",
+                String.class);
+
+        ITestResult l_itr = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
+        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
+
+        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
+        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.FAILURE);
+        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "Q" });
+        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
+        Mockito.when(l_com.getMethod()).thenReturn(l_myTestWithOneArg);
+
+        PhasedTestManager.scenarioStateStore(l_itr);
+
+        assertThat(
+                "We should be able to continue with the phase group, iff we are reeexecuting the same test",
+                PhasedTestManager.scenarioStateContinue(l_itr));
+
+        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
+
+        PhasedTestManager.scenarioStateStore(l_itr);
+
+        assertThat("We should be able to continue with the phase group",
+                PhasedTestManager.scenarioStateContinue(l_itr));
+
+    }
+
+    @Test
+    public void testStateIstKeptBetweenPhases_SuccessCanTurnNegative()
+            throws NoSuchMethodException, SecurityException {
+        //On Test End we need to add context of test. The context is the state of the scenario
+
+        //If a test fails, the test state should be logged in the context
+        //This logging should be separate from the produce data Class + dataprovider
+        //We should have a log
+        //Do we only log failures
+        final Method l_myTestWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step1",
+                String.class);
+
+        ITestResult l_itr = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
+        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
+
+        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
+        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
+        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "Q" });
+        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
+        Mockito.when(l_com.getMethod()).thenReturn(l_myTestWithOneArg);
+
+        PhasedTestManager.scenarioStateStore(l_itr);
+
+        final Method l_myTestWithOneArg2 = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step2",
+                String.class);
+
+        ITestResult l_itr2 = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod2 = Mockito.mock(ITestNGMethod.class);
+        ConstructorOrMethod l_com2 = Mockito.mock(ConstructorOrMethod.class);
+
+        Mockito.when(l_itr2.getMethod()).thenReturn(l_itrMethod2);
+        Mockito.when(l_itr2.getStatus()).thenReturn(ITestResult.FAILURE);
+        Mockito.when(l_itr2.getParameters()).thenReturn(new Object[] { "Q" });
+        Mockito.when(l_itrMethod2.getConstructorOrMethod()).thenReturn(l_com2);
+        Mockito.when(l_com2.getMethod()).thenReturn(l_myTestWithOneArg2);
+
+        assertThat("We should be able to continue with the phase group",
+                PhasedTestManager.scenarioStateContinue(l_itr2));
+
+        PhasedTestManager.scenarioStateStore(l_itr2);
+        
+        assertThat("We should  be able to continue with the phase group",
+                PhasedTestManager.scenarioStateContinue(l_itr2));
+
+        final Method l_myTestWithOneArg3 = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
+                String.class);
+
+        ITestResult l_itr3 = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod3 = Mockito.mock(ITestNGMethod.class);
+        ConstructorOrMethod l_com3 = Mockito.mock(ConstructorOrMethod.class);
+
+        Mockito.when(l_itr3.getMethod()).thenReturn(l_itrMethod3);
+        Mockito.when(l_itr3.getStatus()).thenReturn(ITestResult.SUCCESS);
+        Mockito.when(l_itr3.getParameters()).thenReturn(new Object[] { "Q" });
+        Mockito.when(l_itrMethod3.getConstructorOrMethod()).thenReturn(l_com3);
+        Mockito.when(l_com3.getMethod()).thenReturn(l_myTestWithOneArg3);
+
+        assertThat("We should be able to continue with the phase group",
+                !PhasedTestManager.scenarioStateContinue(l_itr3));
+
+        PhasedTestManager.scenarioStateStore(l_itr);
+
+        assertThat("We should no longer be able to continue with the phase group",
+                !PhasedTestManager.scenarioStateContinue(l_itr));
+    }
+
+    @Test
+    public void testStateIstKeptBetweenPhases_SuccessRemainsSuccessfull()
+            throws NoSuchMethodException, SecurityException {
+        //On Test End we need to add context of test. The context is the state of the scenario
+
+        //If a test fails, the test state should be logged in the context
+        //This logging should be separate from the produce data Class + dataprovider
+        //We should have a log
+        //Do we only log failures
+        final Method l_myTestWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
+                String.class);
+
+        ITestResult l_itr = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
+        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
+
+        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
+        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
+        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "Q" });
+        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
+        Mockito.when(l_com.getMethod()).thenReturn(l_myTestWithOneArg);
+
+        PhasedTestManager.scenarioStateStore(l_itr);
+
+        assertThat("We should be able to continue with the phase group",
+                PhasedTestManager.scenarioStateContinue(l_itr));
+
+        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
+        PhasedTestManager.scenarioStateStore(l_itr);
+
+        assertThat("We should no longer be able to continue with the phase group",
+                PhasedTestManager.scenarioStateContinue(l_itr));
+    }
+
+}
