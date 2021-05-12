@@ -139,7 +139,7 @@
         </plugins>
     </build>
     <properties>
-        <license.dir>${basedir}</license.dir>
+        <license.dir>${basedir}/.license</license.dir>
     </properties>
     <reporting>
         <plugins>
