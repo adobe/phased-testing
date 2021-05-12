@@ -42,10 +42,10 @@ public class PhasedTestManager {
 
     protected static Logger log = LogManager.getLogger();
 
-    public static final String PROP_PHASED_DATA_PATH = "INTEGRO.TEST.PHASED.STORAGE.PATH";
-    public static final String PROP_SELECTED_PHASE = "INTEGRO.TEST.PHASED.PHASE";
-    public static final String PROP_PHASED_TEST_DATABROKER = "INTEGRO.TEST.PHASED.DATABROKER";
-    public static final String PROP_DISABLE_RETRY = "INTEGRO.TEST.PHASED.RETRY.DISABLED";
+    public static final String PROP_PHASED_DATA_PATH = "PHASED.TESTS.RETRY.DISABLED";
+    public static final String PROP_SELECTED_PHASE = "PHASED.TESTS.PHASE";
+    public static final String PROP_PHASED_TEST_DATABROKER = "PHASED.TESTS.DATABROKER";
+    public static final String PROP_DISABLE_RETRY = "PHASED.TESTS.RETRY.DISABLED";
 
 
     public static final String STD_STORE_DIR = "phased_tests";
