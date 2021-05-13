@@ -33,6 +33,7 @@ import org.testng.ITestResult;
 
 import com.adobe.campaign.tests.integro.core.utils.ClassPathParser;
 import com.adobe.campaign.tests.integro.core.utils.GeneralTestUtils;
+import com.adobe.campaign.tests.integro.core.utils.StackTraceManager;
 
 public class PhasedTestManager {
 
@@ -146,7 +147,7 @@ public class PhasedTestManager {
      *
      */
     public static String produce(String in_storeValue) {
-        final String l_methodFullName = ClassPathParser.fetchCalledByFullName();
+        final String l_methodFullName = StackTraceManager.fetchCalledByFullName();
         StringBuilder sb = new StringBuilder(l_methodFullName);
 
         if (phaseContext.containsKey(l_methodFullName)) {
@@ -171,8 +172,8 @@ public class PhasedTestManager {
      *
      */
     public static String produceWithKey(String in_storageKey, String in_storeValue) {
-        final String l_className = ClassPathParser.fetchCalledBy().getClassName();
-        final String l_fullId = generateStepKeyIdentity(ClassPathParser.fetchCalledByFullName(), l_className,
+        final String l_className = StackTraceManager.fetchCalledBy().getClassName();
+        final String l_fullId = generateStepKeyIdentity(StackTraceManager.fetchCalledByFullName(), l_className,
                 in_storageKey);
         return storePhasedCache(l_fullId, in_storeValue);
     }
@@ -256,13 +257,13 @@ public class PhasedTestManager {
      *
      */
     public static String consume(String in_storedStep) {
-        StackTraceElement l_calledElement = ClassPathParser.fetchCalledBy();
+        StackTraceElement l_calledElement = StackTraceManager.fetchCalledBy();
         StringBuilder sb = new StringBuilder(l_calledElement.getClassName());
 
         sb.append('.');
         sb.append(in_storedStep);
 
-        String l_methodFullNameOfProducer = ClassPathParser.fetchCalledByFullName();
+        String l_methodFullNameOfProducer = StackTraceManager.fetchCalledByFullName();
         //Fetch current data  provider
         if (phaseContext.containsKey(l_methodFullNameOfProducer)) {
             sb.append("(");
@@ -291,9 +292,9 @@ public class PhasedTestManager {
      *
      */
     public static String consumeWithKey(String in_storageKey) {
-        final StackTraceElement l_fetchCalledBy = ClassPathParser.fetchCalledBy();
+        final StackTraceElement l_fetchCalledBy = StackTraceManager.fetchCalledBy();
 
-        String l_realKey = generateStepKeyIdentity(ClassPathParser.fetchCalledByFullName(),
+        String l_realKey = generateStepKeyIdentity(StackTraceManager.fetchCalledByFullName(),
                 l_fetchCalledBy.getClassName(), in_storageKey);
 
         if (!phasedCache.containsKey(l_realKey)) {
@@ -433,7 +434,7 @@ public class PhasedTestManager {
      *
      */
     public static Object[][] fetchProvidersShuffled(Method m) {
-        String l_methodFullName = GeneralTestUtils.fetchFullName(m);
+        String l_methodFullName = ClassPathParser.fetchFullName(m);
         return fetchProvidersShuffled(l_methodFullName);
     }
 
@@ -497,7 +498,7 @@ public class PhasedTestManager {
      *
      */
     public static Object[] fetchProvidersSingle(Method in_method) {
-        log.debug("Returning provider for method " + GeneralTestUtils.fetchFullName(in_method));
+        log.debug("Returning provider for method " + ClassPathParser.fetchFullName(in_method));
 
         if (Phases.PRODUCER.isSelected() && isExecutedInProducerMode(in_method)) {
 
@@ -580,8 +581,8 @@ public class PhasedTestManager {
      *
      */
     protected static String storeTestData(Method in_testMethod, String in_phaseGroup, String in_storedData) {
-        phaseContext.put(GeneralTestUtils.fetchFullName(in_testMethod), in_phaseGroup);
-        return storePhasedCache(generateStepKeyIdentity(GeneralTestUtils.fetchFullName(in_testMethod)),
+        phaseContext.put(ClassPathParser.fetchFullName(in_testMethod), in_phaseGroup);
+        return storePhasedCache(generateStepKeyIdentity(ClassPathParser.fetchFullName(in_testMethod)),
                 in_storedData);
 
     }
@@ -714,7 +715,7 @@ public class PhasedTestManager {
     public static String fetchScenarioName(ITestResult in_testNGResult) {
         StringBuilder sb = new StringBuilder(in_testNGResult.getMethod().getConstructorOrMethod().getMethod()
                 .getDeclaringClass().getTypeName());
-        return sb.append(GeneralTestUtils.fetchParameterValues(in_testNGResult)).toString();
+        return sb.append(ClassPathParser.fetchParameterValues(in_testNGResult)).toString();
     }
 
     /**
@@ -733,7 +734,7 @@ public class PhasedTestManager {
     public static void scenarioStateStore(ITestResult in_testResult) {
 
         final String l_scenarioName = fetchScenarioName(in_testResult);
-        final String l_stepName = GeneralTestUtils.fetchFullName(in_testResult);
+        final String l_stepName = ClassPathParser.fetchFullName(in_testResult);
 
         if (phasedCache.containsKey(l_scenarioName)) {
 
@@ -774,7 +775,7 @@ public class PhasedTestManager {
             return true;
         }
 
-        if (phasedCache2.get(l_scenarioName).equals(GeneralTestUtils.fetchFullName(in_testResult))) {
+        if (phasedCache2.get(l_scenarioName).equals(ClassPathParser.fetchFullName(in_testResult))) {
             return true;
         }
         

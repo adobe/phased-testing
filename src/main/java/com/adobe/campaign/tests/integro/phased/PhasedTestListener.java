@@ -30,7 +30,8 @@ import org.testng.TestNGException;
 import org.testng.annotations.ITestAnnotation;
 import org.testng.internal.BaseTestMethod;
 import org.testng.internal.TestResult;
-import com.adobe.campaign.tests.integro.core.utils.GeneralTestUtils;
+
+import com.adobe.campaign.tests.integro.core.utils.ClassPathParser;
 
 public class PhasedTestListener implements ITestListener, IAnnotationTransformer {
     protected static Logger log = LogManager.getLogger();
@@ -49,10 +50,10 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
             }
 
             final String l_dataProvider = result.getParameters()[0].toString();
-            PhasedTestManager.storePhasedContext(GeneralTestUtils.fetchFullName(l_method), l_dataProvider);
+            PhasedTestManager.storePhasedContext(ClassPathParser.fetchFullName(l_method), l_dataProvider);
             
             if (!PhasedTestManager.scenarioStateContinue(result)) {
-                final String skipMessage = "Skipping scenario step "+GeneralTestUtils.fetchFullName(result)+ " due to failure in a previous steps.";
+                final String skipMessage = "Skipping scenario step "+ClassPathParser.fetchFullName(result)+ " due to failure in a previous steps.";
                 log.info(skipMessage);
                 throw new SkipException(skipMessage);
             }
@@ -163,13 +164,13 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
             Method lt_method = lt_testNGMethod.getConstructorOrMethod().getMethod();
 
             if (PhasedTestManager.isPhasedTestShuffledMode(lt_method)) {
-                log.debug("In Shuffled mode for test " + GeneralTestUtils.fetchFullName(lt_method));
+                log.debug("In Shuffled mode for test " + ClassPathParser.fetchFullName(lt_method));
                 if (!l_classMethodMap.containsKey(lt_method.getDeclaringClass())) {
                     l_classMethodMap.put(lt_method.getDeclaringClass(), new ArrayList<>());
                 }
 
                 l_classMethodMap.get(lt_method.getDeclaringClass())
-                        .add(GeneralTestUtils.fetchFullName(lt_method));
+                        .add(ClassPathParser.fetchFullName(lt_method));
             }
         }
 
@@ -189,15 +190,15 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
         }
         
         for (ITestResult lt_test : context.getPassedTests().getAllResults()) {
-            log.debug(" Test "+GeneralTestUtils.fetchFullName(lt_test)+" ran with the result SUCCESS");
+            log.debug(" Test "+ClassPathParser.fetchFullName(lt_test)+" ran with the result SUCCESS");
         }
 
         for (ITestResult lt_test : context.getFailedTests().getAllResults()) {
-            log.debug(" Test "+GeneralTestUtils.fetchFullName(lt_test)+" ran with the result FAILED");
+            log.debug(" Test "+ClassPathParser.fetchFullName(lt_test)+" ran with the result FAILED");
         }
         
         for (ITestResult lt_test : context.getSkippedTests().getAllResults()) {
-            log.debug(" Test "+GeneralTestUtils.fetchFullName(lt_test)+" ran with the result SKIPPED");
+            log.debug(" Test "+ClassPathParser.fetchFullName(lt_test)+" ran with the result SKIPPED");
         }
     }
 

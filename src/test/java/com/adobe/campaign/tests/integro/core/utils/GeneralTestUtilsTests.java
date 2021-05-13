@@ -203,7 +203,7 @@ public class GeneralTestUtilsTests {
         Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
         Mockito.when(l_com.getMethod()).thenReturn(l_myTestNoArgs);
 
-        assertThat("We should have the correct full name", GeneralTestUtils.fetchFullName(l_itr),
+        assertThat("We should have the correct full name", ClassPathParser.fetchFullName(l_itr),
                 equalTo("com.adobe.campaign.tests.integro.phased.PhasedTestManagerTests.testStorageMethod"));
 
     }
@@ -224,7 +224,7 @@ public class GeneralTestUtilsTests {
         
         
 
-        assertThat("We should have the correct full name", GeneralTestUtils.fetchFullName(l_itr),
+        assertThat("We should have the correct full name", ClassPathParser.fetchFullName(l_itr),
                 equalTo("com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_SingleClass.step2(A)"));
 
     }
@@ -235,7 +235,7 @@ public class GeneralTestUtilsTests {
         final Object[] l_parameterValues = new Object[] { "Q","Z" };
         
 
-        assertThat("We should have the correct full name", GeneralTestUtils.fetchParameterValues(l_parameterValues),
+        assertThat("We should have the correct full name", ClassPathParser.fetchParameterValues(l_parameterValues),
                 equalTo("(Q,Z)"));
 
     }
@@ -250,7 +250,7 @@ public class GeneralTestUtilsTests {
 
 
         final Object[] l_parameterValues = new Object[] { "Q",new Integer("3") };
-        assertThat("We should have the correct full name", GeneralTestUtils.fetchParameterValues(l_parameterValues),
+        assertThat("We should have the correct full name", ClassPathParser.fetchParameterValues(l_parameterValues),
                 equalTo("(Q,3)"));
 
     }

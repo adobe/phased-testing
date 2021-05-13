@@ -18,6 +18,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.testng.internal.ConstructorOrMethod;
 
+import com.adobe.campaign.tests.integro.core.utils.ClassPathParser;
 import com.adobe.campaign.tests.integro.core.utils.GeneralTestUtils;
 import com.adobe.campaign.tests.integro.phased.data.NormalSeries_A;
 import com.adobe.campaign.tests.integro.phased.data.PhasedDataBrokerTestImplementation;
@@ -1005,7 +1006,7 @@ public class PhasedTestManagerTests {
         assertThat("The context should have been stored", PhasedTestManager.phasedCache.containsKey(l_scenarioName));
         
         assertThat("We should have the correct value", PhasedTestManager.phasedCache.get(l_scenarioName),
-                equalTo(GeneralTestUtils.fetchFullName(l_itr)));
+                equalTo(ClassPathParser.fetchFullName(l_itr)));
 
         assertThat("We should be able to continue with the phase group",
                 PhasedTestManager.scenarioStateContinue(l_itr));
@@ -1041,7 +1042,7 @@ public class PhasedTestManagerTests {
 
         String l_name = PhasedTestManager.fetchScenarioName(l_itr);
         assertThat("We should have the correct value", PhasedTestManager.phasedCache.get(l_name),
-                equalTo(GeneralTestUtils.fetchFullName(l_itr)));
+                equalTo(ClassPathParser.fetchFullName(l_itr)));
 
     }
 
@@ -1071,7 +1072,7 @@ public class PhasedTestManagerTests {
         
         String l_name = PhasedTestManager.fetchScenarioName(l_itr);
         assertThat("We should have the correct value", PhasedTestManager.phasedCache.get(l_name),
-                equalTo(GeneralTestUtils.fetchFullName(l_itr)));
+                equalTo(ClassPathParser.fetchFullName(l_itr)));
 
         final Method l_myTestWithOneArg2 = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
                 String.class);
@@ -1092,7 +1093,7 @@ public class PhasedTestManagerTests {
         PhasedTestManager.scenarioStateStore(l_itr2);
         
         assertThat("The step that caused the failure should not change", PhasedTestManager.phasedCache.get(l_name),
-                equalTo(GeneralTestUtils.fetchFullName(l_itr)));
+                equalTo(ClassPathParser.fetchFullName(l_itr)));
 
     }
 

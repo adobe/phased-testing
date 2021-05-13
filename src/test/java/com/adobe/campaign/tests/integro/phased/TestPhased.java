@@ -839,9 +839,10 @@ public class TestPhased {
         assertThat("The file should exist", l_storedFile.exists());
 
         //Since we also store the test status context in the cache we also have the result of the scenario after the phase.
-        //I.e. 2 step cache data + 1 scenario state        
-        assertThat("We should have three lines", GeneralTestUtils.fetchFlaggedMethods(l_storedFile).size(),
-                Matchers.equalTo(3));
+        //I.e. 2 step cache data + 1 scenario state
+        //There is a comment line in the beginning
+        assertThat("We should have three +1 lines", GeneralTestUtils.fetchFileContentLines(l_storedFile).size(),
+                Matchers.equalTo(4));
 
     }
 
@@ -890,9 +891,10 @@ public class TestPhased {
         assertThat("The file should exist", l_storedFile.exists());
 
         //Since we also store the test status context in the cache we also have the result of the scenario after the phase.
-        //I.e. 2 step cache data + 1 scenario state        
-        assertThat("We should have three lines", GeneralTestUtils.fetchFlaggedMethods(l_storedFile).size(),
-                Matchers.equalTo(3));
+        //I.e. 2 step cache data + 1 scenario state     
+        //+ 1 line for the comment
+        assertThat("We should have three +1  lines", GeneralTestUtils.fetchFileContentLines(l_storedFile).size(),
+                Matchers.equalTo(3+1));
 
     }
 

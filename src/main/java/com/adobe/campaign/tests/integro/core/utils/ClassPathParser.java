@@ -11,6 +11,14 @@
  */
 package com.adobe.campaign.tests.integro.core.utils;
 
+import java.io.File;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.testng.ITestResult;
+
 public class ClassPathParser {
 
     /**
@@ -103,39 +111,123 @@ public class ClassPathParser {
             return l_pathItems[(l_pathItems.length - 1)];
     }
 
-    /*
+    /**
+     * This method constructs a full name from the given method.
      * 
-     * This method fetches the method that called the current method. Example : if you have the following stack trace:
-     * A -> B -> C
-     * If you call fetchCalledBy() from C it will return B
+     * Author : gandomi
+     *
+     * @param in_method
+     * @return The full qualified name of the method
+     *
      */
-    public static StackTraceElement fetchCalledBy() {
-        /*
-        3 - because The stack trace contains :
-            0. getStackTrace()
-            1. StackTraceElement.fetchCalledBy()
-            2. The method from which this method "StackTraceElement fetchCalledBy()" is called
-            3. ---  The method that did the call  ---
-        */
-        return Thread.currentThread().getStackTrace()[3];
+    public static String fetchFullName(Method in_method) {
+        return in_method.getDeclaringClass().getTypeName() + "." + in_method.getName();
     }
 
     /**
+     * This method constructs a full name from the given TestNGResult.
+     * 
+     * Author : gandomi
+     *
+     * @param in_testNGResult
+     *        The TestNGResult Object
+     * @return The full qualified name of the method based on the TestNGResult
+     *
+     */
+    public static String fetchFullName(ITestResult in_testNGResult) {
+        StringBuilder sb = new StringBuilder(
+                fetchFullName(in_testNGResult.getMethod().getConstructorOrMethod().getMethod()));
+    
+        sb.append(fetchParameterValues(in_testNGResult));
+        
+        return sb.toString();
+    }
+
+    /**
+     * This method retrieves the Data Providers of a test results.
      *
      * Author : gandomi
      *
-     * @param l_calledElement
+     * @param in_testNGResult
+     *        The testNG result object
+     * @return A String containing the data providers. Empty string if there are
+     *         no data providers
+     *
+     */
+    public static String fetchParameterValues(ITestResult in_testNGResult) {
+        return fetchParameterValues(in_testNGResult.getParameters());
+    }
+
+    /**
+     * This method retrieves the Data Providers of a test results.
+     *
+     * Author : gandomi
+     *
+     * @param in_parameterValues
+     *        An array of Object (Usually toString compatible)
+     * @return A String containing the data providers. Empty string if there are
+     *         no data providers
+     *
+     */
+    public static String fetchParameterValues(Object[] in_parameterValues) {
+        StringBuilder lr_sbArg = new StringBuilder();
+        if (in_parameterValues.length > 0) {
+            lr_sbArg.append('(');
+            List<String> l_parameterList = Arrays.asList(in_parameterValues).stream().map(t -> t.toString())
+                    .collect(Collectors.toList());
+    
+            lr_sbArg.append(String.join(",", l_parameterList));
+            lr_sbArg.append(')');
+        }
+        return lr_sbArg.toString();
+    }
+
+    /**
+     * This method returns the file path of the given test class
+     *
+     * Author : gandomi
+     *
+     * @param in_testClass
+     * @return A file containing the given Test Class
+     *
+     */
+    public static File fetchFile(Class<?> in_testClass) {
+        final String l_rootPath = (new File("")).getAbsolutePath() + "/src/test/java";
+    
+        final String l_filePath = l_rootPath + "/" + in_testClass.getName().replace('.', '/') + ".java";
+    
+        return new File(l_filePath);
+    }
+
+    /**
+     * This method returns the file path of the given class
+     *
+     * Author : vinaysha
+     *
+     * @param className
      * @return
      *
      */
-    public static String fetchCalledByFullName() {
-        StackTraceElement l_calledElement =  Thread.currentThread().getStackTrace()[3];
-        StringBuilder sb = new StringBuilder(l_calledElement.getClassName());
+    public static File fetchTestClassFile(String className) {
+        if (className == null || className.isEmpty()) {
+            return null;
+        }
+        final String l_rootPath = (new File("")).getAbsolutePath() + "/src/test/java";
+        final String l_filePath = l_rootPath + "/" + className.replace('.', '/') + ".java";
+        return new File(l_filePath);
+    }
+
+    /**
+     * This method returns the file path of the given method
+     *
+     * Author : gandomi
+     *
+     * @param in_testMethod A test method
+     * @return The file containing the given method.
+     *
+     */
+    public static File fetchFile(Method in_testMethod) {
     
-        sb.append('.');
-        sb.append(l_calledElement.getMethodName());
-        
-        final String l_methodFullName = sb.toString();
-        return l_methodFullName;
+        return fetchFile(in_testMethod.getDeclaringClass());
     }
 }

@@ -24,7 +24,7 @@ public class ClassPathParserTests {
     }
 
     String nestedCallForFetchCalledBy() {
-        return ClassPathParser.fetchCalledBy().getMethodName();
+        return StackTraceManager.fetchCalledBy().getMethodName();
     }
     
     @Test(groups = "TRACE")

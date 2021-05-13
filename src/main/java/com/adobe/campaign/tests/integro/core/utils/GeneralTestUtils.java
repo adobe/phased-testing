@@ -17,19 +17,16 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.testng.ITestResult;
 
 
 /**
@@ -215,126 +212,6 @@ public class GeneralTestUtils {
     }
 
     /**
-     * This method returns the file path of the given method
-     *
-     * Author : gandomi
-     *
-     * @param in_testMethod
-     * @return
-     *
-     */
-    public static File fetchFile(Method in_testMethod) {
-
-        return fetchFile(in_testMethod.getDeclaringClass());
-    }
-
-    /**
-     * This method returns the file path of the given method
-     *
-     * Author : gandomi
-     *
-     * @param in_testMethod
-     * @return
-     *
-     */
-    public static File fetchFile(Class in_class) {
-        final String l_rootPath = (new File("")).getAbsolutePath() + "/src/test/java";
-
-        final String l_filePath = l_rootPath + "/" + in_class.getName().replace('.', '/') + ".java";
-
-        return new File(l_filePath);
-    }
-
-    /**
-     * This method constructs a full name from the given method.
-     * 
-     * Author : gandomi
-     *
-     * @param in_method
-     * @return The full qualified name of the method
-     *
-     */
-    public static String fetchFullName(Method in_method) {
-        return in_method.getDeclaringClass().getTypeName() + "." + in_method.getName();
-    }
-
-    /**
-     * This method constructs a full name from the given TestNGResult.
-     * 
-     * Author : gandomi
-     *
-     * @param in_testNGResult
-     *        The TestNGResult Object
-     * @return The full qualified name of the method based on the TestNGResult
-     *
-     */
-    public static String fetchFullName(ITestResult in_testNGResult) {
-        StringBuilder sb = new StringBuilder(
-                fetchFullName(in_testNGResult.getMethod().getConstructorOrMethod().getMethod()));
-
-        sb.append(fetchParameterValues(in_testNGResult));
-        
-        return sb.toString();
-    }
-
-    /**
-     * This method retrieves the Data Providers of a test results.
-     *
-     * Author : gandomi
-     *
-     * @param in_testNGResult
-     *        The testNG result object
-     * @return A String containing the data providers. Empty string if there are
-     *         no data providers
-     *
-     */
-    public static String fetchParameterValues(ITestResult in_testNGResult) {
-        return fetchParameterValues(in_testNGResult.getParameters());
-    }
-
-    /**
-     * This method retrieves the Data Providers of a test results.
-     *
-     * Author : gandomi
-     *
-     * @param in_parameterValues
-     *        An array of Object (Usually toString compatible)
-     * @return A String containing the data providers. Empty string if there are
-     *         no data providers
-     *
-     */
-    public static String fetchParameterValues(Object[] in_parameterValues) {
-        StringBuilder lr_sbArg = new StringBuilder();
-        if (in_parameterValues.length > 0) {
-            lr_sbArg.append('(');
-            List<String> l_parameterList = Arrays.asList(in_parameterValues).stream().map(t -> t.toString())
-                    .collect(Collectors.toList());
-
-            lr_sbArg.append(String.join(",", l_parameterList));
-            lr_sbArg.append(')');
-        }
-        return lr_sbArg.toString();
-    }
-
-    /**
-     * This method returns the file path of the given class
-     *
-     * Author : vinaysha
-     *
-     * @param className
-     * @return
-     *
-     */
-    public static File fetchClassFile(String className) {
-        if (className == null || className.isEmpty()) {
-            return null;
-        }
-        final String l_rootPath = (new File("")).getAbsolutePath() + "/src/test/java";
-        final String l_filePath = l_rootPath + "/" + className.replace('.', '/') + ".java";
-        return new File(l_filePath);
-    }
-
-    /**
      * This method fetches the contents of a file as a string
      *
      * Author : gandomi
@@ -363,45 +240,5 @@ public class GeneralTestUtils {
 
         return lr_fileContent.toString();
     }
-
-    /**
-     * This method fetches the list of tests that are to be filtered out
-     * 
-     * @param in_fileName
-     *        The file path containing the list of methods
-     * @return A list of method identifiers that will be omitted from execution.
-     *         An empty list if the file is empty or does not exist
-     * 
-     *         Author : gandomi
-     *
-     */
-    public static List<String> fetchFlaggedMethods(String in_fileName) {
-
-        File l_resourceFile = fetchFile(in_fileName);
-
-        if (l_resourceFile == null) {
-            log.error("[Integro TestNG Wrapper] The file with the path " + in_fileName
-                    + " does not seem to exist");
-            return new ArrayList<>();
-        }
-
-        return fetchFlaggedMethods(l_resourceFile);
-    }
-
-    /**
-     * This method fetches the list of tests that are to be filtered out
-     * 
-     * @param in_resourceFile
-     *        The file containing the list of methods
-     * @return A list of method identifiers that will be omitted from execution.
-     *         An empty list if the file is empty or does not exist
-     * 
-     *         Author : gandomi
-     *
-     */
-
-    public static List<String> fetchFlaggedMethods(File in_resourceFile) {
-        return fetchFileContentLines(in_resourceFile).stream().filter(ln -> !ln.startsWith("#"))
-                .collect(Collectors.toList());
-    }
+    
 }
