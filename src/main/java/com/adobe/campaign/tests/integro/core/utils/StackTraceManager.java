@@ -24,7 +24,7 @@ public class StackTraceManager {
      * This method fetches the method that called the current method. Example :
      * if you have the following stack trace:
      * <p>
-     * A -> B -> C
+     * A to B to C
      * <p>
      * If you call fetchCalledBy() from C it will return B
      * 
@@ -46,7 +46,7 @@ public class StackTraceManager {
      * This method fetches the full name of the method that called the current
      * method. Example : if you have the following stack trace:
      * <p>
-     * A -> B -> C
+     * A to B to C
      * <p>
      * If you call fetchCalledBy() from C it will return B
      *
