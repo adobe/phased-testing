@@ -18,14 +18,14 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.testng.internal.ConstructorOrMethod;
 
-import com.adobe.campaign.tests.integro.core.utils.ClassPathParser;
-import com.adobe.campaign.tests.integro.core.utils.GeneralTestUtils;
 import com.adobe.campaign.tests.integro.phased.data.NormalSeries_A;
 import com.adobe.campaign.tests.integro.phased.data.PhasedDataBrokerTestImplementation;
 import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_A;
 import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_B_NoInActive;
 import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_F_Shuffle;
 import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClassWithError;
+import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
+import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;

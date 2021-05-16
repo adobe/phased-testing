@@ -20,8 +20,8 @@ import java.nio.file.StandardCopyOption;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.adobe.campaign.tests.integro.core.utils.GeneralTestUtils;
 import com.adobe.campaign.tests.integro.phased.PhasedDataBroker;
+import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 
 public class PhasedDataBrokerTestImplementation implements PhasedDataBroker {
     File cacheDir;

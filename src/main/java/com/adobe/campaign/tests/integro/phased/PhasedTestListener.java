@@ -31,7 +31,7 @@ import org.testng.annotations.ITestAnnotation;
 import org.testng.internal.BaseTestMethod;
 import org.testng.internal.TestResult;
 
-import com.adobe.campaign.tests.integro.core.utils.ClassPathParser;
+import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
 
 public class PhasedTestListener implements ITestListener, IAnnotationTransformer {
     protected static Logger log = LogManager.getLogger();

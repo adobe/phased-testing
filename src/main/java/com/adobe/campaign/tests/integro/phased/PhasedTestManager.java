@@ -31,9 +31,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.testng.ITestResult;
 
-import com.adobe.campaign.tests.integro.core.utils.ClassPathParser;
-import com.adobe.campaign.tests.integro.core.utils.GeneralTestUtils;
-import com.adobe.campaign.tests.integro.core.utils.StackTraceManager;
+import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
+import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
+import com.adobe.campaign.tests.integro.phased.utils.StackTraceManager;
 
 public class PhasedTestManager {
 

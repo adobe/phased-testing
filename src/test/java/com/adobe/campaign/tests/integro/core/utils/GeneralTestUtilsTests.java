@@ -31,6 +31,8 @@ import org.testng.internal.ConstructorOrMethod;
 import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
 import com.adobe.campaign.tests.integro.phased.PhasedTestManagerTests;
 import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_SingleClass;
+import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
+import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 
 public class GeneralTestUtilsTests {
     private static final String TEST_CACHE_DIR = "testCache";

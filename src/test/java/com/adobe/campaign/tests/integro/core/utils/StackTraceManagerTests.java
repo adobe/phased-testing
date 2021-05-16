@@ -16,6 +16,8 @@ import static org.hamcrest.Matchers.equalTo;
 
 import org.testng.annotations.Test;
 
+import com.adobe.campaign.tests.integro.phased.utils.StackTraceManager;
+
 public class StackTraceManagerTests {
     @Test(description = "In this example we pass through another method, the results should be this method")
     public void testFetchCalledBy() {

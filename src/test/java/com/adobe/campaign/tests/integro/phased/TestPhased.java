@@ -46,7 +46,6 @@ import org.testng.xml.XmlPackage;
 import org.testng.xml.XmlSuite;
 import org.testng.xml.XmlTest;
 
-import com.adobe.campaign.tests.integro.core.utils.GeneralTestUtils;
 import com.adobe.campaign.tests.integro.core.utils.TestTools;
 import com.adobe.campaign.tests.integro.phased.data.NormalSeries_A;
 import com.adobe.campaign.tests.integro.phased.data.PhasedDataBrokerTestImplementation;
@@ -63,6 +62,7 @@ import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_SingleClass;
 import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_I_ShuffledProduceKey;
 import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_I_SingleClassProduceTest;
 import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_RecipientClass.PhasedSeries_J_ShuffledClassInAClass;
+import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 
 public class TestPhased {
     @BeforeMethod
