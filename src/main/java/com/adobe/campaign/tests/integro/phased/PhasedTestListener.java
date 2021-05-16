@@ -72,7 +72,7 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
      *
      * Author : gandomi
      *
-     * @param result
+     * @param result The TestNG result context
      *
      */
     protected void appendShuffleGroupToName(ITestResult result) {
@@ -104,7 +104,7 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
      *
      * Author : gandomi
      *
-     * @param result
+     * @param result The TestNG result context
      *
      */
     protected void standardPostTestActions(ITestResult result) {

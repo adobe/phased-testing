@@ -20,7 +20,7 @@ public interface PhasedDataBroker {
      *
      * Author : gandomi
      *
-     * @param in_file
+     * @param in_file A file in which we should store the phase cache
      *
      */
     void store(File in_file);
@@ -30,8 +30,8 @@ public interface PhasedDataBroker {
      *
      * Author : gandomi
      *
-     * @param in_fileName
-     * @return
+     * @param in_fileName A path to the file from which we are to fetch the phase cache for the current phase
+     * @return The file that was fetched
      *
      */
     File fetch(String in_fileName);
