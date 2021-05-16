@@ -12,7 +12,7 @@
 package com.adobe.campaign.tests.integro.core.utils;
 
 /**
- * Manages accesss to the stacck trace
+ * Manages accesss to the stack trace
  *
  *
  * Author : gandomi

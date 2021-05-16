@@ -241,10 +241,6 @@ public class GeneralTestUtilsTests {
     }
     
     
-    public void myTestMethod(String x, Integer y) {
-        
-    }
-    
     @Test
     public void testStorageMethodWithMultiArgsNotJustStrings() throws NoSuchMethodException, SecurityException {
 

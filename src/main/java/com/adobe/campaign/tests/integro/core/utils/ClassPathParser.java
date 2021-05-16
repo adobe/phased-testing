@@ -11,7 +11,6 @@
  */
 package com.adobe.campaign.tests.integro.core.utils;
 
-import java.io.File;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
@@ -28,8 +27,7 @@ public class ClassPathParser {
      * Author : gandomi
      *
      * @param in_fullMethodPath
-     *            A full path of a method. This consists of class path + method
-     *            name
+     *        A full path of a method. This consists of class path + method name
      * @return null if the value cannot be extracted
      */
     public static String extractClass(String in_fullMethodPath) {
@@ -48,8 +46,7 @@ public class ClassPathParser {
      * Author : gandomi
      *
      * @param in_fullMethodPath
-     *            A full path of a method. This consists of class path + method
-     *            name
+     *        A full path of a method. This consists of class path + method name
      * @return null if the value cannot be extracted
      */
     public static String extractMethod(String in_fullMethodPath) {
@@ -64,12 +61,13 @@ public class ClassPathParser {
     /**
      * Extracts the package from the method full path Author : gandomi
      *
-     * @param in_method
+     * @param in_fullMethodPath
+     *        A full path of a method. This consists of class path + method name
      * @return NULL if there is no package
      */
-    public static String extractPackage(String in_method) {
+    public static String extractPackage(String in_fullMethodPath) {
 
-        return extractClass(extractClass(in_method));
+        return extractClass(extractClass(in_fullMethodPath));
     }
 
     /**
@@ -78,7 +76,8 @@ public class ClassPathParser {
      * Author : gandomi
      *
      * @param in_className
-     * @return
+     *        The full name of a class
+     * @return true if the class can be found in the current project
      */
     public static boolean isClassInProject(String in_className) {
         try {
@@ -96,7 +95,8 @@ public class ClassPathParser {
      * Author : gandomi
      *
      * @param in_fullMethodPath
-     * @return
+     *        A full path of a method. This consists of class path + method
+     * @return The simple class name in which the current method is attached
      */
     public static String extractClassName(String in_fullMethodPath) {
         String l_fullClassPath = extractClass(in_fullMethodPath);
@@ -117,6 +117,7 @@ public class ClassPathParser {
      * Author : gandomi
      *
      * @param in_method
+     *        A defined method object
      * @return The full qualified name of the method
      *
      */
@@ -137,9 +138,9 @@ public class ClassPathParser {
     public static String fetchFullName(ITestResult in_testNGResult) {
         StringBuilder sb = new StringBuilder(
                 fetchFullName(in_testNGResult.getMethod().getConstructorOrMethod().getMethod()));
-    
+
         sb.append(fetchParameterValues(in_testNGResult));
-        
+
         return sb.toString();
     }
 
@@ -175,59 +176,11 @@ public class ClassPathParser {
             lr_sbArg.append('(');
             List<String> l_parameterList = Arrays.asList(in_parameterValues).stream().map(t -> t.toString())
                     .collect(Collectors.toList());
-    
+
             lr_sbArg.append(String.join(",", l_parameterList));
             lr_sbArg.append(')');
         }
         return lr_sbArg.toString();
     }
 
-    /**
-     * This method returns the file path of the given test class
-     *
-     * Author : gandomi
-     *
-     * @param in_testClass
-     * @return A file containing the given Test Class
-     *
-     */
-    public static File fetchFile(Class<?> in_testClass) {
-        final String l_rootPath = (new File("")).getAbsolutePath() + "/src/test/java";
-    
-        final String l_filePath = l_rootPath + "/" + in_testClass.getName().replace('.', '/') + ".java";
-    
-        return new File(l_filePath);
-    }
-
-    /**
-     * This method returns the file path of the given class
-     *
-     * Author : vinaysha
-     *
-     * @param className
-     * @return
-     *
-     */
-    public static File fetchTestClassFile(String className) {
-        if (className == null || className.isEmpty()) {
-            return null;
-        }
-        final String l_rootPath = (new File("")).getAbsolutePath() + "/src/test/java";
-        final String l_filePath = l_rootPath + "/" + className.replace('.', '/') + ".java";
-        return new File(l_filePath);
-    }
-
-    /**
-     * This method returns the file path of the given method
-     *
-     * Author : gandomi
-     *
-     * @param in_testMethod A test method
-     * @return The file containing the given method.
-     *
-     */
-    public static File fetchFile(Method in_testMethod) {
-    
-        return fetchFile(in_testMethod.getDeclaringClass());
-    }
 }
