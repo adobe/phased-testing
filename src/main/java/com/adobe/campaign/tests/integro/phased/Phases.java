@@ -26,7 +26,7 @@ public enum Phases {
      *
      * Author : gandomi
      *
-     * @return
+     * @return The phase which is currently being executed
      *
      */
     public static Phases getCurrentPhase() {
