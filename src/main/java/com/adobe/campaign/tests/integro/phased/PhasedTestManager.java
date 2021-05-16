@@ -558,6 +558,24 @@ public class PhasedTestManager {
 
         return new Object[] {};
     }
+    
+    /**
+     * This method calculates how often a class should be run.
+     *
+     * Author : gandomi
+     *
+      * @param in_classMethodMap
+     *        A map of a class and it is methods (A scenario and its steps)
+     * @return A map letting us know that for a the given method how often it
+     *         will be executed in the current phase
+     *
+     */
+    public static Map<String, MethodMapping> generatePhasedProviders(
+            Map<Class, List<String>> in_classMethodMap) {
+
+        return generatePhasedProviders(in_classMethodMap, Phases.getCurrentPhase());
+
+    }
 
     /**
      * This method calculates how often a scenario should be run, given the

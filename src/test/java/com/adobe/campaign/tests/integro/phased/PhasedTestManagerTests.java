@@ -490,7 +490,7 @@ public class PhasedTestManagerTests {
 
         l_myMap.put(PhasedSeries_F_Shuffle.class, Arrays.asList("a", "b", "c"));
 
-        Map<String, MethodMapping> l_result = PhasedTestManager.generatePhasedProviders(l_myMap, Phases.PRODUCER);
+        Map<String, MethodMapping> l_result = PhasedTestManager.generatePhasedProviders(l_myMap);
 
         assertThat("we need to have the expected key", l_result.containsKey("a"));
         assertThat("The first method should have three entries", l_result.get("a").nrOfProviders, equalTo(3));
