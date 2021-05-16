@@ -38,24 +38,6 @@ import org.testng.xml.XmlTest;
  */
 public class TestTools {
 
-    /**
-     * Author : gandomi
-     *
-     * @param l_fileName
-     */
-    public static TestListenerAdapter runSuite(String l_fileName) {
-        
-        TestNG tng = new TestNG();
-        TestListenerAdapter tla = new TestListenerAdapter();
-        tng.addListener((ITestNGListener)  tla);
-        
-        List<String> suites = Lists.newArrayList();
-        suites.add(GeneralTestUtils.fetchFile(l_fileName).getAbsolutePath());
-        tng.setTestSuites(suites);
-        tng.run();
-        
-        return tla;
-    }
 
 	/**
 	 * This method creates a testng test instance with a result listener

@@ -97,37 +97,6 @@ public class GeneralTestUtilsTests {
     }
 
     @Test
-    public void testFillingFile() {
-        File l_cacheDir = GeneralTestUtils.createCacheDirectory(TEST_CACHE_DIR);
-        File l_file = GeneralTestUtils.createEmptyCacheFile(l_cacheDir, TEST_CACHE_File);
-
-        GeneralTestUtils.fillFile(l_file, "sdqdsqd");
-
-        assertThat("The file should now exist and should not be empty", l_file.exists());
-        assertThat("The file should now exist and should not be empty", l_file.length(),
-                Matchers.greaterThan(0l));
-    }
-
-    @Test
-    public void testFillingFile_IllegalArguments() {
-
-        assertThrows(IllegalArgumentException.class, () -> GeneralTestUtils.fillFile(null, "sdqdsqd"));
-    }
-
-    @Test
-    public void testCacheFileCreationOfExistingFile() {
-        File l_cacheDir = GeneralTestUtils.createCacheDirectory(TEST_CACHE_DIR);
-
-        File l_oldFile = new File(l_cacheDir, TEST_CACHE_File);
-
-        GeneralTestUtils.fillFile(l_oldFile, "kjhkjhkjh");
-
-        File l_file = GeneralTestUtils.createEmptyCacheFile(l_cacheDir, TEST_CACHE_File);
-
-        assertThat("The file should exist", l_file, Matchers.not(Matchers.equalTo(null)));
-    }
-
-    @Test
     public void testCacheFileCreation_IllegalArguments() {
         File l_cacheDir = GeneralTestUtils.createCacheDirectory(TEST_CACHE_DIR);
 
@@ -143,20 +112,6 @@ public class GeneralTestUtilsTests {
     }
 
     @Test
-    public void testFetchingFileLines() {
-        File l_cacheDir = GeneralTestUtils.createCacheDirectory(TEST_CACHE_DIR);
-        File l_file = GeneralTestUtils.createEmptyCacheFile(l_cacheDir, TEST_CACHE_File);
-
-        final String l_fileContent = "sdqdsqd";
-        GeneralTestUtils.fillFile(l_file, l_fileContent);
-
-        List<String> l_fileLines = GeneralTestUtils.fetchFileContentLines(l_file);
-        assertThat("We should have the correct number of tests", l_fileLines,
-                Matchers.contains(l_fileContent));
-
-    }
-
-    @Test
     public void testFetchingFileLines_NegativeNonExistant() {
         File l_cacheDir = GeneralTestUtils.createCacheDirectory(TEST_CACHE_DIR);
         File l_file = new File(l_cacheDir, TEST_CACHE_File);
@@ -164,19 +119,6 @@ public class GeneralTestUtilsTests {
         List<String> l_fileLines = GeneralTestUtils.fetchFileContentLines(l_file);
         assertThat("We should have the correct number of tests", l_fileLines.size(),
                 Matchers.is(Matchers.equalTo(0)));
-
-    }
-
-    @Test
-    public void testFetchingFileString() {
-        File l_cacheDir = GeneralTestUtils.createCacheDirectory(TEST_CACHE_DIR);
-        File l_file = GeneralTestUtils.createEmptyCacheFile(l_cacheDir, TEST_CACHE_File);
-
-        final String l_fileContent = "sdqdsqd";
-        GeneralTestUtils.fillFile(l_file, l_fileContent);
-
-        assertThat("We should have the correct number of tests", GeneralTestUtils.fetchFileContent(l_file),
-                Matchers.equalTo(l_fileContent));
 
     }
 
@@ -210,8 +152,8 @@ public class GeneralTestUtilsTests {
 
     @Test
     public void testStorageMethodWithArgs() throws NoSuchMethodException, SecurityException {
-        
-        final Method l_myTestNoArgs = PhasedSeries_H_SingleClass.class.getMethod("step2",String.class);
+
+        final Method l_myTestNoArgs = PhasedSeries_H_SingleClass.class.getMethod("step2", String.class);
 
         ITestResult l_itr = Mockito.mock(ITestResult.class);
         ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
@@ -221,8 +163,6 @@ public class GeneralTestUtilsTests {
         Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "A" });
         Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
         Mockito.when(l_com.getMethod()).thenReturn(l_myTestNoArgs);
-        
-        
 
         assertThat("We should have the correct full name", ClassPathParser.fetchFullName(l_itr),
                 equalTo("com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_SingleClass.step2(A)"));
@@ -232,22 +172,20 @@ public class GeneralTestUtilsTests {
     @Test
     public void testStorageMethodWithMultiArgs() throws NoSuchMethodException, SecurityException {
 
-        final Object[] l_parameterValues = new Object[] { "Q","Z" };
-        
+        final Object[] l_parameterValues = new Object[] { "Q", "Z" };
 
-        assertThat("We should have the correct full name", ClassPathParser.fetchParameterValues(l_parameterValues),
-                equalTo("(Q,Z)"));
+        assertThat("We should have the correct full name",
+                ClassPathParser.fetchParameterValues(l_parameterValues), equalTo("(Q,Z)"));
 
     }
-    
-    
+
     @Test
-    public void testStorageMethodWithMultiArgsNotJustStrings() throws NoSuchMethodException, SecurityException {
+    public void testStorageMethodWithMultiArgsNotJustStrings()
+            throws NoSuchMethodException, SecurityException {
 
-
-        final Object[] l_parameterValues = new Object[] { "Q",new Integer("3") };
-        assertThat("We should have the correct full name", ClassPathParser.fetchParameterValues(l_parameterValues),
-                equalTo("(Q,3)"));
+        final Object[] l_parameterValues = new Object[] { "Q", new Integer("3") };
+        assertThat("We should have the correct full name",
+                ClassPathParser.fetchParameterValues(l_parameterValues), equalTo("(Q,3)"));
 
     }
 }

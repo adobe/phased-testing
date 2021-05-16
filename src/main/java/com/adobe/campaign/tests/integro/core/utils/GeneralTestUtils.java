@@ -14,17 +14,9 @@ package com.adobe.campaign.tests.integro.core.utils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
-import java.util.stream.Collectors;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -40,32 +32,6 @@ public class GeneralTestUtils {
     public static final String STD_LOG_PREFIX = "[integro-testngwrapper] ";
     protected static Logger log = LogManager.getLogger();
 
-    /**
-     * Fetches a file given the path
-     * 
-     * Author : gandomi
-     *
-     * @param in_fileName
-     *        A path to a file
-     * @return NULL if non existent
-     */
-    public static File fetchFile(String in_fileName) {
-        File lr_file = null;
-        URL l_resourceUrl = fetchResourceURL(in_fileName);
-
-        if (l_resourceUrl != null) {
-            try {
-
-                lr_file = new File(URLDecoder.decode(l_resourceUrl.getFile(), "UTF-8"));
-            } catch (UnsupportedEncodingException e) {
-                log.error("Decoding problem");
-            }
-        } else {
-            log.error("File " + in_fileName + " does not exist.");
-            return null;
-        }
-        return lr_file;
-    }
 
     /**
      * Creates a cache directory under te standard output directory
@@ -139,60 +105,6 @@ public class GeneralTestUtils {
         return new File(in_cacheDir, in_fileName);
     }
 
-    /**
-     * With this method you can fill a given file with a given content
-     *
-     * Author : gandomi
-     * 
-     * @param in_destinationFile
-     *        A file that we want to fill
-     * @param in_content
-     *        The content that we want to fill the file with
-     * 
-     * @throws IllegalArgumentException
-     *         if the file does not exist or is null
-     *
-     */
-    public static void fillFile(File in_destinationFile, final String in_content) {
-
-        if (in_destinationFile == null) {
-            throw new IllegalArgumentException("The given argument 'in_destinationFile' cannot be null.");
-        }
-
-        try (FileWriter fw = new FileWriter(in_destinationFile)) {
-
-            fw.write(in_content);
-        } catch (IOException e) {
-            log.error("Error when creating json file.");
-        }
-    }
-
-    /**
-     * @param in_fileName
-     *        A file path (both absolute and relative)
-     * @return A UTL path to that file
-     *
-     *         Author : gandomi
-     */
-    public static URL fetchResourceURL(String in_fileName) {
-        URL l_resourceUrl = null;
-
-        //We allow both passing an absolute path, and a reference path
-        if (in_fileName.startsWith("/")) {
-
-            File l_file = new File(in_fileName);
-            if (l_file.exists()) {
-                try {
-                    l_resourceUrl = l_file.toURI().toURL();
-                } catch (MalformedURLException e) {
-                    log.error(e.getMessage());
-                }
-            }
-        } else {
-            l_resourceUrl = Thread.currentThread().getContextClassLoader().getResource(in_fileName);
-        }
-        return l_resourceUrl;
-    }
 
     /**
      * This method fetches the lines of a given file.
