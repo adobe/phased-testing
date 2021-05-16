@@ -34,8 +34,8 @@ public class GeneralTestUtils {
 
 
     /**
-     * Creates a cache directory under te standard output directory
-     * {@value GeneralTestUtils.STD_CACHE_DIR }
+     * Creates a cache directory under the standard output directory
+     * {@value #STD_CACHE_DIR }
      *
      * Author : gandomi
      *
@@ -80,7 +80,7 @@ public class GeneralTestUtils {
      *
      * @param in_cacheDir
      *        A cache directory
-     * @param in_fileName
+     * @param in_fileName A name for the file to create
      * @return a file with the given name and stored in the given cache
      *         directory
      * @throws IllegalArgumentException

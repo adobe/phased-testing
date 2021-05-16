@@ -93,8 +93,6 @@ public class PhasedTestManager {
      *
      * @param in_classPath
      *        The classpath for the implementation of the data broker
-     * @throws ClassNotFoundException
-     *         When the class does not exist
      * @throws PhasedTestConfigurationException
      *         Whenever there is a problem instantiating the Phased DataBroker
      *         class
@@ -271,7 +269,7 @@ public class PhasedTestManager {
      * Given a step in the Phased Test it fetches the value committed for that
      * test. It will fetch a Phased Test data with the method/test that called
      * this method. This method is to be used if you have produced your Phased
-     * Data using {@link #produce(String))}
+     * Data using {@link #produce(String)}
      *
      * Author : gandomi
      *
@@ -407,8 +405,6 @@ public class PhasedTestManager {
      *        A file that contains the phase cache data from a previous phase
      * @return A Properties object with the phase cache data from the previous
      *         phase
-     * @throws FileNotFoundException
-     *         When the given file does not exist
      *
      */
     protected static Properties importCache(File in_phasedTestFile) {
@@ -432,8 +428,6 @@ public class PhasedTestManager {
      *
      * @return A Properties object with the phase cache data from the previous
      *         phase
-     * @throws FileNotFoundException
-     *         When the given file does not exist
      *
      */
     protected static Properties importPhaseData() {
@@ -502,6 +496,9 @@ public class PhasedTestManager {
      * @param in_methodFullName
      *        The full name of the method used for identifying it in the phase
      *        context
+     * @param in_phasedState
+     *        The phase state for which we should retrieve the parameters. The
+     *        parameters will be different based on the phase.
      * @return A two-dimensional array of all the data providers attached to the
      *         current step/method
      *
@@ -723,6 +720,7 @@ public class PhasedTestManager {
      * This method lets us know if the steps in a PhasedTest are to be executed
      * consequently in two phases
      * 
+     * @param in_method Any test method
      * @return True if the test step/method is part of a SingleRun Phase Test
      *         scenario
      */
@@ -734,6 +732,8 @@ public class PhasedTestManager {
      * This method lets us know if the steps in a PhasedTest are to be executed
      * consequently in two phases
      * 
+     * @param in_class
+     *        Any class that contains tests
      * @return True if the test class is a SingleRun Phase Test scenario
      */
     protected static boolean isPhasedTestSingleMode(Class in_class) {

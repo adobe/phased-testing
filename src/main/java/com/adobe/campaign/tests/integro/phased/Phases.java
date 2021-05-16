@@ -14,15 +14,15 @@ package com.adobe.campaign.tests.integro.phased;
 public enum Phases {
     PRODUCER(true), CONSUMER(true), NON_PHASED(false);
 
-    
     boolean hasSplittingEvent;
-    
+
     private Phases(boolean in_isInPhase) {
-        hasSplittingEvent=in_isInPhase;
+        hasSplittingEvent = in_isInPhase;
     }
-    
+
     /**
-     * Returns the Phased Test state in which the current test session is being executed
+     * Returns the Phased Test state in which the current test session is being
+     * executed
      *
      * Author : gandomi
      *
@@ -30,17 +30,20 @@ public enum Phases {
      *
      */
     public static Phases getCurrentPhase() {
-        
+
         return fetchCorrespondingPhase(System.getProperty(PhasedTestManager.PROP_SELECTED_PHASE));
     }
 
     /**
-     * We find a corresponding PhasedTest state given a string. If none are found we return INACTIVE
+     * We find a corresponding PhasedTest state given a string. If none are
+     * found we return INACTIVE
      *
      * Author : gandomi
      *
      * @param in_stateValue
-     * @return A state corresponding to the given Phased State, if none found we return inactive
+     *        Returns a Phase given a string representation of its value
+     * @return A state corresponding to the given Phased State, if none found we
+     *         return inactive
      *
      */
     public static Phases fetchCorrespondingPhase(String in_stateValue) {
@@ -61,7 +64,7 @@ public enum Phases {
      *
      */
     public boolean isSelected() {
-        
+
         return this.equals(getCurrentPhase());
     }
 
@@ -70,11 +73,11 @@ public enum Phases {
      *
      * Author : gandomi
      *
-     * @return
+     * @return True if the the phase could have a splitting event.
      *
      */
     public boolean hasSplittingEvent() {
-        
+
         return this.hasSplittingEvent;
     }
 
@@ -91,7 +94,7 @@ public enum Phases {
         } else {
             System.clearProperty(PhasedTestManager.PROP_SELECTED_PHASE);
         }
-        
+
     }
 
 }
