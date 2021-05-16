@@ -16,7 +16,7 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.adobe.campaign.tests.phased</groupId>
-    <artifactId>PhasedTesting</artifactId>
+    <artifactId>phased-testing-testng</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <description>A TestNG listener that allows you to write and execute tests in a phased mode</description>
     <packaging>jar</packaging>
