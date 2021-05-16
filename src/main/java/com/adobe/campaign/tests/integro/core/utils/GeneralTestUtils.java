@@ -28,7 +28,6 @@ import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-
 /**
  * Methods dedicated to manage resources used by tests
  * 
@@ -37,7 +36,7 @@ import org.apache.logging.log4j.Logger;
  *
  */
 public class GeneralTestUtils {
-    public static final String STD_CACHE_DIR = "ac_test_output";
+    public static final String STD_CACHE_DIR = "phased_output";
     public static final String STD_LOG_PREFIX = "[integro-testngwrapper] ";
     protected static Logger log = LogManager.getLogger();
 
@@ -47,6 +46,7 @@ public class GeneralTestUtils {
      * Author : gandomi
      *
      * @param in_fileName
+     *        A path to a file
      * @return NULL if non existent
      */
     public static File fetchFile(String in_fileName) {
@@ -68,11 +68,14 @@ public class GeneralTestUtils {
     }
 
     /**
-     * Creates a cache directory
+     * Creates a cache directory under te standard output directory
+     * {@value GeneralTestUtils.STD_CACHE_DIR }
      *
      * Author : gandomi
      *
      * @param in_directoryName
+     *        A simple name under which we will store cache data
+     * @return An existing cache directory object
      *
      */
     public static File createCacheDirectory(String in_directoryName) {
@@ -95,7 +98,8 @@ public class GeneralTestUtils {
      * Author : gandomi
      *
      * @param in_directoryName
-     * @return
+     *        A cache directory name
+     * @return An existing cache directory object
      *
      */
     public static File fetchCacheDirectory(String in_directoryName) {
@@ -109,6 +113,7 @@ public class GeneralTestUtils {
      * Author : gandomi
      *
      * @param in_cacheDir
+     *        A cache directory
      * @param in_fileName
      * @return a file with the given name and stored in the given cache
      *         directory
@@ -135,12 +140,14 @@ public class GeneralTestUtils {
     }
 
     /**
-     * With this method you can fill a fiven file
+     * With this method you can fill a given file with a given content
      *
      * Author : gandomi
      * 
      * @param in_destinationFile
+     *        A file that we want to fill
      * @param in_content
+     *        The content that we want to fill the file with
      * 
      * @throws IllegalArgumentException
      *         if the file does not exist or is null
@@ -162,7 +169,8 @@ public class GeneralTestUtils {
 
     /**
      * @param in_fileName
-     * @return
+     *        A file path (both absolute and relative)
+     * @return A UTL path to that file
      *
      *         Author : gandomi
      */
@@ -192,7 +200,8 @@ public class GeneralTestUtils {
      * Author : gandomi
      *
      * @param in_resourceFile
-     * @return
+     *        A file object
+     * @return A list where each entry is a line in the file
      *
      */
     public static List<String> fetchFileContentLines(File in_resourceFile) {
@@ -217,7 +226,8 @@ public class GeneralTestUtils {
      * Author : gandomi
      *
      * @param in_resourceFile
-     * @return A string representing the
+     *        A file object
+     * @return A string representing the contents f that file
      *
      */
     public static String fetchFileContent(File in_resourceFile) {
@@ -240,5 +250,5 @@ public class GeneralTestUtils {
 
         return lr_fileContent.toString();
     }
-    
+
 }
