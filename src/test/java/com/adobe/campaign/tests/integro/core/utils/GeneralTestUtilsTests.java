@@ -40,7 +40,7 @@ public class GeneralTestUtilsTests {
 
     @BeforeClass
     public void cleanUp() {
-        File l_cacheDir = new File(GeneralTestUtils.STD_CACHE_DIR, TEST_CACHE_DIR);
+        File l_cacheDir = new File(PhasedTestManager.STD_CACHE_DIR, TEST_CACHE_DIR);
 
         File l_cacheFile = new File(l_cacheDir, TEST_CACHE_File);
 

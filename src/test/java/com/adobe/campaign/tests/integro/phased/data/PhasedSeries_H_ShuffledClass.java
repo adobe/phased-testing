@@ -19,7 +19,7 @@ import com.adobe.campaign.tests.integro.phased.PhasedDataProvider;
 import com.adobe.campaign.tests.integro.phased.PhasedTest;
 import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
 
-@Test(dataProvider = PhasedDataProvider.DEFAULT, dataProviderClass = PhasedDataProvider.class)
+@Test(groups="abc", dataProvider = PhasedDataProvider.DEFAULT, dataProviderClass = PhasedDataProvider.class)
 @PhasedTest(canShuffle = true)
 public class PhasedSeries_H_ShuffledClass {
 

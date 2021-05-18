@@ -20,6 +20,8 @@ import java.util.Scanner;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
+
 /**
  * Methods dedicated to manage resources used by tests
  * 
@@ -28,14 +30,12 @@ import org.apache.logging.log4j.Logger;
  *
  */
 public class GeneralTestUtils {
-    public static final String STD_CACHE_DIR = "phased_output";
-    public static final String STD_LOG_PREFIX = "[integro-testngwrapper] ";
+
     protected static Logger log = LogManager.getLogger();
 
-
     /**
-     * Creates a cache directory under the standard output directory
-     * {@value #STD_CACHE_DIR }
+     * Creates a cache directory under the standard output directory, which is
+     * by default {@value PhasedTestManager#DEFAULT_CACHE_DIR }
      *
      * Author : gandomi
      *
@@ -50,7 +50,7 @@ public class GeneralTestUtils {
                     "The given argument 'in_directoryName' cannot be null nor empty.");
         }
 
-        File lr_cacheDir = new File(STD_CACHE_DIR, in_directoryName);
+        File lr_cacheDir = new File(PhasedTestManager.STD_CACHE_DIR, in_directoryName);
         if (!lr_cacheDir.exists()) {
             lr_cacheDir.mkdirs();
         }
@@ -80,7 +80,8 @@ public class GeneralTestUtils {
      *
      * @param in_cacheDir
      *        A cache directory
-     * @param in_fileName A name for the file to create
+     * @param in_fileName
+     *        A name for the file to create
      * @return a file with the given name and stored in the given cache
      *         directory
      * @throws IllegalArgumentException
@@ -104,7 +105,6 @@ public class GeneralTestUtils {
         }
         return new File(in_cacheDir, in_fileName);
     }
-
 
     /**
      * This method fetches the lines of a given file.

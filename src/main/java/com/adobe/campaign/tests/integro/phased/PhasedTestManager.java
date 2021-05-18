@@ -39,15 +39,18 @@ public class PhasedTestManager {
 
     protected static final String STD_KEY_CLASS_SEPARATOR = "->";
 
-    protected static final String PHASED_TEST_LOG_PREFIX = "[Phased Testing] ";
+    public static final String PHASED_TEST_LOG_PREFIX = "[Phased Testing] ";
 
     protected static Logger log = LogManager.getLogger();
 
-    public static final String PROP_PHASED_DATA_PATH = "PHASED.TESTS.RETRY.DISABLED";
+    public static final String PROP_PHASED_DATA_PATH = "PHASED.TESTS.STORAGE.PATH";
+    public static final String PROP_OUTPUT_DIR = "PHASED.TESTS.OUTPUT.DIR";
     public static final String PROP_SELECTED_PHASE = "PHASED.TESTS.PHASE";
     public static final String PROP_PHASED_TEST_DATABROKER = "PHASED.TESTS.DATABROKER";
     public static final String PROP_DISABLE_RETRY = "PHASED.TESTS.RETRY.DISABLED";
 
+    public static final String DEFAULT_CACHE_DIR = "phased_output";
+    public static final String STD_CACHE_DIR = System.getProperty(PROP_OUTPUT_DIR, DEFAULT_CACHE_DIR);
     public static final String STD_STORE_DIR = "phased_tests";
     public static final String STD_STORE_FILE = "phaseData.properties";
 
@@ -349,7 +352,7 @@ public class PhasedTestManager {
      *
      * Author : gandomi
      *
-     * @return The file that was used for storing thee phase cache
+     * @return The file that was used for storing the phase cache
      *
      */
     protected static File exportPhaseData() {
@@ -421,8 +424,8 @@ public class PhasedTestManager {
     }
 
     /**
-     * Loads the Phased Test data from the standard location which is
-     * {@value GeneralTestUtils#STD_CACHE_DIR}/{@value #STD_STORE_DIR}/{@value #STD_STORE_FILE}
+     * Loads the Phased Test data from the standard location which is by default
+     * {@value #DEFAULT_CACHE_DIR}/{@value #STD_STORE_DIR}/{@value #STD_STORE_FILE}
      *
      * Author : gandomi
      *
@@ -558,13 +561,13 @@ public class PhasedTestManager {
 
         return new Object[] {};
     }
-    
+
     /**
      * This method calculates how often a class should be run.
      *
      * Author : gandomi
      *
-      * @param in_classMethodMap
+     * @param in_classMethodMap
      *        A map of a class and it is methods (A scenario and its steps)
      * @return A map letting us know that for a the given method how often it
      *         will be executed in the current phase
@@ -738,7 +741,8 @@ public class PhasedTestManager {
      * This method lets us know if the steps in a PhasedTest are to be executed
      * consequently in two phases
      * 
-     * @param in_method Any test method
+     * @param in_method
+     *        Any test method
      * @return True if the test step/method is part of a SingleRun Phase Test
      *         scenario
      */
