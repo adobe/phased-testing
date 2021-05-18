@@ -114,7 +114,7 @@ Moreover you need to :
 * The methods will be executed in alphabetical order. So prefixing the methods with their step number is a good practice. 
 
 ### Shuffled Mode
-In order for a test scenario to be executed in shuffle mode you need to add the following annotation at the class level `@PhasedTest(canShuffle = true)'
+In order for a test scenario to be executed in shuffle mode you need to add the following annotation at the class level `@PhasedTest(canShuffle = true)`
 
 ### Single Run Mode
 In order for a test scenario to be executed in shuffle mode you need to add the following annotation at the class level `@PhasedTest(canShuffle = false)`. However because the interruption will happen at the same location all the time, you have to add the annotation `@PhaseEven@PhaseEvent` where you expect the interruption to occur.
