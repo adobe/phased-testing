@@ -125,7 +125,7 @@ Optionally if you consider that the scenario can never be run as non-phased, you
 ## Running a Phased Test
 We are able to run tests in phases since each step stores the information needed for the following steps. For now this is done at the discretion of the developer. This storage is important as it helps us keep track of the tests:
 
-![The storage of test cache](diagrams/PhasedDiagrams-General Process.png)
+![The storage of test cache](diagrams/PhasedDiagrams-General-Process.png)
 
 Managing this data is obviously essential to the Phased Tests. We will discuss this in more detail in the chapter on "Managing Phased Data".
 
