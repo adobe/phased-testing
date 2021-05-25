@@ -102,7 +102,7 @@ public class PhasedTestManager {
      *
      */
     public static void setDataBroker(String in_classPath) throws PhasedTestConfigurationException {
-        log.info("Phased Testing : Setting Data broker with classpath " + in_classPath);
+        log.info(PHASED_TEST_LOG_PREFIX + "Setting Data broker with classpath " + in_classPath);
         Class<?> l_dataBrokerImplementation;
         Object l_dataBroker;
         try {
@@ -365,8 +365,6 @@ public class PhasedTestManager {
             l_exportCacheFile = new File(GeneralTestUtils.fetchCacheDirectory(STD_STORE_DIR), STD_STORE_FILE);
         }
 
-        log.info(PHASED_TEST_LOG_PREFIX + " Exporting Phased Testing data to " + l_exportCacheFile.getPath());
-
         return exportCache(l_exportCacheFile);
     }
 
@@ -381,6 +379,8 @@ public class PhasedTestManager {
      *
      */
     protected static File exportCache(File in_file) {
+        
+        log.info(PHASED_TEST_LOG_PREFIX + " Exporting Phased Testing data to " + in_file.getPath());
         try (FileWriter fw = new FileWriter(in_file)) {
 
             getPhasedCache().store(fw, null);
@@ -411,6 +411,7 @@ public class PhasedTestManager {
      *
      */
     protected static Properties importCache(File in_phasedTestFile) {
+        log.info(PHASED_TEST_LOG_PREFIX+"Importing phase cache.");
         try (InputStream input = new FileInputStream(in_phasedTestFile)) {
 
             // load a properties file
@@ -448,6 +449,7 @@ public class PhasedTestManager {
                         + " not set. Fetching Phased Test data from " + l_importCacheFile.getPath());
             }
         } else {
+            log.info(PHASED_TEST_LOG_PREFIX+"Fetching cache through DataBroker");
             l_importCacheFile = dataBroker.fetch(STD_STORE_FILE);
         }
         return importCache(l_importCacheFile);
