@@ -180,14 +180,4 @@ The Phased Data Broker can then be attached to the test in three ways (in descen
 3. Programmatically by calling PhasedTestManager.setDataBroker()
 
 
-## Known Issues
-Below is a list of known issues:
-
-### Nested Test Class Definitions
-There seems to be an incompatibility between External Group Manager and Nested Class Level Tests. This problem manifests itself in two ways:
-* In versions 6.X the nested class may be completely ignored
-* In 7.X the nested classes are mixed with normal Class level tests. We our selection will be faulty.
-
-For now we forbid the usage of nested class level tests when you activate the external group manager. At execution time if you are using the External Group Manager, wee will generate Exception of the type NestedTestClassForbiddenException. This is for now a filed bug at TestNG : https://github.com/cbeust/testng/issues/2536
-
 
