@@ -15,7 +15,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.adobe.campaign.tests.phased</groupId>
     <artifactId>phased-testing-testng</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1-SNAPSHOT</version>
     <description>A TestNG listener that allows you to write and execute tests in a phased mode</description>
     <packaging>jar</packaging>
     <name>${project.groupId}:${project.artifactId}</name>
@@ -227,7 +227,7 @@
         <url>https://git.corp.adobe.com/gandomi/phasedTesting/tree/master/src</url>
         <connection>scm:git::https://${env.GIT_TOKEN}@git.corp.adobe.com/gandomi/phasedTesting.git</connection>
         <developerConnection>scm:git:https://${env.GIT_TOKEN}@git.corp.adobe.com/gandomi/phasedTesting.git</developerConnection>
-        <tag>phased-testing-testng-1.0.0</tag>
+        <tag>HEAD</tag>
     </scm>
     <parent>
         <groupId>com.adobe.campaign.tests.integro</groupId>
