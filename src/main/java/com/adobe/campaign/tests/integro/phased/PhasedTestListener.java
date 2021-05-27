@@ -39,13 +39,12 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
     // @Override
     public void onTestStart(ITestResult result) {
 
-        log.debug("On test start ");
         final Method l_method = result.getMethod().getConstructorOrMethod().getMethod();
 
         //reset context
         if (PhasedTestManager.isPhasedTest(l_method)) {
             
-            if (System.getProperty(PhasedTestManager.PROP_DISABLE_RETRY, "true").equals("true")) {
+            if (System.getProperty(PhasedTestManager.PROP_DISABLE_RETRY, "true").equalsIgnoreCase("true")) {
                 result.getMethod().setRetryAnalyzer(null);
             }
 
@@ -53,7 +52,7 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
             PhasedTestManager.storePhasedContext(ClassPathParser.fetchFullName(l_method), l_dataProvider);
             
             if (!PhasedTestManager.scenarioStateContinue(result)) {
-                final String skipMessage = "Skipping scenario step "+ClassPathParser.fetchFullName(result)+ " due to failure in a previous steps.";
+                final String skipMessage = PhasedTestManager.PHASED_TEST_LOG_PREFIX+"Skipping scenario step "+ClassPathParser.fetchFullName(result)+ " due to failure in a previous steps.";
                 log.info(skipMessage);
                 throw new SkipException(skipMessage);
             }
@@ -128,7 +127,7 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
 
     @Override
     public void onStart(ITestContext context) {
-        log.debug("onStart - current Execution State is : " + Phases.getCurrentPhase());
+        log.debug(PhasedTestManager.PHASED_TEST_LOG_PREFIX+"onStart - current Execution State is : " + Phases.getCurrentPhase());
 
         /*** Import DataBroker ***/
         String l_phasedDataBrokerClass = null;
@@ -138,8 +137,8 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
                 .containsKey(PhasedTestManager.PROP_PHASED_TEST_DATABROKER)) {
             l_phasedDataBrokerClass = context.getSuite().getXmlSuite()
                     .getParameter(PhasedTestManager.PROP_PHASED_TEST_DATABROKER);
-        } else {
-            log.info("No PhasedDataBroker set. Using the file system path " + PhasedTestManager.STD_STORE_DIR
+        } else if (!Phases.NON_PHASED.isSelected()) {
+            log.info(PhasedTestManager.PHASED_TEST_LOG_PREFIX+"No PhasedDataBroker set. Using the file system path " + PhasedTestManager.STD_STORE_DIR
                     + "/" + PhasedTestManager.STD_STORE_FILE + " instead ");
         }
 
@@ -147,7 +146,7 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
             try {
                 PhasedTestManager.setDataBroker(l_phasedDataBrokerClass);
             } catch (PhasedTestConfigurationException e) {
-                log.error("Errors while setting the PhasedDataBroker", e);
+                log.error(PhasedTestManager.PHASED_TEST_LOG_PREFIX+"Errors while setting the PhasedDataBroker", e);
                 throw new TestNGException(e);
             }
         }
@@ -164,7 +163,7 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
             Method lt_method = lt_testNGMethod.getConstructorOrMethod().getMethod();
 
             if (PhasedTestManager.isPhasedTestShuffledMode(lt_method)) {
-                log.debug("In Shuffled mode for test " + ClassPathParser.fetchFullName(lt_method));
+                log.debug(PhasedTestManager.PHASED_TEST_LOG_PREFIX+"In Shuffled mode : current test " + ClassPathParser.fetchFullName(lt_method));
                 if (!l_classMethodMap.containsKey(lt_method.getDeclaringClass())) {
                     l_classMethodMap.put(lt_method.getDeclaringClass(), new ArrayList<>());
                 }
@@ -175,7 +174,7 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
         }
 
         if (Phases.getCurrentPhase().hasSplittingEvent()) {
-            log.info("Generating Phased Provders");
+            log.info(PhasedTestManager.PHASED_TEST_LOG_PREFIX+"Generating Phased Provders");
             PhasedTestManager.generatePhasedProviders(l_classMethodMap, Phases.getCurrentPhase());
         }
 
@@ -183,22 +182,10 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
 
     @Override
     public void onFinish(ITestContext context) {
-        log.info("At the end. Exporting data");
+        log.info(PhasedTestManager.PHASED_TEST_LOG_PREFIX+"At the end. Exporting data");
         //Once the tests have finished in producer mode we, need to export the data
         if (Phases.PRODUCER.isSelected()) {
             PhasedTestManager.exportPhaseData();
-        }
-        
-        for (ITestResult lt_test : context.getPassedTests().getAllResults()) {
-            log.debug(" Test "+ClassPathParser.fetchFullName(lt_test)+" ran with the result SUCCESS");
-        }
-
-        for (ITestResult lt_test : context.getFailedTests().getAllResults()) {
-            log.debug(" Test "+ClassPathParser.fetchFullName(lt_test)+" ran with the result FAILED");
-        }
-        
-        for (ITestResult lt_test : context.getSkippedTests().getAllResults()) {
-            log.debug(" Test "+ClassPathParser.fetchFullName(lt_test)+" ran with the result SKIPPED");
         }
     }
 
