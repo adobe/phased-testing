@@ -18,7 +18,7 @@ import org.testng.annotations.DataProvider;
 public class PhasedDataProvider {
     public static final String SHUFFLED = "phased-data-provider-shuffled";
     public static final String SINGLE = "phased-data-provider-single";
-    public static final String DEFAULT = "default";
+    public static final String DEFAULT = "phased-default";
 
     @DataProvider(name = SHUFFLED)
     public Object[][] cascaded(Method m) {

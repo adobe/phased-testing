@@ -55,8 +55,8 @@ public class PhasedTestManager {
     public static final String STD_STORE_FILE = "phaseData.properties";
 
     //Values for the DataProvider used in both Shuffled and Single run phases
-    protected static final String STD_PHASED_GROUP_PREFIX = "shuffledGroup_";
-    protected static final String STD_PHASED_GROUP_SINGLE = "singleRun";
+    protected static final String STD_PHASED_GROUP_PREFIX = "phased-shuffledGroup_";
+    protected static final String STD_PHASED_GROUP_SINGLE = "phased-singleRun";
 
     protected static Properties phasedCache = new Properties();
 
