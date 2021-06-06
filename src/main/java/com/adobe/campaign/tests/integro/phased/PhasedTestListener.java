@@ -45,7 +45,8 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
         if (PhasedTestManager.isPhasedTest(l_method)) {
             
             if (System.getProperty(PhasedTestManager.PROP_DISABLE_RETRY, "true").equalsIgnoreCase("true")) {
-                result.getMethod().setRetryAnalyzer(null);
+                log.info(PhasedTestManager.PHASED_TEST_LOG_PREFIX+"Disabling Retry for phased Tests.");
+                result.getMethod().setRetryAnalyzerClass(null);
             }
 
             final String l_dataProvider = result.getParameters()[0].toString();
