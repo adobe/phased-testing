@@ -30,6 +30,7 @@ import org.testng.TestNGException;
 import org.testng.annotations.ITestAnnotation;
 import org.testng.internal.BaseTestMethod;
 import org.testng.internal.TestResult;
+import org.testng.internal.annotations.DisabledRetryAnalyzer;
 
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
 
@@ -45,7 +46,8 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
         if (PhasedTestManager.isPhasedTest(l_method)) {
             
             if (System.getProperty(PhasedTestManager.PROP_DISABLE_RETRY, "true").equalsIgnoreCase("true")) {
-                result.getMethod().setRetryAnalyzer(null);
+                log.info(PhasedTestManager.PHASED_TEST_LOG_PREFIX+"Disabling Retry for phased Tests.");
+                result.getMethod().setRetryAnalyzerClass(DisabledRetryAnalyzer.class);
             }
 
             final String l_dataProvider = result.getParameters()[0].toString();
@@ -193,7 +195,6 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
     public void transform(ITestAnnotation annotation, Class testClass, Constructor testConstructor,
             Method testMethod) {
 
-        //Managing Phased tests on class level
         if (testClass != null) {
 
             if (PhasedTestManager.isPhasedTestShuffledMode(testClass)) {
