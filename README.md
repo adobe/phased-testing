@@ -179,5 +179,11 @@ The Phased Data Broker can then be attached to the test in three ways (in descen
 2. Configuring the property PHASED.TESTS.DATABROKER as a Test Suite parameter 
 3. Programmatically by calling PhasedTestManager.setDataBroker()
 
+## Release Notes
 
+### 7.0.0
+- Migrated to TestNG 7.4
+
+### 1.0.0
+- First Release
 
