@@ -184,9 +184,10 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
 
     @Override
     public void onFinish(ITestContext context) {
-        log.info(PhasedTestManager.PHASED_TEST_LOG_PREFIX+"At the end. Exporting data");
+        
         //Once the tests have finished in producer mode we, need to export the data
         if (Phases.PRODUCER.isSelected()) {
+            log.info(PhasedTestManager.PHASED_TEST_LOG_PREFIX+"At the end. Exporting data");
             PhasedTestManager.exportPhaseData();
         }
     }
