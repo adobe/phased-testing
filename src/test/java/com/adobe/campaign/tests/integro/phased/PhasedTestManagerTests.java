@@ -235,6 +235,52 @@ public class PhasedTestManagerTests {
                 equalTo("Hello"));
 
     }
+    
+    
+    @Test
+    public void exportingDataTwice() throws FileNotFoundException, IOException {
+
+        final String thisMethodFullName = "com.adobe.campaign.tests.integro.phased.PhasedTestManagerTests.exportingDataTwice";
+
+        PhasedTestManager.produceInStep("Hello");
+
+        File l_phasedTestFile = PhasedTestManager.exportPhaseData();
+
+        assertThat("The file should exist", l_phasedTestFile.exists());
+        assertThat("The file should exist", l_phasedTestFile.length(), Matchers.greaterThan(0l));
+        Properties prop = new Properties();
+
+        try (InputStream input = new FileInputStream(l_phasedTestFile)) {
+
+            // load a properties file
+            prop.load(input);
+        }
+
+        assertThat("We should find our property", prop.size(), equalTo(1));
+        assertThat("We should find our property", prop.containsKey(thisMethodFullName));
+        assertThat("We should find our property", prop.getProperty(thisMethodFullName), equalTo("Hello"));
+
+        PhasedTestManager.produce("A", "Bye");
+        
+        File l_phasedTestFile2 = PhasedTestManager.exportPhaseData();
+
+        assertThat("The file should exist", l_phasedTestFile2.exists());
+        assertThat("The file should exist", l_phasedTestFile2.length(), Matchers.greaterThan(0l));
+        Properties prop2 = new Properties();
+
+        try (InputStream input = new FileInputStream(l_phasedTestFile2)) {
+
+            // load a properties file
+            prop2.load(input);
+        }
+
+        assertThat("We should find our property", prop2.size(), equalTo(2));
+        final String l_key = this.getClass().getTypeName()+ PhasedTestManager.STD_KEY_CLASS_SEPARATOR + "A";
+        assertThat("We should find our property", prop2.containsKey(l_key));
+
+        assertThat("We should find our property", prop2.getProperty(l_key), equalTo("Bye"));
+    }
+    
 
     /**
      * Testing that when the property
@@ -279,6 +325,53 @@ public class PhasedTestManagerTests {
                 "com.adobe.campaign.tests.integro.phased.PhasedTestManagerTests.exportingData_UsingSystemValues"),
                 equalTo("Hello"));
 
+    }
+    
+    /**
+     * Testing that when the property
+     * ({@value PhasedTestManager#PROP_PHASED_DATA_PATH} is set, that path is
+     * used.
+     *
+     * Author : gandomi
+     *
+     * @throws FileNotFoundException
+     * @throws IOException
+     *
+     */
+    @Test
+    public void testingTheFetchExportFile() throws FileNotFoundException, IOException {
+        
+        File l_newFile = GeneralTestUtils
+                .createEmptyCacheFile(GeneralTestUtils.createCacheDirectory("testingTheFetchExportFile"), "newFile.properties");
+        assertThat("The new file should be empty", !l_newFile.exists());
+
+        System.setProperty(PhasedTestManager.PROP_PHASED_DATA_PATH, l_newFile.getPath());
+        
+        assertThat(PhasedTestManager.fetchExportFile().getAbsolutePath(), equalTo(l_newFile.getAbsolutePath()));
+
+        
+    }
+    
+    /**
+     * Testing that when the property
+     * ({@value PhasedTestManager#PRO} is set, that path is
+     * used.
+     *
+     * Author : gandomi
+     *
+     * @throws FileNotFoundException
+     * @throws IOException
+     *
+     */
+    @Test
+    public void testingTheFetchExportFileNoPropertySet() throws FileNotFoundException, IOException {
+        File l_parentPath = GeneralTestUtils.fetchCacheDirectory(PhasedTestManager.STD_STORE_DIR);
+        
+        assertThat("The directories should be the same",PhasedTestManager.fetchExportFile().getParent(), equalTo(l_parentPath.getPath()));
+        
+        assertThat("The files should b the same",PhasedTestManager.fetchExportFile().getName(),equalTo(PhasedTestManager.STD_STORE_FILE));
+
+        
     }
 
     @Test

@@ -400,24 +400,37 @@ public class PhasedTestManager {
     }
 
     /**
-     * exports the cache into a standard PhasedTest property file
+     * Exports the cache into a standard PhasedTest property file.
      *
      * Author : gandomi
      *
      * @return The file that was used for storing the phase cache
      *
      */
-    protected static File exportPhaseData() {
+    public static File exportPhaseData() {
 
-        File l_exportCacheFile = null;
+        File l_exportCacheFile = fetchExportFile();
+
+        return exportCache(l_exportCacheFile);
+    }
+
+    /**
+     * Returns the export file that will be used for exporting the PhaseCache
+     *
+     * Author : gandomi
+     *
+     * @return A file that matches the location of the exoprt file
+     *
+     */
+    public static File fetchExportFile() {
+        File l_exportCacheFile;
         if (System.getProperties().containsKey(PROP_PHASED_DATA_PATH)) {
             l_exportCacheFile = new File(System.getProperty(PROP_PHASED_DATA_PATH));
 
         } else {
             l_exportCacheFile = new File(GeneralTestUtils.fetchCacheDirectory(STD_STORE_DIR), STD_STORE_FILE);
         }
-
-        return exportCache(l_exportCacheFile);
+        return l_exportCacheFile;
     }
 
     /**
