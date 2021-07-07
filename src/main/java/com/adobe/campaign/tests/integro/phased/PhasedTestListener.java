@@ -176,7 +176,7 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
         }
 
         if (Phases.getCurrentPhase().hasSplittingEvent()) {
-            log.info(PhasedTestManager.PHASED_TEST_LOG_PREFIX+"Generating Phased Provders");
+            log.info(PhasedTestManager.PHASED_TEST_LOG_PREFIX+"Generating Phased Providers");
             PhasedTestManager.generatePhasedProviders(l_classMethodMap, Phases.getCurrentPhase());
         }
 
