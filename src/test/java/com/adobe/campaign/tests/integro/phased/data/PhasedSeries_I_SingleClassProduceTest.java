@@ -31,14 +31,14 @@ public class PhasedSeries_I_SingleClassProduceTest {
     
     public void step1(String data) {
         System.out.println("data is : "+data);
-        PhasedTestManager.produceWithKey("MyVal", "A");
+        PhasedTestManager.produce("MyVal", "A");
 
     }
 
     @PhaseEvent
     
     public void step2(String data) {
-        String l_fetchedValue = PhasedTestManager.consumeWithKey("MyVal");
+        String l_fetchedValue = PhasedTestManager.consume("MyVal");
         
         assertEquals(l_fetchedValue, "A");
     }

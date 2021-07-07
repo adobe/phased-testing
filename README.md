@@ -180,6 +180,9 @@ The Phased Data Broker can then be attached to the test in three ways (in descen
 3. Programmatically by calling PhasedTestManager.setDataBroker()
 
 ## Release Notes
+### 7.0.3
+- #15 renamed old produce/consume to produceInStep/consumeFromStep
+- #15 the old produceWithKey/consumeWith key are now deprecated. Instead you should use produceWithKey/consumeWith 
 
 ### 7.0.0
 - Migrated to TestNG 7.4

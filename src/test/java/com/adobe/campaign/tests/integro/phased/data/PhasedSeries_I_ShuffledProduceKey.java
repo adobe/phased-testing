@@ -28,20 +28,20 @@ public class PhasedSeries_I_ShuffledProduceKey {
     
     public void step1(String val) {
         System.out.println("step1 " + val);
-        PhasedTestManager.produceWithKey("step1Val","A");
+        PhasedTestManager.produce("step1Val","A");
     }
 
     
     public void step2(String val) {
         System.out.println("step2 " + val);
-        String l_fetchedValue = PhasedTestManager.consumeWithKey("step1Val");
-        PhasedTestManager.produceWithKey("step2Val",l_fetchedValue + "B");
+        String l_fetchedValue = PhasedTestManager.consume("step1Val");
+        PhasedTestManager.produce("step2Val",l_fetchedValue + "B");
     }
 
     
     public void step3(String val) {
         System.out.println("step3 " + val);
-        String l_fetchedValue = PhasedTestManager.consumeWithKey("step2Val");
+        String l_fetchedValue = PhasedTestManager.consume("step2Val");
 
         assertEquals(l_fetchedValue, "AB");
 

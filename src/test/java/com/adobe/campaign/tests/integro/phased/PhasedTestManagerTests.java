@@ -72,14 +72,14 @@ public class PhasedTestManagerTests {
 
     @Test
     public void testStorage() {
-        assertThat("We should have correctly constructed the key ", PhasedTestManager.produce("Hello"),
+        assertThat("We should have correctly constructed the key ", PhasedTestManager.produceInStep("Hello"),
                 equalTo("com.adobe.campaign.tests.integro.phased.PhasedTestManagerTests.testStorage"));
 
         assertThat("We should have successfully stored the given value", PhasedTestManager.phasedCache
                 .containsKey("com.adobe.campaign.tests.integro.phased.PhasedTestManagerTests.testStorage"));
 
         assertThat("We should have successfully fetched the correct value",
-                PhasedTestManager.consume("testStorage"), equalTo("Hello"));
+                PhasedTestManager.consumeFromStep("testStorage"), equalTo("Hello"));
     }
 
     @Test
@@ -135,21 +135,55 @@ public class PhasedTestManagerTests {
         assertThat("We should have successfully fetched the correct value",
                 PhasedTestManager.consumeWithKey("A"), equalTo("Hello"));
     }
+    
+    @Test
+    public void testProduce_withContext() {
+
+        final String l_dataProducerValue = "plop";
+        PhasedTestManager.phaseContext.put(
+                this.getClass().getTypeName() + ".testProduce_withContext", l_dataProducerValue);
+
+        String l_myKeyPrefix = this.getClass().getTypeName() + "(" + l_dataProducerValue + ")"
+                + PhasedTestManager.STD_KEY_CLASS_SEPARATOR;
+
+        assertThat("We should have correctly constructed the key ", PhasedTestManager.produce("A", "Hello"),
+                equalTo(l_myKeyPrefix + "A"));
+
+        assertThat("We should have successfully stored the given value",
+                PhasedTestManager.phasedCache.containsKey(l_myKeyPrefix + "A"));
+
+        assertThat("We should have successfully fetched the correct value",
+                PhasedTestManager.phasedCache.get(l_myKeyPrefix + "A"), equalTo("Hello"));
+
+        assertThat("We should have successfully fetched the correct value",
+                PhasedTestManager.consume("A"), equalTo("Hello"));
+    }
 
     @Test
     public void testProduceOnBehalphOf_RepetitiveProduce_Negative() {
         PhasedTestManager.produceWithKey("A", "Bye");
         assertThrows(PhasedTestException.class, () -> PhasedTestManager.produceWithKey("A", "Hello"));
     }
+    
+    @Test
+    public void testProduce_RepetitiveProduce_Negative() {
+        PhasedTestManager.produce("A", "Bye");
+        assertThrows(PhasedTestException.class, () -> PhasedTestManager.produce("A", "Hello"));
+    }
 
     @Test
     public void testconsumeByKey_NonExistingKey_Negative() {
         assertThrows(PhasedTestException.class, () -> PhasedTestManager.consumeWithKey("A"));
     }
+    
+    @Test
+    public void testconsume_NonExistingKey_Negative() {
+        assertThrows(PhasedTestException.class, () -> PhasedTestManager.consume("A"));
+    }
 
     @Test
     public void testReset() {
-        PhasedTestManager.produce("Hello");
+        PhasedTestManager.produceInStep("Hello");
 
         assertThat(PhasedTestManager.phasedCache.size(), Matchers.greaterThan(0));
         PhasedTestManager.clearCache();
@@ -158,10 +192,10 @@ public class PhasedTestManagerTests {
 
     @Test
     public void duplicateExceptionWhenStoring() {
-        PhasedTestManager.produce("Hello");
+        PhasedTestManager.produceInStep("Hello");
 
         try {
-            PhasedTestManager.produce("Bye");
+            PhasedTestManager.produceInStep("Bye");
         } catch (Exception e) {
             assertThat("The exception should be an instance of PhasedTestStorageException",
                     e instanceof PhasedTestException);
@@ -173,12 +207,12 @@ public class PhasedTestManagerTests {
 
     @Test
     public void missingDataForPhasedTests() {
-        assertThrows(PhasedTestException.class, () -> PhasedTestManager.consume("something"));
+        assertThrows(PhasedTestException.class, () -> PhasedTestManager.consumeFromStep("something"));
     }
 
     @Test
     public void exportingData() throws FileNotFoundException, IOException {
-        PhasedTestManager.produce("Hello");
+        PhasedTestManager.produceInStep("Hello");
 
         File l_phasedTestFile = PhasedTestManager.exportPhaseData();
 
@@ -215,7 +249,7 @@ public class PhasedTestManagerTests {
      */
     @Test
     public void exportingData_UsingSystemValues() throws FileNotFoundException, IOException {
-        PhasedTestManager.produce("Hello");
+        PhasedTestManager.produceInStep("Hello");
 
         File l_newFile = GeneralTestUtils
                 .createEmptyCacheFile(GeneralTestUtils.createCacheDirectory("phased2"), "newFile.properties");
@@ -270,7 +304,7 @@ public class PhasedTestManagerTests {
 
     @Test
     public void exportingData_dataBroker() throws FileNotFoundException, IOException {
-        PhasedTestManager.produce("Hello");
+        PhasedTestManager.produceInStep("Hello");
 
         File l_phasedTestFile = PhasedTestManager.exportPhaseData();
 
@@ -309,7 +343,7 @@ public class PhasedTestManagerTests {
 
         //Generate data
         final String l_phaseContent = "noHello";
-        PhasedTestManager.produce(l_phaseContent);
+        PhasedTestManager.produceInStep(l_phaseContent);
 
         //Store data
         File l_phasedTestFile = PhasedTestManager.exportPhaseData();
@@ -329,7 +363,7 @@ public class PhasedTestManagerTests {
         PhasedTestManager.importPhaseData();
 
         assertThat("We should have successfully fetched the contents of the stored file.",
-                PhasedTestManager.consume("exportingData_dataBrokerPhasedTestManager"),
+                PhasedTestManager.consumeFromStep("exportingData_dataBrokerPhasedTestManager"),
                 Matchers.equalTo(l_phaseContent));
     }
 
@@ -359,7 +393,7 @@ public class PhasedTestManagerTests {
 
         //Generate data
         final String l_phaseContent = "noHello";
-        PhasedTestManager.produce(l_phaseContent);
+        PhasedTestManager.produceInStep(l_phaseContent);
 
         //Store data
         File l_phasedTestFile = PhasedTestManager.exportPhaseData();
@@ -379,7 +413,7 @@ public class PhasedTestManagerTests {
         PhasedTestManager.importPhaseData();
 
         assertThat("We should have successfully fetched the contents of the stored file.",
-                PhasedTestManager.consume("dataBrokerPhasedTestManagerInitializing"),
+                PhasedTestManager.consumeFromStep("dataBrokerPhasedTestManagerInitializing"),
                 Matchers.equalTo(l_phaseContent));
     }
 
@@ -415,7 +449,7 @@ public class PhasedTestManagerTests {
 
     @Test
     public void importingData() throws IOException {
-        PhasedTestManager.produce("Hello");
+        PhasedTestManager.produceInStep("Hello");
         File l_phasedTestFile = PhasedTestManager.exportPhaseData();
         PhasedTestManager.clearCache();
 
@@ -442,7 +476,7 @@ public class PhasedTestManagerTests {
 
     @Test
     public void importingDataSTD() throws FileNotFoundException, IOException {
-        PhasedTestManager.produce("Hello");
+        PhasedTestManager.produceInStep("Hello");
         PhasedTestManager.exportPhaseData();
         PhasedTestManager.clearCache();
 
@@ -460,7 +494,7 @@ public class PhasedTestManagerTests {
 
     @Test
     public void importingDataSTD_UsingSystemValues() throws FileNotFoundException, IOException {
-        PhasedTestManager.produce("Hello");
+        PhasedTestManager.produceInStep("Hello");
         File l_phasedTestData = PhasedTestManager.exportPhaseData();
 
         File l_newFile = GeneralTestUtils
@@ -583,13 +617,13 @@ public class PhasedTestManagerTests {
                 "com.adobe.campaign.tests.integro.phased.PhasedTestManagerTests.testPhasedManagerContext"),
                 equalTo(l_phasedGroupId));
 
-        PhasedTestManager.produce("myVal");
+        PhasedTestManager.produceInStep("myVal");
 
         assertThat("We should have stored the correct key", PhasedTestManager.getPhasedCache().containsKey(
                 "com.adobe.campaign.tests.integro.phased.PhasedTestManagerTests.testPhasedManagerContext("
                         + l_phasedGroupId + ")"));
 
-        assertThat(PhasedTestManager.consume("testPhasedManagerContext"), equalTo("myVal"));
+        assertThat(PhasedTestManager.consumeFromStep("testPhasedManagerContext"), equalTo("myVal"));
     }
 
     /**** Single Executions ****/
