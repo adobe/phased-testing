@@ -13,7 +13,6 @@ package com.adobe.campaign.tests.integro.phased;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -148,7 +147,7 @@ public class PhasedTestManager {
      * @return The key that was used in storing the value
      *
      */
-    public static String produce(String in_storeValue) {
+    public static String produceInStep(String in_storeValue) {
         final String l_methodFullName = StackTraceManager.fetchCalledByFullName();
         StringBuilder sb = new StringBuilder(l_methodFullName);
 
@@ -164,7 +163,7 @@ public class PhasedTestManager {
 
     /**
      * Stores a value with the given key. We include the class as prefix. By
-     * default {@link #produce(String)} should be preferred
+     * default {@link #produceInStep(String)} should be preferred
      *
      * Author : gandomi
      *
@@ -174,9 +173,33 @@ public class PhasedTestManager {
      * @param in_storeValue
      *        The value we want to store
      * @return The key that was used in storing the value
+     * 
+     * @deprecated This method has been renamed. Please use {@link #produce(String,String)} instead.
      *
      */
+    @Deprecated
     public static String produceWithKey(String in_storageKey, String in_storeValue) {
+        final String l_className = StackTraceManager.fetchCalledBy().getClassName();
+        final String l_fullId = generateStepKeyIdentity(StackTraceManager.fetchCalledByFullName(),
+                l_className, in_storageKey);
+        return storePhasedCache(l_fullId, in_storeValue);
+    }
+    
+    
+    /**
+     * Stores a value with the given key. We include the class as prefix.
+     *
+     * Author : gandomi
+     *
+     * @param in_storageKey
+     *        A string that is added to the generated key for identification of
+     *        the stored data
+     * @param in_storeValue
+     *        The value we want to store
+     * @return The key that was used in storing the value
+     * 
+     */
+    public static String produce(String in_storageKey, String in_storeValue) {
         final String l_className = StackTraceManager.fetchCalledBy().getClassName();
         final String l_fullId = generateStepKeyIdentity(StackTraceManager.fetchCalledByFullName(),
                 l_className, in_storageKey);
@@ -272,7 +295,7 @@ public class PhasedTestManager {
      * Given a step in the Phased Test it fetches the value committed for that
      * test. It will fetch a Phased Test data with the method/test that called
      * this method. This method is to be used if you have produced your Phased
-     * Data using {@link #produce(String)}
+     * Data using {@link #produceInStep(String)}
      *
      * Author : gandomi
      *
@@ -282,7 +305,7 @@ public class PhasedTestManager {
      * @return The value store by the method
      *
      */
-    public static String consume(String in_stepName) {
+    public static String consumeFromStep(String in_stepName) {
         StackTraceElement l_calledElement = StackTraceManager.fetchCalledBy();
         StringBuilder sb = new StringBuilder(l_calledElement.getClassName());
 
@@ -316,8 +339,11 @@ public class PhasedTestManager {
      * @param in_storageKey
      *        A key that was used to store the value in this scenario
      * @return The value that was stored
+     * 
+     * @deprecated This method has been renamed. Please use {@link #consume(String)} instead 
      *
      */
+    @Deprecated
     public static String consumeWithKey(String in_storageKey) {
         final StackTraceElement l_fetchCalledBy = StackTraceManager.fetchCalledBy();
 
@@ -332,6 +358,32 @@ public class PhasedTestManager {
         return phasedCache.getProperty(l_realKey);
     }
 
+    /**
+     * Given a step in the Phased Test it fetches the value committed for that
+     * test.
+     *
+     * Author : gandomi
+     *
+     * @param in_storageKey
+     *        A key that was used to store the value in this scenario
+     * @return The value that was stored
+     * 
+     */
+    public static String consume(String in_storageKey) {
+        final StackTraceElement l_fetchCalledBy = StackTraceManager.fetchCalledBy();
+
+        String l_realKey = generateStepKeyIdentity(StackTraceManager.fetchCalledByFullName(),
+                l_fetchCalledBy.getClassName(), in_storageKey);
+
+        if (!phasedCache.containsKey(l_realKey)) {
+            throw new PhasedTestException("The given consumable " + l_realKey + ", requested by "
+                    + l_fetchCalledBy.toString() + " was not available.");
+        }
+
+        return phasedCache.getProperty(l_realKey);
+    }
+    
+    
     /**
      * cleans the cache of the PhasedManager
      *
@@ -348,24 +400,37 @@ public class PhasedTestManager {
     }
 
     /**
-     * exports the cache into a standard PhasedTest property file
+     * Exports the cache into a standard PhasedTest property file.
      *
      * Author : gandomi
      *
      * @return The file that was used for storing the phase cache
      *
      */
-    protected static File exportPhaseData() {
+    public static File exportPhaseData() {
 
-        File l_exportCacheFile = null;
+        File l_exportCacheFile = fetchExportFile();
+
+        return exportCache(l_exportCacheFile);
+    }
+
+    /**
+     * Returns the export file that will be used for exporting the PhaseCache
+     *
+     * Author : gandomi
+     *
+     * @return A file that matches the location of the exoprt file
+     *
+     */
+    public static File fetchExportFile() {
+        File l_exportCacheFile;
         if (System.getProperties().containsKey(PROP_PHASED_DATA_PATH)) {
             l_exportCacheFile = new File(System.getProperty(PROP_PHASED_DATA_PATH));
 
         } else {
             l_exportCacheFile = new File(GeneralTestUtils.fetchCacheDirectory(STD_STORE_DIR), STD_STORE_FILE);
         }
-
-        return exportCache(l_exportCacheFile);
+        return l_exportCacheFile;
     }
 
     /**

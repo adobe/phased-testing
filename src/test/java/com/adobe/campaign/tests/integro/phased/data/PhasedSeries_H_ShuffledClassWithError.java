@@ -26,20 +26,20 @@ public class PhasedSeries_H_ShuffledClassWithError {
 
     public void step1(String val) {
         System.out.println("step1 " + val);
-        PhasedTestManager.produce("A");
+        PhasedTestManager.produceInStep("A");
     }
 
     public void step2(String val) {
         System.out.println("step2 " + val);
-        String l_fetchedValue = PhasedTestManager.consume("step1");
+        String l_fetchedValue = PhasedTestManager.consumeFromStep("step1");
         assertFalse(true);
-        PhasedTestManager.produce(l_fetchedValue + "B");
+        PhasedTestManager.produceInStep(l_fetchedValue + "B");
         
     }
 
     public void step3(String val) {
         System.out.println("step3 " + val);
-        String l_fetchedValue = PhasedTestManager.consume("step2");
+        String l_fetchedValue = PhasedTestManager.consumeFromStep("step2");
 
         assertEquals(l_fetchedValue, "AB");
 

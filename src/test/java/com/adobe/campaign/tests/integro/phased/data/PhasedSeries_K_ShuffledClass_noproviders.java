@@ -15,7 +15,6 @@ import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
 
-import com.adobe.campaign.tests.integro.phased.PhasedDataProvider;
 import com.adobe.campaign.tests.integro.phased.PhasedTest;
 import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
 
@@ -25,18 +24,18 @@ public class PhasedSeries_K_ShuffledClass_noproviders {
 
     public void step1(String val) {
         System.out.println("step1 " + val);
-        PhasedTestManager.produce("A");
+        PhasedTestManager.produceInStep("A");
     }
 
     public void step2(String val) {
         System.out.println("step2 " + val);
-        String l_fetchedValue = PhasedTestManager.consume("step1");
-        PhasedTestManager.produce(l_fetchedValue + "B");
+        String l_fetchedValue = PhasedTestManager.consumeFromStep("step1");
+        PhasedTestManager.produceInStep(l_fetchedValue + "B");
     }
 
     public void step3(String val) {
         System.out.println("step3 " + val);
-        String l_fetchedValue = PhasedTestManager.consume("step2");
+        String l_fetchedValue = PhasedTestManager.consumeFromStep("step2");
 
         assertEquals(l_fetchedValue, "AB");
 

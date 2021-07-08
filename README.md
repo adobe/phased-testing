@@ -181,6 +181,10 @@ The Phased Data Broker can then be attached to the test in three ways (in descen
 
 ## Release Notes
 
+### 7.0.3
+- #15 Renamed old produce/consume to produceInStep/consumeFromStep. The old produceWithKey/consumeWith key are now deprecated. Instead you should use produceWithKey/consumeWith 
+- #8  We an now export the phase cache at will. This is very useful for debugging or for Databroker testing. Added a method PhasedTestManager.fetchExportFile which help return tthe sselected export file 
+
 ### 7.0.0
 - Migrated to TestNG 7.4
 
