@@ -13,7 +13,7 @@ This library was originally created to help validate system changes such as upgr
 
 ![The Standard Process](diagrams/PhasedDiagrams-Normal-Migration.png)
 
-What we discovered was that an migration will affect users depending at what stage of a workflow process they are. 
+What we discovered was that a migration will affect users depending at what stage of a workflow process they are. 
 
 ![The Real Processes](diagrams/PhasedDiagrams-HL-Change-Scenarios.png)
 
@@ -137,6 +137,7 @@ We have the following system properties:
 * PHASED.TESTS.STORAGE.PATH
 * PHASED.TESTS.OUTPUT.DIR
 * PHASED.TESTS.RETRY.DISABLED
+* PHASED.TESTS.REPORT.BY.PHASE_GROUP
 
 #### PHASED.TESTS.PHASE
 We have three phased states:
@@ -155,6 +156,9 @@ By default Phased Test data is stored under the directory phased_output. You can
 
 #### PHASED.TESTS.RETRY.DISABLED
 By default we deactivate retry analyzer for the phased tests. However if you really want to use your retry listener, we can stop the phase test listener from deactivating it.
+
+#### PHASED.TESTS.REPORT.BY.PHASE_GROUP
+By default we do not modify reports. Each step in a scenario is reported as is. We have introduced a "Report By Phase Group" functionality, which is activated with this property.
 
 ## Managing Phased Data
 The way data is stored between two phases is in two ways:
@@ -179,11 +183,44 @@ The Phased Data Broker can then be attached to the test in three ways (in descen
 2. Configuring the property PHASED.TESTS.DATABROKER as a Test Suite parameter 
 3. Programmatically by calling PhasedTestManager.setDataBroker()
 
+## Reporting
+In this chapter we discuss the test reports. We currently have two types of reports:
+- Default Reports
+- Report By Phase Group
+
+### Default Reports
+By default we only slightly modify how TestNG generates reports. As each step is a method, you will get one result per step. This will lead to a lot of results, but you will have the fill overview of the evolution of the tests.
+
+### Report By Phase Group
+To make the reports a bit less messy, we introduced a report where, we only keep one result per Phase Group. Technically, we keep the most pertinent result. The following use cases exist for a phase group.
+- If all steps succeed, we keep the first step as the end result.
+- If in the current phase we have a failure at step X, we only keep that step result. All following steps are discarded from the result. 
+- If the phase group had failed in the previous phase, we keep the first step result which is "skipped".
+- Whenever an exception is encountered in a step, it is enriched with the step name and the phase in which it happened.
+
+Whenever activated, the default behavior is we just show the phase group name. This can, however be configured. We will describe this process in more detail in the chapter [on how we can configure the Merged Reports](#configuring-merged-reports). 
+
+To activate this report, you need to set the system property PHASED.TESTS.REPORT.BY.PHASE_GROUP to "true".
+
+#### Configuring Merged Reports
+By default we store the Phase Groups whenever a Phased Test is run. However we now have the possibility to override this. This is done by using the class `PhasedTeestManager.configureMergedReportName(Prefix Elements, Prefix Elements)`. This allows users to specify the Phased Test output.
+
+The following configuration items can be added to the constructed name:
+- **Phase** adds the phase name to the constructed method name
+- **Phase Group** adds the phase group to the constructed method name
+- **Scenario Name** adds the scenario name (the class) to the constructed method name   
+
+
+
 ## Release Notes
+
+### 7.0.4
+- Introduced the Report by Phase Group Functionality
+- Allowing users to configure the Merged Reports
 
 ### 7.0.3
 - #15 Renamed old produce/consume to produceInStep/consumeFromStep. The old produceWithKey/consumeWith key are now deprecated. Instead you should use produceWithKey/consumeWith 
-- #8  We an now export the phase cache at will. This is very useful for debugging or for Databroker testing. Added a method PhasedTestManager.fetchExportFile which help return tthe sselected export file 
+- #8  We an now export the phase cache at will. This is very useful for debugging or for Data Broker testing. Added a method PhasedTestManager.fetchExportFile which help return the selected export file 
 
 ### 7.0.0
 - Migrated to TestNG 7.4

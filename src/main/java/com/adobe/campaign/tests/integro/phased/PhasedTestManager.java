@@ -16,6 +16,7 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
@@ -24,12 +25,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.testng.ITestResult;
-
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 import com.adobe.campaign.tests.integro.phased.utils.StackTraceManager;
@@ -47,6 +49,7 @@ public class PhasedTestManager {
     public static final String PROP_SELECTED_PHASE = "PHASED.TESTS.PHASE";
     public static final String PROP_PHASED_TEST_DATABROKER = "PHASED.TESTS.DATABROKER";
     public static final String PROP_DISABLE_RETRY = "PHASED.TESTS.RETRY.DISABLED";
+    public static final String PROP_MERGE_STEP_RESULTS = "PHASED.TESTS.REPORT.BY.PHASE_GROUP";
 
     public static final String DEFAULT_CACHE_DIR = "phased_output";
     public static final String STD_CACHE_DIR = System.getProperty(PROP_OUTPUT_DIR, DEFAULT_CACHE_DIR);
@@ -64,6 +67,46 @@ public class PhasedTestManager {
     protected static Properties phaseContext = new Properties();
 
     private static PhasedDataBroker dataBroker = null;
+
+    protected static Boolean mergedReportsActivated = Boolean.FALSE;
+
+    protected static class MergedReportData {
+
+        protected static SortedSet<PhasedReportElements> prefix = new TreeSet<>();
+        protected static SortedSet<PhasedReportElements> suffix = new TreeSet<>();
+
+        /**
+         * Allows you to defined the generated name when phased steps are merged
+         * for a scenario. If nothing is set we use the phase group.
+         *
+         * Author : gandomi
+         *
+         * @param in_prefix
+         *        A sorted set of report elements to be added as prefix to the
+         *        scenario name
+         * @param in_suffix
+         *        A sorted set of report elements to be added as suffix to the
+         *        scenario name
+         *
+         */
+        protected static void configureMergedReportName(SortedSet<PhasedReportElements> in_prefix,
+                SortedSet<PhasedReportElements> in_suffix) {
+            MergedReportData.prefix = in_prefix;
+            MergedReportData.suffix = in_suffix;
+
+        }
+
+        /**
+         * Resets the report configuration
+         *
+         * Author : gandomi
+         *
+         */
+        public static void resetReport() {
+            prefix.clear();
+            suffix.clear();
+        }
+    };
 
     /**
      * @return the phasedCache
@@ -174,7 +217,8 @@ public class PhasedTestManager {
      *        The value we want to store
      * @return The key that was used in storing the value
      * 
-     * @deprecated This method has been renamed. Please use {@link #produce(String,String)} instead.
+     * @deprecated This method has been renamed. Please use
+     *             {@link #produce(String,String)} instead.
      *
      */
     @Deprecated
@@ -184,8 +228,7 @@ public class PhasedTestManager {
                 l_className, in_storageKey);
         return storePhasedCache(l_fullId, in_storeValue);
     }
-    
-    
+
     /**
      * Stores a value with the given key. We include the class as prefix.
      *
@@ -340,7 +383,8 @@ public class PhasedTestManager {
      *        A key that was used to store the value in this scenario
      * @return The value that was stored
      * 
-     * @deprecated This method has been renamed. Please use {@link #consume(String)} instead 
+     * @deprecated This method has been renamed. Please use
+     *             {@link #consume(String)} instead
      *
      */
     @Deprecated
@@ -382,8 +426,7 @@ public class PhasedTestManager {
 
         return phasedCache.getProperty(l_realKey);
     }
-    
-    
+
     /**
      * cleans the cache of the PhasedManager
      *
@@ -444,7 +487,7 @@ public class PhasedTestManager {
      *
      */
     protected static File exportCache(File in_file) {
-        
+
         log.info(PHASED_TEST_LOG_PREFIX + " Exporting Phased Testing data to " + in_file.getPath());
         try (FileWriter fw = new FileWriter(in_file)) {
 
@@ -476,7 +519,7 @@ public class PhasedTestManager {
      *
      */
     protected static Properties importCache(File in_phasedTestFile) {
-        log.info(PHASED_TEST_LOG_PREFIX+"Importing phase cache.");
+        log.info(PHASED_TEST_LOG_PREFIX + "Importing phase cache.");
         try (InputStream input = new FileInputStream(in_phasedTestFile)) {
 
             // load a properties file
@@ -514,7 +557,7 @@ public class PhasedTestManager {
                         + " not set. Fetching Phased Test data from " + l_importCacheFile.getPath());
             }
         } else {
-            log.info(PHASED_TEST_LOG_PREFIX+"Fetching cache through DataBroker");
+            log.info(PHASED_TEST_LOG_PREFIX + "Fetching cache through DataBroker");
             l_importCacheFile = dataBroker.fetch(STD_STORE_FILE);
         }
         return importCache(l_importCacheFile);
@@ -929,15 +972,233 @@ public class PhasedTestManager {
      */
     public static boolean scenarioStateContinue(ITestResult in_testResult) {
         final String l_scenarioName = fetchScenarioName(in_testResult);
-        final Properties phasedCache2 = phasedCache;
-        if (!phasedCache2.containsKey(l_scenarioName)) {
+
+        if (!phasedCache.containsKey(l_scenarioName)) {
             return true;
         }
 
-        if (phasedCache2.get(l_scenarioName).equals(ClassPathParser.fetchFullName(in_testResult))) {
+        if (phasedCache.get(l_scenarioName).equals(ClassPathParser.fetchFullName(in_testResult))) {
             return true;
         }
 
-        return phasedCache2.get(l_scenarioName).equals(Boolean.TRUE.toString());
+        return phasedCache.get(l_scenarioName).equals(Boolean.TRUE.toString());
+    }
+
+    /**
+     * Creates a standard report name. I.e. it provides a name as how the test
+     * scenario and phased group should be represented.
+     *
+     * Author : gandomi
+     *
+     * @param in_testResult
+     *        A TestRessult object
+     * @return A string prefixed with the scenario name and suffixed with the
+     *         phaseGroup
+     *
+     */
+    public static String fetchTestNameForReport(ITestResult in_testResult) {
+        final String l_stdItemeparator = "__";
+
+        //Adding the prefixes
+        StringBuilder sb = new StringBuilder();
+        for (PhasedReportElements lt_pre : MergedReportData.prefix) {
+            sb.append(lt_pre.fetchElement(in_testResult));
+            sb.append(l_stdItemeparator);
+        }
+
+        //Adding the required values : the phaseGroup
+        sb.append(PhasedReportElements.PHASE_GROUP.fetchElement(in_testResult));
+
+        //Adding the suffixes
+        for (PhasedReportElements lt_pre : MergedReportData.suffix) {
+            sb.append(l_stdItemeparator);
+            sb.append(lt_pre.fetchElement(in_testResult));
+
+        }
+
+        return sb.toString();
+    }
+
+    /**
+     * This method calculates the duration in milliseconds for a phased test
+     * scenario. Given a List of ITestNGResult related to that scenario, it
+     * makes a sum of the start and end milliseconds of its steps.
+     * 
+     * Throws an {@link IllegalArgumentException} when the given List is null or
+     * empty.
+     *
+     * Throws an {@link IllegalArgumentException} when the given List is not
+     * from the same Phase group or scenario
+     * 
+     * Author : gandomi
+     *
+     * @param in_resultList
+     *        A List of ITestNGResults related to a given scenario
+     * @return A long value representing the duration in milliseconds
+     *
+     */
+    protected static long fetchDurationMillis(List<ITestResult> in_resultList) {
+        if (in_resultList == null || in_resultList.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "The given result list of TestNGResults is either null or empty");
+        }
+
+        if (!in_resultList.stream().allMatch(
+                t -> t.getMethod().getRealClass().equals(in_resultList.get(0).getMethod().getRealClass()))) {
+            throw new IllegalArgumentException("The given tests are not of the same Class");
+        }
+
+        if (!in_resultList.stream()
+                .allMatch(t -> Arrays.equals(t.getParameters(), in_resultList.get(0).getParameters()))) {
+            throw new IllegalArgumentException("The given tests are not of the same Phase Group");
+        }
+
+        return in_resultList.stream().mapToLong(t -> (t.getEndMillis() - t.getStartMillis())).sum();
+    }
+
+    /**
+     * This method creates a step name by prefixing the step name with the
+     * phasee group
+     *
+     * Author : gandomi
+     *
+     * @param result
+     *        The TestNGResult object
+     * @return A string representation of the test name
+     *
+     */
+    protected static String fetchPhasedStepName(ITestResult result) {
+        if (result.getParameters().length == 0) {
+            throw new IllegalArgumentException(
+                    "No parameters found. The given test result does not seem to have been part of a Phased Test");
+        }
+
+        StringBuilder sb = new StringBuilder(result.getParameters()[0].toString());
+        sb.append('_');
+        sb.append(result.getName());
+        return sb.toString();
+    }
+
+    /**
+     * This method is used in the context of merged reports. We use this to 
+     * enrich the exception message when merging reports.
+     * <p>
+     * An {@link IllegalArgumentException} is thrown if the given
+     * in_failedTestResult is not failed.
+     *
+     * Author : gandomi
+     *
+     * @param in_failedTestResult
+     *        The exception we want to wrap.
+     *
+     */
+    public static void generateStepFailure(ITestResult in_failedTestResult) {
+        if (in_failedTestResult.getStatus() != ITestResult.FAILURE) {
+            throw new IllegalArgumentException("The given Test Result for "
+                    + in_failedTestResult.getMethod().getMethodName() + " is not a failed test.");
+        }
+        
+        Throwable l_thrownException = in_failedTestResult.getThrowable();
+        StringBuilder sb =  new StringBuilder();
+        if (l_thrownException.getMessage()!=null) {
+            sb.append(l_thrownException.getMessage());
+            sb.append(" ");
+        }
+        sb.append("[Failed at step : ");
+        sb.append(in_failedTestResult.getMethod().getMethodName());
+        sb.append(" - ");
+        sb.append(Phases.getCurrentPhase().toString());
+        sb.append("]");
+        
+        
+        PhasedTestManager.changeExceptionMessage(l_thrownException, sb.toString());
+        
+    }
+
+    /**
+     * Allows you to defined the generated name when phased steps are merged for
+     * a scenario. If nothing is set we use the phase group.
+     *
+     * Author : gandomi
+     *
+     * @param in_prefix
+     *        A sorted set of report elements to be added as prefix to the
+     *        scenario name
+     * @param in_suffix
+     *        A sorted set of report elements to be added as suffix to the
+     *        scenario name
+     *
+     */
+    public static void configureMergedReportName(SortedSet<PhasedReportElements> in_prefix,
+            SortedSet<PhasedReportElements> in_suffix) {
+        MergedReportData.configureMergedReportName(in_prefix, in_suffix);
+    }
+
+    /**
+     * With this method we activate the merged reports
+     *
+     * Author : gandomi
+     */
+    public static void activateMergedReports() {
+        mergedReportsActivated = true;
+
+    }
+
+    /**
+     * With this method we activate the merged reports
+     *
+     * Author : gandomi
+     */
+    public static void deactivateMergedReports() {
+        mergedReportsActivated = false;
+
+    }
+
+    /**
+     * Checks if the merged report is activated
+     *
+     * Author : gandomi
+     *
+     * @return TRUE Iff the value is true otherwise it returns false
+     *
+     */
+    public static boolean isMergedReportsActivated() {
+        return mergedReportsActivated == Boolean.TRUE;
+    }
+
+    /**
+     * This method changes the message within the given Exception
+     *
+     * Author : gandomi
+     *
+     * @param in_exception
+     *        An exception that has been thrown.
+     * @param in_newMessage
+     *        The new message that should replace the old one
+     *
+     */
+    public static void changeExceptionMessage(Throwable in_exception, String in_newMessage) {
+
+        try {
+            Class<?> l_changeClass = in_exception.getClass();
+            
+            //parse tree to reach the thowable class
+            while (l_changeClass.getSuperclass() != Object.class) {
+                l_changeClass = l_changeClass.getSuperclass();
+            }            
+            
+            //Manipulate field detail message
+            Field exceptionMessage = l_changeClass.getDeclaredField("detailMessage");
+            exceptionMessage.setAccessible(true);
+            exceptionMessage.set(in_exception, in_newMessage);
+        } catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException
+                | SecurityException e) {
+
+            throw new PhasedTestConfigurationException(
+                    "We were unable to chnage the message in the thrown exception "
+                            + in_exception.getClass().getName(),
+                    e);
+        }
+
     }
 }

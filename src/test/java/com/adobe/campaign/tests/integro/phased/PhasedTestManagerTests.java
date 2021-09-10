@@ -11,6 +11,7 @@
  */
 package com.adobe.campaign.tests.integro.phased;
 
+import org.testng.Assert;
 import org.testng.ITestNGMethod;
 import org.testng.ITestResult;
 import org.testng.annotations.AfterMethod;
@@ -23,6 +24,7 @@ import com.adobe.campaign.tests.integro.phased.data.PhasedDataBrokerTestImplemen
 import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_A;
 import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_B_NoInActive;
 import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_F_Shuffle;
+import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClass;
 import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClassWithError;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
@@ -42,7 +44,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-
+import java.util.TreeSet;
 import org.hamcrest.Matchers;
 import org.mockito.Mockito;
 
@@ -54,6 +56,10 @@ public class PhasedTestManagerTests {
         System.clearProperty(PhasedTestManager.PROP_PHASED_DATA_PATH);
         System.clearProperty(PhasedTestManager.PROP_SELECTED_PHASE);
         System.clearProperty(PhasedTestManager.PROP_PHASED_TEST_DATABROKER);
+        System.clearProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS);
+
+        PhasedTestManager.deactivateMergedReports();
+        PhasedTestManager.MergedReportData.resetReport();
 
         //Delete temporary cache
         File l_newFile = GeneralTestUtils
@@ -100,8 +106,8 @@ public class PhasedTestManagerTests {
 
         String l_myKeyPrefix = this.getClass().getTypeName() + PhasedTestManager.STD_KEY_CLASS_SEPARATOR;
 
-        assertThat("We should have correctly constructed the key ", PhasedTestManager.produceWithKey("A", "Hello"),
-                equalTo(l_myKeyPrefix + "A"));
+        assertThat("We should have correctly constructed the key ",
+                PhasedTestManager.produceWithKey("A", "Hello"), equalTo(l_myKeyPrefix + "A"));
 
         assertThat("We should have successfully stored the given value",
                 PhasedTestManager.phasedCache.containsKey(l_myKeyPrefix + "A"));
@@ -123,8 +129,8 @@ public class PhasedTestManagerTests {
         String l_myKeyPrefix = this.getClass().getTypeName() + "(" + l_dataProducerValue + ")"
                 + PhasedTestManager.STD_KEY_CLASS_SEPARATOR;
 
-        assertThat("We should have correctly constructed the key ", PhasedTestManager.produceWithKey("A", "Hello"),
-                equalTo(l_myKeyPrefix + "A"));
+        assertThat("We should have correctly constructed the key ",
+                PhasedTestManager.produceWithKey("A", "Hello"), equalTo(l_myKeyPrefix + "A"));
 
         assertThat("We should have successfully stored the given value",
                 PhasedTestManager.phasedCache.containsKey(l_myKeyPrefix + "A"));
@@ -135,13 +141,13 @@ public class PhasedTestManagerTests {
         assertThat("We should have successfully fetched the correct value",
                 PhasedTestManager.consumeWithKey("A"), equalTo("Hello"));
     }
-    
+
     @Test
     public void testProduce_withContext() {
 
         final String l_dataProducerValue = "plop";
-        PhasedTestManager.phaseContext.put(
-                this.getClass().getTypeName() + ".testProduce_withContext", l_dataProducerValue);
+        PhasedTestManager.phaseContext.put(this.getClass().getTypeName() + ".testProduce_withContext",
+                l_dataProducerValue);
 
         String l_myKeyPrefix = this.getClass().getTypeName() + "(" + l_dataProducerValue + ")"
                 + PhasedTestManager.STD_KEY_CLASS_SEPARATOR;
@@ -155,8 +161,8 @@ public class PhasedTestManagerTests {
         assertThat("We should have successfully fetched the correct value",
                 PhasedTestManager.phasedCache.get(l_myKeyPrefix + "A"), equalTo("Hello"));
 
-        assertThat("We should have successfully fetched the correct value",
-                PhasedTestManager.consume("A"), equalTo("Hello"));
+        assertThat("We should have successfully fetched the correct value", PhasedTestManager.consume("A"),
+                equalTo("Hello"));
     }
 
     @Test
@@ -164,7 +170,7 @@ public class PhasedTestManagerTests {
         PhasedTestManager.produceWithKey("A", "Bye");
         assertThrows(PhasedTestException.class, () -> PhasedTestManager.produceWithKey("A", "Hello"));
     }
-    
+
     @Test
     public void testProduce_RepetitiveProduce_Negative() {
         PhasedTestManager.produce("A", "Bye");
@@ -175,7 +181,7 @@ public class PhasedTestManagerTests {
     public void testconsumeByKey_NonExistingKey_Negative() {
         assertThrows(PhasedTestException.class, () -> PhasedTestManager.consumeWithKey("A"));
     }
-    
+
     @Test
     public void testconsume_NonExistingKey_Negative() {
         assertThrows(PhasedTestException.class, () -> PhasedTestManager.consume("A"));
@@ -235,8 +241,7 @@ public class PhasedTestManagerTests {
                 equalTo("Hello"));
 
     }
-    
-    
+
     @Test
     public void exportingDataTwice() throws FileNotFoundException, IOException {
 
@@ -261,7 +266,7 @@ public class PhasedTestManagerTests {
         assertThat("We should find our property", prop.getProperty(thisMethodFullName), equalTo("Hello"));
 
         PhasedTestManager.produce("A", "Bye");
-        
+
         File l_phasedTestFile2 = PhasedTestManager.exportPhaseData();
 
         assertThat("The file should exist", l_phasedTestFile2.exists());
@@ -275,12 +280,11 @@ public class PhasedTestManagerTests {
         }
 
         assertThat("We should find our property", prop2.size(), equalTo(2));
-        final String l_key = this.getClass().getTypeName()+ PhasedTestManager.STD_KEY_CLASS_SEPARATOR + "A";
+        final String l_key = this.getClass().getTypeName() + PhasedTestManager.STD_KEY_CLASS_SEPARATOR + "A";
         assertThat("We should find our property", prop2.containsKey(l_key));
 
         assertThat("We should find our property", prop2.getProperty(l_key), equalTo("Bye"));
     }
-    
 
     /**
      * Testing that when the property
@@ -326,7 +330,7 @@ public class PhasedTestManagerTests {
                 equalTo("Hello"));
 
     }
-    
+
     /**
      * Testing that when the property
      * ({@value PhasedTestManager#PROP_PHASED_DATA_PATH} is set, that path is
@@ -340,22 +344,21 @@ public class PhasedTestManagerTests {
      */
     @Test
     public void testingTheFetchExportFile() throws FileNotFoundException, IOException {
-        
-        File l_newFile = GeneralTestUtils
-                .createEmptyCacheFile(GeneralTestUtils.createCacheDirectory("testingTheFetchExportFile"), "newFile.properties");
+
+        File l_newFile = GeneralTestUtils.createEmptyCacheFile(
+                GeneralTestUtils.createCacheDirectory("testingTheFetchExportFile"), "newFile.properties");
         assertThat("The new file should be empty", !l_newFile.exists());
 
         System.setProperty(PhasedTestManager.PROP_PHASED_DATA_PATH, l_newFile.getPath());
-        
-        assertThat(PhasedTestManager.fetchExportFile().getAbsolutePath(), equalTo(l_newFile.getAbsolutePath()));
 
-        
+        assertThat(PhasedTestManager.fetchExportFile().getAbsolutePath(),
+                equalTo(l_newFile.getAbsolutePath()));
+
     }
-    
+
     /**
-     * Testing that when the property
-     * ({@value PhasedTestManager#PRO} is set, that path is
-     * used.
+     * Testing that when the property ({@value PhasedTestManager#PRO} is set,
+     * that path is used.
      *
      * Author : gandomi
      *
@@ -366,12 +369,13 @@ public class PhasedTestManagerTests {
     @Test
     public void testingTheFetchExportFileNoPropertySet() throws FileNotFoundException, IOException {
         File l_parentPath = GeneralTestUtils.fetchCacheDirectory(PhasedTestManager.STD_STORE_DIR);
-        
-        assertThat("The directories should be the same",PhasedTestManager.fetchExportFile().getParent(), equalTo(l_parentPath.getPath()));
-        
-        assertThat("The files should b the same",PhasedTestManager.fetchExportFile().getName(),equalTo(PhasedTestManager.STD_STORE_FILE));
 
-        
+        assertThat("The directories should be the same", PhasedTestManager.fetchExportFile().getParent(),
+                equalTo(l_parentPath.getPath()));
+
+        assertThat("The files should b the same", PhasedTestManager.fetchExportFile().getName(),
+                equalTo(PhasedTestManager.STD_STORE_FILE));
+
     }
 
     @Test
@@ -731,6 +735,15 @@ public class PhasedTestManagerTests {
     }
 
     @Test
+    public void testIsExecutedProducer_ProducerShuffled() throws NoSuchMethodException, SecurityException {
+
+        final Method l_myMethod = PhasedSeries_H_ShuffledClass.class.getMethod("step1", String.class);
+        Phases.PRODUCER.activate();
+        assertThat("step1 should be considered as a producer execution",
+                !PhasedTestManager.isExecutedInProducerMode(l_myMethod));
+    }
+
+    @Test
     public void testIsExecutedProducer_ProducerLimit() throws NoSuchMethodException, SecurityException {
 
         final Method l_myMethod = PhasedSeries_A.class.getMethod("step2", String.class);
@@ -980,6 +993,15 @@ public class PhasedTestManagerTests {
     }
 
     @Test
+    public void testIsInSingleMode_Shuffled_Negative3() throws NoSuchMethodException, SecurityException {
+        final Method l_myMethod = PhasedSeries_H_ShuffledClass.class.getMethod("step1", String.class);
+
+        Phases.PRODUCER.activate();
+        assertThat("We should not be in single mode", !PhasedTestManager.isPhasedTestSingleMode(l_myMethod));
+
+    }
+
+    @Test
     public void testIsInSingleMode() throws NoSuchMethodException, SecurityException {
         final Method l_myMethod = PhasedSeries_F_Shuffle.class.getMethod("step3", String.class);
 
@@ -1095,7 +1117,7 @@ public class PhasedTestManagerTests {
                 PhasedTestManager.scenarioStateContinue(l_itr));
 
         PhasedTestManager.scenarioStateStore(l_itr);
-        
+
         String l_name = PhasedTestManager.fetchScenarioName(l_itr);
         assertThat("The context should have been stored", PhasedTestManager.phasedCache.containsKey(l_name));
         assertThat("We should havee the correct value", PhasedTestManager.phasedCache.get(l_name),
@@ -1129,9 +1151,10 @@ public class PhasedTestManagerTests {
 
         PhasedTestManager.scenarioStateStore(l_itr);
         String l_scenarioName = PhasedTestManager.fetchScenarioName(l_itr);
-        
-        assertThat("The context should have been stored", PhasedTestManager.phasedCache.containsKey(l_scenarioName));
-        
+
+        assertThat("The context should have been stored",
+                PhasedTestManager.phasedCache.containsKey(l_scenarioName));
+
         assertThat("We should have the correct value", PhasedTestManager.phasedCache.get(l_scenarioName),
                 equalTo(ClassPathParser.fetchFullName(l_itr)));
 
@@ -1196,7 +1219,7 @@ public class PhasedTestManagerTests {
         Mockito.when(l_com.getMethod()).thenReturn(l_myTestWithOneArg);
 
         PhasedTestManager.scenarioStateStore(l_itr);
-        
+
         String l_name = PhasedTestManager.fetchScenarioName(l_itr);
         assertThat("We should have the correct value", PhasedTestManager.phasedCache.get(l_name),
                 equalTo(ClassPathParser.fetchFullName(l_itr)));
@@ -1216,11 +1239,11 @@ public class PhasedTestManagerTests {
 
         assertThat("We should not be able to continue with the phase group",
                 !PhasedTestManager.scenarioStateContinue(l_itr2));
-        
+
         PhasedTestManager.scenarioStateStore(l_itr2);
-        
-        assertThat("The step that caused the failure should not change", PhasedTestManager.phasedCache.get(l_name),
-                equalTo(ClassPathParser.fetchFullName(l_itr)));
+
+        assertThat("The step that caused the failure should not change",
+                PhasedTestManager.phasedCache.get(l_name), equalTo(ClassPathParser.fetchFullName(l_itr)));
 
     }
 
@@ -1302,7 +1325,7 @@ public class PhasedTestManagerTests {
                 PhasedTestManager.scenarioStateContinue(l_itr2));
 
         PhasedTestManager.scenarioStateStore(l_itr2);
-        
+
         assertThat("We should  be able to continue with the phase group",
                 PhasedTestManager.scenarioStateContinue(l_itr2));
 
@@ -1362,4 +1385,442 @@ public class PhasedTestManagerTests {
                 PhasedTestManager.scenarioStateContinue(l_itr));
     }
 
+    @Test
+    public void testStandardReportName_default() throws NoSuchMethodException, SecurityException {
+
+        assertThat(PhasedSeries_H_ShuffledClassWithError.class.getSimpleName(),
+                equalTo("PhasedSeries_H_ShuffledClassWithError"));
+
+        ITestResult l_itr = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
+
+        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
+        Mockito.when(l_itrMethod.getRealClass()).thenReturn(PhasedSeries_H_ShuffledClassWithError.class);
+        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
+        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "Q" });
+        Mockito.when(l_itrMethod.getQualifiedName()).thenReturn(
+                "com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClassWithError.step3");
+
+        assertThat("We should be able to continue with the phase group",
+                PhasedTestManager.fetchTestNameForReport(l_itr), equalTo("Q"));
+
+        Phases.CONSUMER.activate();
+
+        assertThat("We should be able to continue with the phase group",
+                PhasedTestManager.fetchTestNameForReport(l_itr), equalTo("Q"));
+
+    }
+
+    @Test
+    public void testConfigureReports() {
+        assertThat("We should not have values for the prefix",
+                PhasedTestManager.MergedReportData.prefix.isEmpty());
+        assertThat("We should not have values for the suffix",
+                PhasedTestManager.MergedReportData.suffix.isEmpty());
+
+        PhasedTestManager.MergedReportData.configureMergedReportName(
+                new TreeSet<>(Arrays.asList(PhasedReportElements.SCENARIO_NAME)),
+                new TreeSet<>(Arrays.asList(PhasedReportElements.PHASE, PhasedReportElements.PHASE_GROUP)));
+
+        assertThat("The prefix should have been set", PhasedTestManager.MergedReportData.prefix,
+                Matchers.hasItems(PhasedReportElements.SCENARIO_NAME));
+        assertThat("The suffix should have been set", PhasedTestManager.MergedReportData.suffix,
+                Matchers.hasItems(PhasedReportElements.PHASE));
+
+        PhasedTestManager.MergedReportData.resetReport();
+
+        assertThat("We should not have values for the prefix",
+                PhasedTestManager.MergedReportData.prefix.isEmpty());
+        assertThat("We should not have values for the suffix",
+                PhasedTestManager.MergedReportData.suffix.isEmpty());
+
+    }
+
+    @Test
+    public void testPhasedReportElements_StandardReportName_ScenarioName()
+            throws NoSuchMethodException, SecurityException {
+
+        ITestResult l_itr = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
+
+        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
+        Mockito.when(l_itrMethod.getRealClass()).thenReturn(PhasedSeries_H_ShuffledClassWithError.class);
+        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
+        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "Q" });
+        Mockito.when(l_itrMethod.getQualifiedName()).thenReturn(
+                "com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClassWithError.step3");
+
+        assertThat("We should get the correct value for the SCENARIO_NAME",
+                PhasedReportElements.SCENARIO_NAME.fetchElement(l_itr),
+                equalTo("phasedSeries_H_ShuffledClassWithError"));
+    }
+
+    @Test
+    public void testPhasedReportElements_StandardReportName_Phase()
+            throws NoSuchMethodException, SecurityException {
+
+        ITestResult l_itr = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
+
+        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
+        Mockito.when(l_itrMethod.getRealClass()).thenReturn(PhasedSeries_H_ShuffledClassWithError.class);
+        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
+        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "Q" });
+        Mockito.when(l_itrMethod.getQualifiedName()).thenReturn(
+                "com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClassWithError.step3");
+
+        assertThat("We should get the correct value for the SCENARIO_NAME",
+                PhasedReportElements.PHASE.fetchElement(l_itr), equalTo(Phases.getCurrentPhase().toString()));
+    }
+
+    @Test
+    public void testPhasedReportElements_StandardReportName_PhaseGROUP()
+            throws NoSuchMethodException, SecurityException {
+
+        ITestResult l_itr = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
+
+        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
+        Mockito.when(l_itrMethod.getRealClass()).thenReturn(PhasedSeries_H_ShuffledClassWithError.class);
+        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
+        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "Q" });
+        Mockito.when(l_itrMethod.getQualifiedName()).thenReturn(
+                "com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClassWithError.step3");
+
+        assertThat("We should get the correct value for the SCENARIO_NAME",
+                PhasedReportElements.PHASE_GROUP.fetchElement(l_itr), equalTo("Q"));
+    }
+
+    @Test
+    public void testStandardReportName_configured() throws NoSuchMethodException, SecurityException {
+
+        PhasedTestManager.MergedReportData.configureMergedReportName(
+                new TreeSet<>(Arrays.asList(PhasedReportElements.SCENARIO_NAME)),
+                new TreeSet<>(Arrays.asList(PhasedReportElements.PHASE)));
+
+        assertThat(PhasedSeries_H_ShuffledClassWithError.class.getSimpleName(),
+                equalTo("PhasedSeries_H_ShuffledClassWithError"));
+
+        ITestResult l_itr = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
+
+        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
+        Mockito.when(l_itrMethod.getRealClass()).thenReturn(PhasedSeries_H_ShuffledClassWithError.class);
+        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
+        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "Q" });
+        Mockito.when(l_itrMethod.getQualifiedName()).thenReturn(
+                "com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClassWithError.step3");
+
+        assertThat("We should be able to continue with the phase group",
+                PhasedTestManager.fetchTestNameForReport(l_itr),
+                equalTo("phasedSeries_H_ShuffledClassWithError__Q__" + Phases.getCurrentPhase().toString()));
+
+        Phases.CONSUMER.activate();
+
+        assertThat("We should be able to continue with the phase group",
+                PhasedTestManager.fetchTestNameForReport(l_itr),
+                equalTo("phasedSeries_H_ShuffledClassWithError__Q__" + Phases.CONSUMER.toString()));
+    }
+
+    /**
+     * Standard test for the merge to see if the duration is correctly summed.
+     *
+     * Author : gandomi
+     *
+     *
+     */
+    @Test
+    public void testFetchDurationTime_HW() {
+
+        ITestResult l_itr1 = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
+        Mockito.when(l_itrMethod.getRealClass()).thenReturn(PhasedSeries_H_ShuffledClassWithError.class);
+
+        Mockito.when(l_itr1.getMethod()).thenReturn(l_itrMethod);
+        Mockito.when(l_itr1.getParameters()).thenReturn(new Object[] { "Q" });
+
+        Mockito.when(l_itr1.getStartMillis()).thenReturn((long) 3);
+        Mockito.when(l_itr1.getEndMillis()).thenReturn((long) 5);
+
+        ITestResult l_itr2 = Mockito.mock(ITestResult.class);
+        Mockito.when(l_itr2.getMethod()).thenReturn(l_itrMethod);
+        Mockito.when(l_itr2.getParameters()).thenReturn(new Object[] { "Q" });
+        Mockito.when(l_itr2.getStartMillis()).thenReturn((long) 7);
+        Mockito.when(l_itr2.getEndMillis()).thenReturn((long) 11);
+
+        List<ITestResult> l_resultList = Arrays.asList(l_itr2, l_itr1);
+
+        assertThat("We should find the correst start millisecond",
+                PhasedTestManager.fetchDurationMillis(l_resultList), equalTo(6l));
+
+    }
+
+    /**
+     * Testing case where the given list is empty or null
+     *
+     * Author : gandomi
+     *
+     *
+     */
+    @Test
+    public void testFetchDurationTime_Negative() {
+        //null
+        assertThrows(IllegalArgumentException.class, () -> PhasedTestManager.fetchDurationMillis(null));
+
+        //Empty
+        List<ITestResult> l_resultList = Arrays.asList();
+
+        assertThrows(IllegalArgumentException.class,
+                () -> PhasedTestManager.fetchDurationMillis(l_resultList));
+
+    }
+
+    /**
+     * Testing caase where list is from different phase groups
+     *
+     * Author : gandomi
+     *
+     *
+     */
+    @Test
+    public void testFetchDurationTime_Negative2() {
+
+        ITestResult l_itr1 = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
+
+        Mockito.when(l_itr1.getMethod()).thenReturn(l_itrMethod);
+        Mockito.when(l_itrMethod.getRealClass()).thenReturn(PhasedSeries_H_ShuffledClassWithError.class);
+        Mockito.when(l_itr1.getParameters()).thenReturn(new Object[] { "Q" });
+
+        ITestResult l_itr2 = Mockito.mock(ITestResult.class);
+        Mockito.when(l_itr2.getMethod()).thenReturn(l_itrMethod);
+        Mockito.when(l_itrMethod.getRealClass()).thenReturn(PhasedSeries_H_ShuffledClassWithError.class);
+        Mockito.when(l_itr2.getParameters()).thenReturn(new Object[] { "U" });
+
+        List<ITestResult> l_resultList = Arrays.asList(l_itr2, l_itr1);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> PhasedTestManager.fetchDurationMillis(l_resultList));
+
+    }
+
+    /**
+     * Testing caase where the list is from different phased scenarios
+     *
+     * Author : gandomi
+     *
+     *
+     */
+    @Test
+    public void testFetchDurationTime_Negative3() {
+
+        ITestResult l_itr1 = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod1 = Mockito.mock(ITestNGMethod.class);
+
+        Mockito.when(l_itr1.getMethod()).thenReturn(l_itrMethod1);
+        Mockito.when(l_itrMethod1.getRealClass()).thenReturn(PhasedSeries_H_ShuffledClassWithError.class);
+        Mockito.when(l_itr1.getParameters()).thenReturn(new Object[] { "Q" });
+
+        ITestResult l_itr2 = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod2 = Mockito.mock(ITestNGMethod.class);
+        Mockito.when(l_itr2.getMethod()).thenReturn(l_itrMethod2);
+        Mockito.when(l_itrMethod2.getRealClass()).thenReturn(PhasedSeries_H_ShuffledClass.class);
+        Mockito.when(l_itr2.getParameters()).thenReturn(new Object[] { "Q" });
+
+        List<ITestResult> l_resultList = Arrays.asList(l_itr2, l_itr1);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> PhasedTestManager.fetchDurationMillis(l_resultList));
+
+    }
+
+    @Test
+    public void testStepName()
+            throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
+
+        ITestResult l_itr1 = Mockito.mock(ITestResult.class);
+
+        Mockito.when(l_itr1.getName()).thenReturn("myTest");
+        Mockito.when(l_itr1.getParameters()).thenReturn(new Object[] { "Q" });
+
+        assertThat("We should have the correct name", PhasedTestManager.fetchPhasedStepName(l_itr1),
+                equalTo("Q_myTest"));
+    }
+
+    @Test
+    public void testStepName_Negative()
+            throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
+
+        ITestResult l_itr1 = Mockito.mock(ITestResult.class);
+
+        Mockito.when(l_itr1.getName()).thenReturn("myTest");
+        Mockito.when(l_itr1.getParameters()).thenReturn(new Object[] {});
+
+        assertThrows(IllegalArgumentException.class, () -> PhasedTestManager.fetchPhasedStepName(l_itr1));
+    }
+
+    @Test
+    public void testCreateNewException() {
+
+        final String l_originalMessage = "Original Message";
+        AssertionError l_originalAssertionError = new AssertionError(l_originalMessage);
+
+        ITestResult l_itr1 = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod1 = Mockito.mock(ITestNGMethod.class);
+        Mockito.when(l_itr1.getStatus()).thenReturn(ITestResult.FAILURE);
+        final String l_renamedMethod = "Q_myTest";
+
+        Mockito.when(l_itr1.getMethod()).thenReturn(l_itrMethod1);
+        Mockito.when(l_itrMethod1.getMethodName()).thenReturn(l_renamedMethod);
+
+        Mockito.when(l_itr1.getThrowable()).thenReturn(l_originalAssertionError);
+
+        PhasedTestManager.generateStepFailure(l_itr1);
+        Throwable l_newThrowable = l_itr1.getThrowable();
+
+        assertThat("We should have the correct exception", l_newThrowable.getMessage(),
+                Matchers.startsWith(l_originalMessage));
+        assertThat("The message should end with the original message", l_newThrowable.getMessage(),
+                Matchers.endsWith(Phases.getCurrentPhase().toString()+"]"));
+        assertThat("We should have the step name in the message", l_newThrowable.getMessage(),
+                Matchers.containsString(l_renamedMethod));
+
+        assertThat("The caused by should be the same exception as before", l_newThrowable.getCause(),
+                equalTo(l_originalAssertionError.getCause()));
+
+    }
+
+    @Test
+    public void testCreateNewExceptionNoMessage() {
+
+        NullPointerException l_nullptre = new NullPointerException();
+
+        ITestResult l_itr1 = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod1 = Mockito.mock(ITestNGMethod.class);
+        Mockito.when(l_itr1.getStatus()).thenReturn(ITestResult.FAILURE);
+        final String l_renamedMethod = "Q_myTest";
+
+        Mockito.when(l_itr1.getMethod()).thenReturn(l_itrMethod1);
+        Mockito.when(l_itrMethod1.getMethodName()).thenReturn(l_renamedMethod);
+
+        Mockito.when(l_itr1.getThrowable()).thenReturn(l_nullptre);
+
+        PhasedTestManager.generateStepFailure(l_itr1);
+        Throwable l_newThrowable = l_itr1.getThrowable();
+
+        assertThat("We should have the correct exception", l_newThrowable.getMessage(),
+                Matchers.startsWith("["));
+        assertThat("The message should end with the original message", l_newThrowable.getMessage(),
+                Matchers.endsWith(Phases.getCurrentPhase().toString() + "]"));
+        assertThat("We should have the step name in the message", l_newThrowable.getMessage(),
+                Matchers.containsString(l_renamedMethod));
+
+        assertThat("The caused by should be the same exception as before", l_newThrowable.getCause(),
+                equalTo(l_nullptre.getCause()));
+
+    }
+
+    @Test
+    public void testCreateNewException_Negative1() {
+
+        final String l_originalMessage = "Original Message";
+        AssertionError l_originalAssertionError = new AssertionError(l_originalMessage);
+
+        ITestResult l_itr1 = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod1 = Mockito.mock(ITestNGMethod.class);
+
+        Mockito.when(l_itr1.getStatus()).thenReturn(ITestResult.SUCCESS);
+        Mockito.when(l_itr1.getMethod()).thenReturn(l_itrMethod1);
+
+        Mockito.when(l_itrMethod1.getMethodName()).thenReturn("Q_myTest");
+
+        Mockito.when(l_itr1.getThrowable()).thenReturn(l_originalAssertionError);
+
+        assertThrows(IllegalArgumentException.class, () -> PhasedTestManager.generateStepFailure(l_itr1));
+
+    }
+
+    @Test
+    public void testCreateNewException_Negative2() {
+
+        final String l_originalMessage = "Original Message";
+        AssertionError l_originalAssertionError = new AssertionError(l_originalMessage);
+
+        ITestResult l_itr1 = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod1 = Mockito.mock(ITestNGMethod.class);
+
+        Mockito.when(l_itr1.getStatus()).thenReturn(ITestResult.SKIP);
+        Mockito.when(l_itr1.getMethod()).thenReturn(l_itrMethod1);
+
+        Mockito.when(l_itrMethod1.getMethodName()).thenReturn("Q_myTest");
+
+        Mockito.when(l_itr1.getThrowable()).thenReturn(l_originalAssertionError);
+
+        assertThrows(IllegalArgumentException.class, () -> PhasedTestManager.generateStepFailure(l_itr1));
+
+    }
+
+    @Test
+    public void testMergeActivation() {
+        assertThat("By default we should not have merged reports",
+                !PhasedTestManager.isMergedReportsActivated());
+
+        PhasedTestManager.activateMergedReports();
+
+        assertThat("By default we should not have merged reports",
+                PhasedTestManager.isMergedReportsActivated());
+
+        PhasedTestManager.deactivateMergedReports();
+
+        assertThat("By default we should not have merged reports",
+                !PhasedTestManager.isMergedReportsActivated());
+    }
+
+    @Test
+    public void testChangeException() {
+        final String l_originalMessage = "Message Before";
+        PhasedTestConfigurationException l_ptce = new PhasedTestConfigurationException(l_originalMessage);
+
+        assertThat("We should have the expected message", l_ptce.getMessage(), equalTo(l_originalMessage));
+
+        final String l_newMessage = "New Message";
+        PhasedTestManager.changeExceptionMessage(l_ptce, l_newMessage);
+
+        assertThat("The message must have changed", l_ptce.getMessage(),
+                Matchers.not(equalTo(l_originalMessage)));
+
+        assertThat("The message must have the correct value", l_ptce.getMessage(), equalTo(l_newMessage));
+    }
+
+    @Test
+    public void testChangeExceptio_NullPointer() {
+        final String l_originalMessage = "Message Before";
+        NullPointerException l_nullptre = new NullPointerException();
+
+        assertThat("We should have the expected message", l_nullptre.getMessage(), Matchers.nullValue());
+
+        final String l_newMessage = "New Message";
+        PhasedTestManager.changeExceptionMessage(l_nullptre, l_newMessage);
+
+        assertThat("The message must have changed", l_nullptre.getMessage(),
+                Matchers.not(equalTo(l_originalMessage)));
+
+        assertThat("The message must have the correct value", l_nullptre.getMessage(), equalTo(l_newMessage));
+    }
+
+    @Test
+    public void testSystemProperties() {
+        Assert.assertFalse(
+                new Boolean(System.getProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS, "FALSE")));
+
+        System.setProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS, "true");
+
+        Assert.assertTrue(
+                new Boolean(System.getProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS, "FALSE")));
+
+        System.setProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS, "FALSE");
+
+        Assert.assertFalse(
+                new Boolean(System.getProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS, "FALSE")));
+    }
 }

@@ -16,8 +16,10 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.testng.IAnnotationTransformer;
@@ -44,17 +46,19 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
 
         //reset context
         if (PhasedTestManager.isPhasedTest(l_method)) {
-            
+
             if (System.getProperty(PhasedTestManager.PROP_DISABLE_RETRY, "true").equalsIgnoreCase("true")) {
-                log.info(PhasedTestManager.PHASED_TEST_LOG_PREFIX+"Disabling Retry for phased Tests.");
+                log.info(PhasedTestManager.PHASED_TEST_LOG_PREFIX + "Disabling Retry for phased Tests.");
                 result.getMethod().setRetryAnalyzerClass(DisabledRetryAnalyzer.class);
             }
 
             final String l_dataProvider = result.getParameters()[0].toString();
             PhasedTestManager.storePhasedContext(ClassPathParser.fetchFullName(l_method), l_dataProvider);
-            
+
             if (!PhasedTestManager.scenarioStateContinue(result)) {
-                final String skipMessage = PhasedTestManager.PHASED_TEST_LOG_PREFIX+"Skipping scenario step "+ClassPathParser.fetchFullName(result)+ " due to failure in a previous steps.";
+                final String skipMessage = PhasedTestManager.PHASED_TEST_LOG_PREFIX
+                        + "Skipping scenario step " + ClassPathParser.fetchFullName(result)
+                        + " due to failure in a previous steps.";
                 log.info(skipMessage);
                 throw new SkipException(skipMessage);
             }
@@ -69,24 +73,47 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
     }
 
     /**
+     * Renames the test result with a new name
+     * 
+     * Author : gandomi
+     *
+     * @param in_testResult  A TestNG Result Object
+     *
+     */
+    protected void renameMethodReport(ITestResult in_testResult) {
+        String l_newName = PhasedTestManager.fetchTestNameForReport(in_testResult);
+        try {
+            Field method = TestResult.class.getDeclaredField("m_method");
+            method.setAccessible(true);
+            method.set(in_testResult, in_testResult.getMethod().clone());
+            Field methodName = BaseTestMethod.class.getDeclaredField("m_methodName");
+            methodName.setAccessible(true);
+            methodName.set(in_testResult.getMethod(), l_newName);
+            String debug = in_testResult.getMethod().getMethodName();
+        } catch (IllegalAccessException | NoSuchFieldException e) {
+            throw new PhasedTestException(
+                    "Error while changing the phased step name " + in_testResult.getName() + ".", e);
+        }
+    }
+
+    /**
      * This method appends the shuffle group name to the method name
      *
      * Author : gandomi
      *
-     * @param result The TestNG result context
+     * @param result
+     *        The TestNG result context
      *
      */
     protected void appendShuffleGroupToName(ITestResult result) {
-        StringBuilder sb = new StringBuilder(result.getParameters()[0].toString());
-        sb.append('_');
-        sb.append(result.getName());
+        String l_enrichedStepName = PhasedTestManager.fetchPhasedStepName(result);
         try {
             Field method = TestResult.class.getDeclaredField("m_method");
             method.setAccessible(true);
             method.set(result, result.getMethod().clone());
             Field methodName = BaseTestMethod.class.getDeclaredField("m_methodName");
             methodName.setAccessible(true);
-            methodName.set(result.getMethod(), sb.toString());
+            methodName.set(result.getMethod(), l_enrichedStepName);
         } catch (IllegalAccessException | NoSuchFieldException e) {
             throw new PhasedTestException(
                     "Error while changing the phased step name " + result.getName() + ".", e);
@@ -105,11 +132,13 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
      *
      * Author : gandomi
      *
-     * @param result The TestNG result context
+     * @param result
+     *        The TestNG result context
      *
      */
     protected void standardPostTestActions(ITestResult result) {
         if (PhasedTestManager.isPhasedTest(result.getMethod().getConstructorOrMethod().getMethod())) {
+            //TRIM add propety check
             appendShuffleGroupToName(result);
             PhasedTestManager.scenarioStateStore(result);
         }
@@ -129,8 +158,9 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
 
     @Override
     public void onStart(ITestContext context) {
-        log.debug(PhasedTestManager.PHASED_TEST_LOG_PREFIX+"onStart - current Execution State is : " + Phases.getCurrentPhase());
-
+        log.debug(PhasedTestManager.PHASED_TEST_LOG_PREFIX + "onStart - current Execution State is : "
+                + Phases.getCurrentPhase());
+        
         /*** Import DataBroker ***/
         String l_phasedDataBrokerClass = null;
         if (System.getProperties().containsKey(PhasedTestManager.PROP_PHASED_TEST_DATABROKER)) {
@@ -140,7 +170,8 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
             l_phasedDataBrokerClass = context.getSuite().getXmlSuite()
                     .getParameter(PhasedTestManager.PROP_PHASED_TEST_DATABROKER);
         } else if (!Phases.NON_PHASED.isSelected()) {
-            log.info(PhasedTestManager.PHASED_TEST_LOG_PREFIX+"No PhasedDataBroker set. Using the file system path " + PhasedTestManager.STD_STORE_DIR
+            log.info(PhasedTestManager.PHASED_TEST_LOG_PREFIX
+                    + "No PhasedDataBroker set. Using the file system path " + PhasedTestManager.STD_STORE_DIR
                     + "/" + PhasedTestManager.STD_STORE_FILE + " instead ");
         }
 
@@ -148,7 +179,8 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
             try {
                 PhasedTestManager.setDataBroker(l_phasedDataBrokerClass);
             } catch (PhasedTestConfigurationException e) {
-                log.error(PhasedTestManager.PHASED_TEST_LOG_PREFIX+"Errors while setting the PhasedDataBroker", e);
+                log.error(PhasedTestManager.PHASED_TEST_LOG_PREFIX
+                        + "Errors while setting the PhasedDataBroker", e);
                 throw new TestNGException(e);
             }
         }
@@ -165,7 +197,8 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
             Method lt_method = lt_testNGMethod.getConstructorOrMethod().getMethod();
 
             if (PhasedTestManager.isPhasedTestShuffledMode(lt_method)) {
-                log.debug(PhasedTestManager.PHASED_TEST_LOG_PREFIX+"In Shuffled mode : current test " + ClassPathParser.fetchFullName(lt_method));
+                log.debug(PhasedTestManager.PHASED_TEST_LOG_PREFIX + "In Shuffled mode : current test "
+                        + ClassPathParser.fetchFullName(lt_method));
                 if (!l_classMethodMap.containsKey(lt_method.getDeclaringClass())) {
                     l_classMethodMap.put(lt_method.getDeclaringClass(), new ArrayList<>());
                 }
@@ -176,20 +209,181 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
         }
 
         if (Phases.getCurrentPhase().hasSplittingEvent()) {
-            log.info(PhasedTestManager.PHASED_TEST_LOG_PREFIX+"Generating Phased Providers");
+            log.info(PhasedTestManager.PHASED_TEST_LOG_PREFIX + "Generating Phased Providers");
             PhasedTestManager.generatePhasedProviders(l_classMethodMap, Phases.getCurrentPhase());
         }
 
     }
 
-    @Override
+    
+    @Override  
     public void onFinish(ITestContext context) {
-        
+
         //Once the tests have finished in producer mode we, need to export the data
         if (Phases.PRODUCER.isSelected()) {
-            log.info(PhasedTestManager.PHASED_TEST_LOG_PREFIX+"At the end. Exporting data");
+            log.info(PhasedTestManager.PHASED_TEST_LOG_PREFIX + "At the end. Exporting data");
             PhasedTestManager.exportPhaseData();
         }
+
+        //Activating merge results if the value is set in the sysem properties
+        if (System.getProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS, "NOTSET").equalsIgnoreCase("true")) {
+            PhasedTestManager.activateMergedReports();
+        }
+        
+        if (System.getProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS, "NOTSET").equalsIgnoreCase("false")) {
+            PhasedTestManager.deactivateMergedReports();
+        }
+        
+        if (PhasedTestManager.isMergedReportsActivated()) {
+
+            log.debug(PhasedTestManager.PHASED_TEST_LOG_PREFIX
+                    + "Purging results - Keeping one method per test class");
+
+            //Fetch classes That are phased test classes
+            Map<String, List<ITestResult>> l_phasedScenarios = new HashMap<String, List<ITestResult>>();
+
+            //Fetch results for Failed tests
+            context.getFailedTests().getAllResults().stream().filter(
+                    t -> PhasedTestManager.isPhasedTest(t.getMethod().getConstructorOrMethod().getMethod()))
+                    .forEach(tr -> updatePhasedScenarios(l_phasedScenarios, tr));
+
+            //Fetch results for Skipped tests
+            context.getSkippedTests().getAllResults().stream().filter(
+                    t -> PhasedTestManager.isPhasedTest(t.getMethod().getConstructorOrMethod().getMethod()))
+                    .forEach(tr -> updatePhasedScenarios(l_phasedScenarios, tr));
+
+            //Fetch results for Passed tests
+            context.getPassedTests().getAllResults().stream().filter(
+                    t -> PhasedTestManager.isPhasedTest(t.getMethod().getConstructorOrMethod().getMethod()))
+                    .forEach(tr -> updatePhasedScenarios(l_phasedScenarios, tr));
+
+            for (String lt_phasedClass : l_phasedScenarios.keySet()) {
+                log.info(PhasedTestManager.PHASED_TEST_LOG_PREFIX + "Reducing Report for " + lt_phasedClass);
+
+                long lt_durationMillis = PhasedTestManager.fetchDurationMillis(l_phasedScenarios.get(lt_phasedClass));
+
+                //When the phase test scenario was not a success
+                if (!PhasedTestManager.getPhasedCache().get(lt_phasedClass).equals(Boolean.TRUE.toString())) {
+
+                    //Delete all the passed steps : These steps are not remevant if we are merging the step results
+                    Iterator<ITestResult> lt_passedTestIterator = context.getPassedTests().getAllResults()
+                            .iterator();
+
+                    while (lt_passedTestIterator.hasNext()) {
+                        ITestResult lt_currentSuccess = lt_passedTestIterator.next();
+
+                        if (PhasedTestManager.fetchScenarioName(lt_currentSuccess).equals(lt_phasedClass)) {
+                            lt_passedTestIterator.remove();
+                        }
+                    }
+
+                    //Removing Skipped Tests
+                    //Keep 1 IFF all tests were skipped
+                    Iterator<ITestResult> lt_skippedTestIterator = context.getSkippedTests().getAllResults()
+                            .iterator();
+
+                    boolean l_allSkipped = l_phasedScenarios.get(lt_phasedClass).stream()
+                            .allMatch(p -> (p.getStatus() == ITestResult.SKIP));
+
+                    log.debug(PhasedTestManager.PHASED_TEST_LOG_PREFIX + "SKIP Check : " + lt_phasedClass
+                            + " has all its results as skipped : " + l_allSkipped);
+
+                    boolean l_foundSkipped = false;
+
+                    while (lt_skippedTestIterator.hasNext()) {
+                        ITestResult lt_currentSkip = lt_skippedTestIterator.next();
+
+                        if (PhasedTestManager.fetchScenarioName(lt_currentSkip).equals(lt_phasedClass)) {
+
+                            if (l_allSkipped == false) {
+                                log.debug(PhasedTestManager.PHASED_TEST_LOG_PREFIX + "Removing "
+                                        + ClassPathParser.fetchFullName(lt_currentSkip)
+                                        + " because there are unskipped values.");
+                                lt_skippedTestIterator.remove();
+                            } else {
+                                if (l_foundSkipped) {
+                                    lt_skippedTestIterator.remove();
+                                } else {
+                                    log.debug(PhasedTestManager.PHASED_TEST_LOG_PREFIX + "Keeping "
+                                            + ClassPathParser.fetchFullName(lt_currentSkip)
+                                            + " because when all results are skipped we keep only the first one..");
+
+                                    l_foundSkipped = true;
+                                    
+                                    lt_currentSkip.setEndMillis(lt_currentSkip.getStartMillis() + lt_durationMillis);
+                                    
+                                    renameMethodReport(lt_currentSkip);
+                                }
+                            }
+                        }
+                    }
+
+                    //Renaming Failed Tests
+                    Iterator<ITestResult> lt_failedTestIterator = context.getFailedTests().getAllResults()
+                            .iterator();
+                    while (lt_failedTestIterator.hasNext()) {
+                        ITestResult lt_currentFail = lt_failedTestIterator.next();
+
+                        if (PhasedTestManager.fetchScenarioName(lt_currentFail).equals(lt_phasedClass)) {
+                            //Update duration
+                            lt_currentFail.setEndMillis(lt_currentFail.getStartMillis() + lt_durationMillis);
+                            
+                            //Wrap the Exception
+                            PhasedTestManager.generateStepFailure(lt_currentFail);
+                            
+                            //Rename test
+                            renameMethodReport(lt_currentFail);
+                        }
+                    }
+
+                } else {
+                    //Removing Passed Tests
+                    Iterator<ITestResult> lt_passedTestIterator = context.getPassedTests().getAllResults()
+                            .iterator();
+                    boolean l_foundPasssed = false;
+                    while (lt_passedTestIterator.hasNext()) {
+                        ITestResult lt_currentSuccess = lt_passedTestIterator.next();
+
+                        if (PhasedTestManager.fetchScenarioName(lt_currentSuccess).equals(lt_phasedClass)) {
+                            if (l_foundPasssed) {
+                                lt_passedTestIterator.remove();
+                            } else {
+                                l_foundPasssed = true;
+                                renameMethodReport(lt_currentSuccess);
+                                lt_currentSuccess.setEndMillis(lt_currentSuccess.getStartMillis() + lt_durationMillis);
+                                
+                            }
+                        }
+                    }
+
+                }
+            }
+
+        }
+
+    }
+
+    /**
+     * Updates the map of scenarios. The key is the class name + the phase group
+     *
+     * Author : gandomi
+     *
+     * @param in_phasedScenarios
+     *        A map of sccenarios that should be updated
+     * @param in_testResult
+     *        The candidae test result that should be used for updating the map
+     *
+     */
+    protected void updatePhasedScenarios(Map<String, List<ITestResult>> in_phasedScenarios,
+            ITestResult in_testResult) {
+        String lt_scName = PhasedTestManager.fetchScenarioName(in_testResult);
+
+        //Inilialize id map doe not have the given entry
+        if (!in_phasedScenarios.containsKey(lt_scName)) {
+            in_phasedScenarios.put(lt_scName, new ArrayList<ITestResult>());
+        }
+
+        in_phasedScenarios.get(lt_scName).add(in_testResult);
     }
 
     @Override
