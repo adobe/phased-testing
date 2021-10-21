@@ -9,19 +9,37 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package com.adobe.campaign.tests.integro.phased;
+package com.adobe.campaign.tests.integro.phased.data.befaft;
 
-class MethodMapping  {
-    
-    Class declaredClass;
-    int nrOfProviders;
-    int totalClassMethods;
-    
-    protected MethodMapping(Class in_declaredClass, int in_nrOfProviders, int in_nrOfStepsInTest) {
-        
-        nrOfProviders=in_nrOfProviders;
-        totalClassMethods=in_nrOfStepsInTest;
-        declaredClass=in_declaredClass;
+import static org.testng.Assert.assertEquals;
+
+import org.testng.annotations.Test;
+
+import com.adobe.campaign.tests.integro.phased.PhasedTest;
+import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
+
+@Test
+@PhasedTest(canShuffle = true)
+public class PhasedSeries_M_ShuffledClass_changesAter {
+
+    public void step1(String val) {
+        System.out.println("step1 " + val);
+        PhasedTestManager.produceInStep("A");
+    }
+
+    public void step2(String val) {
+        System.out.println("step2 " + val);
+        String l_fetchedValue = PhasedTestManager.consumeFromStep("step1");
+        PhasedTestManager.produceInStep(l_fetchedValue + "B");
+    }
+
+    public void step3(String val) {
+        System.out.println("step3 " + val);
+        String l_fetchedValue = PhasedTestManager.consumeFromStep("step2");
+
+        assertEquals(l_fetchedValue, "AB");
+
+        PhasedSeries_M_BeforePhase_AfterSuite.afterValue = 7;
     }
 
 }

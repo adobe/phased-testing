@@ -9,19 +9,21 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package com.adobe.campaign.tests.integro.phased;
+package com.adobe.campaign.tests.integro.phased.data.dp;
 
-class MethodMapping  {
-    
-    Class declaredClass;
-    int nrOfProviders;
-    int totalClassMethods;
-    
-    protected MethodMapping(Class in_declaredClass, int in_nrOfProviders, int in_nrOfStepsInTest) {
-        
-        nrOfProviders=in_nrOfProviders;
-        totalClassMethods=in_nrOfStepsInTest;
-        declaredClass=in_declaredClass;
+import org.testng.annotations.DataProvider;
+
+public class PhasedSeries_L_PROVIDER {
+    public static final String PROVIDER_B = "provider_b";
+    public static final String PROVIDER_A = "provider_a";
+
+    @DataProvider(name = "create")
+    public Object[][] createData() {
+        return new Object[][] {{PROVIDER_A},{PROVIDER_B}};
     }
-
+    
+    @DataProvider(name = "createPrivate")
+    private Object[][] createDataPrivate() {
+        return new Object[][] {{PROVIDER_A},{PROVIDER_B}};
+    }
 }

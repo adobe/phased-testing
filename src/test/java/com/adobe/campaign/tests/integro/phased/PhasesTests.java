@@ -20,6 +20,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 
+import java.util.Arrays;
+
 public class PhasesTests {
     @BeforeClass
     public void cleanCache() {
@@ -80,6 +82,15 @@ public class PhasesTests {
                 Phases.getCurrentPhase(), is(equalTo(Phases.PRODUCER)));
 
         assertThat("We should have a check me ethod that works", Phases.PRODUCER.isSelected());
+
+    }
+
+    
+    @Test
+    public void testPhasesFetchWithEvents() {
+        Phases[] l_phasesWithEvents = Phases.fetchPhasesWithEvents();
+        
+        assertThat("All phases should have a splitting event", Arrays.asList(l_phasesWithEvents).stream().allMatch(p -> p.hasSplittingEvent));
 
     }
 

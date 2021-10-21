@@ -11,10 +11,12 @@
  */
 package com.adobe.campaign.tests.integro.phased;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -29,6 +31,15 @@ import org.testng.ITestNGMethod;
 import org.testng.ITestResult;
 import org.testng.SkipException;
 import org.testng.TestNGException;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterGroups;
+import org.testng.annotations.AfterSuite;
+import org.testng.annotations.AfterTest;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeGroups;
+import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.BeforeTest;
+import org.testng.annotations.IConfigurationAnnotation;
 import org.testng.annotations.ITestAnnotation;
 import org.testng.internal.BaseTestMethod;
 import org.testng.internal.TestResult;
@@ -38,6 +49,84 @@ import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
 
 public class PhasedTestListener implements ITestListener, IAnnotationTransformer {
     protected static Logger log = LogManager.getLogger();
+
+    @Override
+    public void transform(IConfigurationAnnotation annotation, Class testClass, Constructor testConstructor,
+            Method testMethod) {
+
+        if (testMethod != null) {
+
+            //Checking if the Before- and AfterPhase method should be executed.
+            if (testMethod.isAnnotationPresent(BeforePhase.class)) {
+
+                log.info("PhasedTestListener : in Before Phase transform");
+
+                //If annotation is not set on the correct TestNG Configuration annotation then throw and excception
+                List<Class<?>> l_beforeConfigs = Arrays.asList(BeforeSuite.class, BeforeTest.class,
+                        BeforeGroups.class, BeforeClass.class);
+
+                checkAnnotationCompatibility(testMethod, l_beforeConfigs);
+
+                if (Arrays.stream(testMethod.getAnnotation(BeforePhase.class).appliesToPhases())
+                        .noneMatch(t -> t.equals(Phases.getCurrentPhase()))) {
+                    log.info("Omitting BeforePhase method {}", ClassPathParser.fetchFullName(testMethod));
+                    annotation.setEnabled(false);
+                }
+            }
+
+            if (testMethod.isAnnotationPresent(AfterPhase.class)) {
+
+                log.info("PhasedTestListener : in After Phase transform");
+
+                //If annotation is not set on the correct TestNG Configuration annotation then throw and excception
+                List<Class<?>> l_afterConfigs = Arrays.asList(AfterSuite.class, AfterTest.class,
+                        AfterGroups.class, AfterClass.class);
+
+                checkAnnotationCompatibility(testMethod, l_afterConfigs);
+
+                if (Arrays.stream(testMethod.getAnnotation(AfterPhase.class).appliesToPhases())
+                        .noneMatch(t -> t.equals(Phases.getCurrentPhase()))) {
+                    log.info("Omitting AfterPhase method {}", ClassPathParser.fetchFullName(testMethod));
+
+                    annotation.setEnabled(false);
+                }
+            }
+        }
+    }
+
+    /**
+     * Given a list of expected annotations, this method sees if the given
+     * method contains any of these them
+     * 
+     * Author : gandomi
+     *
+     * @param in_testMethod
+     *        a Test Method
+     * @param in_expctedAnnotations
+     *        A list of classes, defining which annotations should be attached
+     *        to the given method
+     *
+     */
+    protected void checkAnnotationCompatibility(Method in_testMethod, List<Class<?>> in_expctedAnnotations) {
+        if (Arrays.stream(in_testMethod.getDeclaredAnnotations())
+                .noneMatch(t -> in_expctedAnnotations.contains(t.annotationType()))) {
+
+            Iterator<Annotation> l_declaredAnnotationIterator = Arrays
+                    .asList(in_testMethod.getDeclaredAnnotations()).iterator();
+            StringBuilder lt_listOfAnnotations = new StringBuilder();
+
+            //Prepare message
+            while (l_declaredAnnotationIterator.hasNext()) {
+                lt_listOfAnnotations.append(l_declaredAnnotationIterator.next().annotationType().getName());
+                lt_listOfAnnotations.append(l_declaredAnnotationIterator.hasNext() ? ", " : "");
+            }
+
+            throw new PhasedTestConfigurationException(
+                    "You have declared a @BeforePhase or @AfterPhase annotation with an incompatible TestNG Configuration Anntoation. The method "
+                            + ClassPathParser.fetchFullName(in_testMethod)
+                            + " has the following annotations: " + lt_listOfAnnotations.toString());
+        }
+    }
 
     // @Override
     public void onTestStart(ITestResult result) {
@@ -52,7 +141,8 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
                 result.getMethod().setRetryAnalyzerClass(DisabledRetryAnalyzer.class);
             }
 
-            final String l_dataProvider = result.getParameters()[0].toString();
+            final String l_dataProvider = PhasedTestManager.concatenateParameterArray(result.getParameters());
+
             PhasedTestManager.storePhasedContext(ClassPathParser.fetchFullName(l_method), l_dataProvider);
 
             if (!PhasedTestManager.scenarioStateContinue(result)) {
@@ -77,8 +167,8 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
      * 
      * Author : gandomi
      *
-     * @param in_testResult  A TestNG Result Object
-     *
+     * @param in_testResult
+     *        A TestNG Result Object
      */
     protected void renameMethodReport(ITestResult in_testResult) {
         String l_newName = PhasedTestManager.fetchTestNameForReport(in_testResult);
@@ -160,7 +250,7 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
     public void onStart(ITestContext context) {
         log.debug(PhasedTestManager.PHASED_TEST_LOG_PREFIX + "onStart - current Execution State is : "
                 + Phases.getCurrentPhase());
-        
+
         /*** Import DataBroker ***/
         String l_phasedDataBrokerClass = null;
         if (System.getProperties().containsKey(PhasedTestManager.PROP_PHASED_TEST_DATABROKER)) {
@@ -196,6 +286,22 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
         for (ITestNGMethod lt_testNGMethod : context.getSuite().getAllMethods()) {
             Method lt_method = lt_testNGMethod.getConstructorOrMethod().getMethod();
 
+            //Check if the number of method arguments are correct
+            final Object[][] lt_currentDataProviders = PhasedTestManager
+                    .fetchDataProviderValues(lt_method.getDeclaringClass());
+
+            //The +1 is because of the minimum number of arguments
+            final int lt_nrOfExpectedArgments = lt_currentDataProviders.length == 0 ? 1
+                    : lt_currentDataProviders[0].length + 1;
+
+            if (PhasedTestManager.isPhasedTest(lt_method)
+                    && (lt_nrOfExpectedArgments > lt_method.getParameterCount())) {
+                throw new PhasedTestConfigurationException(
+                        "The method " + ClassPathParser.fetchFullName(lt_method) + " needs to declare "
+                                + lt_nrOfExpectedArgments + " arguments. Instead it has only declared "
+                                + lt_method.getParameterCount() + "!");
+            }
+
             if (PhasedTestManager.isPhasedTestShuffledMode(lt_method)) {
                 log.debug(PhasedTestManager.PHASED_TEST_LOG_PREFIX + "In Shuffled mode : current test "
                         + ClassPathParser.fetchFullName(lt_method));
@@ -215,8 +321,7 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
 
     }
 
-    
-    @Override  
+    @Override
     public void onFinish(ITestContext context) {
 
         //Once the tests have finished in producer mode we, need to export the data
@@ -226,14 +331,16 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
         }
 
         //Activating merge results if the value is set in the sysem properties
-        if (System.getProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS, "NOTSET").equalsIgnoreCase("true")) {
+        if (System.getProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS, "NOTSET")
+                .equalsIgnoreCase("true")) {
             PhasedTestManager.activateMergedReports();
         }
-        
-        if (System.getProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS, "NOTSET").equalsIgnoreCase("false")) {
+
+        if (System.getProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS, "NOTSET")
+                .equalsIgnoreCase("false")) {
             PhasedTestManager.deactivateMergedReports();
         }
-        
+
         if (PhasedTestManager.isMergedReportsActivated()) {
 
             log.debug(PhasedTestManager.PHASED_TEST_LOG_PREFIX
@@ -260,7 +367,8 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
             for (String lt_phasedClass : l_phasedScenarios.keySet()) {
                 log.info(PhasedTestManager.PHASED_TEST_LOG_PREFIX + "Reducing Report for " + lt_phasedClass);
 
-                long lt_durationMillis = PhasedTestManager.fetchDurationMillis(l_phasedScenarios.get(lt_phasedClass));
+                long lt_durationMillis = PhasedTestManager
+                        .fetchDurationMillis(l_phasedScenarios.get(lt_phasedClass));
 
                 //When the phase test scenario was not a success
                 if (!PhasedTestManager.getPhasedCache().get(lt_phasedClass).equals(Boolean.TRUE.toString())) {
@@ -309,9 +417,10 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
                                             + " because when all results are skipped we keep only the first one..");
 
                                     l_foundSkipped = true;
-                                    
-                                    lt_currentSkip.setEndMillis(lt_currentSkip.getStartMillis() + lt_durationMillis);
-                                    
+
+                                    lt_currentSkip.setEndMillis(
+                                            lt_currentSkip.getStartMillis() + lt_durationMillis);
+
                                     renameMethodReport(lt_currentSkip);
                                 }
                             }
@@ -327,10 +436,10 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
                         if (PhasedTestManager.fetchScenarioName(lt_currentFail).equals(lt_phasedClass)) {
                             //Update duration
                             lt_currentFail.setEndMillis(lt_currentFail.getStartMillis() + lt_durationMillis);
-                            
+
                             //Wrap the Exception
                             PhasedTestManager.generateStepFailure(lt_currentFail);
-                            
+
                             //Rename test
                             renameMethodReport(lt_currentFail);
                         }
@@ -350,8 +459,9 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
                             } else {
                                 l_foundPasssed = true;
                                 renameMethodReport(lt_currentSuccess);
-                                lt_currentSuccess.setEndMillis(lt_currentSuccess.getStartMillis() + lt_durationMillis);
-                                
+
+                                lt_currentSuccess
+                                        .setEndMillis(lt_currentSuccess.getStartMillis() + lt_durationMillis);
                             }
                         }
                     }

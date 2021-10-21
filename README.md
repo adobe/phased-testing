@@ -43,7 +43,7 @@ Single Execution Mode is used only when a workflow will always be interrupted at
 The diagram above represents what will be executed by the following code:
 
 ```java
-@Test(dataProvider = PhasedDataProvider.DEFAULT, dataProviderClass = PhasedDataProvider.class)
+@Test
 @PhasedTest(canShuffle = true)
 public class ShuffledTest {
 
@@ -82,7 +82,7 @@ When in Consumer state we :
 The diagram above represents what will be executed by the following code:
 
 ```java
-@Test(dataProvider = PhasedDataProvider.DEFAULT, dataProviderClass = PhasedDataProvider.class)
+@Test
 @PhasedTest(canShuffle = true)
 public class ShuffledTest {
 
@@ -109,18 +109,45 @@ The Phased Testing is activated using two annotations:
 * **@PhaseEvent** : Method level annotation. By setting it you tell the system at which step does the phase event happen. The tests will stop at that point.
 
 Moreover you need to :
-* Add a class level Test annotation with the following characteristics : `@Test(dataProvider = PhasedDataProvider.DEFAULT, dataProviderClass = PhasedDataProvider.class)`
-* Make your methods accept one argument
+* Make your methods accept at least one argument
 * The methods will be executed in alphabetical order. So prefixing the methods with their step number is a good practice. 
 
-### Shuffled Mode
+### Setting Execution Modes
+
+#### Shuffled Mode
 In order for a test scenario to be executed in shuffle mode you need to add the following annotation at the class level `@PhasedTest(canShuffle = true)`
 
-### Single Run Mode
+#### Single Run Mode
 In order for a test scenario to be executed in shuffle mode you need to add the following annotation at the class level `@PhasedTest(canShuffle = false)`. However because the interruption will happen at the same location all the time, you have to add the annotation `@PhaseEven@PhaseEvent` where you expect the interruption to occur.
 
 Optionally if you consider that the scenario can never be run as non-phased, you need also include:  `@PhasedTest(canShuffle = false, executeInactive = false)`. When executeInactive is false, the Single Run scenario will only run when in Phases.
- 
+
+### Before- and After-Phase Actions
+We have introduced the possibility of defining Before and After Phases. This means that you can state if a method can be invoked before or after the phased tests are executed.
+
+To activate this functionality you add the annotations `@BeforePhase` & `@AfterPhase` to a TestNG configuration method such as: **@BeforeSuite, @AfterSuite, @BeforeGroups, @AfterGroups, @BeforeTest and @AfterTest**.
+
+To your configuration method. Example:
+
+```java
+@BeforePhase
+@BeforeSuite
+public void myBeforePhaseSuite() {
+    //Perform actions
+}
+```
+
+In the example above the method `myBeforePhaseSuite` will be invoked in the beginning of the suite. By default the BeforePhase method is invoked when we are in a Phase I.e. Producer or Consumer.
+
+You can configure this with the attribute `appliesToPhasesappliesToPhases` which accepts an array of `Phases`. In the example below we are activating AfterPhase for the Consumer phase only.
+
+ ```java
+@AfterPhase(appliesToPhases = {Phases.CONSUMER})
+@AfterSuite
+public void myAfterPhasedSuite() {
+    //Perform actions
+}
+```
 
 ## Running a Phased Test
 We are able to run tests in phases since each step stores the information needed for the following steps. For now this is done at the discretion of the developer. This storage is important as it helps us keep track of the tests:
@@ -208,15 +235,30 @@ By default we store the Phase Groups whenever a Phased Test is run. However we n
 The following configuration items can be added to the constructed name:
 - **Phase** adds the phase name to the constructed method name
 - **Phase Group** adds the phase group to the constructed method name
-- **Scenario Name** adds the scenario name (the class) to the constructed method name   
+- **Scenario Name** adds the scenario name (the class) to the constructed method name
+- **Data Provider** add thhe data providers, separated by "_" to the name 
 
+## Misc
+In this chapter we will deal with miscellaneous issues related to Phased Tests
 
+### Data Providers
+We now allow for a user to also include data providers in connection to Phased Tests. The Data Provider parameters will, when executed in a Phased Test, be added to the test result.
+
+A configuration check is done in the beginning. The phased test steps are checked and their arguments are compared to the number of data providers + the injected data provider for phased tests. If the number of arguments does not correspond to the total number of data providers, a `PhasedTestConfigurationException` is thrown right at the beginning.
 
 ## Release Notes
 
+### 7.0.5
+- You can now define Phase setup methods. `@BeforePhase` & `@AfterPhase` can be set on a normal TestNG Before and After method. The method will then be executed in before or after a phase starts. (#40) 
+- We now allow for user defined data providers in a phased test. For the data provider to be considered, i needs to be declared at class level and not at method level. (#26)
+-  We can now configure the reports to include the data providers.
+- We now throw an error if the arguments of the phased steps do not correspond to expected number of parameters (phased + user defined) (#28 & #27 & #38)
+- Solved issue with tests continuing in consumer mode even if their steps had not been executed in the producer phase (#43)
+
 ### 7.0.4
-- Introduced the Report by Phase Group Functionality
+- Introduced the Report by Phase Group Functionality (#5)
 - Allowing users to configure the Merged Reports
+- Other issues corrected are : #20, #22, #23, #24, #25
 
 ### 7.0.3
 - #15 Renamed old produce/consume to produceInStep/consumeFromStep. The old produceWithKey/consumeWith key are now deprecated. Instead you should use produceWithKey/consumeWith 

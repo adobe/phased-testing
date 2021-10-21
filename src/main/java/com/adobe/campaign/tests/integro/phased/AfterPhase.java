@@ -9,19 +9,41 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+/**
+ * 
+ */
 package com.adobe.campaign.tests.integro.phased;
 
-class MethodMapping  {
-    
-    Class declaredClass;
-    int nrOfProviders;
-    int totalClassMethods;
-    
-    protected MethodMapping(Class in_declaredClass, int in_nrOfProviders, int in_nrOfStepsInTest) {
-        
-        nrOfProviders=in_nrOfProviders;
-        totalClassMethods=in_nrOfStepsInTest;
-        declaredClass=in_declaredClass;
-    }
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+@Retention(RUNTIME)
+@Target(METHOD)
+/**
+ * When set, this allows for the method to be executed before or after a phase.
+ * It should be accompanied with the TestNG Configuration Annotations, such
+ * as @BeforeSuite, @AferSuite, etc... In that case the
+ * 
+ * By default it applies to the splitting event phases:CONSUMER and PRODUCER
+ * Phase
+ * 
+ * Author : gandomi
+ *
+ */
+public @interface AfterPhase {
+
+    /**
+     * You can specify the phases to which the AfterPhase method should be
+     * executed. By default it is activated for the active phases, Producer and
+     * Consumer.
+     *
+     * Author : gandomi
+     *
+     * @return the value
+     *
+     */
+    Phases[] appliesToPhases() default { Phases.CONSUMER, Phases.PRODUCER };
 }

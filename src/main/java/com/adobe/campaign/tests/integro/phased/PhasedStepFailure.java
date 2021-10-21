@@ -11,17 +11,15 @@
  */
 package com.adobe.campaign.tests.integro.phased;
 
-class MethodMapping  {
-    
-    Class declaredClass;
-    int nrOfProviders;
-    int totalClassMethods;
-    
-    protected MethodMapping(Class in_declaredClass, int in_nrOfProviders, int in_nrOfStepsInTest) {
-        
-        nrOfProviders=in_nrOfProviders;
-        totalClassMethods=in_nrOfStepsInTest;
-        declaredClass=in_declaredClass;
+public class PhasedStepFailure extends Throwable {
+
+    public PhasedStepFailure(String string, Throwable t) {
+        super(string, t);
     }
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -2830092346021261368L;
 
 }

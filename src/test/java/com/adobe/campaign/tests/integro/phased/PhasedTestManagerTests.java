@@ -18,7 +18,6 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.testng.internal.ConstructorOrMethod;
-
 import com.adobe.campaign.tests.integro.phased.data.NormalSeries_A;
 import com.adobe.campaign.tests.integro.phased.data.PhasedDataBrokerTestImplementation;
 import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_A;
@@ -26,6 +25,12 @@ import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_B_NoInActive;
 import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_F_Shuffle;
 import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClass;
 import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClassWithError;
+import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_K_ShuffledClass_noproviders;
+import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_PROVIDER;
+import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledDP;
+import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledDPPrivate;
+import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledDPSimple;
+import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledDPSimplePrivate;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 
@@ -38,13 +43,14 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.TreeSet;
 import org.hamcrest.Matchers;
 import org.mockito.Mockito;
 
@@ -659,6 +665,72 @@ public class PhasedTestManagerTests {
     }
 
     @Test
+    public void testCreateDataProviderData_withOwnDataProvider() {
+        Phases.PRODUCER.activate();
+
+        Map<Class, List<String>> l_myMap = new HashMap<Class, List<String>>();
+
+        l_myMap.put(PhasedSeries_L_ShuffledDP.class, Arrays.asList("a", "b", "c"));
+
+        Map<String, MethodMapping> l_result = PhasedTestManager.generatePhasedProviders(l_myMap);
+
+        assertThat("we need to have the expected key", l_result.containsKey("a"));
+        assertThat("The first method should have three entries", l_result.get("a").nrOfProviders, equalTo(3));
+
+        assertThat("The first method should have two entries", l_result.get("b").nrOfProviders, equalTo(2));
+
+        assertThat("The first method should have one entry", l_result.get("c").nrOfProviders, equalTo(1));
+
+        assertThat("We should have the same amount of total sizes", l_result.get("a").totalClassMethods,
+                equalTo(l_result.get("b").totalClassMethods));
+        assertThat("We should have the same amount of total sizes", l_result.get("a").totalClassMethods,
+                equalTo(l_result.get("c").totalClassMethods));
+
+        Object[][] l_providerA = PhasedTestManager.fetchProvidersShuffled("a");
+
+        assertThat(l_providerA.length, equalTo(6));
+        assertThat(l_providerA[0].length, equalTo(2));
+
+        assertThat(l_providerA[0][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0"));
+        assertThat(l_providerA[0][1], equalTo(PhasedSeries_L_PROVIDER.PROVIDER_A));
+        assertThat(l_providerA[1][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0"));
+        assertThat(l_providerA[1][1], equalTo(PhasedSeries_L_PROVIDER.PROVIDER_B));
+        assertThat(l_providerA[2][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1"));
+        assertThat(l_providerA[2][1], equalTo(PhasedSeries_L_PROVIDER.PROVIDER_A));
+        assertThat(l_providerA[3][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1"));
+        assertThat(l_providerA[3][1], equalTo(PhasedSeries_L_PROVIDER.PROVIDER_B));
+        assertThat(l_providerA[4][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2"));
+        assertThat(l_providerA[4][1], equalTo(PhasedSeries_L_PROVIDER.PROVIDER_A));
+        assertThat(l_providerA[5][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2"));
+        assertThat(l_providerA[5][1], equalTo(PhasedSeries_L_PROVIDER.PROVIDER_B));
+
+        Object[][] l_providerB = PhasedTestManager.fetchProvidersShuffled("b");
+
+        assertThat(l_providerB.length, equalTo(4));
+        assertThat(l_providerB[0].length, equalTo(2));
+
+        assertThat(l_providerB[0][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0"));
+        assertThat(l_providerB[0][1], equalTo(PhasedSeries_L_PROVIDER.PROVIDER_A));
+        assertThat(l_providerB[1][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0"));
+        assertThat(l_providerB[1][1], equalTo(PhasedSeries_L_PROVIDER.PROVIDER_B));
+        assertThat(l_providerB[2][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1"));
+        assertThat(l_providerB[2][1], equalTo(PhasedSeries_L_PROVIDER.PROVIDER_A));
+        assertThat(l_providerB[3][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1"));
+        assertThat(l_providerB[3][1], equalTo(PhasedSeries_L_PROVIDER.PROVIDER_B));
+
+        Object[][] l_providerC = PhasedTestManager.fetchProvidersShuffled("c");
+
+        assertThat(l_providerC.length, equalTo(2));
+        assertThat(l_providerC[0].length, equalTo(2));
+
+        assertThat(l_providerC[0][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0"));
+        assertThat(l_providerC[0][1], equalTo(PhasedSeries_L_PROVIDER.PROVIDER_A));
+        assertThat(l_providerC[1][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0"));
+        assertThat(l_providerC[1][1], equalTo(PhasedSeries_L_PROVIDER.PROVIDER_B));
+
+    }
+
+    @Test
     public void testCreateDataProviderData_modeConsumer() throws NoSuchMethodException, SecurityException {
         Map<Class, List<String>> l_myMap = new HashMap<Class, List<String>>();
 
@@ -1109,11 +1181,11 @@ public class PhasedTestManagerTests {
 
         Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
         Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
-        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "Q" });
+        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "0_3" });
         Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
         Mockito.when(l_com.getMethod()).thenReturn(l_myTestWithOneArg);
 
-        assertThat("Before storing the context the value is true",
+        assertThat("Before storing the context the value is true if we are not in consumer",
                 PhasedTestManager.scenarioStateContinue(l_itr));
 
         PhasedTestManager.scenarioStateStore(l_itr);
@@ -1124,6 +1196,128 @@ public class PhasedTestManagerTests {
                 equalTo(Boolean.TRUE.toString()));
 
         assertThat("We should be able to continue with the phase group",
+                PhasedTestManager.scenarioStateContinue(l_itr));
+
+        PhasedTestManager.clearCache();
+
+        Phases.PRODUCER.activate();
+
+        assertThat("In producer mode We should be able to continue with the phase group",
+                PhasedTestManager.scenarioStateContinue(l_itr));
+    }
+
+    @Test
+    public void testStateIstKeptBetweenPhasesConsumerMode_Continue()
+            throws NoSuchMethodException, SecurityException {
+        //On Test End we need to add context of test. The context is the state of the scenario
+
+        //If a test fails, the test state should be logged in the context
+        //This logging should be separate from the produce data Class + dataprovider
+        //We should have a log
+        //Do we only log failures
+        final Method l_myTestWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
+                String.class);
+
+        ITestResult l_itr = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
+        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
+
+        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
+        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
+        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "0_3" });
+        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
+        Mockito.when(l_com.getMethod()).thenReturn(l_myTestWithOneArg);
+
+        assertThat("Before storing the context the value is true if we are not in consumer",
+                PhasedTestManager.scenarioStateContinue(l_itr));
+
+        PhasedTestManager.scenarioStateStore(l_itr);
+
+        Phases.CONSUMER.activate();
+
+        assertThat("In consumer mode We should be able to continue with the phase group",
+                PhasedTestManager.scenarioStateContinue(l_itr));
+
+    }
+
+    /**
+     * Issue #43 : What happens when there is no context.
+     *
+     * Author : gandomi
+     *
+     * @throws NoSuchMethodException
+     * @throws SecurityException
+     *
+     */
+    @Test
+    public void testDoNotContinueIfNoTestsExistBeforeConsumer_doNotContinue()
+            throws NoSuchMethodException, SecurityException {
+        //On Test End we need to add context of test. The context is the state of the scenario
+
+        //If a test fails, the test state should be logged in the context
+        //This logging should be separate from the produce data Class + dataprovider
+        //We should have a log
+        //Do we only log failures
+        final Method l_myTestWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
+                String.class);
+
+        ITestResult l_itr = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
+        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
+
+        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
+        //Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
+        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { PhasedTestManager.STD_PHASED_GROUP_PREFIX+"2_1" });
+        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
+        Mockito.when(l_com.getMethod()).thenReturn(l_myTestWithOneArg);
+
+        // In this case
+        //PhasedTestManager.scenarioStateStore(l_itr);
+
+        Phases.CONSUMER.activate();
+
+        assertThat("We should not continue with the phase group if there is no result for this phase group",
+                !PhasedTestManager.scenarioStateContinue(l_itr));
+
+    }
+
+    /**
+     * Issue #43 : What happens when there is no context.
+     *
+     * Author : gandomi
+     *
+     * @throws NoSuchMethodException
+     * @throws SecurityException
+     *
+     */
+    @Test
+    public void testDoNotContinueIfNoTestsExistBeforeConsumer_Continue()
+            throws NoSuchMethodException, SecurityException {
+        //On Test End we need to add context of test. The context is the state of the scenario
+
+        //If a test fails, the test state should be logged in the context
+        //This logging should be separate from the produce data Class + dataprovider
+        //We should have a log
+        //Do we only log failures
+        final Method l_myTestWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
+                String.class);
+
+        ITestResult l_itr = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
+        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
+
+        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
+        //Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
+        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { PhasedTestManager.STD_PHASED_GROUP_PREFIX+"0_6" });
+        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
+        Mockito.when(l_com.getMethod()).thenReturn(l_myTestWithOneArg);
+
+        // In this case
+        //PhasedTestManager.scenarioStateStore(l_itr);
+
+        Phases.CONSUMER.activate();
+
+        assertThat("We should continue with the phase group if there is no result for this phase group",
                 PhasedTestManager.scenarioStateContinue(l_itr));
 
     }
@@ -1419,8 +1613,8 @@ public class PhasedTestManagerTests {
                 PhasedTestManager.MergedReportData.suffix.isEmpty());
 
         PhasedTestManager.MergedReportData.configureMergedReportName(
-                new TreeSet<>(Arrays.asList(PhasedReportElements.SCENARIO_NAME)),
-                new TreeSet<>(Arrays.asList(PhasedReportElements.PHASE, PhasedReportElements.PHASE_GROUP)));
+                new LinkedHashSet<>(Arrays.asList(PhasedReportElements.SCENARIO_NAME)), new LinkedHashSet<>(
+                        Arrays.asList(PhasedReportElements.PHASE, PhasedReportElements.PHASE_GROUP)));
 
         assertThat("The prefix should have been set", PhasedTestManager.MergedReportData.prefix,
                 Matchers.hasItems(PhasedReportElements.SCENARIO_NAME));
@@ -1492,11 +1686,29 @@ public class PhasedTestManagerTests {
     }
 
     @Test
+    public void testPhasedReportElements_StandardReportName_DataProviders()
+            throws NoSuchMethodException, SecurityException {
+
+        ITestResult l_itr = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
+
+        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
+        Mockito.when(l_itrMethod.getRealClass()).thenReturn(PhasedSeries_H_ShuffledClassWithError.class);
+        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
+        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "Q", "A", "T" });
+        Mockito.when(l_itrMethod.getQualifiedName()).thenReturn(
+                "com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClassWithError.step3");
+
+        assertThat("We should get the correct value for the SCENARIO_NAME",
+                PhasedReportElements.DATA_PROVIDERS.fetchElement(l_itr), equalTo("A_T"));
+    }
+
+    @Test
     public void testStandardReportName_configured() throws NoSuchMethodException, SecurityException {
 
         PhasedTestManager.MergedReportData.configureMergedReportName(
-                new TreeSet<>(Arrays.asList(PhasedReportElements.SCENARIO_NAME)),
-                new TreeSet<>(Arrays.asList(PhasedReportElements.PHASE)));
+                new LinkedHashSet<>(Arrays.asList(PhasedReportElements.SCENARIO_NAME)),
+                new LinkedHashSet<>(Arrays.asList(PhasedReportElements.PHASE)));
 
         assertThat(PhasedSeries_H_ShuffledClassWithError.class.getSimpleName(),
                 equalTo("PhasedSeries_H_ShuffledClassWithError"));
@@ -1508,6 +1720,65 @@ public class PhasedTestManagerTests {
         Mockito.when(l_itrMethod.getRealClass()).thenReturn(PhasedSeries_H_ShuffledClassWithError.class);
         Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
         Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "Q" });
+        Mockito.when(l_itrMethod.getQualifiedName()).thenReturn(
+                "com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClassWithError.step3");
+
+        assertThat("We should be able to continue with the phase group",
+                PhasedTestManager.fetchTestNameForReport(l_itr),
+                equalTo("phasedSeries_H_ShuffledClassWithError__Q__" + Phases.getCurrentPhase().toString()));
+
+        Phases.CONSUMER.activate();
+
+        assertThat("We should be able to continue with the phase group",
+                PhasedTestManager.fetchTestNameForReport(l_itr),
+                equalTo("phasedSeries_H_ShuffledClassWithError__Q__" + Phases.CONSUMER.toString()));
+
+    }
+
+    @Test
+    public void testStandardReportName_configured2() throws NoSuchMethodException, SecurityException {
+
+        PhasedTestManager.MergedReportData.configureMergedReportName(
+                new LinkedHashSet<>(Arrays.asList(PhasedReportElements.SCENARIO_NAME)), new LinkedHashSet<>(
+                        Arrays.asList(PhasedReportElements.DATA_PROVIDERS, PhasedReportElements.PHASE)));
+
+        assertThat(PhasedSeries_H_ShuffledClassWithError.class.getSimpleName(),
+                equalTo("PhasedSeries_H_ShuffledClassWithError"));
+
+        ITestResult l_itr = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
+
+        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
+        Mockito.when(l_itrMethod.getRealClass()).thenReturn(PhasedSeries_H_ShuffledClassWithError.class);
+        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
+        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "Q", "uo", "Vadis" });
+        Mockito.when(l_itrMethod.getQualifiedName()).thenReturn(
+                "com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClassWithError.step3");
+
+        Phases.CONSUMER.activate();
+
+        assertThat("We should be able to continue with the phase group",
+                PhasedTestManager.fetchTestNameForReport(l_itr),
+                equalTo("phasedSeries_H_ShuffledClassWithError__Q__uo_Vadis__" + Phases.CONSUMER.toString()));
+    }
+
+    @Test
+    public void testStandardReportName_DP_configured() throws NoSuchMethodException, SecurityException {
+
+        PhasedTestManager.MergedReportData.configureMergedReportName(
+                new LinkedHashSet<>(Arrays.asList(PhasedReportElements.SCENARIO_NAME)),
+                new LinkedHashSet<>(Arrays.asList(PhasedReportElements.PHASE)));
+
+        assertThat(PhasedSeries_H_ShuffledClassWithError.class.getSimpleName(),
+                equalTo("PhasedSeries_H_ShuffledClassWithError"));
+
+        ITestResult l_itr = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
+
+        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
+        Mockito.when(l_itrMethod.getRealClass()).thenReturn(PhasedSeries_H_ShuffledClassWithError.class);
+        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
+        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "Q", "A", "T" });
         Mockito.when(l_itrMethod.getQualifiedName()).thenReturn(
                 "com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClassWithError.step3");
 
@@ -1648,15 +1919,35 @@ public class PhasedTestManagerTests {
     }
 
     @Test
-    public void testStepName_Negative()
+    public void testStepName_DP()
             throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
 
         ITestResult l_itr1 = Mockito.mock(ITestResult.class);
 
         Mockito.when(l_itr1.getName()).thenReturn("myTest");
-        Mockito.when(l_itr1.getParameters()).thenReturn(new Object[] {});
+        Mockito.when(l_itr1.getParameters()).thenReturn(new Object[] { "Q", "A" });
 
-        assertThrows(IllegalArgumentException.class, () -> PhasedTestManager.fetchPhasedStepName(l_itr1));
+        assertThat("We should have the correct name", PhasedTestManager.fetchPhasedStepName(l_itr1),
+                equalTo("Q__A_myTest"));
+    }
+
+    @Test
+    public void testStepName_Negative() throws NoSuchFieldException, SecurityException,
+            IllegalArgumentException, IllegalAccessException, NoSuchMethodException {
+
+        final Method l_myTestWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
+                String.class);
+
+        ITestResult l_itr = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
+        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
+
+        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
+        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
+        Mockito.when(l_com.getMethod()).thenReturn(l_myTestWithOneArg);
+        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] {});
+
+        assertThrows(IllegalArgumentException.class, () -> PhasedTestManager.fetchPhasedStepName(l_itr));
     }
 
     @Test
@@ -1681,11 +1972,13 @@ public class PhasedTestManagerTests {
         assertThat("We should have the correct exception", l_newThrowable.getMessage(),
                 Matchers.startsWith(l_originalMessage));
         assertThat("The message should end with the original message", l_newThrowable.getMessage(),
-                Matchers.endsWith(Phases.getCurrentPhase().toString()+"]"));
+                Matchers.endsWith(Phases.getCurrentPhase().toString() + "]"));
+
         assertThat("We should have the step name in the message", l_newThrowable.getMessage(),
                 Matchers.containsString(l_renamedMethod));
 
         assertThat("The caused by should be the same exception as before", l_newThrowable.getCause(),
+
                 equalTo(l_originalAssertionError.getCause()));
 
     }
@@ -1730,6 +2023,7 @@ public class PhasedTestManagerTests {
         ITestNGMethod l_itrMethod1 = Mockito.mock(ITestNGMethod.class);
 
         Mockito.when(l_itr1.getStatus()).thenReturn(ITestResult.SUCCESS);
+
         Mockito.when(l_itr1.getMethod()).thenReturn(l_itrMethod1);
 
         Mockito.when(l_itrMethod1.getMethodName()).thenReturn("Q_myTest");
@@ -1738,6 +2032,127 @@ public class PhasedTestManagerTests {
 
         assertThrows(IllegalArgumentException.class, () -> PhasedTestManager.generateStepFailure(l_itr1));
 
+    }
+
+    //in relation to combining phased with data providers #26  
+    @Test
+    public void testCrossJoinDataProviders() {
+
+        //System.out.println(0 % 0);
+        Object[][] providerSeriess1 = new Object[][] { { "A" }, { "B" } };
+
+        Object[][] providerSeriess2 = new Object[][] { { "Z" }, { "M" } };
+
+        Object[][] result = PhasedTestManager.dataProvidersCrossJoin(providerSeriess1, providerSeriess2);
+
+        assertThat("The dimensions should be correct in side - nr of lines", result.length, equalTo(4));
+
+        assertThat("The dimensions should be correct in side - nr of columns", result[0].length, equalTo(2));
+
+        assertThat("We should have the correct values in the lines", result[0][0], equalTo("A"));
+        assertThat("We should have the correct values in the lines", result[0][1], equalTo("Z"));
+        assertThat("We should have the correct values in the lines", result[1][0], equalTo("A"));
+        assertThat("We should have the correct values in the lines", result[1][1], equalTo("M"));
+        assertThat("We should have the correct values in the lines", result[2][0], equalTo("B"));
+        assertThat("We should have the correct values in the lines", result[2][1], equalTo("Z"));
+        assertThat("We should have the correct values in the lines", result[3][0], equalTo("B"));
+        assertThat("We should have the correct values in the lines", result[3][1], equalTo("M"));
+
+    }
+
+    @Test
+    public void testCrossJoinDataProviders_multiple() {
+
+        //System.out.println(0 % 0);
+        Object[][] providerSeriess1 = new Object[][] { { "A" }, { "B" } };
+
+        Object[][] providerSeriess2 = new Object[][] { { "Z", "D" }, { "M", "F" } };
+
+        Object[][] result = PhasedTestManager.dataProvidersCrossJoin(providerSeriess1, providerSeriess2);
+
+        assertThat("The dimensions should be correct in side - nr of lines", result.length, equalTo(4));
+
+        assertThat("The dimensions should be correct in side - nr of columns", result[0].length, equalTo(3));
+
+        assertThat("We should have the correct values in the lines", result[0][0], equalTo("A"));
+        assertThat("We should have the correct values in the lines", result[0][1], equalTo("Z"));
+        assertThat("We should have the correct values in the lines", result[0][2], equalTo("D"));
+        assertThat("We should have the correct values in the lines", result[1][0], equalTo("A"));
+        assertThat("We should have the correct values in the lines", result[1][1], equalTo("M"));
+        assertThat("We should have the correct values in the lines", result[1][2], equalTo("F"));
+        assertThat("We should have the correct values in the lines", result[2][0], equalTo("B"));
+        assertThat("We should have the correct values in the lines", result[2][1], equalTo("Z"));
+        assertThat("We should have the correct values in the lines", result[2][2], equalTo("D"));
+        assertThat("We should have the correct values in the lines", result[3][0], equalTo("B"));
+        assertThat("We should have the correct values in the lines", result[3][1], equalTo("M"));
+        assertThat("We should have the correct values in the lines", result[3][2], equalTo("F"));
+
+    }
+
+    @Test
+    public void testCrossJoinDataProviders_multipleDifferentLineNrs() {
+
+        //System.out.println(0 % 0);
+        Object[][] providerSeriess1 = new Object[][] { { "A" }, { "B" } };
+
+        Object[][] providerSeriess2 = new Object[][] { { "Z" }, { "M" }, { "K" } };
+
+        Object[][] result = PhasedTestManager.dataProvidersCrossJoin(providerSeriess1, providerSeriess2);
+
+        assertThat("The dimensions should be correct in side - nr of lines", result.length, equalTo(6));
+
+        assertThat("The dimensions should be correct in side - nr of columns", result[0].length, equalTo(2));
+
+        assertThat("We should have the correct values in the lines", result[0][0], equalTo("A"));
+        assertThat("We should have the correct values in the lines", result[0][1], equalTo("Z"));
+        assertThat("We should have the correct values in the lines", result[1][0], equalTo("A"));
+        assertThat("We should have the correct values in the lines", result[1][1], equalTo("M"));
+        assertThat("We should have the correct values in the lines", result[2][0], equalTo("A"));
+        assertThat("We should have the correct values in the lines", result[2][1], equalTo("K"));
+        assertThat("We should have the correct values in the lines", result[3][0], equalTo("B"));
+        assertThat("We should have the correct values in the lines", result[3][1], equalTo("Z"));
+        assertThat("We should have the correct values in the lines", result[4][0], equalTo("B"));
+        assertThat("We should have the correct values in the lines", result[4][1], equalTo("M"));
+        assertThat("We should have the correct values in the lines", result[5][0], equalTo("B"));
+        assertThat("We should have the correct values in the lines", result[5][1], equalTo("K"));
+
+    }
+
+    @Test
+    public void testCrossJoinDataProviders_Empty1() {
+
+        //System.out.println(0 % 0);
+        Object[][] providerSeriess1 = new Object[][] { { "A" }, { "B" } };
+
+        Object[][] providerSeriess2 = new Object[0][0];
+
+        Object[][] result = PhasedTestManager.dataProvidersCrossJoin(providerSeriess1, providerSeriess2);
+
+        assertThat("The dimensions should be correct in side - nr of lines", result.length, equalTo(2));
+
+        assertThat("The dimensions should be correct in side - nr of columns", result[0].length, equalTo(1));
+
+        assertThat("We should have the correct values in the lines", result[0][0], equalTo("A"));
+        assertThat("We should have the correct values in the lines", result[1][0], equalTo("B"));
+
+    }
+
+    @Test
+    public void testCrossJoinDataProviders_EmptyColumn() {
+
+        //System.out.println(0 % 0);
+        Object[][] providerSeriess1 = new Object[][] { { "A" }, { "B" } };
+
+        Object[][] providerSeriess2 = new Object[][] { {} };
+
+        Object[][] result = PhasedTestManager.dataProvidersCrossJoin(providerSeriess1, providerSeriess2);
+
+        assertThat("The dimensions should be correct in side - nr of lines", result.length, equalTo(2));
+
+        assertThat("The dimensions should be correct in side - nr of columns", result[0].length, equalTo(1));
+
+        assertThat("We should have the correct values in the lines", result[0][0], equalTo("A"));
+        assertThat("We should have the correct values in the lines", result[1][0], equalTo("B"));
     }
 
     @Test
@@ -1757,6 +2172,141 @@ public class PhasedTestManagerTests {
         Mockito.when(l_itr1.getThrowable()).thenReturn(l_originalAssertionError);
 
         assertThrows(IllegalArgumentException.class, () -> PhasedTestManager.generateStepFailure(l_itr1));
+
+    }
+
+    @Test
+    public void testCrossJoinDataProviders_null() {
+
+        //System.out.println(0 % 0);
+        Object[][] providerSeriess1 = new Object[][] { { "A" }, { "B" } };
+
+        Object[][] providerSeriess2 = null;
+
+        Object[][] result = PhasedTestManager.dataProvidersCrossJoin(providerSeriess1, providerSeriess2);
+
+        assertThat("The dimensions should be correct in side - nr of lines", result.length, equalTo(2));
+
+        assertThat("The dimensions should be correct in side - nr of columns", result[0].length, equalTo(1));
+
+        assertThat("We should have the correct values in the lines", result[0][0], equalTo("A"));
+        assertThat("We should have the correct values in the lines", result[1][0], equalTo("B"));
+
+    }
+
+    /**************** Fetching Data providers *******************/
+    @Test
+    public void testFetchingDataProvidersInDPClass() throws IllegalAccessException, IllegalArgumentException,
+            InvocationTargetException, InstantiationException {
+        Class<PhasedSeries_L_ShuffledDP> l_classLevelDP = PhasedSeries_L_ShuffledDP.class;
+
+        Object[][] result = PhasedTestManager.fetchDataProviderValues(l_classLevelDP);
+
+        assertThat("We should have two entries", result.length, equalTo(2));
+        assertThat("We should have the correct values in the lines", result[0][0],
+                equalTo(PhasedSeries_L_PROVIDER.PROVIDER_A));
+        assertThat("We should have the correct values in the lines", result[1][0],
+                equalTo(PhasedSeries_L_PROVIDER.PROVIDER_B));
+    }
+
+    @Test
+    public void testFetchingDataProvidersInDPClass_Negative_Private() throws IllegalAccessException,
+            IllegalArgumentException, InvocationTargetException, InstantiationException {
+        Class<PhasedSeries_L_ShuffledDPPrivate> l_classLevelDP = PhasedSeries_L_ShuffledDPPrivate.class;
+
+        Object[][] result = PhasedTestManager.fetchDataProviderValues(l_classLevelDP);
+
+        assertThat("We should have two entries", result.length, equalTo(2));
+        assertThat("We should have the correct values in the lines", result[0][0],
+                equalTo(PhasedSeries_L_PROVIDER.PROVIDER_A));
+        assertThat("We should have the correct values in the lines", result[1][0],
+                equalTo(PhasedSeries_L_PROVIDER.PROVIDER_B));
+    }
+
+    @Test
+    public void testFetchingDataProvidersInTestClass() throws IllegalAccessException,
+            IllegalArgumentException, InvocationTargetException, InstantiationException {
+        Class<PhasedSeries_L_ShuffledDPSimple> l_class = PhasedSeries_L_ShuffledDPSimple.class;
+
+        Object[][] result = PhasedTestManager.fetchDataProviderValues(l_class);
+
+        assertThat("We should have two entries", result.length, equalTo(2));
+        assertThat("We should have the correct values in the lines", result[0][0], equalTo("Z"));
+        assertThat("We should have the correct values in the lines", result[1][0], equalTo("M"));
+
+    }
+
+    @Test
+    public void testFetchingDataProvidersInTestClass_NegativePrivat() throws IllegalAccessException,
+            IllegalArgumentException, InvocationTargetException, InstantiationException {
+        Class<PhasedSeries_L_ShuffledDPSimplePrivate> l_class = PhasedSeries_L_ShuffledDPSimplePrivate.class;
+
+        Object[][] result = PhasedTestManager.fetchDataProviderValues(l_class);
+
+        assertThat("We should have two entries", result.length, equalTo(2));
+        assertThat("We should have the correct values in the lines", result[0][0], equalTo("Z"));
+        assertThat("We should have the correct values in the lines", result[1][0], equalTo("M"));
+
+    }
+
+    /**
+     * In this case we do not have a data provider defined at any level. We
+     * should simply return an empty array
+     *
+     * Author : gandomi
+     */
+    @Test
+    public void testFetchingDataProvidersInTestClass_NegativeNoTestOnClass() {
+        Class<PhasedSeries_A> l_class = PhasedSeries_A.class;
+
+        Object[][] result = PhasedTestManager.fetchDataProviderValues(l_class);
+
+        assertThat("We should be getting an empty array", result.length, equalTo(0));
+    }
+
+    /**
+     * In this case we do not have a data provider defined at any level. We
+     * should simply return an empty array
+     *
+     * Author : gandomi
+     */
+    @Test
+    public void testFetchingDataProvidersInTestClass_NegativeNoDataProvider() {
+        Class<PhasedSeries_K_ShuffledClass_noproviders> l_class = PhasedSeries_K_ShuffledClass_noproviders.class;
+
+        Object[][] result = PhasedTestManager.fetchDataProviderValues(l_class);
+
+        assertThat("We should be getting an empty array", result.length, equalTo(0));
+    }
+
+    /**
+     * In this case the user sets the phased data provider on the class.
+     *
+     * Author : gandomi
+     */
+    @Test
+    public void testFetchingDataProvidersInTestClass_UsingPhasedDataProviders() {
+        Class<PhasedSeries_H_ShuffledClass> l_class = PhasedSeries_H_ShuffledClass.class;
+
+        Object[][] result = PhasedTestManager.fetchDataProviderValues(l_class);
+
+        assertThat("We should be getting an empty array", result.length, equalTo(0));
+    }
+
+    @Test
+    public void generatePhaseGroupID() {
+        assertThat("The id should be a concatenation of the parameters",
+                PhasedTestManager.concatenateParameterArray(new Object[] { "A" }), equalTo("A"));
+
+        assertThat("The id should be a concatenation of the parameters",
+                PhasedTestManager.concatenateParameterArray(new Object[] { "A", "B" }), equalTo("A__B"));
+
+        assertThat("The id should be a concatenation of the parameters",
+                PhasedTestManager.concatenateParameterArray(new Object[0]), equalTo(""));
+
+        assertThat("The id should be a concatenation of the parameters",
+                PhasedTestManager.concatenateParameterArray(new Object[] { "A", new Integer(5) }),
+                equalTo("A__5"));
 
     }
 
@@ -1823,4 +2373,119 @@ public class PhasedTestManagerTests {
         Assert.assertFalse(
                 new Boolean(System.getProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS, "FALSE")));
     }
+
+    @Test
+    public void testDoesTesthaveStepsInProducer() throws NoSuchMethodException, SecurityException {
+        final Method l_myTestWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
+                String.class);
+
+        ITestResult l_itr = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
+        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
+
+        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
+        //Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
+        Mockito.when(l_itr.getParameters())
+                .thenReturn(new Object[] { PhasedTestManager.STD_PHASED_GROUP_PREFIX + "0_6" });
+        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
+        Mockito.when(l_com.getMethod()).thenReturn(l_myTestWithOneArg);
+
+        //Testing as consumer
+        Phases.CONSUMER.activate();
+
+        assertThat("This method and phase group should not have steps in the producer",
+                !PhasedTestManager.hasStepsExecutedInProducer(l_itr, Phases.CONSUMER));
+
+        Mockito.when(l_itr.getParameters())
+                .thenReturn(new Object[] { PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_3" });
+
+        assertThat("This method and phase group should  have steps in the producer",
+                PhasedTestManager.hasStepsExecutedInProducer(l_itr));
+
+        //Testing as producer
+
+        Mockito.when(l_itr.getParameters())
+                .thenReturn(new Object[] { PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_3" });
+
+        assertThat("This method and phase group should not have steps in the producer",
+                !PhasedTestManager.hasStepsExecutedInProducer(l_itr, Phases.PRODUCER));
+
+        Mockito.when(l_itr.getParameters())
+                .thenReturn(new Object[] { PhasedTestManager.STD_PHASED_GROUP_PREFIX + "0_3" });
+
+        assertThat(
+                "This method and phase group should not have steps in the producer since we are in Producer",
+                !PhasedTestManager.hasStepsExecutedInProducer(l_itr, Phases.PRODUCER));
+
+        //Testing non-phased
+
+        Mockito.when(l_itr.getParameters())
+                .thenReturn(new Object[] { PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_3" });
+
+        assertThat("This method and phase group should not have steps in the producer",
+                !PhasedTestManager.hasStepsExecutedInProducer(l_itr, Phases.NON_PHASED));
+
+        Mockito.when(l_itr.getParameters())
+                .thenReturn(new Object[] { PhasedTestManager.STD_PHASED_GROUP_PREFIX + "0_3" });
+
+        assertThat(
+                "This method and phase group should not have steps in the producer since we are in Producer",
+                !PhasedTestManager.hasStepsExecutedInProducer(l_itr, Phases.NON_PHASED));
+
+    }
+
+    @Test
+    public void tesFetchFromPhaseGroup() throws NoSuchMethodException, SecurityException {
+
+        ITestResult l_itr = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
+        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
+
+        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
+        //Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
+        Mockito.when(l_itr.getParameters())
+                .thenReturn(new Object[] { PhasedTestManager.STD_PHASED_GROUP_PREFIX + "0_6" });
+        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
+        Mockito.when(l_com.getMethod())
+                .thenReturn(PhasedSeries_H_ShuffledClass.class.getMethod("step2", String.class));
+
+        Phases.CONSUMER.activate();
+        assertThat("We should have 0 steps before", PhasedTestManager.fetchNrOfStepsBeforePhaseChange(l_itr),
+                equalTo(0));
+
+        Mockito.when(l_itr.getParameters())
+                .thenReturn(new Object[] { PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_6" });
+
+        assertThat("We should have 2 steps before", PhasedTestManager.fetchNrOfStepsBeforePhaseChange(l_itr),
+                equalTo(2));
+
+        Phases.NON_PHASED.activate();
+        Mockito.when(l_itr.getParameters())
+                .thenReturn(new Object[] { PhasedTestManager.STD_PHASED_GROUP_SINGLE });
+
+        assertThat("We should have 1 step before", PhasedTestManager.fetchNrOfStepsBeforePhaseChange(l_itr),
+                equalTo(1));
+    }
+
+    @Test
+    public void tesFetchFromPhaseGroup_negative() throws NoSuchMethodException, SecurityException {
+
+        ITestResult l_itr = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
+        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
+
+        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
+        //Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
+        Mockito.when(l_itr.getParameters())
+                .thenReturn(new Object[] { "0_6" });
+        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
+        Mockito.when(l_com.getMethod())
+                .thenReturn(PhasedSeries_H_ShuffledClass.class.getMethod("step2", String.class));
+
+        Phases.CONSUMER.activate();
+        assertThrows(PhasedTestException.class, () -> PhasedTestManager.fetchNrOfStepsBeforePhaseChange(l_itr));
+
+        
+    }
+
 }

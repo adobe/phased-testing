@@ -9,19 +9,23 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package com.adobe.campaign.tests.integro.phased;
+package com.adobe.campaign.tests.integro.phased.data.befaft;
 
-class MethodMapping  {
+import org.testng.Assert;
+import org.testng.annotations.BeforeSuite;
+
+public class PhasedSeries_M_Simple_BeforeSuite {
     
-    Class declaredClass;
-    int nrOfProviders;
-    int totalClassMethods;
+    public static int beforeValue = 0;
     
-    protected MethodMapping(Class in_declaredClass, int in_nrOfProviders, int in_nrOfStepsInTest) {
+    @BeforeSuite
+    public void simpleBeforeSuite() {
+        beforeValue+=13;
         
-        nrOfProviders=in_nrOfProviders;
-        totalClassMethods=in_nrOfStepsInTest;
-        declaredClass=in_declaredClass;
+        Assert.assertEquals(beforeValue, 13);
     }
+
+    
+   
 
 }

@@ -16,22 +16,26 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.SortedSet;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.testng.ITestResult;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 import com.adobe.campaign.tests.integro.phased.utils.StackTraceManager;
@@ -60,6 +64,8 @@ public class PhasedTestManager {
     protected static final String STD_PHASED_GROUP_PREFIX = "phased-shuffledGroup_";
     protected static final String STD_PHASED_GROUP_SINGLE = "phased-singleRun";
 
+    public static final String STD_MERGE_STEP_ERROR_PREFIX = "Phased Error: Failure in step ";
+
     protected static Properties phasedCache = new Properties();
 
     protected static Map<String, MethodMapping> methodMap = new HashMap<>();
@@ -72,8 +78,8 @@ public class PhasedTestManager {
 
     protected static class MergedReportData {
 
-        protected static SortedSet<PhasedReportElements> prefix = new TreeSet<>();
-        protected static SortedSet<PhasedReportElements> suffix = new TreeSet<>();
+        protected static LinkedHashSet<PhasedReportElements> prefix = new LinkedHashSet<>();
+        protected static LinkedHashSet<PhasedReportElements> suffix = new LinkedHashSet<>();
 
         /**
          * Allows you to defined the generated name when phased steps are merged
@@ -89,8 +95,8 @@ public class PhasedTestManager {
          *        scenario name
          *
          */
-        protected static void configureMergedReportName(SortedSet<PhasedReportElements> in_prefix,
-                SortedSet<PhasedReportElements> in_suffix) {
+        protected static void configureMergedReportName(LinkedHashSet<PhasedReportElements> in_prefix,
+                LinkedHashSet<PhasedReportElements> in_suffix) {
             MergedReportData.prefix = in_prefix;
             MergedReportData.suffix = in_suffix;
 
@@ -619,7 +625,7 @@ public class PhasedTestManager {
     public static Object[][] fetchProvidersShuffled(String in_methodFullName, Phases in_phasedState) {
 
         final MethodMapping l_methodMapping = methodMap.get(in_methodFullName);
-        Object[][] lr_objectArray = new Object[l_methodMapping.nrOfProviders][1];
+        Object[][] l_objectArrayPhased = new Object[l_methodMapping.nrOfProviders][1];
 
         for (int rows = 0; rows < l_methodMapping.nrOfProviders; rows++) {
 
@@ -635,10 +641,18 @@ public class PhasedTestManager {
             lt_sb.append("_");
             lt_sb.append(lt_nrAfterPhase);
 
-            lr_objectArray[rows][0] = lt_sb.toString();
+            l_objectArrayPhased[rows][0] = lt_sb.toString();
         }
-        log.debug("returning provider for method " + in_methodFullName);
-        return lr_objectArray;
+
+        //Fetch class level data providers
+        Object[][] l_userDefinedDataProviders = fetchDataProviderValues(l_methodMapping.declaredClass);
+
+        //Merge
+        Object[][] lr_dataProviders = dataProvidersCrossJoin(l_objectArrayPhased, l_userDefinedDataProviders);
+
+        log.debug(PhasedTestManager.PHASED_TEST_LOG_PREFIX + "returning provider for method "
+                + in_methodFullName);
+        return lr_dataProviders;
     }
 
     /**
@@ -717,7 +731,7 @@ public class PhasedTestManager {
             }
 
             for (int i = 0; i < in_classMethodMap.get(lt_class).size(); i++) {
-                methodMap.put(lt_methodList.get(i), new MethodMapping(
+                methodMap.put(lt_methodList.get(i), new MethodMapping(lt_class,
                         in_classMethodMap.get(lt_class).size() - i, in_classMethodMap.get(lt_class).size()));
 
             }
@@ -758,6 +772,26 @@ public class PhasedTestManager {
     protected static String storeTestData(Method in_testMethod, String in_phaseGroup, String in_storedData) {
         phaseContext.put(ClassPathParser.fetchFullName(in_testMethod), in_phaseGroup);
         return storePhasedCache(generateStepKeyIdentity(ClassPathParser.fetchFullName(in_testMethod)),
+                in_storedData);
+
+    }
+    
+    /**
+     * For testing purposes only. Used when we want to test the consumer
+     *
+     * Author : gandomi
+     *
+     * @param in_class
+     *        A test method
+     * @param in_phaseGroup
+     *        A phase group Id
+     * @param in_storedData
+     *        The data to be stored for the scenario step
+     * @return The key used to store the value in the cache
+     */
+    protected static String storeTestData(Class in_class, String in_phaseGroup, String in_storedData) {
+        phaseContext.put(in_class.getTypeName(), in_phaseGroup);
+        return storePhasedCache(generateStepKeyIdentity(in_class.getTypeName()),
                 in_storedData);
 
     }
@@ -973,8 +1007,18 @@ public class PhasedTestManager {
     public static boolean scenarioStateContinue(ITestResult in_testResult) {
         final String l_scenarioName = fetchScenarioName(in_testResult);
 
+        //Case 1  Producer/NonPhased  1   Not exists  Continue    true    testStateIstKeptBetweenPhases_Continue
+        //Case 2   Producer/NonPhased  > 1     FAILED/Skipped  SKIP    false   
+        //Case 3   Producer/NonPhased  > 1     Passed  Continue    true    testStateIstKeptBetweenPhases_Continue
+        //Case 4   Consumer    1   Not Exists  Continue    true    testStateIstKeptBetweenPhases_Continue
+        //Case 5   Cosnumer    > 1     Passed  Continue    true    
+        //Case 6   Cosnumer    > 1     Failed/Skipped  SKIP    false   
+        //Case 7   Cosnumer    > 1     Not Exists  SKIP    false
+
+        //#43 to change this to false
         if (!phasedCache.containsKey(l_scenarioName)) {
-            return true;
+
+            return !hasStepsExecutedInProducer(in_testResult);
         }
 
         if (phasedCache.get(l_scenarioName).equals(ClassPathParser.fetchFullName(in_testResult))) {
@@ -997,6 +1041,7 @@ public class PhasedTestManager {
      *
      */
     public static String fetchTestNameForReport(ITestResult in_testResult) {
+
         final String l_stdItemeparator = "__";
 
         //Adding the prefixes
@@ -1011,8 +1056,12 @@ public class PhasedTestManager {
 
         //Adding the suffixes
         for (PhasedReportElements lt_pre : MergedReportData.suffix) {
-            sb.append(l_stdItemeparator);
-            sb.append(lt_pre.fetchElement(in_testResult));
+
+            final String lt_elmentValue = lt_pre.fetchElement(in_testResult);
+            if (!lt_elmentValue.isEmpty()) {
+                sb.append(l_stdItemeparator);
+                sb.append(lt_elmentValue);
+            }
 
         }
 
@@ -1057,8 +1106,8 @@ public class PhasedTestManager {
     }
 
     /**
-     * This method creates a step name by prefixing the step name with the
-     * phasee group
+     * This method creates a step name by prefixing the step name with the phase
+     * group
      *
      * Author : gandomi
      *
@@ -1069,18 +1118,20 @@ public class PhasedTestManager {
      */
     protected static String fetchPhasedStepName(ITestResult result) {
         if (result.getParameters().length == 0) {
-            throw new IllegalArgumentException(
-                    "No parameters found. The given test result does not seem to have been part of a Phased Test");
+            throw new IllegalArgumentException("No parameters found. The given test result for test "
+                    + ClassPathParser.fetchFullName(result)
+                    + " does not seem to have been part of a Phased Test");
         }
 
-        StringBuilder sb = new StringBuilder(result.getParameters()[0].toString());
+        StringBuilder sb = new StringBuilder(concatenateParameterArray(result.getParameters()));
+
         sb.append('_');
         sb.append(result.getName());
         return sb.toString();
     }
 
     /**
-     * This method is used in the context of merged reports. We use this to 
+     * This method is used in the context of merged reports. We use this to
      * enrich the exception message when merging reports.
      * <p>
      * An {@link IllegalArgumentException} is thrown if the given
@@ -1097,10 +1148,9 @@ public class PhasedTestManager {
             throw new IllegalArgumentException("The given Test Result for "
                     + in_failedTestResult.getMethod().getMethodName() + " is not a failed test.");
         }
-        
         Throwable l_thrownException = in_failedTestResult.getThrowable();
-        StringBuilder sb =  new StringBuilder();
-        if (l_thrownException.getMessage()!=null) {
+        StringBuilder sb = new StringBuilder();
+        if (l_thrownException.getMessage() != null) {
             sb.append(l_thrownException.getMessage());
             sb.append(" ");
         }
@@ -1109,10 +1159,77 @@ public class PhasedTestManager {
         sb.append(" - ");
         sb.append(Phases.getCurrentPhase().toString());
         sb.append("]");
-        
-        
+
         PhasedTestManager.changeExceptionMessage(l_thrownException, sb.toString());
-        
+
+    }
+
+    /**
+     * Given two data provider arrays, this method performs a scalar join of the
+     * data providers. For two objects :
+     * <p>
+     * Dataprovider1:
+     * <table summary="DataProvider1">
+     * <tr>
+     * <td>A</td>
+     * </tr>
+     * </table>
+     * <p>
+     * Dataprovider2:
+     * <table summary="DataProvider2">
+     * <tr>
+     * <td>X</td>
+     * </tr>
+     * <tr>
+     * <td>Y</td>
+     * </tr>
+     * </table>
+     * <p>
+     * We will get:
+     * <table summary="CrossJoined DataProviders">
+     * <tr>
+     * <td>A</td>
+     * <td>X</td>
+     * </tr>
+     * <tr>
+     * <td>A</td>
+     * <td>Y</td>
+     * </tr>
+     * </table>
+     *
+     * Author : gandomi
+     *
+     * @param in_providerSeriesLeft
+     *        The data provider data which is used on the left side of the join
+     * @param in_providerSeriesRight
+     *        The data provider data which is used on the left right of the join
+     * @return A merged array that contains elements of both arrays
+     *
+     */
+    public static Object[][] dataProvidersCrossJoin(Object[][] in_providerSeriesLeft,
+            Object[][] in_providerSeriesRight) {
+
+        if ((in_providerSeriesRight == null) || (in_providerSeriesRight.length == 0)) {
+            return in_providerSeriesLeft;
+        }
+
+        //Calculate dimensions
+        int l_totalNrOfLines = in_providerSeriesLeft.length * in_providerSeriesRight.length;
+        int l_totalNrOfColumns = in_providerSeriesLeft[0].length + in_providerSeriesRight[0].length;
+
+        //initialize return object
+        Object[][] lr_dataprovider = new Object[l_totalNrOfLines][l_totalNrOfColumns];
+
+        //fill return object
+        int line = 0;
+        for (Object[] lineLeft : in_providerSeriesLeft) {
+            for (Object[] lineRight : in_providerSeriesRight) {
+                System.arraycopy(lineLeft, 0, lr_dataprovider[line], 0, lineLeft.length);
+                System.arraycopy(lineRight, 0, lr_dataprovider[line], lineLeft.length, lineRight.length);
+                line++;
+            }
+        }
+        return lr_dataprovider;
     }
 
     /**
@@ -1129,8 +1246,8 @@ public class PhasedTestManager {
      *        scenario name
      *
      */
-    public static void configureMergedReportName(SortedSet<PhasedReportElements> in_prefix,
-            SortedSet<PhasedReportElements> in_suffix) {
+    public static void configureMergedReportName(LinkedHashSet<PhasedReportElements> in_prefix,
+            LinkedHashSet<PhasedReportElements> in_suffix) {
         MergedReportData.configureMergedReportName(in_prefix, in_suffix);
     }
 
@@ -1151,7 +1268,90 @@ public class PhasedTestManager {
      */
     public static void deactivateMergedReports() {
         mergedReportsActivated = false;
+    }
 
+    /**
+     * This method fetched the declared DataProvider values related to a class
+     *
+     * Author : gandomi
+     *
+     * @param in_phasedTestClass
+     *        A Phased Test class
+     * @return The data providers attached to the class. An empty array is
+     *         returned if there is no data provider defined at a class level
+     *
+     */
+    protected static Object[][] fetchDataProviderValues(Class<?> in_phasedTestClass) {
+
+        final Object[][] lr_defaultReturnValue = new Object[0][0];
+        if (!in_phasedTestClass.isAnnotationPresent(Test.class)) {
+            log.warn(PhasedTestManager.PHASED_TEST_LOG_PREFIX
+                    + "The given phased test class dos not have the Test annotation on it. Data Providers for Phased Tests can only be considered at that level.");
+
+            return lr_defaultReturnValue;
+        }
+
+        Class<?> l_dataProviderClass = in_phasedTestClass.getAnnotation(Test.class).dataProviderClass();
+        String l_dataproviderName = in_phasedTestClass.getAnnotation(Test.class).dataProvider();
+
+        //No data provider set returning empty array
+        if (l_dataproviderName.isEmpty()) {
+            return lr_defaultReturnValue;
+        }
+
+        if (l_dataproviderName.equals(PhasedTestManager.STD_PHASED_GROUP_SINGLE)
+                || l_dataproviderName.startsWith(PhasedTestManager.STD_PHASED_GROUP_PREFIX)) {
+            return lr_defaultReturnValue;
+        }
+
+        if (l_dataProviderClass.equals(PhasedDataProvider.class)) {
+            return lr_defaultReturnValue;
+        }
+
+        if (l_dataProviderClass.getTypeName().equals(Object.class.getTypeName())) {
+            l_dataProviderClass = in_phasedTestClass;
+        }
+
+        Method m = Arrays.asList(l_dataProviderClass.getDeclaredMethods()).stream()
+                .filter(a -> a.isAnnotationPresent(DataProvider.class))
+                .filter(f -> f.getDeclaredAnnotation(DataProvider.class).name().equals(l_dataproviderName))
+                .findFirst().get();
+
+        //In case of provate data providers
+        m.setAccessible(true);
+
+        try {
+            return (Object[][]) m.invoke(l_dataProviderClass.newInstance(), new Object[0]);
+        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException
+                | InstantiationException e) {
+            log.error(PhasedTestManager.PHASED_TEST_LOG_PREFIX
+                    + "Problem when fetching the user defined data providers.");
+            throw new PhasedTestConfigurationException("Unable to call thee data provider method", e);
+        }
+    }
+
+    /**
+     * Given an array of Objects, we concatenate them into a simple String
+     *
+     * Author : gandomi
+     *
+     * @param in_values
+     *        an array of objects that can be transformed to a string
+     * @return a concatenation of the values. Otherwise empty String
+     *
+     */
+    protected static String concatenateParameterArray(Object[] in_values) {
+        StringBuilder sb = new StringBuilder();
+
+        for (int i = 0; i < in_values.length; i++) {
+
+            sb.append(i == 0 ? "" : "__");
+
+            sb.append(in_values[i]);
+
+        }
+
+        return sb.toString();
     }
 
     /**
@@ -1181,12 +1381,12 @@ public class PhasedTestManager {
 
         try {
             Class<?> l_changeClass = in_exception.getClass();
-            
+
             //parse tree to reach the thowable class
             while (l_changeClass.getSuperclass() != Object.class) {
                 l_changeClass = l_changeClass.getSuperclass();
-            }            
-            
+            }
+
             //Manipulate field detail message
             Field exceptionMessage = l_changeClass.getDeclaredField("detailMessage");
             exceptionMessage.setAccessible(true);
@@ -1200,5 +1400,67 @@ public class PhasedTestManager {
                     e);
         }
 
+    }
+
+    /**
+     * Given a phased test method and and its phase group, lets you know if it
+     * has ssteps executed in the producer phase
+     *
+     * Author : gandomi
+     *
+     * @param in_testResult
+     *        A TestNG Test result
+     * @return true if we are in consumer, and we are not a 0_X phase group that
+     *         is executed end to end in the consumer phase
+     *
+     */
+    public static boolean hasStepsExecutedInProducer(ITestResult in_testResult) {
+        return hasStepsExecutedInProducer(in_testResult, Phases.getCurrentPhase());
+           
+    }
+
+    /**
+     * Given a phased test method and and its phase group, lets you know if it
+     * has ssteps executed in the producer phase
+     *
+     * Author : gandomi
+     *
+     * @param in_testResult
+     *        A TestNG Test result
+     * @param in_phase The phase in which we are currently.
+     * @return true if we are in consumer, and we are not a 0_X phase group that
+     *         is executed end to end in the consumer phase
+     *
+     */
+    public static boolean hasStepsExecutedInProducer(ITestResult in_testResult, Phases in_phase) {
+        return (in_phase.equals(Phases.CONSUMER) && (fetchNrOfStepsBeforePhaseChange(in_testResult) > 0));
+    }
+
+    
+    /**
+     * Given a string representing the phase group, returns the number of steps planned before a phase change 
+     *
+     * Author : gandomi
+     *
+     * @param in_testResult A test result object containing the necessary analysis daata
+     * @return The number of steps planned before a phase change. If we are non-phased we return 0
+     *
+     */
+    public static Integer fetchNrOfStepsBeforePhaseChange(ITestResult in_testResult) {
+        
+        if (isPhasedTestShuffledMode(in_testResult.getMethod().getConstructorOrMethod().getMethod())) {
+                       
+            final String l_phaseGroup = in_testResult.getParameters()[0].toString();
+            
+            if (!l_phaseGroup.startsWith(STD_PHASED_GROUP_PREFIX)) {
+                throw new PhasedTestException("The phase group of this test does not seem correct: "+ l_phaseGroup);
+            }
+            
+            String l_numberString = l_phaseGroup.substring(STD_PHASED_GROUP_PREFIX.length(), l_phaseGroup.indexOf("_", STD_PHASED_GROUP_PREFIX.length()));
+            return Integer.valueOf(l_numberString);
+        } else {
+            
+            return 1;
+        }
     }
 }

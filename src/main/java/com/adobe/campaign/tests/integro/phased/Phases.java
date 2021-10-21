@@ -11,6 +11,8 @@
  */
 package com.adobe.campaign.tests.integro.phased;
 
+import java.util.Arrays;
+
 public enum Phases {
     PRODUCER(true), CONSUMER(true), NON_PHASED(false);
 
@@ -95,6 +97,19 @@ public enum Phases {
             System.clearProperty(PhasedTestManager.PROP_SELECTED_PHASE);
         }
 
+    }
+
+    /**
+     * Provides an array of Phases that contain a plittingEvent aka PhasedEvent
+     *
+     * Author : gandomi
+     *
+     * @return An array of Phases that have a Splitting Event
+     *
+     */
+    public static Phases[] fetchPhasesWithEvents() {
+
+        return Arrays.stream(Phases.values()).filter(p -> p.hasSplittingEvent).toArray(Phases[]::new);
     }
 
 }
