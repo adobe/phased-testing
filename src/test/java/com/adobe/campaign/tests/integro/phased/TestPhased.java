@@ -340,6 +340,9 @@ public class TestPhased {
 
         Phases.CONSUMER.activate();
 
+        //Adding otherwise we can have an exception if there is no phasedTest.properties file
+        PhasedTestManager.produceInStep("just for testing");
+
         myTestNG.run();
 
         //This is because the Phase group 0-3 should still be executed
@@ -400,6 +403,9 @@ public class TestPhased {
                 Arrays.asList(new XmlClass(l_targetTestClass), new XmlClass(NormalSeries_A.class)));
 
         Phases.CONSUMER.activate();
+
+        //Adding otherwise we can have an exception if there is no phasedTest.properties file
+        PhasedTestManager.produceInStep("just for testing");
 
         myTestNG.run();
 
