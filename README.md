@@ -1,7 +1,7 @@
 # PhasedTesting
 [![unit-tests](https://github.com/adobe/phased-testing/actions/workflows/onPushSimpleTest.yml/badge.svg)](https://github.com/adobe/phased-testing/actions/workflows/onPushSimpleTest.yml) 
 [![codecov](https://codecov.io/gh/adobe/phased-testing/branch/master/graph/badge.svg?token=GSi0gUlqq5)](https://codecov.io/gh/adobe/phased-testing)
-[![javadoc](https://javadoc.io/badge2/com.adobe.campaign.tests/phased-testing-testng/javadoc.svg)](https://javadoc.io/doc/com.adobe.campaign.tests/phased-testing-testng) 
+[![javadoc](https://javadoc.io/badge2/com.adobe.campaign.tests.phased/phased-testing-testng/javadoc.svg)](https://javadoc.io/doc/com.adobe.campaign.tests.phased/phased-testing-testng)  [![javadoc](https://javadoc.io/badge2/com.adobe.campaign.tests.phased/phased-testing-testng/javadoc.svg)](https://javadoc.io/doc/com.adobe.campaign.tests.phased/phased-testing-testng) 
 
 
 Phased testing is a concept where tests can be written in a way so that they can validated major system changes.
@@ -12,6 +12,20 @@ The most common usage is for validating :
 * Upgrades
 * Migrations
 * Time-Consuming external Data process
+
+## Installation
+This version runs with the TestNG runner. You can use this library by including it in your project.
+ 
+### Maven
+The following dependency needs to be added to your pom file:
+
+```
+ <dependency>
+    <groupId>com.adobe.campaign.tests.phased</groupId>
+    <artifactId>phased-testing-testng</artifactId>
+    <version>7.0.6</version>
+</dependency>
+```
  
 ## Problem Statement
 This library was originally created to help validate system changes such as upgrades and migrations. The general migration process is the following:
@@ -23,7 +37,6 @@ What we discovered was that a migration will affect users depending at what stag
 ![The Real Processes](diagrams/PhasedDiagrams-HL-Change-Scenarios.png)
 
 If we want to simulate all the use cases for a workflow of a user we will end up with too many duplicate code. This is why we came p with Phased Testing, which allows a scenario to cover all the possible steps in which a workflow can be interrupted.  
-  
 
 ## Phases
 We have three test phases:
@@ -252,6 +265,8 @@ We now allow for a user to also include data providers in connection to Phased T
 A configuration check is done in the beginning. The phased test steps are checked and their arguments are compared to the number of data providers + the injected data provider for phased tests. If the number of arguments does not correspond to the total number of data providers, a `PhasedTestConfigurationException` is thrown right at the beginning.
 
 ## Release Notes
+### 7.0.6
+- Migrated to the public git repository.
 
 ### 7.0.5
 - You can now define Phase setup methods. `@BeforePhase` & `@AfterPhase` can be set on a normal TestNG Before and After method. The method will then be executed in before or after a phase starts. (#40) 
