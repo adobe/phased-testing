@@ -88,6 +88,15 @@ public class TestPhased {
 
         l_newFile.delete();
 
+        //Delete standard cache file
+        File l_importCacheFile = new File(
+                GeneralTestUtils.fetchCacheDirectory(PhasedTestManager.STD_STORE_DIR),
+                PhasedTestManager.STD_STORE_FILE);
+
+        if (l_importCacheFile.exists()) {
+            l_importCacheFile.delete();
+        }
+
         PhasedTestManager.MergedReportData.configureMergedReportName(new LinkedHashSet<>(),
                 new LinkedHashSet<>(
                         Arrays.asList(PhasedReportElements.DATA_PROVIDERS, PhasedReportElements.PHASE)));
@@ -282,8 +291,9 @@ public class TestPhased {
         Properties phasedCache = PhasedTestManager.phasedCache;
         phasedCache.put("com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_SingleClass.step2("
                 + PhasedTestManager.STD_PHASED_GROUP_SINGLE + ")", "AB");
-        
-        PhasedTestManager.storeTestData(PhasedSeries_H_SingleClass.class, PhasedTestManager.STD_PHASED_GROUP_SINGLE, "true");
+
+        PhasedTestManager.storeTestData(PhasedSeries_H_SingleClass.class,
+                PhasedTestManager.STD_PHASED_GROUP_SINGLE, "true");
 
         myTestNG.run();
 
@@ -300,11 +310,10 @@ public class TestPhased {
                 is(equalTo(1)));
 
     }
-    
-    
-    
+
     /**
-     * Related to issue #43 Skip consumer tests if the producer has not been executed. 
+     * Related to issue #43 Skip consumer tests if the producer has not been
+     * executed.
      *
      * Author : gandomi
      *
@@ -329,9 +338,11 @@ public class TestPhased {
         myTest.setXmlClasses(Arrays.asList(new XmlClass(PhasedSeries_H_ShuffledClass.class),
                 new XmlClass(NormalSeries_A.class)));
 
-        
-        Phases.CONSUMER.activate();        
-        
+        Phases.CONSUMER.activate();
+
+        //Adding otherwise we can have an exception if there is no phasedTest.properties file
+        PhasedTestManager.produceInStep("just for testing");
+
         myTestNG.run();
 
         //This is because the Phase group 0-3 should still be executed
@@ -340,14 +351,14 @@ public class TestPhased {
                         .filter(m -> m.getInstance().getClass().equals(PhasedSeries_H_ShuffledClass.class))
                         .collect(Collectors.toList()).size(),
                 is(equalTo(3)));
-        
+
         //This is because the Phase groups 1-3 and 2-3 should not be executed
         assertThat("We should have no failed methods of phased Tests",
                 tla.getFailedTests().stream()
                         .filter(m -> m.getInstance().getClass().equals(PhasedSeries_H_ShuffledClass.class))
                         .collect(Collectors.toList()).size(),
                 is(equalTo(0)));
-        
+
         //This is because phase groups 1-3 and 2-3 should not have the necessary context to run 
         assertThat("We should have 3 skipped methods of phased Tests",
                 tla.getSkippedTests().stream()
@@ -362,10 +373,10 @@ public class TestPhased {
                 is(equalTo(1)));
 
     }
-    
-    
+
     /**
-     * Related to issue #43 Skip consumer tests if the producer has not been executed. 
+     * Related to issue #43 Skip consumer tests if the producer has not been
+     * executed.
      *
      * Author : gandomi
      *
@@ -388,12 +399,14 @@ public class TestPhased {
 
         // Add class
         final Class<PhasedSeries_H_SingleClass> l_targetTestClass = PhasedSeries_H_SingleClass.class;
-        myTest.setXmlClasses(Arrays.asList(new XmlClass(l_targetTestClass),
-                new XmlClass(NormalSeries_A.class)));
+        myTest.setXmlClasses(
+                Arrays.asList(new XmlClass(l_targetTestClass), new XmlClass(NormalSeries_A.class)));
 
-        
-        Phases.CONSUMER.activate();        
-        
+        Phases.CONSUMER.activate();
+
+        //Adding otherwise we can have an exception if there is no phasedTest.properties file
+        PhasedTestManager.produceInStep("just for testing");
+
         myTestNG.run();
 
         //This is because the Phase group 0-3 should still be executed
@@ -402,14 +415,14 @@ public class TestPhased {
                         .filter(m -> m.getInstance().getClass().equals(l_targetTestClass))
                         .collect(Collectors.toList()).size(),
                 is(equalTo(0)));
-        
+
         //This is because the Phase groups 1-3 and 2-3 should not be executed
         assertThat("We should have no failed methods of phased Tests",
                 tla.getFailedTests().stream()
                         .filter(m -> m.getInstance().getClass().equals(l_targetTestClass))
                         .collect(Collectors.toList()).size(),
                 is(equalTo(0)));
-        
+
         //This is because phase groups 1-3 and 2-3 should not have the necessary context to run 
         assertThat("We should have 1 skipped methods of phased Tests",
                 tla.getSkippedTests().stream()
@@ -761,10 +774,13 @@ public class TestPhased {
 
         PhasedTestManager.storeTestData(l_myTest2, PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0", "AB");
         PhasedTestManager.storeTestData(l_myTest2, PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1", "AB");
-        
-        PhasedTestManager.storeTestData(PhasedSeries_F_Shuffle.class, PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0", "true");
-        PhasedTestManager.storeTestData(PhasedSeries_F_Shuffle.class, PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1", "true");
-        PhasedTestManager.storeTestData(PhasedSeries_F_Shuffle.class, PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2", "true");
+
+        PhasedTestManager.storeTestData(PhasedSeries_F_Shuffle.class,
+                PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0", "true");
+        PhasedTestManager.storeTestData(PhasedSeries_F_Shuffle.class,
+                PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1", "true");
+        PhasedTestManager.storeTestData(PhasedSeries_F_Shuffle.class,
+                PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2", "true");
 
         myTestNG.run();
 
@@ -886,18 +902,21 @@ public class TestPhased {
 
         PhasedTestManager.storeTestData(l_myTest2, PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0", "AB");
         PhasedTestManager.storeTestData(l_myTest2, PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1", "AB");
-        
-        PhasedTestManager.storeTestData(PhasedSeries_F_Shuffle.class, PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0", "true");
-        PhasedTestManager.storeTestData(PhasedSeries_F_Shuffle.class, PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1", "true");
-        PhasedTestManager.storeTestData(PhasedSeries_F_Shuffle.class, PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2", "true");
-        
+
+        PhasedTestManager.storeTestData(PhasedSeries_F_Shuffle.class,
+                PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0", "true");
+        PhasedTestManager.storeTestData(PhasedSeries_F_Shuffle.class,
+                PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1", "true");
+        PhasedTestManager.storeTestData(PhasedSeries_F_Shuffle.class,
+                PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2", "true");
+
         Properties l_cache = PhasedTestManager.phasedCache;
-        
+
         Properties l_contex = PhasedTestManager.phaseContext;
         //Add the test context
-        
+
         myTestNG.run();
-       
+
         assertThat("We should have 6 successful methods of phased Tests",
                 tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass))
                         .collect(Collectors.toList()).size(),

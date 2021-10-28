@@ -1,4 +1,7 @@
 # PhasedTesting
+[![unit-tests](https://github.com/adobe/phased-testing/actions/workflows/onPushSimpleTest.yml/badge.svg)](https://github.com/adobe/phased-testing/actions/workflows/onPushSimpleTest.yml) 
+[![codecov](https://codecov.io/gh/adobe/phased-testing/branch/master/graph/badge.svg?token=GSi0gUlqq5)](https://codecov.io/gh/adobe/phased-testing)
+
 Phased testing is a concept where tests can be written in a way so that they can validated major system changes.
 
 This library allows you to define tests in such a way, so that they can be interrupted at any point awaiting an event, and to carry on where they left off. More specifically based on your design he Phased tests will ensure that a scenario will work on an upgraded system no matter where it is interrupted.
@@ -7,7 +10,7 @@ The most common usage is for validating :
 * Upgrades
 * Migrations
 * Time-Consuming external Data process
-
+ 
 ## Problem Statement
 This library was originally created to help validate system changes such as upgrades and migrations. The general migration process is the following:
 
