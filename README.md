@@ -1,6 +1,8 @@
 # PhasedTesting
 [![unit-tests](https://github.com/adobe/phased-testing/actions/workflows/onPushSimpleTest.yml/badge.svg)](https://github.com/adobe/phased-testing/actions/workflows/onPushSimpleTest.yml) 
 [![codecov](https://codecov.io/gh/adobe/phased-testing/branch/master/graph/badge.svg?token=GSi0gUlqq5)](https://codecov.io/gh/adobe/phased-testing)
+[![javadoc](https://javadoc.io/badge2/com.adobe.campaign.tests/phased-testing-testng/javadoc.svg)](https://javadoc.io/doc/com.adobe.campaign.tests/phased-testing-testng) 
+
 
 Phased testing is a concept where tests can be written in a way so that they can validated major system changes.
 
