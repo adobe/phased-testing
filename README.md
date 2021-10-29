@@ -23,7 +23,7 @@ The following dependency needs to be added to your pom file:
  <dependency>
     <groupId>com.adobe.campaign.tests.phased</groupId>
     <artifactId>phased-testing-testng</artifactId>
-    <version>7.0.6</version>
+    <version>7.0.7</version>
 </dependency>
 ```
  
@@ -265,7 +265,7 @@ We now allow for a user to also include data providers in connection to Phased T
 A configuration check is done in the beginning. The phased test steps are checked and their arguments are compared to the number of data providers + the injected data provider for phased tests. If the number of arguments does not correspond to the total number of data providers, a `PhasedTestConfigurationException` is thrown right at the beginning.
 
 ## Release Notes
-### 7.0.6
+### 7.0.7
 - Migrated to the public git repository.
 
 ### 7.0.5
