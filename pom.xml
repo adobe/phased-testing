@@ -17,6 +17,7 @@
     <artifactId>phased-testing-testng</artifactId>
     <version>7.0.7-SNAPSHOT</version>
     <description>A TestNG listener that allows you to write and execute tests in a phased mode</description>
+    <url>https://github.com/adobe/phased-testing</url>
     <packaging>jar</packaging>
     <name>${project.groupId}:${project.artifactId}</name>
     <licenses>
