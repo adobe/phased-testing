@@ -1169,14 +1169,14 @@ public class PhasedTestManager {
      * data providers. For two objects :
      * <p>
      * Dataprovider1:
-     * <table id="DataProvider1">
+     * <table summary="DataProvider1">
      * <tr>
      * <td>A</td>
      * </tr>
      * </table>
      * <p>
      * Dataprovider2:
-     * <table id="DataProvider2">
+     * <table summary="DataProvider2">
      * <tr>
      * <td>X</td>
      * </tr>
@@ -1186,7 +1186,7 @@ public class PhasedTestManager {
      * </table>
      * <p>
      * We will get:
-     * <table id="CrossJoined DataProviders">
+     * <table summary="CrossJoined DataProviders">
      * <tr>
      * <td>A</td>
      * <td>X</td>
