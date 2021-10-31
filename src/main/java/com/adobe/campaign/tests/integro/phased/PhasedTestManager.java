@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
@@ -1274,7 +1275,7 @@ public class PhasedTestManager {
     }
 
     /**
-     * This method fetched the declared DataProvider values related to a class
+     * This method fetches the declared DataProvider values related to a class
      *
      * Author : gandomi
      *
@@ -1289,11 +1290,12 @@ public class PhasedTestManager {
         final Object[][] lr_defaultReturnValue = new Object[0][0];
         if (!in_phasedTestClass.isAnnotationPresent(Test.class)) {
             log.warn(PhasedTestManager.PHASED_TEST_LOG_PREFIX
-                    + "The given phased test class dos not have the Test annotation on it. Data Providers for Phased Tests can only be considered at that level.");
+                    + "The given phased test class does not have the Test annotation on it. Data Providers for Phased Tests can only be considered at that level.");
 
             return lr_defaultReturnValue;
         }
 
+        //Fetch the data provider class and name
         Class<?> l_dataProviderClass = in_phasedTestClass.getAnnotation(Test.class).dataProviderClass();
         String l_dataproviderName = in_phasedTestClass.getAnnotation(Test.class).dataProvider();
 
@@ -1311,14 +1313,19 @@ public class PhasedTestManager {
             return lr_defaultReturnValue;
         }
 
+        //If the data provider class is equal to Object then i is declared in he currenttt class
         if (l_dataProviderClass.getTypeName().equals(Object.class.getTypeName())) {
             l_dataProviderClass = in_phasedTestClass;
         }
 
+        //Fetch the dataprovider method
         Method m = Arrays.asList(l_dataProviderClass.getDeclaredMethods()).stream()
                 .filter(a -> a.isAnnotationPresent(DataProvider.class))
                 .filter(f -> f.getDeclaredAnnotation(DataProvider.class).name().equals(l_dataproviderName))
-                .findFirst().get();
+                .findFirst().orElse(null);
+        
+        
+        //TODO null
 
         //In case of provate data providers
         m.setAccessible(true);
