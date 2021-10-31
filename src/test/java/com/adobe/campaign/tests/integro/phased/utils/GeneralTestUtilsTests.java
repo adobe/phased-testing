@@ -9,15 +9,18 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package com.adobe.campaign.tests.integro.core.utils;
+package com.adobe.campaign.tests.integro.phased.utils;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.testng.Assert.assertThrows;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Properties;
 
 import org.hamcrest.Matchers;
 import org.mockito.Mockito;
@@ -28,6 +31,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.testng.internal.ConstructorOrMethod;
 
+import com.adobe.campaign.tests.integro.phased.PhasedTestException;
 import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
 import com.adobe.campaign.tests.integro.phased.PhasedTestManagerTests;
 import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_SingleClass;
@@ -111,6 +115,37 @@ public class GeneralTestUtilsTests {
         assertThrows(IllegalArgumentException.class,
                 () -> GeneralTestUtils.createEmptyCacheFile(null, "dsdfsd"));
 
+    }
+    
+    @Test
+    public void testDeleteFileCreation() {
+        
+        File l_cacheDir = GeneralTestUtils.createCacheDirectory(TEST_CACHE_DIR);
+        File l_file = GeneralTestUtils.createEmptyCacheFile(l_cacheDir, TEST_CACHE_File);
+        Properties props = new Properties();
+        props.put("A", "B");
+        
+        try (FileWriter fw = new FileWriter(l_file)) {
+
+            props.store(fw, null);
+
+        } catch (IOException e) {
+            throw new PhasedTestException("Error when creating file " + l_file + ".", e);
+        }
+        
+        assertThat("The file should exist",l_file.exists());
+        
+        GeneralTestUtils.deleteFile(l_file);
+        
+        assertThat("The file should no longer exist",!l_file.exists());
+    }
+    
+    @Test
+    public void testDeleteFileCreation_Negative() {
+        File l_mockedFile = Mockito.mock(File.class);
+        Mockito.when(l_mockedFile.exists()).thenReturn(true);
+        Mockito.when(l_mockedFile.delete()).thenReturn(false);
+        assertThrows(IllegalStateException.class, () -> GeneralTestUtils.deleteFile(l_mockedFile));
     }
 
     @Test
