@@ -26,6 +26,7 @@ import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_F_Shuffle;
 import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClass;
 import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClassWithError;
 import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_K_ShuffledClass_noproviders;
+import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_DPDefinitionInexistant;
 import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_PROVIDER;
 import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledDP;
 import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledDPPrivate;
@@ -1267,7 +1268,8 @@ public class PhasedTestManagerTests {
 
         Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
         //Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
-        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { PhasedTestManager.STD_PHASED_GROUP_PREFIX+"2_1" });
+        Mockito.when(l_itr.getParameters())
+                .thenReturn(new Object[] { PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1" });
         Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
         Mockito.when(l_com.getMethod()).thenReturn(l_myTestWithOneArg);
 
@@ -1308,7 +1310,8 @@ public class PhasedTestManagerTests {
 
         Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
         //Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
-        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { PhasedTestManager.STD_PHASED_GROUP_PREFIX+"0_6" });
+        Mockito.when(l_itr.getParameters())
+                .thenReturn(new Object[] { PhasedTestManager.STD_PHASED_GROUP_PREFIX + "0_6" });
         Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
         Mockito.when(l_com.getMethod()).thenReturn(l_myTestWithOneArg);
 
@@ -2280,6 +2283,20 @@ public class PhasedTestManagerTests {
     }
 
     /**
+     * In this case we have a badly declared detaprovider. The data provider does not exist in this case
+     *
+     * Author : gandomi
+     */
+    @Test
+    public void testFetchingDataProvidersInTestClass_NegativeDataProviderNotExists() {
+        Class<PhasedSeries_L_DPDefinitionInexistant> l_class = PhasedSeries_L_DPDefinitionInexistant.class;
+
+        assertThrows(PhasedTestConfigurationException.class,
+                () -> PhasedTestManager.fetchDataProviderValues(l_class));
+
+    }
+
+    /**
      * In this case the user sets the phased data provider on the class.
      *
      * Author : gandomi
@@ -2476,16 +2493,15 @@ public class PhasedTestManagerTests {
 
         Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
         //Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
-        Mockito.when(l_itr.getParameters())
-                .thenReturn(new Object[] { "0_6" });
+        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "0_6" });
         Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
         Mockito.when(l_com.getMethod())
                 .thenReturn(PhasedSeries_H_ShuffledClass.class.getMethod("step2", String.class));
 
         Phases.CONSUMER.activate();
-        assertThrows(PhasedTestException.class, () -> PhasedTestManager.fetchNrOfStepsBeforePhaseChange(l_itr));
+        assertThrows(PhasedTestException.class,
+                () -> PhasedTestManager.fetchNrOfStepsBeforePhaseChange(l_itr));
 
-        
     }
 
 }

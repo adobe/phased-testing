@@ -776,7 +776,7 @@ public class PhasedTestManager {
                 in_storedData);
 
     }
-    
+
     /**
      * For testing purposes only. Used when we want to test the consumer
      *
@@ -792,8 +792,7 @@ public class PhasedTestManager {
      */
     protected static String storeTestData(Class in_class, String in_phaseGroup, String in_storedData) {
         phaseContext.put(in_class.getTypeName(), in_phaseGroup);
-        return storePhasedCache(generateStepKeyIdentity(in_class.getTypeName()),
-                in_storedData);
+        return storePhasedCache(generateStepKeyIdentity(in_class.getTypeName()), in_storedData);
 
     }
 
@@ -1323,12 +1322,16 @@ public class PhasedTestManager {
                 .filter(a -> a.isAnnotationPresent(DataProvider.class))
                 .filter(f -> f.getDeclaredAnnotation(DataProvider.class).name().equals(l_dataproviderName))
                 .findFirst().orElse(null);
-        
-        
-        //TODO null
 
-        //In case of provate data providers
-        m.setAccessible(true);
+        if (m != null) {
+            //In case of private data providers
+            m.setAccessible(true);
+        } else {
+            throw new PhasedTestConfigurationException(
+                    "No method found which matched the data provider class "
+                            + l_dataProviderClass.getTypeName() + " or data prrovider name "
+                            + l_dataproviderName);
+        }
 
         try {
             return (Object[][]) m.invoke(l_dataProviderClass.newInstance(), new Object[0]);
@@ -1426,7 +1429,7 @@ public class PhasedTestManager {
      */
     public static boolean hasStepsExecutedInProducer(ITestResult in_testResult) {
         return hasStepsExecutedInProducer(in_testResult, Phases.getCurrentPhase());
-           
+
     }
 
     /**
@@ -1437,7 +1440,8 @@ public class PhasedTestManager {
      *
      * @param in_testResult
      *        A TestNG Test result
-     * @param in_phase The phase in which we are currently.
+     * @param in_phase
+     *        The phase in which we are currently.
      * @return true if we are in consumer, and we are not a 0_X phase group that
      *         is executed end to end in the consumer phase
      *
@@ -1446,30 +1450,34 @@ public class PhasedTestManager {
         return (in_phase.equals(Phases.CONSUMER) && (fetchNrOfStepsBeforePhaseChange(in_testResult) > 0));
     }
 
-    
     /**
-     * Given a string representing the phase group, returns the number of steps planned before a phase change 
+     * Given a string representing the phase group, returns the number of steps
+     * planned before a phase change
      *
      * Author : gandomi
      *
-     * @param in_testResult A test result object containing the necessary analysis daata
-     * @return The number of steps planned before a phase change. If we are non-phased we return 0
+     * @param in_testResult
+     *        A test result object containing the necessary analysis daata
+     * @return The number of steps planned before a phase change. If we are
+     *         non-phased we return 0
      *
      */
     public static Integer fetchNrOfStepsBeforePhaseChange(ITestResult in_testResult) {
-        
+
         if (isPhasedTestShuffledMode(in_testResult.getMethod().getConstructorOrMethod().getMethod())) {
-                       
+
             final String l_phaseGroup = in_testResult.getParameters()[0].toString();
-            
+
             if (!l_phaseGroup.startsWith(STD_PHASED_GROUP_PREFIX)) {
-                throw new PhasedTestException("The phase group of this test does not seem correct: "+ l_phaseGroup);
+                throw new PhasedTestException(
+                        "The phase group of this test does not seem correct: " + l_phaseGroup);
             }
-            
-            String l_numberString = l_phaseGroup.substring(STD_PHASED_GROUP_PREFIX.length(), l_phaseGroup.indexOf("_", STD_PHASED_GROUP_PREFIX.length()));
+
+            String l_numberString = l_phaseGroup.substring(STD_PHASED_GROUP_PREFIX.length(),
+                    l_phaseGroup.indexOf("_", STD_PHASED_GROUP_PREFIX.length()));
             return Integer.valueOf(l_numberString);
         } else {
-            
+
             return 1;
         }
     }
