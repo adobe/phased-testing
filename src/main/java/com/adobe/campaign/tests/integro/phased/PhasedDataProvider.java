@@ -21,12 +21,12 @@ public class PhasedDataProvider {
     public static final String DEFAULT = "phased-default";
 
     @DataProvider(name = SHUFFLED)
-    public Object[][] cascaded(Method m) {
+    public Object[][] shuffledMode(Method m) {
         return PhasedTestManager.fetchProvidersShuffled(m);
     }
     
     @DataProvider(name = SINGLE)
-    public Object[] single(Method m) {
+    public Object[] singleRunMode(Method m) {
         return PhasedTestManager.fetchProvidersSingle(m);
     }
     
