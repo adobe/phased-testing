@@ -31,7 +31,6 @@ import org.testng.xml.XmlClass;
 import org.testng.xml.XmlSuite;
 import org.testng.xml.XmlTest;
 
-import com.adobe.campaign.tests.integro.core.utils.TestTools;
 import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_SingleClass;
 import com.adobe.campaign.tests.integro.phased.data.befaft.PhasedSeries_M_AfterPhase_onBeforeSuite;
 import com.adobe.campaign.tests.integro.phased.data.befaft.PhasedSeries_M_BeforePhase_AfterSuite;
@@ -42,6 +41,7 @@ import com.adobe.campaign.tests.integro.phased.data.befaft.PhasedSeries_M_Shuffl
 import com.adobe.campaign.tests.integro.phased.data.befaft.PhasedSeries_M_ShuffledClass_noproviders;
 import com.adobe.campaign.tests.integro.phased.data.befaft.PhasedSeries_M_Simple_BeforeSuite;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
+import com.adobe.campaign.tests.integro.phased.utils.TestTools;
 
 public class TestPhased_BEFORE_AFTER {
     @BeforeMethod

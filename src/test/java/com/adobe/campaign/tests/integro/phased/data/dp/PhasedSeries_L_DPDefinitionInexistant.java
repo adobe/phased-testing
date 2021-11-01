@@ -9,31 +9,34 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package com.adobe.campaign.tests.integro.core.utils;
+package com.adobe.campaign.tests.integro.phased.data.dp;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
+import static org.testng.Assert.assertEquals;
 
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import com.adobe.campaign.tests.integro.phased.utils.StackTraceManager;
+import com.adobe.campaign.tests.integro.phased.PhasedTest;
+import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
 
-public class StackTraceManagerTests {
-    @Test(description = "In this example we pass through another method, the results should be this method")
-    public void testFetchCalledBy() {
 
-        assertThat(nestedCallForFetchCalledBy(), equalTo("testFetchCalledBy"));
-    }
-
-    String nestedCallForFetchCalledBy() {
-        return StackTraceManager.fetchCalledBy().getMethodName();
+@Test(dataProvider = "create4")
+@PhasedTest(canShuffle = true)
+public class PhasedSeries_L_DPDefinitionInexistant {
+    
+    @DataProvider(name = "create5")
+    public Object[][] createData() {
+        return new Object[][] {{"Z"},{"M"}};
     }
     
-    @Test(groups = "TRACE")
-    public void testFetchCalledTestInAfterMethod() {
-
-        // Empty test as the actual code is in the AfterMethod
+    public void step1(String x) {
+        PhasedTestManager.produceInStep("A");
     }
-    
+
+    public void step2(String x) {
+       String l_fetchedValue = PhasedTestManager.consumeFromStep("step1");
+       
+       assertEquals(l_fetchedValue, "A");
+    }
 
 }

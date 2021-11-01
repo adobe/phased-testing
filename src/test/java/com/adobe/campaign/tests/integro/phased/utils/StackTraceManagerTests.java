@@ -9,30 +9,31 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package com.adobe.campaign.tests.integro.phased;
+package com.adobe.campaign.tests.integro.phased.utils;
 
-import java.lang.reflect.Method;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 
-import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
-public class PhasedDataProvider {
-    public static final String SHUFFLED = "phased-data-provider-shuffled";
-    public static final String SINGLE = "phased-data-provider-single";
-    public static final String DEFAULT = "phased-default";
+import com.adobe.campaign.tests.integro.phased.utils.StackTraceManager;
 
-    @DataProvider(name = SHUFFLED)
-    public Object[][] shuffledMode(Method m) {
-        return PhasedTestManager.fetchProvidersShuffled(m);
+public class StackTraceManagerTests {
+    @Test(description = "In this example we pass through another method, the results should be this method")
+    public void testFetchCalledBy() {
+
+        assertThat(nestedCallForFetchCalledBy(), equalTo("testFetchCalledBy"));
+    }
+
+    String nestedCallForFetchCalledBy() {
+        return StackTraceManager.fetchCalledBy().getMethodName();
     }
     
-    @DataProvider(name = SINGLE)
-    public Object[] singleRunMode(Method m) {
-        return PhasedTestManager.fetchProvidersSingle(m);
+    @Test(groups = "TRACE")
+    public void testFetchCalledTestInAfterMethod() {
+
+        // Empty test as the actual code is in the AfterMethod
     }
     
-    @DataProvider(name = PhasedDataProvider.DEFAULT)
-    public Object[][] defaultDP() {
-        return new Object[][]{{PhasedDataProvider.DEFAULT}};
-    }
 
 }

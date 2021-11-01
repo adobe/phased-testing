@@ -18,6 +18,7 @@ import static org.hamcrest.Matchers.not;
 import static org.testng.Assert.assertThrows;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,7 +45,6 @@ import org.testng.xml.XmlPackage;
 import org.testng.xml.XmlSuite;
 import org.testng.xml.XmlTest;
 
-import com.adobe.campaign.tests.integro.core.utils.TestTools;
 import com.adobe.campaign.tests.integro.phased.data.NormalSeries_A;
 import com.adobe.campaign.tests.integro.phased.data.PhasedDataBrokerTestImplementation;
 import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_A;
@@ -66,6 +66,7 @@ import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledDP
 import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledNoArgs;
 import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledWrongArgs;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
+import com.adobe.campaign.tests.integro.phased.utils.TestTools;
 
 public class TestPhased {
     @BeforeMethod
@@ -2619,8 +2620,9 @@ public class TestPhased {
         ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
         ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
 
-        //TODO replace, ssince this is invalid in later versions of Mockito
-        Mockito.when(l_itr.getMethod()).thenThrow(NoSuchFieldException.class);
+        //TODO replace, since this is invalid in later versions of Mockito
+        //Mockito.when(l_itr.getMethod()).thenThrow(NoSuchFieldException.class);
+        Mockito.when(l_itr.getMethod()).thenAnswer(invocation -> { throw new NoSuchFieldException("Mocked Exception"); });
         Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "A" });
         Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
         Mockito.when(l_com.getMethod()).thenReturn(l_myTestNoArgs);
@@ -2639,7 +2641,9 @@ public class TestPhased {
         ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
         ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
 
-        Mockito.when(l_itr.getMethod()).thenThrow(IllegalAccessException.class);
+        //TODO replace, since this is invalid in later versions of Mockito
+        //Mockito.when(l_itr.getMethod()).thenThrow(IllegalAccessException.class);
+        Mockito.when(l_itr.getMethod()).thenAnswer(invocation -> { throw new IllegalAccessException("Mocked Exception"); });
         Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "A" });
         Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
         Mockito.when(l_com.getMethod()).thenReturn(l_myTestNoArgs);

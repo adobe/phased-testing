@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
@@ -371,12 +372,29 @@ public class PhasedTestManager {
 
         final String l_storageKey = sb.toString();
 
-        if (!phasedCache.containsKey(l_storageKey)) {
-            throw new PhasedTestException("The given consumable " + l_storageKey + " requested by "
-                    + l_calledElement.toString() + " was not available.");
+        return fetchStoredConsumable(l_storageKey, l_calledElement.toString());
+    }
+
+    /**
+     * Returns the value stored in the context, and requested by a test.
+     *
+     * Author : gandomi
+     *
+     * @param in_consumableKey
+     *        The key identifier for the consumable
+     * @param in_calledByTest
+     *        The string representation of the test accessing the consumable
+     * @return The value for the given consumable. If not found a
+     *         PhasedTestException is thrown
+     *
+     */
+    public static String fetchStoredConsumable(final String in_consumableKey, String in_calledByTest) {
+        if (!phasedCache.containsKey(in_consumableKey)) {
+            throw new PhasedTestException("The given consumable " + in_consumableKey + " requested by "
+                    + in_calledByTest + " was not available.");
         }
 
-        return phasedCache.getProperty(l_storageKey);
+        return phasedCache.getProperty(in_consumableKey);
     }
 
     /**
@@ -400,12 +418,7 @@ public class PhasedTestManager {
         String l_realKey = generateStepKeyIdentity(StackTraceManager.fetchCalledByFullName(),
                 l_fetchCalledBy.getClassName(), in_storageKey);
 
-        if (!phasedCache.containsKey(l_realKey)) {
-            throw new PhasedTestException("The given consumable " + l_realKey + ", requested by "
-                    + l_fetchCalledBy.toString() + " was not available.");
-        }
-
-        return phasedCache.getProperty(l_realKey);
+        return fetchStoredConsumable(l_realKey, l_fetchCalledBy.toString());
     }
 
     /**
@@ -425,12 +438,7 @@ public class PhasedTestManager {
         String l_realKey = generateStepKeyIdentity(StackTraceManager.fetchCalledByFullName(),
                 l_fetchCalledBy.getClassName(), in_storageKey);
 
-        if (!phasedCache.containsKey(l_realKey)) {
-            throw new PhasedTestException("The given consumable " + l_realKey + ", requested by "
-                    + l_fetchCalledBy.toString() + " was not available.");
-        }
-
-        return phasedCache.getProperty(l_realKey);
+        return fetchStoredConsumable(l_realKey, l_fetchCalledBy.toString());
     }
 
     /**
@@ -775,7 +783,7 @@ public class PhasedTestManager {
                 in_storedData);
 
     }
-    
+
     /**
      * For testing purposes only. Used when we want to test the consumer
      *
@@ -791,8 +799,7 @@ public class PhasedTestManager {
      */
     protected static String storeTestData(Class in_class, String in_phaseGroup, String in_storedData) {
         phaseContext.put(in_class.getTypeName(), in_phaseGroup);
-        return storePhasedCache(generateStepKeyIdentity(in_class.getTypeName()),
-                in_storedData);
+        return storePhasedCache(generateStepKeyIdentity(in_class.getTypeName()), in_storedData);
 
     }
 
@@ -1169,14 +1176,16 @@ public class PhasedTestManager {
      * data providers. For two objects :
      * <p>
      * Dataprovider1:
-     * <table summary="DataProvider1">
+     * <table>
+     * <caption>DataProvider1</caption>
      * <tr>
      * <td>A</td>
      * </tr>
      * </table>
      * <p>
      * Dataprovider2:
-     * <table summary="DataProvider2">
+     * <table>
+     * <caption>DataProvider2</caption>
      * <tr>
      * <td>X</td>
      * </tr>
@@ -1186,7 +1195,8 @@ public class PhasedTestManager {
      * </table>
      * <p>
      * We will get:
-     * <table summary="CrossJoined DataProviders">
+     * <table>
+     * <caption>CrossJoined DataProviders</caption>
      * <tr>
      * <td>A</td>
      * <td>X</td>
@@ -1271,7 +1281,7 @@ public class PhasedTestManager {
     }
 
     /**
-     * This method fetched the declared DataProvider values related to a class
+     * This method fetches the declared DataProvider values related to a class
      *
      * Author : gandomi
      *
@@ -1286,11 +1296,12 @@ public class PhasedTestManager {
         final Object[][] lr_defaultReturnValue = new Object[0][0];
         if (!in_phasedTestClass.isAnnotationPresent(Test.class)) {
             log.warn(PhasedTestManager.PHASED_TEST_LOG_PREFIX
-                    + "The given phased test class dos not have the Test annotation on it. Data Providers for Phased Tests can only be considered at that level.");
+                    + "The given phased test class does not have the Test annotation on it. Data Providers for Phased Tests can only be considered at that level.");
 
             return lr_defaultReturnValue;
         }
 
+        //Fetch the data provider class and name
         Class<?> l_dataProviderClass = in_phasedTestClass.getAnnotation(Test.class).dataProviderClass();
         String l_dataproviderName = in_phasedTestClass.getAnnotation(Test.class).dataProvider();
 
@@ -1308,17 +1319,26 @@ public class PhasedTestManager {
             return lr_defaultReturnValue;
         }
 
+        //If the data provider class is equal to Object then i is declared in he currenttt class
         if (l_dataProviderClass.getTypeName().equals(Object.class.getTypeName())) {
             l_dataProviderClass = in_phasedTestClass;
         }
 
+        //Fetch the dataprovider method
         Method m = Arrays.asList(l_dataProviderClass.getDeclaredMethods()).stream()
                 .filter(a -> a.isAnnotationPresent(DataProvider.class))
                 .filter(f -> f.getDeclaredAnnotation(DataProvider.class).name().equals(l_dataproviderName))
-                .findFirst().get();
+                .findFirst().orElse(null);
 
-        //In case of provate data providers
-        m.setAccessible(true);
+        if (m != null) {
+            //In case of private data providers
+            m.setAccessible(true);
+        } else {
+            throw new PhasedTestConfigurationException(
+                    "No method found which matched the data provider class "
+                            + l_dataProviderClass.getTypeName() + " or data prrovider name "
+                            + l_dataproviderName);
+        }
 
         try {
             return (Object[][]) m.invoke(l_dataProviderClass.newInstance(), new Object[0]);
@@ -1416,7 +1436,7 @@ public class PhasedTestManager {
      */
     public static boolean hasStepsExecutedInProducer(ITestResult in_testResult) {
         return hasStepsExecutedInProducer(in_testResult, Phases.getCurrentPhase());
-           
+
     }
 
     /**
@@ -1427,7 +1447,8 @@ public class PhasedTestManager {
      *
      * @param in_testResult
      *        A TestNG Test result
-     * @param in_phase The phase in which we are currently.
+     * @param in_phase
+     *        The phase in which we are currently.
      * @return true if we are in consumer, and we are not a 0_X phase group that
      *         is executed end to end in the consumer phase
      *
@@ -1436,30 +1457,34 @@ public class PhasedTestManager {
         return (in_phase.equals(Phases.CONSUMER) && (fetchNrOfStepsBeforePhaseChange(in_testResult) > 0));
     }
 
-    
     /**
-     * Given a string representing the phase group, returns the number of steps planned before a phase change 
+     * Given a string representing the phase group, returns the number of steps
+     * planned before a phase change
      *
      * Author : gandomi
      *
-     * @param in_testResult A test result object containing the necessary analysis daata
-     * @return The number of steps planned before a phase change. If we are non-phased we return 0
+     * @param in_testResult
+     *        A test result object containing the necessary analysis daata
+     * @return The number of steps planned before a phase change. If we are
+     *         non-phased we return 0
      *
      */
     public static Integer fetchNrOfStepsBeforePhaseChange(ITestResult in_testResult) {
-        
+
         if (isPhasedTestShuffledMode(in_testResult.getMethod().getConstructorOrMethod().getMethod())) {
-                       
+
             final String l_phaseGroup = in_testResult.getParameters()[0].toString();
-            
+
             if (!l_phaseGroup.startsWith(STD_PHASED_GROUP_PREFIX)) {
-                throw new PhasedTestException("The phase group of this test does not seem correct: "+ l_phaseGroup);
+                throw new PhasedTestException(
+                        "The phase group of this test does not seem correct: " + l_phaseGroup);
             }
-            
-            String l_numberString = l_phaseGroup.substring(STD_PHASED_GROUP_PREFIX.length(), l_phaseGroup.indexOf("_", STD_PHASED_GROUP_PREFIX.length()));
+
+            String l_numberString = l_phaseGroup.substring(STD_PHASED_GROUP_PREFIX.length(),
+                    l_phaseGroup.indexOf("_", STD_PHASED_GROUP_PREFIX.length()));
             return Integer.valueOf(l_numberString);
         } else {
-            
+
             return 1;
         }
     }

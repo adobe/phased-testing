@@ -97,13 +97,27 @@ public class GeneralTestUtils {
             throw new IllegalArgumentException("The given argument 'in_fileName' cannot be null nor empty.");
         }
 
-        File l_jsonFile = new File(in_cacheDir, in_fileName);
+        File l_testFile = new File(in_cacheDir, in_fileName);
 
-        if (l_jsonFile.exists()) {
-            log.debug("Deleting cache File");
-            l_jsonFile.delete();
-        }
+        deleteFile(l_testFile);
         return new File(in_cacheDir, in_fileName);
+    }
+
+    /**
+     * This method deletes a given file. If
+     *
+     * Author : gandomi
+     *
+     * @param in_fileToDelete A file that we want to delee.
+     *
+     */
+    protected static void deleteFile(File in_fileToDelete) {
+        if (in_fileToDelete.exists() ) {
+            log.debug("Deleting cache File");
+            if (!in_fileToDelete.delete()) {
+                throw new IllegalStateException("Unable to delete file " + in_fileToDelete.getPath());
+            }
+        }
     }
 
     /**
@@ -139,7 +153,7 @@ public class GeneralTestUtils {
      *
      * @param in_resourceFile
      *        A file object
-     * @return A string representing the contents f that file
+     * @return A string representing the contents of that file
      *
      */
     public static String fetchFileContent(File in_resourceFile) {

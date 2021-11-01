@@ -19,7 +19,7 @@
             <package
                 name="com.adobe.campaign.tests.integro.phased" />
             <package
-                name="com.adobe.campaign.tests.integro.core.utils" />
+                name="com.adobe.campaign.tests.integro.phased.utils" />
         </packages>
     </test>
 </suite> <!-- Default suite -->
