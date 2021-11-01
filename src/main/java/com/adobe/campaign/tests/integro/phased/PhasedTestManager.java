@@ -374,21 +374,24 @@ public class PhasedTestManager {
 
         return fetchStoredConsumable(l_storageKey, l_calledElement.toString());
     }
-    
+
     /**
      * Returns the value stored in the context, and requested by a test.
      *
      * Author : gandomi
      *
-     * @param in_consumableKey The key identifier for the consumable
-     * @param in_calledByTest The string representation of the test accessing the consumable
-     * @return The value for the given consumable. If not found a PhasedTestException is thrown
+     * @param in_consumableKey
+     *        The key identifier for the consumable
+     * @param in_calledByTest
+     *        The string representation of the test accessing the consumable
+     * @return The value for the given consumable. If not found a
+     *         PhasedTestException is thrown
      *
      */
     public static String fetchStoredConsumable(final String in_consumableKey, String in_calledByTest) {
         if (!phasedCache.containsKey(in_consumableKey)) {
             throw new PhasedTestException("The given consumable " + in_consumableKey + " requested by "
-                    + in_calledByTest.toString() + " was not available.");
+                    + in_calledByTest + " was not available.");
         }
 
         return phasedCache.getProperty(in_consumableKey);
