@@ -372,12 +372,26 @@ public class PhasedTestManager {
 
         final String l_storageKey = sb.toString();
 
-        if (!phasedCache.containsKey(l_storageKey)) {
-            throw new PhasedTestException("The given consumable " + l_storageKey + " requested by "
-                    + l_calledElement.toString() + " was not available.");
+        return fetchStoredConsumable(l_storageKey, l_calledElement.toString());
+    }
+    
+    /**
+     * Returns the value stored in the context, and requested by a test.
+     *
+     * Author : gandomi
+     *
+     * @param in_consumableKey The key identifier for the consumable
+     * @param in_calledByTest The string representation of the test accessing the consumable
+     * @return The value for the given consumable. If not found a PhasedTestException is thrown
+     *
+     */
+    public static String fetchStoredConsumable(final String in_consumableKey, String in_calledByTest) {
+        if (!phasedCache.containsKey(in_consumableKey)) {
+            throw new PhasedTestException("The given consumable " + in_consumableKey + " requested by "
+                    + in_calledByTest.toString() + " was not available.");
         }
 
-        return phasedCache.getProperty(l_storageKey);
+        return phasedCache.getProperty(in_consumableKey);
     }
 
     /**
@@ -401,12 +415,7 @@ public class PhasedTestManager {
         String l_realKey = generateStepKeyIdentity(StackTraceManager.fetchCalledByFullName(),
                 l_fetchCalledBy.getClassName(), in_storageKey);
 
-        if (!phasedCache.containsKey(l_realKey)) {
-            throw new PhasedTestException("The given consumable " + l_realKey + ", requested by "
-                    + l_fetchCalledBy.toString() + " was not available.");
-        }
-
-        return phasedCache.getProperty(l_realKey);
+        return fetchStoredConsumable(l_realKey, l_fetchCalledBy.toString());
     }
 
     /**
@@ -426,12 +435,7 @@ public class PhasedTestManager {
         String l_realKey = generateStepKeyIdentity(StackTraceManager.fetchCalledByFullName(),
                 l_fetchCalledBy.getClassName(), in_storageKey);
 
-        if (!phasedCache.containsKey(l_realKey)) {
-            throw new PhasedTestException("The given consumable " + l_realKey + ", requested by "
-                    + l_fetchCalledBy.toString() + " was not available.");
-        }
-
-        return phasedCache.getProperty(l_realKey);
+        return fetchStoredConsumable(l_realKey, l_fetchCalledBy.toString());
     }
 
     /**
