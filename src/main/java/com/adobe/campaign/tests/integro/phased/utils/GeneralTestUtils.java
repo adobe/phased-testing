@@ -153,7 +153,7 @@ public class GeneralTestUtils {
      *
      * @param in_resourceFile
      *        A file object
-     * @return A string representing the contents f that file
+     * @return A string representing the contents of that file
      *
      */
     public static String fetchFileContent(File in_resourceFile) {
