@@ -62,7 +62,7 @@ The following dependency needs to be added to your pom file:
  <dependency>
     <groupId>com.adobe.campaign.tests.phased</groupId>
     <artifactId>phased-testing-testng</artifactId>
-    <version>7.0.9</version>
+    <version>7.0.10</version>
 </dependency>
 ```
 
@@ -114,14 +114,14 @@ public class ShuffledTest {
 
 #### Shuffled Execution Mode
 When in Shuffled mode, we execute all the possible ordered combinations of the steps. Example Given a test with three steps, in Producer State, we :
-1. Execute all the three steps
+1. Execute all of the three steps
 2. Execute the first two steps
 3. Execute the first step only
 
 When in Consumer state we :
 1. Execute the two last steps
 2. Execute the last step
-3. Execute all the steps
+3. Execute all of the steps
 
 ![The Shuffled Execution Mode](diagrams/PhasedDiagrams-Shuffle-H.png)
 
