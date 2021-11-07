@@ -1455,7 +1455,7 @@ public class TestPhased {
         //I.e. 2 step cache data + 1 scenario state
         //There is a comment line in the beginning
         assertThat("We should have three +1 lines",
-                GeneralTestUtils.fetchFileContentLines(l_storedFile).size(), Matchers.equalTo(4));
+                GeneralTestUtils.fetchFileContentDataLines(l_storedFile).size(), Matchers.equalTo(3));
 
     }
 
@@ -1507,7 +1507,7 @@ public class TestPhased {
         //I.e. 2 step cache data + 1 scenario state     
         //+ 1 line for the comment
         assertThat("We should have three +1  lines",
-                GeneralTestUtils.fetchFileContentLines(l_storedFile).size(), Matchers.equalTo(3 + 1));
+                GeneralTestUtils.fetchFileContentDataLines(l_storedFile).size(), Matchers.equalTo(2 + 1));
 
     }
 

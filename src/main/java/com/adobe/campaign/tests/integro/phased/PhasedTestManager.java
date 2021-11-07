@@ -27,7 +27,6 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
@@ -55,6 +54,7 @@ public class PhasedTestManager {
     public static final String PROP_PHASED_TEST_DATABROKER = "PHASED.TESTS.DATABROKER";
     public static final String PROP_DISABLE_RETRY = "PHASED.TESTS.RETRY.DISABLED";
     public static final String PROP_MERGE_STEP_RESULTS = "PHASED.TESTS.REPORT.BY.PHASE_GROUP";
+    private static final String PROP_SCENARIO_EXPORTED_PREFIX = "PHASED.TESTS.STORAGE.SCENARIO.PREFIX";
 
     public static final String DEFAULT_CACHE_DIR = "phased_output";
     public static final String STD_CACHE_DIR = System.getProperty(PROP_OUTPUT_DIR, DEFAULT_CACHE_DIR);
@@ -68,6 +68,7 @@ public class PhasedTestManager {
     public static final String STD_MERGE_STEP_ERROR_PREFIX = "Phased Error: Failure in step ";
 
     protected static Properties phasedCache = new Properties();
+    protected static Properties scenarioContext = new Properties();
 
     protected static Map<String, MethodMapping> methodMap = new HashMap<>();
 
@@ -76,6 +77,9 @@ public class PhasedTestManager {
     private static PhasedDataBroker dataBroker = null;
 
     protected static Boolean mergedReportsActivated = Boolean.FALSE;
+
+    protected static final String SCENARIO_CONTEXT_PREFIX = System.getProperty(PROP_SCENARIO_EXPORTED_PREFIX,
+            "[TC]");
 
     protected static class MergedReportData {
 
@@ -258,7 +262,7 @@ public class PhasedTestManager {
 
     /**
      * This method generates the identifier for a producer/consumer used for
-     * storingg in the cache
+     * storing in the cache
      *
      * Author : gandomi
      *
@@ -454,6 +458,7 @@ public class PhasedTestManager {
         methodMap = new HashMap<>();
 
         phaseContext.clear();
+        scenarioContext.clear();
     }
 
     /**
@@ -468,7 +473,7 @@ public class PhasedTestManager {
 
         File l_exportCacheFile = fetchExportFile();
 
-        return exportCache(l_exportCacheFile);
+        return exportContext(l_exportCacheFile);
     }
 
     /**
@@ -491,21 +496,29 @@ public class PhasedTestManager {
     }
 
     /**
-     * Exports the Phase cache into the given file
+     * Exports the Phase cache and the scenario context into the given file
      *
      * Author : gandomi
      *
      * @param in_file
-     *        that will contain the phase cache/data
-     * @return The file used for storing the cache.
+     *        that will contain the phase cache & scenario contexts
+     * @return The file used for storing the Phase Context.
      *
      */
-    protected static File exportCache(File in_file) {
+    protected static File exportContext(File in_file) {
 
         log.info(PHASED_TEST_LOG_PREFIX + " Exporting Phased Testing data to " + in_file.getPath());
+
+        Properties lt_transformedScenarios = new Properties();
+        scenarioContext.forEach((key, value) -> {
+            lt_transformedScenarios.put(attachContextFlag(key.toString()), value);
+        });
+        
         try (FileWriter fw = new FileWriter(in_file)) {
 
             getPhasedCache().store(fw, null);
+            lt_transformedScenarios.store(fw,  null);
+            
 
         } catch (IOException e) {
             log.error("Error when creating file " + in_file);
@@ -522,7 +535,8 @@ public class PhasedTestManager {
     }
 
     /**
-     * Imports a file and stored the properties in the phased cache.
+     * Imports a file and stored the properties in the phased cache and in the
+     * scenario context.
      *
      * Author : gandomi
      *
@@ -532,18 +546,27 @@ public class PhasedTestManager {
      *         phase
      *
      */
-    protected static Properties importCache(File in_phasedTestFile) {
+    protected static Properties importContext(File in_phasedTestFile) {
         log.info(PHASED_TEST_LOG_PREFIX + "Importing phase cache.");
+        Properties lr_importedProperties = new Properties();
         try (InputStream input = new FileInputStream(in_phasedTestFile)) {
 
             // load a properties file
-            phasedCache.load(input);
+            lr_importedProperties.load(input);
         } catch (IOException e) {
             log.error("Error when loading file " + in_phasedTestFile);
             throw new PhasedTestException("Error when loading file " + in_phasedTestFile.getPath() + ".", e);
 
         }
-        return getPhasedCache();
+
+        //Import produced data into phase cache
+        lr_importedProperties.stringPropertyNames().stream().filter(k -> !k.startsWith(SCENARIO_CONTEXT_PREFIX))
+                .forEach(fk -> phasedCache.put(fk, lr_importedProperties.get(fk)));
+        
+        //Import scenario contexts into scenario context
+        lr_importedProperties.stringPropertyNames().stream().filter(k -> k.startsWith(SCENARIO_CONTEXT_PREFIX))
+                .forEach(fk -> scenarioContext.put(fk.substring(SCENARIO_CONTEXT_PREFIX.length()) , lr_importedProperties.get(fk)));
+        return lr_importedProperties;
     }
 
     /**
@@ -574,7 +597,7 @@ public class PhasedTestManager {
             log.info(PHASED_TEST_LOG_PREFIX + "Fetching cache through DataBroker");
             l_importCacheFile = dataBroker.fetch(STD_STORE_FILE);
         }
-        return importCache(l_importCacheFile);
+        return importContext(l_importCacheFile);
 
     }
 
@@ -799,7 +822,10 @@ public class PhasedTestManager {
      */
     protected static String storeTestData(Class in_class, String in_phaseGroup, String in_storedData) {
         phaseContext.put(in_class.getTypeName(), in_phaseGroup);
-        return storePhasedCache(generateStepKeyIdentity(in_class.getTypeName()), in_storedData);
+        
+        final String lr_storedKey = generateStepKeyIdentity(in_class.getTypeName());
+        scenarioContext.put(lr_storedKey, in_storedData);
+        return lr_storedKey;
 
     }
 
@@ -977,22 +1003,27 @@ public class PhasedTestManager {
         final String l_scenarioName = fetchScenarioName(in_testResult);
         final String l_stepName = ClassPathParser.fetchFullName(in_testResult);
 
-        if (phasedCache.containsKey(l_scenarioName)) {
+        if (scenarioContext.containsKey(l_scenarioName)) {
 
             //If the phase context is true we check if the state for the scenario should change. Otherwise we interrupt the tests
-            if (phasedCache.get(l_scenarioName).equals(Boolean.TRUE.toString())
-                    || phasedCache.get(l_scenarioName).equals(l_stepName)) {
-                phasedCache.put(l_scenarioName,
+            if (scenarioContext.get(l_scenarioName).equals(Boolean.TRUE.toString())
+                    || scenarioContext.get(l_scenarioName).equals(l_stepName)) {
+                scenarioContext.put(l_scenarioName,
                         in_testResult.getStatus() == ITestResult.SUCCESS ? Boolean.TRUE.toString()
                                 : l_stepName);
             }
 
         } else {
-            phasedCache.put(l_scenarioName,
+            scenarioContext.put(l_scenarioName,
                     (in_testResult.getStatus() == ITestResult.SUCCESS) ? Boolean.TRUE.toString()
                             : l_stepName);
         }
 
+    }
+
+    private static String attachContextFlag(String in_scenarioName) {
+        StringBuilder sb = new StringBuilder(SCENARIO_CONTEXT_PREFIX);
+        return sb.append(in_scenarioName).toString();
     }
 
     /**
@@ -1023,16 +1054,16 @@ public class PhasedTestManager {
         //Case 7   Cosnumer    > 1     Not Exists  SKIP    false
 
         //#43 to change this to false
-        if (!phasedCache.containsKey(l_scenarioName)) {
+        if (!scenarioContext.containsKey(l_scenarioName)) {
 
             return !hasStepsExecutedInProducer(in_testResult);
         }
 
-        if (phasedCache.get(l_scenarioName).equals(ClassPathParser.fetchFullName(in_testResult))) {
+        if (scenarioContext.get(l_scenarioName).equals(ClassPathParser.fetchFullName(in_testResult))) {
             return true;
         }
 
-        return phasedCache.get(l_scenarioName).equals(Boolean.TRUE.toString());
+        return scenarioContext.get(l_scenarioName).equals(Boolean.TRUE.toString());
     }
 
     /**

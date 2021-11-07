@@ -199,8 +199,12 @@ public class PhasedTestManagerTests {
         PhasedTestManager.produceInStep("Hello");
 
         assertThat(PhasedTestManager.phasedCache.size(), Matchers.greaterThan(0));
+
+        PhasedTestManager.scenarioContext.put("A", "B");
+        assertThat(PhasedTestManager.scenarioContext.size(), Matchers.greaterThan(0));
         PhasedTestManager.clearCache();
         assertThat(PhasedTestManager.phasedCache.size(), equalTo(0));
+        assertThat(PhasedTestManager.scenarioContext.size(), Matchers.equalTo(0));
     }
 
     @Test
@@ -225,7 +229,10 @@ public class PhasedTestManagerTests {
 
     @Test
     public void exportingData() throws FileNotFoundException, IOException {
-        PhasedTestManager.produceInStep("Hello");
+        String l_stepName = PhasedTestManager.produceInStep("Hello");
+
+        String scenarioId = PhasedTestManager.storeTestData(PhasedSeries_F_Shuffle.class, "A",
+                Boolean.TRUE.toString());
 
         File l_phasedTestFile = PhasedTestManager.exportPhaseData();
 
@@ -239,13 +246,20 @@ public class PhasedTestManagerTests {
             prop.load(input);
         }
 
-        assertThat("We should find our property", prop.size(), equalTo(1));
+        assertThat("We should find our property", prop.size(), equalTo(2));
         assertThat("We should find our property", prop
-                .containsKey("com.adobe.campaign.tests.integro.phased.PhasedTestManagerTests.exportingData"));
+                .containsKey(l_stepName));
         assertThat("We should find our property",
                 prop.getProperty(
-                        "com.adobe.campaign.tests.integro.phased.PhasedTestManagerTests.exportingData"),
+                        l_stepName),
                 equalTo("Hello"));
+
+        final String l_storedScenarioContext = PhasedTestManager.SCENARIO_CONTEXT_PREFIX+ scenarioId;
+        final String l_storedScenarioName = l_storedScenarioContext;
+        assertThat("We should find our scenario", prop.containsKey(l_storedScenarioContext));
+
+        assertThat("We should find our scenario", prop.get(l_storedScenarioName),
+                Matchers.equalTo(Boolean.TRUE.toString()));
 
     }
 
@@ -391,7 +405,7 @@ public class PhasedTestManagerTests {
         File l_phasedTestFile = new File("skjdfhqskdj", "kjhkjhkjh");
         assertThat("The file should not exist", !l_phasedTestFile.exists());
 
-        assertThrows(PhasedTestException.class, () -> PhasedTestManager.exportCache(l_phasedTestFile));
+        assertThrows(PhasedTestException.class, () -> PhasedTestManager.exportContext(l_phasedTestFile));
     }
 
     @Test
@@ -553,20 +567,39 @@ public class PhasedTestManagerTests {
 
     @Test
     public void importingData() throws IOException {
-        PhasedTestManager.produceInStep("Hello");
+        String l_stepId = PhasedTestManager.produceInStep("Hello");
+        String l_scenarioId = PhasedTestManager.storeTestData(PhasedSeries_F_Shuffle.class, "A",
+                Boolean.TRUE.toString());
+
         File l_phasedTestFile = PhasedTestManager.exportPhaseData();
         PhasedTestManager.clearCache();
 
-        Properties l_phasedTestdata = PhasedTestManager.importCache(l_phasedTestFile);
+        Properties l_phasedTestdata = PhasedTestManager.importContext(l_phasedTestFile);
 
         assertThat("We should find our property", l_phasedTestdata, Matchers.notNullValue());
-        assertThat("We should find our property", l_phasedTestdata.size(), equalTo(1));
-        assertThat("We should find our property", l_phasedTestdata
-                .containsKey("com.adobe.campaign.tests.integro.phased.PhasedTestManagerTests.importingData"));
-        assertThat("We should find our property",
-                l_phasedTestdata.getProperty(
-                        "com.adobe.campaign.tests.integro.phased.PhasedTestManagerTests.importingData"),
+        assertThat("We should find our property", l_phasedTestdata.size(), equalTo(2));
+        assertThat("We should find our property", l_phasedTestdata.containsKey(l_stepId));
+        assertThat("We should find our property", l_phasedTestdata.getProperty(l_stepId), equalTo("Hello"));
+
+        final String l_exporteedIdForScenario = PhasedTestManager.SCENARIO_CONTEXT_PREFIX+l_scenarioId;
+        assertThat("We should find our scenario", l_phasedTestdata.containsKey(l_exporteedIdForScenario));
+        assertThat("We should find our property", l_phasedTestdata.getProperty(l_exporteedIdForScenario),
+                equalTo(Boolean.TRUE.toString()));
+
+        //Checking that the phasedCache is imported correctly
+        assertThat("phaseCache : We should find our property", PhasedTestManager.phasedCache.size(),
+                equalTo(1));
+        assertThat("phaseCache : We should find our property", PhasedTestManager.phasedCache.containsKey(l_stepId));
+        assertThat("phaseCache : We should find our property value", PhasedTestManager.phasedCache.getProperty(l_stepId),
                 equalTo("Hello"));
+        assertThat("phaseCache : We should not have stored the find our property", !PhasedTestManager.phasedCache.containsKey(l_scenarioId));
+        
+        //Checking that the scenarioContext is imported correctly
+        assertThat("scenarioConext: We should find our scenario", PhasedTestManager.scenarioContext.containsKey(l_scenarioId));
+        assertThat("scenarioConext: We should find our property", PhasedTestManager.scenarioContext.getProperty(l_scenarioId),
+                equalTo(Boolean.TRUE.toString()));
+        assertThat("scenarioConext: We should not have stored the find our property", !PhasedTestManager.scenarioContext.containsKey(l_stepId));
+        
     }
 
     @Test
@@ -575,7 +608,7 @@ public class PhasedTestManagerTests {
         assertThat("The file should not exist", !l_phasedTestFile.exists());
         PhasedTestManager.clearCache();
 
-        assertThrows(PhasedTestException.class, () -> PhasedTestManager.importCache(l_phasedTestFile));
+        assertThrows(PhasedTestException.class, () -> PhasedTestManager.importContext(l_phasedTestFile));
     }
 
     @Test
@@ -1191,9 +1224,13 @@ public class PhasedTestManagerTests {
 
         PhasedTestManager.scenarioStateStore(l_itr);
 
-        String l_name = PhasedTestManager.fetchScenarioName(l_itr);
-        assertThat("The context should have been stored", PhasedTestManager.phasedCache.containsKey(l_name));
-        assertThat("We should havee the correct value", PhasedTestManager.phasedCache.get(l_name),
+        String l_scenarioName = PhasedTestManager.fetchScenarioName(l_itr);
+        assertThat("The context should have not been stored in the phasedCache",
+                !PhasedTestManager.phasedCache.containsKey(l_scenarioName));
+        assertThat("The context should have been stored in the scenarioContext",
+                PhasedTestManager.scenarioContext.containsKey(l_scenarioName));
+
+        assertThat("We should havee the correct value", PhasedTestManager.scenarioContext.get(l_scenarioName),
                 equalTo(Boolean.TRUE.toString()));
 
         assertThat("We should be able to continue with the phase group",
@@ -1350,9 +1387,9 @@ public class PhasedTestManagerTests {
         String l_scenarioName = PhasedTestManager.fetchScenarioName(l_itr);
 
         assertThat("The context should have been stored",
-                PhasedTestManager.phasedCache.containsKey(l_scenarioName));
+                PhasedTestManager.scenarioContext.containsKey(l_scenarioName));
 
-        assertThat("We should have the correct value", PhasedTestManager.phasedCache.get(l_scenarioName),
+        assertThat("We should have the correct value", PhasedTestManager.scenarioContext.get(l_scenarioName),
                 equalTo(ClassPathParser.fetchFullName(l_itr)));
 
         assertThat("We should be able to continue with the phase group",
@@ -1388,7 +1425,7 @@ public class PhasedTestManagerTests {
                 PhasedTestManager.scenarioStateContinue(l_itr));
 
         String l_name = PhasedTestManager.fetchScenarioName(l_itr);
-        assertThat("We should have the correct value", PhasedTestManager.phasedCache.get(l_name),
+        assertThat("We should have the correct value", PhasedTestManager.scenarioContext.get(l_name),
                 equalTo(ClassPathParser.fetchFullName(l_itr)));
 
     }
@@ -1417,8 +1454,8 @@ public class PhasedTestManagerTests {
 
         PhasedTestManager.scenarioStateStore(l_itr);
 
-        String l_name = PhasedTestManager.fetchScenarioName(l_itr);
-        assertThat("We should have the correct value", PhasedTestManager.phasedCache.get(l_name),
+        String l_scenarioName = PhasedTestManager.fetchScenarioName(l_itr);
+        assertThat("We should have the correct value", PhasedTestManager.scenarioContext.get(l_scenarioName),
                 equalTo(ClassPathParser.fetchFullName(l_itr)));
 
         final Method l_myTestWithOneArg2 = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
@@ -1440,7 +1477,8 @@ public class PhasedTestManagerTests {
         PhasedTestManager.scenarioStateStore(l_itr2);
 
         assertThat("The step that caused the failure should not change",
-                PhasedTestManager.phasedCache.get(l_name), equalTo(ClassPathParser.fetchFullName(l_itr)));
+                PhasedTestManager.scenarioContext.get(l_scenarioName),
+                equalTo(ClassPathParser.fetchFullName(l_itr)));
 
     }
 
@@ -2283,7 +2321,8 @@ public class PhasedTestManagerTests {
     }
 
     /**
-     * In this case we have a badly declared detaprovider. The data provider does not exist in this case
+     * In this case we have a badly declared detaprovider. The data provider
+     * does not exist in this case
      *
      * Author : gandomi
      */
