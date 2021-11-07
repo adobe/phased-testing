@@ -2959,7 +2959,7 @@ public class TestPhased {
      *
      *
      */
-    @Test
+    @Test(enabled = false)
     public void testConsumer_selectionBasedOnPopertiesFile() {
         // Rampup
         TestNG myTestNG = TestTools.createTestNG();
