@@ -24,6 +24,7 @@ import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.testng.IAlterSuiteListener;
 import org.testng.IAnnotationTransformer;
 import org.testng.ITestContext;
 import org.testng.ITestListener;
@@ -44,13 +45,56 @@ import org.testng.annotations.ITestAnnotation;
 import org.testng.internal.BaseTestMethod;
 import org.testng.internal.TestResult;
 import org.testng.internal.annotations.DisabledRetryAnalyzer;
+import org.testng.xml.XmlClass;
+import org.testng.xml.XmlSuite;
 
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
 
-public class PhasedTestListener implements ITestListener, IAnnotationTransformer {
+public class PhasedTestListener implements ITestListener, IAnnotationTransformer, IAlterSuiteListener {
+    
     protected static Logger log = LogManager.getLogger();
 
+    
+    
     @Override
+    public void alter(List<XmlSuite> suites) {
+        /*** Import DataBroker ***/
+        String l_phasedDataBrokerClass = null;
+        if (System.getProperties().containsKey(PhasedTestManager.PROP_PHASED_TEST_DATABROKER)) {
+            l_phasedDataBrokerClass = System.getProperty(PhasedTestManager.PROP_PHASED_TEST_DATABROKER);
+        } else if (suites.get(0).getAllParameters()
+                .containsKey(PhasedTestManager.PROP_PHASED_TEST_DATABROKER)) {
+            l_phasedDataBrokerClass = suites.get(0)
+                    .getParameter(PhasedTestManager.PROP_PHASED_TEST_DATABROKER);
+        } else if (!Phases.NON_PHASED.isSelected()) {
+            log.info(PhasedTestManager.PHASED_TEST_LOG_PREFIX
+                    + "No PhasedDataBroker set. Using the file system path " + PhasedTestManager.STD_STORE_DIR
+                    + "/" + PhasedTestManager.STD_STORE_FILE + " instead ");
+        }
+
+        if (l_phasedDataBrokerClass != null) {
+            try {
+                PhasedTestManager.setDataBroker(l_phasedDataBrokerClass);
+            } catch (PhasedTestConfigurationException e) {
+                log.error(PhasedTestManager.PHASED_TEST_LOG_PREFIX
+                        + "Errors while setting the PhasedDataBroker", e);
+                throw new TestNGException(e);
+            }
+        }
+
+        /*** import context for consumer ***/
+        //The second condition is there for testing purposes. You can bypass the file by filling the Test
+        if (Phases.CONSUMER.isSelected() && PhasedTestManager.getPhasedCache().isEmpty()) {
+            PhasedTestManager.importPhaseData();
+        }
+        
+        //Attach Produced tests
+        //Fetch executed phased tests
+        //
+        IAlterSuiteListener.super.alter(suites);
+    }
+
+     @Override
     public void transform(IConfigurationAnnotation annotation, Class testClass, Constructor testConstructor,
             Method testMethod) {
 
@@ -251,35 +295,7 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
         log.debug(PhasedTestManager.PHASED_TEST_LOG_PREFIX + "onStart - current Execution State is : "
                 + Phases.getCurrentPhase());
 
-        /*** Import DataBroker ***/
-        String l_phasedDataBrokerClass = null;
-        if (System.getProperties().containsKey(PhasedTestManager.PROP_PHASED_TEST_DATABROKER)) {
-            l_phasedDataBrokerClass = System.getProperty(PhasedTestManager.PROP_PHASED_TEST_DATABROKER);
-        } else if (context.getSuite().getXmlSuite().getAllParameters()
-                .containsKey(PhasedTestManager.PROP_PHASED_TEST_DATABROKER)) {
-            l_phasedDataBrokerClass = context.getSuite().getXmlSuite()
-                    .getParameter(PhasedTestManager.PROP_PHASED_TEST_DATABROKER);
-        } else if (!Phases.NON_PHASED.isSelected()) {
-            log.info(PhasedTestManager.PHASED_TEST_LOG_PREFIX
-                    + "No PhasedDataBroker set. Using the file system path " + PhasedTestManager.STD_STORE_DIR
-                    + "/" + PhasedTestManager.STD_STORE_FILE + " instead ");
-        }
-
-        if (l_phasedDataBrokerClass != null) {
-            try {
-                PhasedTestManager.setDataBroker(l_phasedDataBrokerClass);
-            } catch (PhasedTestConfigurationException e) {
-                log.error(PhasedTestManager.PHASED_TEST_LOG_PREFIX
-                        + "Errors while setting the PhasedDataBroker", e);
-                throw new TestNGException(e);
-            }
-        }
-
-        /*** import context for consumer ***/
-        //The second condition is there for testing purposes. You can bypass the file by filling the Test
-        if (Phases.CONSUMER.isSelected() && PhasedTestManager.getPhasedCache().isEmpty()) {
-            PhasedTestManager.importPhaseData();
-        }
+        
 
         //Creating a method map
         Map<Class, List<String>> l_classMethodMap = new HashMap<>();

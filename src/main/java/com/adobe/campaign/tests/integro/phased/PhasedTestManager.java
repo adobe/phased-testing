@@ -518,9 +518,8 @@ public class PhasedTestManager {
         log.info(PHASED_TEST_LOG_PREFIX + " Exporting Phased Testing data to " + in_file.getPath());
 
         Properties lt_transformedScenarios = new Properties();
-        scenarioContext.forEach((key, value) -> {
-            lt_transformedScenarios.put(attachContextFlag(key.toString()), value);
-        });
+        scenarioContext.forEach(
+                (key, value) -> lt_transformedScenarios.put(attachContextFlag(key.toString()), value));
 
         try (FileWriter fw = new FileWriter(in_file)) {
 
@@ -1541,7 +1540,7 @@ public class PhasedTestManager {
      */
     public static Set<String> fetchExecutedPhasedClasses() {
 
-        return getScenarioContext().stringPropertyNames().stream().map(c -> fetchClassFromScenarioContext(c))
+        return getScenarioContext().stringPropertyNames().stream().map(PhasedTestManager::fetchClassFromScenarioContext)
                 .collect(Collectors.toSet());
     }
 
