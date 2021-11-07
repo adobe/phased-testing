@@ -21,6 +21,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -47,15 +49,14 @@ import org.testng.internal.TestResult;
 import org.testng.internal.annotations.DisabledRetryAnalyzer;
 import org.testng.xml.XmlClass;
 import org.testng.xml.XmlSuite;
+import org.testng.xml.XmlTest;
 
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
 
 public class PhasedTestListener implements ITestListener, IAnnotationTransformer, IAlterSuiteListener {
-    
+
     protected static Logger log = LogManager.getLogger();
 
-    
-    
     @Override
     public void alter(List<XmlSuite> suites) {
         /*** Import DataBroker ***/
@@ -87,14 +88,21 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
         if (Phases.CONSUMER.isSelected() && PhasedTestManager.getPhasedCache().isEmpty()) {
             PhasedTestManager.importPhaseData();
         }
+
+        //Attach new classes to suite
+        final Set<XmlClass> l_newXMLTests = PhasedTestManager.fetchExecutedPhasedClasses().stream()
+                .map(XmlClass::new).collect(Collectors.toSet());
         
-        //Attach Produced tests
-        //Fetch executed phased tests
-        //
+        //add the original test classes
+        l_newXMLTests.addAll(suites.get(0).getTests().get(0).getXmlClasses());
+        suites.get(0).getTests().get(0).setXmlClasses(l_newXMLTests.stream().collect(Collectors.toList()));
+
+        //Do we keep this?
         IAlterSuiteListener.super.alter(suites);
+
     }
 
-     @Override
+    @Override
     public void transform(IConfigurationAnnotation annotation, Class testClass, Constructor testConstructor,
             Method testMethod) {
 
@@ -295,8 +303,6 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
         log.debug(PhasedTestManager.PHASED_TEST_LOG_PREFIX + "onStart - current Execution State is : "
                 + Phases.getCurrentPhase());
 
-        
-
         //Creating a method map
         Map<Class, List<String>> l_classMethodMap = new HashMap<>();
         for (ITestNGMethod lt_testNGMethod : context.getSuite().getAllMethods()) {
@@ -387,7 +393,8 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
                         .fetchDurationMillis(l_phasedScenarios.get(lt_phasedClass));
 
                 //When the phase test scenario was not a success
-                if (!PhasedTestManager.getScenarioContext().get(lt_phasedClass).equals(Boolean.TRUE.toString())) {
+                if (!PhasedTestManager.getScenarioContext().get(lt_phasedClass)
+                        .equals(Boolean.TRUE.toString())) {
 
                     //Delete all the passed steps : These steps are not remevant if we are merging the step results
                     Iterator<ITestResult> lt_passedTestIterator = context.getPassedTests().getAllResults()

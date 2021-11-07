@@ -18,7 +18,6 @@ import static org.hamcrest.Matchers.not;
 import static org.testng.Assert.assertThrows;
 
 import java.io.File;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -2692,7 +2691,6 @@ public class TestPhased {
         assertThat("We should have no skipped tests", tla.getSkippedTests().size(), equalTo(0));
 
         /******** CONSUMER ********/
-
         Phases.CONSUMER.activate();
 
         TestNG myTestNG2 = TestTools.createTestNG();
@@ -2959,7 +2957,7 @@ public class TestPhased {
      *
      *
      */
-    @Test(enabled = false)
+    @Test
     public void testConsumer_selectionBasedOnPopertiesFile() {
         // Rampup
         TestNG myTestNG = TestTools.createTestNG();
