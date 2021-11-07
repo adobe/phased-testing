@@ -2948,4 +2948,47 @@ public class TestPhased {
 
     }
 
+    
+    
+    /************** Testing issue #9 ******************/
+    
+    /**
+     * Starting from here we use he properties file as a test selector.
+     *
+     * Author : gandomi
+     *
+     *
+     */
+    @Test
+    public void testConsumer_selectionBasedOnPopertiesFile() {
+        // Rampup
+        TestNG myTestNG = TestTools.createTestNG();
+        TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
+
+        // Define suites
+        XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG, "Automated Suite Phased Testing");
+
+        // Add listeners
+        mySuite.addListener(PhasedTestListener.class.getTypeName());
+
+        // Create an instance of XmlTest and assign a name for it.
+        TestTools.attachTestToSuite(mySuite, "Test Phased Tests");
+
+        Phases.CONSUMER.activate();
+        Properties phasedCache = PhasedTestManager.phasedCache;
+        phasedCache.put(PhasedSeries_H_SingleClass.class.getTypeName()+".step2("
+                + PhasedTestManager.STD_PHASED_GROUP_SINGLE + ")", "AB");
+
+        PhasedTestManager.storeTestData(PhasedSeries_H_SingleClass.class,
+                PhasedTestManager.STD_PHASED_GROUP_SINGLE, "true");
+
+        myTestNG.run();
+
+        assertThat("We should have 1 successful methods of phased Tests",
+                tla.getPassedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_H_SingleClass.class))
+                        .collect(Collectors.toList()).size(),
+                is(equalTo(1)));
+
+    }
 }

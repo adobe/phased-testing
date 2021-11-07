@@ -28,6 +28,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
@@ -68,7 +69,7 @@ public class PhasedTestManager {
     public static final String STD_MERGE_STEP_ERROR_PREFIX = "Phased Error: Failure in step ";
 
     protected static Properties phasedCache = new Properties();
-    protected static Properties scenarioContext = new Properties();
+    private static Properties scenarioContext = new Properties();
 
     protected static Map<String, MethodMapping> methodMap = new HashMap<>();
 
@@ -124,6 +125,13 @@ public class PhasedTestManager {
      */
     public static Properties getPhasedCache() {
         return phasedCache;
+    }
+
+    /**
+     * @return the scenarioContext
+     */
+    protected static Properties getScenarioContext() {
+        return scenarioContext;
     }
 
     /**
@@ -481,7 +489,7 @@ public class PhasedTestManager {
      *
      * Author : gandomi
      *
-     * @return A file that matches the location of the exoprt file
+     * @return A file that matches the location of the export file
      *
      */
     public static File fetchExportFile() {
@@ -501,7 +509,7 @@ public class PhasedTestManager {
      * Author : gandomi
      *
      * @param in_file
-     *        that will contain the phase cache & scenario contexts
+     *        that will contain the phase cache and scenario contexts
      * @return The file used for storing the Phase Context.
      *
      */
@@ -513,12 +521,11 @@ public class PhasedTestManager {
         scenarioContext.forEach((key, value) -> {
             lt_transformedScenarios.put(attachContextFlag(key.toString()), value);
         });
-        
+
         try (FileWriter fw = new FileWriter(in_file)) {
 
             getPhasedCache().store(fw, null);
-            lt_transformedScenarios.store(fw,  null);
-            
+            lt_transformedScenarios.store(fw, null);
 
         } catch (IOException e) {
             log.error("Error when creating file " + in_file);
@@ -560,12 +567,15 @@ public class PhasedTestManager {
         }
 
         //Import produced data into phase cache
-        lr_importedProperties.stringPropertyNames().stream().filter(k -> !k.startsWith(SCENARIO_CONTEXT_PREFIX))
+        lr_importedProperties.stringPropertyNames().stream()
+                .filter(k -> !k.startsWith(SCENARIO_CONTEXT_PREFIX))
                 .forEach(fk -> phasedCache.put(fk, lr_importedProperties.get(fk)));
-        
+
         //Import scenario contexts into scenario context
-        lr_importedProperties.stringPropertyNames().stream().filter(k -> k.startsWith(SCENARIO_CONTEXT_PREFIX))
-                .forEach(fk -> scenarioContext.put(fk.substring(SCENARIO_CONTEXT_PREFIX.length()) , lr_importedProperties.get(fk)));
+        lr_importedProperties.stringPropertyNames().stream()
+                .filter(k -> k.startsWith(SCENARIO_CONTEXT_PREFIX)).forEach(fk -> scenarioContext
+                        .put(fk.substring(SCENARIO_CONTEXT_PREFIX.length()), lr_importedProperties.get(fk)));
+
         return lr_importedProperties;
     }
 
@@ -822,7 +832,7 @@ public class PhasedTestManager {
      */
     protected static String storeTestData(Class in_class, String in_phaseGroup, String in_storedData) {
         phaseContext.put(in_class.getTypeName(), in_phaseGroup);
-        
+
         final String lr_storedKey = generateStepKeyIdentity(in_class.getTypeName());
         scenarioContext.put(lr_storedKey, in_storedData);
         return lr_storedKey;
@@ -1518,5 +1528,43 @@ public class PhasedTestManager {
 
             return 1;
         }
+    }
+
+    /**
+     * Extracts all the tests that have been executed before the current phase.
+     * This will later be used to create the test list to be executed
+     *
+     * Author : gandomi
+     *
+     * @return A set of class paths
+     *
+     */
+    public static Set<String> fetchExecutedPhasedClasses() {
+
+        return getScenarioContext().stringPropertyNames().stream().map(c -> fetchClassFromScenarioContext(c))
+                .collect(Collectors.toSet());
+    }
+
+    /**
+     * Given a scenario we extract the class covering it. If the given class is
+     * not a phased execution, we do not transform the scring.
+     *
+     * Author : gandomi
+     *
+     * @param in_scenario
+     *        The execued scenario. This will include the phase group
+     * @return The class path of the phased scenario
+     *
+     */
+    public static String fetchClassFromScenarioContext(String in_scenario) {
+        if (in_scenario == null) {
+            throw new IllegalArgumentException("The given scenario name may not be null");
+        }
+
+        if (in_scenario.contains("(")) {
+            return in_scenario.substring(0, in_scenario.indexOf('('));
+        }
+
+        return in_scenario;
     }
 }
