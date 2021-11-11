@@ -68,7 +68,8 @@ public class PhasedTestManager {
     public static final String STD_MERGE_STEP_ERROR_PREFIX = "Phased Error: Failure in step ";
 
     public enum ScenarioState {
-        CONTINUE, SKIP_NORESULT, SKIP_PREVIOUS_FAILURE};
+        CONTINUE, SKIP_NORESULT, SKIP_PREVIOUS_FAILURE
+    };
 
     protected static Properties phasedCache = new Properties();
 
@@ -1007,21 +1008,81 @@ public class PhasedTestManager {
      * There is one Exception. If the cause of the failure is the current test.
      * 
      * <table>
-     * <th><td>CASE</td><td>Phase</td><td>Current step Nr</td><td>Previous Step Result</td><td>Expected result</td><td>MERGED RESULLT</td></th>
-     * <tr><td>1</td><td>Producer/NonPhased</td><td>1</td><td>N/A</td><td>Continue</td><td>PASSED</td></tr>
-     * <tr><td>2</td><td>Producer/NonPhased</td><td>> 1</td><td>FAILED</td><td>SKIP</td><td>FAILED</td></tr>
-     * <tr><td>3</td><td>Producer/NonPhased</td><td>> 1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
-     * <tr><td>4</td><td>Consumer</td><td>1</td><td>N/A</td><td>Continue</td><td>PASSED</td></tr>
-     * <tr><td>5</td><td>Consumer</td><td>>1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
-     * <tr><td>6</td><td>Consumer</td><td>>1</td><td>FAIED/SKIPPED</td><td>SKIP</td><td>FAILED</td></tr>
-     * <tr><td>7</td><td>Consumer</td><td>>1</td><td>N/A</td><td>SKIP</td><td>SKIP</td></tr>
+     * <tr>
+     * <th>CASE</th>
+     * <th>Phase</th>
+     * <th>Current step Nr</th>
+     * <th>Previous Step Result</th>
+     * <th>Expected result</th>
+     * <th>MERGED RESULLT</th></tr>
+     * <tr>
+     * <td>1</td>
+     * <td>Producer/NonPhased</td>
+     * <td>1</td>
+     * <td>N/A</td>
+     * <td>Continue</td>
+     * <td>PASSED</td>
+     * </tr>
+     * <tr>
+     * <td>2</td>
+     * <td>Producer/NonPhased</td>
+     * <td>> 1</td>
+     * <td>FAILED</td>
+     * <td>SKIP</td>
+     * <td>FAILED</td>
+     * </tr>
+     * <tr>
+     * <td>3</td>
+     * <td>Producer/NonPhased</td>
+     * <td>> 1</td>
+     * <td>PASSED</td>
+     * <td>Continue</td>
+     * <td>PASSED</td>
+     * </tr>
+     * <tr>
+     * <td>4</td>
+     * <td>Consumer</td>
+     * <td>1</td>
+     * <td>N/A</td>
+     * <td>Continue</td>
+     * <td>PASSED</td>
+     * </tr>
+     * <tr>
+     * <td>5</td>
+     * <td>Consumer</td>
+     * <td>>1</td>
+     * <td>PASSED</td>
+     * <td>Continue</td>
+     * <td>PASSED</td>
+     * </tr>
+     * <tr>
+     * <td>6</td>
+     * <td>Consumer</td>
+     * <td>>1</td>
+     * <td>FAIED/SKIPPED</td>
+     * <td>SKIP</td>
+     * <td>FAILED</td>
+     * </tr>
+     * <tr>
+     * <td>7</td>
+     * <td>Consumer</td>
+     * <td>>1</td>
+     * <td>N/A</td>
+     * <td>SKIP</td>
+     * <td>SKIP</td>
+     * </tr>
      * </table>
      *
      * Author : gandomi
      *
      * @param in_testResult
      *        The test result
-     * @return A decision regarding the continuation of the scenario. We also provide the reasons as to why the skipping happens
+     * @return A decision regarding the continuation of the scenario. We also
+     *         provide the reasons as to why the skipping happens.
+     *         ScenarioState.SKIP_NORESULT returns when we should skip due to
+     *         non-execution of a previous step. SKIP_PREVIOUS_FAILURE is
+     *         returned when we are supposed o skip because of a failure in a
+     *         previous step
      *
      */
     public static ScenarioState scenarioStateDecision(ITestResult in_testResult) {
