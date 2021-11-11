@@ -237,7 +237,7 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
      */
     protected void standardPostTestActions(ITestResult result) {
         if (PhasedTestManager.isPhasedTest(result.getMethod().getConstructorOrMethod().getMethod())) {
-            //TRIM add propety check
+            //TRIM add property check
             appendShuffleGroupToName(result);
             PhasedTestManager.scenarioStateStore(result);
         }
