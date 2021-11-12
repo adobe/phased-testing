@@ -1164,6 +1164,7 @@ public class PhasedTestManagerTests {
         assertThat("We should have the correct full name", PhasedTestManager.fetchScenarioName(l_itr),
                 equalTo("com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClassWithError(Q)"));
     }
+
     
     /**
      * <table>
@@ -1186,40 +1187,45 @@ public class PhasedTestManagerTests {
      *
      */
     @Test
-    public void phaseScenrioStates_case1_intra_PASSED() throws NoSuchMethodException, SecurityException {
-        //Define previous step
-        final Method l_myTestBeforeWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step1",
+    public void testStateIstKeptBetweenPhases_Continue() throws NoSuchMethodException, SecurityException {
+        //On Test End we need to add context of test. The context is the state of the scenario
+
+        //If a test fails, the test state should be logged in the context
+        //This logging should be separate from the produce data Class + dataprovider
+        //We should have a log
+        //Do we only log failures
+        final Method l_myTestWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
                 String.class);
+
         ITestResult l_itr = Mockito.mock(ITestResult.class);
         ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
         ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
 
-        
         Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
         Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
-        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "0_1" });
+        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "0_3" });
         Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
-        Mockito.when(l_com.getMethod()).thenReturn(l_myTestBeforeWithOneArg);
-        
-        String l_scenarioName = PhasedTestManager.fetchScenarioName(l_itr);
+        Mockito.when(l_com.getMethod()).thenReturn(l_myTestWithOneArg);
 
-        assertThat("The context should have been stored",
-                !PhasedTestManager.phasedCache.containsKey(l_scenarioName));
+        assertThat("Before storing the context the value is true if we are not in consumer",
+                PhasedTestManager.scenarioStateContinue(l_itr));
 
-        assertThat("While we are currently executing this test, we should continue",
-                PhasedTestManager.scenarioStateDecision(l_itr), equalTo(PhasedTestManager.ScenarioState.CONTINUE));
-        
-        //Store state
-        PhasedTestManager.scenarioStateStore(l_itr);        
-        
-        assertThat("The context should have been stored",
-                PhasedTestManager.phasedCache.containsKey(l_scenarioName));
+        PhasedTestManager.scenarioStateStore(l_itr);
 
-        assertThat("We should have the correct value", PhasedTestManager.phasedCache.get(l_scenarioName),
-                equalTo("true"));
+        String l_name = PhasedTestManager.fetchScenarioName(l_itr);
+        assertThat("The context should have been stored", PhasedTestManager.phasedCache.containsKey(l_name));
+        assertThat("We should havee the correct value", PhasedTestManager.phasedCache.get(l_name),
+                equalTo(Boolean.TRUE.toString()));
 
-        assertThat("While we are currently executing this test, we should continue",
-                PhasedTestManager.scenarioStateDecision(l_itr), equalTo(PhasedTestManager.ScenarioState.CONTINUE));
+        assertThat("We should be able to continue with the phase group",
+                PhasedTestManager.scenarioStateContinue(l_itr));
+
+        PhasedTestManager.clearCache();
+
+        Phases.PRODUCER.activate();
+
+        assertThat("In producer mode We should be able to continue with the phase group",
+                PhasedTestManager.scenarioStateContinue(l_itr));
     }
 
     
@@ -1245,91 +1251,15 @@ public class PhasedTestManagerTests {
      *
      */
     @Test
-    public void phaseScenrioStates_case2_intra_FAILED() throws NoSuchMethodException, SecurityException {
-        //Define previous step
-        final Method l_myTestBeforeWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step2",
-                String.class);
-        ITestResult l_itr = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
-        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
-
-        
-        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
-        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.FAILURE);
-        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "2_1" });
-        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
-        Mockito.when(l_com.getMethod()).thenReturn(l_myTestBeforeWithOneArg);
-        
-        PhasedTestManager.scenarioStateStore(l_itr);        
-        String l_scenarioName = PhasedTestManager.fetchScenarioName(l_itr);
-
-        assertThat("The context should have been stored",
-                PhasedTestManager.phasedCache.containsKey(l_scenarioName));
-
-        assertThat("We should have the correct value", PhasedTestManager.phasedCache.get(l_scenarioName),
-                equalTo(ClassPathParser.fetchFullName(l_itr)));
-
-        assertThat("While we are currently executing this test, we should continue",
-                PhasedTestManager.scenarioStateDecision(l_itr),equalTo(PhasedTestManager.ScenarioState.CONTINUE));
-
-        //Define current step
-        ITestResult l_itr2 = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod2 = Mockito.mock(ITestNGMethod.class);
-        ConstructorOrMethod l_com2 = Mockito.mock(ConstructorOrMethod.class);
-        
-        final Method l_myTestAfterWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
-                String.class);
-        Mockito.when(l_itr2.getMethod()).thenReturn(l_itrMethod2);
-        Mockito.when(l_itr2.getParameters()).thenReturn(new Object[] { "2_1" });
-        Mockito.when(l_itrMethod2.getConstructorOrMethod()).thenReturn(l_com2);
-        Mockito.when(l_com2.getMethod()).thenReturn(l_myTestAfterWithOneArg);
-        
-        String l_scenarioName2 = PhasedTestManager.fetchScenarioName(l_itr2);
-        
-        PhasedTestManager.scenarioStateStore(l_itr2);        
-
-        assertThat("The two tests should be of the same scenario",
-                l_scenarioName2, equalTo(l_scenarioName));
-
-        assertThat("The context should be containing the previous step not the current one", PhasedTestManager.phasedCache.get(l_scenarioName),
-                Matchers.not(equalTo(ClassPathParser.fetchFullName(l_itr2))));
-
-        assertThat("We should not be able to continue with the phase group",
-                PhasedTestManager.scenarioStateDecision(l_itr2),equalTo(PhasedTestManager.ScenarioState.SKIP_PREVIOUS_FAILURE));
-
-    }
-
-    /**
-     * <table>
-     * <th><td>CASE</td><td>Phase</td><td>Current step Nr</td><td>Previous Step Result</td><td>Expected result</td><td>MERGED RESULT</td></th>
-     * <tr><td>1</td><td>Producer/NonPhased</td><td>1</td><td>N/A</td><td>Continue</td><td>PASSED</td></tr>
-     * <tr><td>2</td><td>Producer/NonPhased</td><td>> 1</td><td>FAILED</td><td>SKIP</td><td>FAILED</td></tr>
-     * <tr><td>3</td><td>Producer/NonPhased</td><td>> 1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
-     * <tr><td>4</td><td>Consumer</td>          <td>1</td><td>N/A</td><td>Continue</td><td>PASSED</td></tr>
-     * <tr><td>5</td><td>Consumer</td>          <td>>1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
-     * <tr><td>6</td><td>Consumer</td>          <td>>1</td><td>FAILED/SKIPPED</td><td>SKIP</td><td>FAILED</td></tr>
-     * <tr><td>7</td><td>Consumer</td>          <td>>1</td><td>N/A</td><td>SKIP</td><td>SKIP</td></tr>
-     * </table>
-     * 
-     * This is case 3
-     * 
-     * Author : gandomi
-     *
-     * @throws NoSuchMethodException
-     * @throws SecurityException
-     *
-     */
-    @Test
-    public void phaseScenrioStates_case3_intra_PASSED() throws NoSuchMethodException, SecurityException {
+    public void testStateIstKeptBetweenPhasesConsumerMode_Continue()
+            throws NoSuchMethodException, SecurityException {
         //On Test End we need to add context of test. The context is the state of the scenario
 
         //If a test fails, the test state should be logged in the context
         //This logging should be separate from the produce data Class + dataprovider
         //We should have a log
         //Do we only log failures
-        
-        //Step2
-        final Method l_myTestWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step2",
+        final Method l_myTestWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
                 String.class);
 
         ITestResult l_itr = Mockito.mock(ITestResult.class);
@@ -1338,44 +1268,64 @@ public class PhasedTestManagerTests {
 
         Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
         Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
-        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "1_2" });
+        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "0_3" });
         Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
         Mockito.when(l_com.getMethod()).thenReturn(l_myTestWithOneArg);
-        
+
         assertThat("Before storing the context the value is true if we are not in consumer",
-                PhasedTestManager.scenarioStateDecision(l_itr), equalTo(PhasedTestManager.ScenarioState.CONTINUE));
+                PhasedTestManager.scenarioStateContinue(l_itr));
 
         PhasedTestManager.scenarioStateStore(l_itr);
 
-        String l_scenarioName = PhasedTestManager.fetchScenarioName(l_itr);
-        assertThat("The context should have been stored", PhasedTestManager.phasedCache.containsKey(l_scenarioName));
-        assertThat("We should havee the correct value", PhasedTestManager.phasedCache.get(l_scenarioName),
-                equalTo(Boolean.TRUE.toString()));
+        Phases.CONSUMER.activate();
 
-        assertThat("We should be able to continue with the phase group",
-                PhasedTestManager.scenarioStateDecision(l_itr), equalTo(PhasedTestManager.ScenarioState.CONTINUE));
-        
-        //Step 3
-        ITestResult l_itr2 = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod2 = Mockito.mock(ITestNGMethod.class);
-        ConstructorOrMethod l_com2 = Mockito.mock(ConstructorOrMethod.class);
-        
-        final Method l_myTestAfterWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
-                String.class);
-        Mockito.when(l_itr2.getMethod()).thenReturn(l_itrMethod2);
-        Mockito.when(l_itr2.getParameters()).thenReturn(new Object[] { "1_2" });
-        Mockito.when(l_itrMethod2.getConstructorOrMethod()).thenReturn(l_com2);
-        Mockito.when(l_com2.getMethod()).thenReturn(l_myTestAfterWithOneArg);
+        assertThat("In consumer mode We should be able to continue with the phase group",
+                PhasedTestManager.scenarioStateContinue(l_itr));
 
-        PhasedTestManager.clearCache();
-
-        Phases.PRODUCER.activate();
-
-        assertThat("In producer mode We should be able to continue with the phase group",
-                PhasedTestManager.scenarioStateDecision(l_itr), equalTo(PhasedTestManager.ScenarioState.CONTINUE));
     }
-    
-    
+
+    /**
+     * Issue #43 : What happens when there is no context.
+     *
+     * Author : gandomi
+     *
+     * @throws NoSuchMethodException
+     * @throws SecurityException
+     *
+     */
+    @Test
+    public void testDoNotContinueIfNoTestsExistBeforeConsumer_doNotContinue()
+            throws NoSuchMethodException, SecurityException {
+        //On Test End we need to add context of test. The context is the state of the scenario
+
+        //If a test fails, the test state should be logged in the context
+        //This logging should be separate from the produce data Class + dataprovider
+        //We should have a log
+        //Do we only log failures
+        final Method l_myTestWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
+                String.class);
+
+        ITestResult l_itr = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
+        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
+
+        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
+        //Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
+        Mockito.when(l_itr.getParameters())
+                .thenReturn(new Object[] { PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1" });
+        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
+        Mockito.when(l_com.getMethod()).thenReturn(l_myTestWithOneArg);
+
+        // In this case
+        //PhasedTestManager.scenarioStateStore(l_itr);
+
+        Phases.CONSUMER.activate();
+
+        assertThat("We should not continue with the phase group if there is no result for this phase group",
+                !PhasedTestManager.scenarioStateContinue(l_itr));
+
+    }
+
     /**
      * Issue #43 : What happens when there is no context.
      * 
@@ -1399,10 +1349,15 @@ public class PhasedTestManagerTests {
      *
      */
     @Test
-    public void phaseScenrioStates_case4_extra_NoneExecuted()
+    public void testDoNotContinueIfNoTestsExistBeforeConsumer_Continue()
             throws NoSuchMethodException, SecurityException {
+        //On Test End we need to add context of test. The context is the state of the scenario
 
-        final Method l_myTestWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step1",
+        //If a test fails, the test state should be logged in the context
+        //This logging should be separate from the produce data Class + dataprovider
+        //We should have a log
+        //Do we only log failures
+        final Method l_myTestWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
                 String.class);
 
         ITestResult l_itr = Mockito.mock(ITestResult.class);
@@ -1410,17 +1365,22 @@ public class PhasedTestManagerTests {
         ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
 
         Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
+        //Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
         Mockito.when(l_itr.getParameters())
                 .thenReturn(new Object[] { PhasedTestManager.STD_PHASED_GROUP_PREFIX + "0_6" });
         Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
         Mockito.when(l_com.getMethod()).thenReturn(l_myTestWithOneArg);
 
+        // In this case
+        //PhasedTestManager.scenarioStateStore(l_itr);
+
         Phases.CONSUMER.activate();
 
         assertThat("We should continue with the phase group if there is no result for this phase group",
-                PhasedTestManager.scenarioStateDecision(l_itr), equalTo(PhasedTestManager.ScenarioState.CONTINUE));
+                PhasedTestManager.scenarioStateContinue(l_itr));
 
     }
+
 
     /**
     * <table>
@@ -1509,8 +1469,7 @@ public class PhasedTestManagerTests {
             throws NoSuchMethodException, SecurityException {
         
         //Step 2
-        final Method l_myTestWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step2",
-                String.class);
+        final Method l_myTestWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step2", String.class);
 
         ITestResult l_itr = Mockito.mock(ITestResult.class);
         ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
@@ -1518,33 +1477,24 @@ public class PhasedTestManagerTests {
 
         Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
         Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.FAILURE);
-        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "2_1" });
+        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "Q" });
         Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
         Mockito.when(l_com.getMethod()).thenReturn(l_myTestWithOneArg);
 
-        assertThat("Before storing the context the value is true if we are not in consumer",
-                PhasedTestManager.scenarioStateDecision(l_itr), equalTo(PhasedTestManager.ScenarioState.CONTINUE));
-
         PhasedTestManager.scenarioStateStore(l_itr);
+        String l_scenarioName = PhasedTestManager.fetchScenarioName(l_itr);
 
-        Phases.CONSUMER.activate();
-        
-        //Step 3
-        final Method l_myTestWithOneArg2 = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
-                String.class);        
-        ITestResult l_itr2 = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod2 = Mockito.mock(ITestNGMethod.class);
-        ConstructorOrMethod l_com2 = Mockito.mock(ConstructorOrMethod.class);
+        assertThat("The context should have been stored",
+                PhasedTestManager.phasedCache.containsKey(l_scenarioName));
 
-        Mockito.when(l_itr2.getMethod()).thenReturn(l_itrMethod2);
-        Mockito.when(l_itr2.getParameters()).thenReturn(new Object[] { "2_1" });
-        Mockito.when(l_itrMethod2.getConstructorOrMethod()).thenReturn(l_com2);
-        Mockito.when(l_com2.getMethod()).thenReturn(l_myTestWithOneArg2);
+        assertThat("We should have the correct value", PhasedTestManager.phasedCache.get(l_scenarioName),
+                equalTo(ClassPathParser.fetchFullName(l_itr)));
 
-        assertThat("In consumer mode We should be able to continue with the phase group",
-                PhasedTestManager.scenarioStateDecision(l_itr2), equalTo(PhasedTestManager.ScenarioState.SKIP_PREVIOUS_FAILURE));
+        assertThat("We should be able to continue with the phase group",
+                PhasedTestManager.scenarioStateContinue(l_itr));
 
     }
+
 
     /**
      * Issue #43 : What happens when there is no context.
@@ -1562,60 +1512,6 @@ public class PhasedTestManagerTests {
      * 
      * This is case 7
      * 
-     * Author : gandomi
-     *
-     * @throws NoSuchMethodException
-     * @throws SecurityException
-     *
-     */
-    @Test
-    public void testDoNotContinueIfNoTestsExistBeforeConsumer_doNotContinue()
-            throws NoSuchMethodException, SecurityException {
-        //On Test End we need to add context of test. The context is the state of the scenario
-
-        //If a test fails, the test state should be logged in the context
-        //This logging should be separate from the produce data Class + dataprovider
-        //We should have a log
-        //Do we only log failures
-        final Method l_myTestWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
-                String.class);
-
-        ITestResult l_itr = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
-        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
-
-        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
-        //Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
-        Mockito.when(l_itr.getParameters())
-                .thenReturn(new Object[] { PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1" });
-        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
-        Mockito.when(l_com.getMethod()).thenReturn(l_myTestWithOneArg);
-
-        Phases.CONSUMER.activate();
-
-        assertThat("We should not continue with the phase group if there is no result for this phase group",
-                PhasedTestManager.scenarioStateDecision(l_itr), equalTo(PhasedTestManager.ScenarioState.SKIP_NORESULT));
-
-    }
-
-    
-
-
-
-    /**
-     * <table>
-     * <tr><td>CASE</th><th>Phase</th><th>Current stepthr</th><th>Previous Step Result</th><th>Expected result</th><th>MERGED RESULLT</th></tr>
-     * <tr><td>1</td><td>Producer/NonPhased</td><td>1</td><td>N/A</td><td>Continue</td><td>PASSED</td></tr>
-     * <tr><td>2</td><td>Producer/NonPhased</td><td>> 1</td><td>FAILED</td><td>SKIP</td><td>FAILED</td></tr>
-     * <tr><td>3</td><td>Producer/NonPhased</td><td>> 1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
-     * <tr><td>4</td><td>Consumer</td><td>1</td><td>N/A</td><td>Continue</td><td>PASSED</td></tr>
-     * <tr><td>5</td><td>Consumer</td><td>>1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
-     * <tr><td>6</td><td>Consumer</td><td>>1</td><td>FAILED/SKIPPED</td><td>SKIP</td><td>FAILED</td></tr>
-     * <tr><td>7</td><td>Consumer</td><td>>1</td><td>N/A</td><td>SKIP</td><td>SKIP</td></tr>
-     * </table>
-     * 
-     * This is case ???
-     *
      * Author : gandomi
      *
      * @throws NoSuchMethodException
@@ -1647,8 +1543,7 @@ public class PhasedTestManagerTests {
         PhasedTestManager.scenarioStateStore(l_itr);
 
         assertThat("We should be able to continue with the phase group",
-                PhasedTestManager.scenarioStateDecision(l_itr),
-                equalTo(PhasedTestManager.ScenarioState.CONTINUE));
+                PhasedTestManager.scenarioStateContinue(l_itr));
 
         String l_name = PhasedTestManager.fetchScenarioName(l_itr);
         assertThat("We should have the correct value", PhasedTestManager.phasedCache.get(l_name),
@@ -1656,6 +1551,77 @@ public class PhasedTestManagerTests {
 
     }
 
+
+    /**
+     * <table>
+     * <tr><td>CASE</th><th>Phase</th><th>Current stepthr</th><th>Previous Step Result</th><th>Expected result</th><th>MERGED RESULLT</th></tr>
+     * <tr><td>1</td><td>Producer/NonPhased</td><td>1</td><td>N/A</td><td>Continue</td><td>PASSED</td></tr>
+     * <tr><td>2</td><td>Producer/NonPhased</td><td>> 1</td><td>FAILED</td><td>SKIP</td><td>FAILED</td></tr>
+     * <tr><td>3</td><td>Producer/NonPhased</td><td>> 1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
+     * <tr><td>4</td><td>Consumer</td><td>1</td><td>N/A</td><td>Continue</td><td>PASSED</td></tr>
+     * <tr><td>5</td><td>Consumer</td><td>>1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
+     * <tr><td>6</td><td>Consumer</td><td>>1</td><td>FAILED/SKIPPED</td><td>SKIP</td><td>FAILED</td></tr>
+     * <tr><td>7</td><td>Consumer</td><td>>1</td><td>N/A</td><td>SKIP</td><td>SKIP</td></tr>
+     * </table>
+     * 
+     * This is case ???
+     *
+     * Author : gandomi
+     *
+     * @throws NoSuchMethodException
+     * @throws SecurityException
+     *
+     */
+    @Test
+    public void testStateIstKeptBetweenPhases_NegativeStaysNegative()
+            throws NoSuchMethodException, SecurityException {
+        //On Test End we need to add context of test. The context is the state of the scenario
+
+        //If a test fails, the test state should be logged in the context
+        //This logging should be separate from the produce data Class + dataprovider
+        //We should have a log
+        //Do we only log failures
+        final Method l_myTestWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step2",
+                String.class);
+
+        ITestResult l_itr = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
+        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
+
+        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
+        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.FAILURE);
+        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "Q" });
+        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
+        Mockito.when(l_com.getMethod()).thenReturn(l_myTestWithOneArg);
+
+        PhasedTestManager.scenarioStateStore(l_itr);
+
+        String l_name = PhasedTestManager.fetchScenarioName(l_itr);
+        assertThat("We should have the correct value", PhasedTestManager.phasedCache.get(l_name),
+                equalTo(ClassPathParser.fetchFullName(l_itr)));
+
+        final Method l_myTestWithOneArg2 = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
+                String.class);
+
+        ITestResult l_itr2 = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod2 = Mockito.mock(ITestNGMethod.class);
+        ConstructorOrMethod l_com2 = Mockito.mock(ConstructorOrMethod.class);
+
+        Mockito.when(l_itr2.getMethod()).thenReturn(l_itrMethod2);
+        Mockito.when(l_itr2.getStatus()).thenReturn(ITestResult.FAILURE);
+        Mockito.when(l_itr2.getParameters()).thenReturn(new Object[] { "Q" });
+        Mockito.when(l_itrMethod2.getConstructorOrMethod()).thenReturn(l_com2);
+        Mockito.when(l_com2.getMethod()).thenReturn(l_myTestWithOneArg2);
+
+        assertThat("We should not be able to continue with the phase group",
+                !PhasedTestManager.scenarioStateContinue(l_itr2));
+
+        PhasedTestManager.scenarioStateStore(l_itr2);
+
+        assertThat("The step that caused the failure should not change",
+                PhasedTestManager.phasedCache.get(l_name), equalTo(ClassPathParser.fetchFullName(l_itr)));
+
+    }
 
     @Test
     public void testStateIstKeptBetweenPhases_NegativeStaysNegativeUnlessSameTest()
@@ -1683,15 +1649,14 @@ public class PhasedTestManagerTests {
 
         assertThat(
                 "We should be able to continue with the phase group, iff we are reeexecuting the same test",
-                PhasedTestManager.scenarioStateDecision(l_itr),equalTo(PhasedTestManager.ScenarioState.CONTINUE));
+                PhasedTestManager.scenarioStateContinue(l_itr));
 
-        
         Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
 
         PhasedTestManager.scenarioStateStore(l_itr);
 
         assertThat("We should be able to continue with the phase group",
-                PhasedTestManager.scenarioStateDecision(l_itr),equalTo(PhasedTestManager.ScenarioState.CONTINUE));
+                PhasedTestManager.scenarioStateContinue(l_itr));
 
     }
 
@@ -1713,7 +1678,7 @@ public class PhasedTestManagerTests {
 
         Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
         Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
-        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "1_3" });
+        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "Q" });
         Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
         Mockito.when(l_com.getMethod()).thenReturn(l_myTestWithOneArg);
 
@@ -1728,17 +1693,17 @@ public class PhasedTestManagerTests {
 
         Mockito.when(l_itr2.getMethod()).thenReturn(l_itrMethod2);
         Mockito.when(l_itr2.getStatus()).thenReturn(ITestResult.FAILURE);
-        Mockito.when(l_itr2.getParameters()).thenReturn(new Object[] { "1_3" });
+        Mockito.when(l_itr2.getParameters()).thenReturn(new Object[] { "Q" });
         Mockito.when(l_itrMethod2.getConstructorOrMethod()).thenReturn(l_com2);
         Mockito.when(l_com2.getMethod()).thenReturn(l_myTestWithOneArg2);
 
         assertThat("We should be able to continue with the phase group",
-                PhasedTestManager.scenarioStateDecision(l_itr2),equalTo(PhasedTestManager.ScenarioState.CONTINUE));
+                PhasedTestManager.scenarioStateContinue(l_itr2));
 
         PhasedTestManager.scenarioStateStore(l_itr2);
 
         assertThat("We should  be able to continue with the phase group",
-                PhasedTestManager.scenarioStateDecision(l_itr2),equalTo(PhasedTestManager.ScenarioState.CONTINUE));
+                PhasedTestManager.scenarioStateContinue(l_itr2));
 
         final Method l_myTestWithOneArg3 = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
                 String.class);
@@ -1748,19 +1713,53 @@ public class PhasedTestManagerTests {
         ConstructorOrMethod l_com3 = Mockito.mock(ConstructorOrMethod.class);
 
         Mockito.when(l_itr3.getMethod()).thenReturn(l_itrMethod3);
-        Mockito.when(l_itr3.getParameters()).thenReturn(new Object[] { "1_3" });
+        Mockito.when(l_itr3.getStatus()).thenReturn(ITestResult.SUCCESS);
+        Mockito.when(l_itr3.getParameters()).thenReturn(new Object[] { "Q" });
         Mockito.when(l_itrMethod3.getConstructorOrMethod()).thenReturn(l_com3);
         Mockito.when(l_com3.getMethod()).thenReturn(l_myTestWithOneArg3);
 
         assertThat("We should be able to continue with the phase group",
-                PhasedTestManager.scenarioStateDecision(l_itr3),equalTo(PhasedTestManager.ScenarioState.SKIP_PREVIOUS_FAILURE));
+                !PhasedTestManager.scenarioStateContinue(l_itr3));
 
         PhasedTestManager.scenarioStateStore(l_itr);
 
         assertThat("We should no longer be able to continue with the phase group",
-                PhasedTestManager.scenarioStateDecision(l_itr),equalTo(PhasedTestManager.ScenarioState.SKIP_PREVIOUS_FAILURE));
+                !PhasedTestManager.scenarioStateContinue(l_itr));
     }
 
+    @Test
+    public void testStateIstKeptBetweenPhases_SuccessRemainsSuccessfull()
+            throws NoSuchMethodException, SecurityException {
+        //On Test End we need to add context of test. The context is the state of the scenario
+
+        //If a test fails, the test state should be logged in the context
+        //This logging should be separate from the produce data Class + dataprovider
+        //We should have a log
+        //Do we only log failures
+        final Method l_myTestWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
+                String.class);
+
+        ITestResult l_itr = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
+        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
+
+        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
+        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
+        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "Q" });
+        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
+        Mockito.when(l_com.getMethod()).thenReturn(l_myTestWithOneArg);
+
+        PhasedTestManager.scenarioStateStore(l_itr);
+
+        assertThat("We should be able to continue with the phase group",
+                PhasedTestManager.scenarioStateContinue(l_itr));
+
+        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
+        PhasedTestManager.scenarioStateStore(l_itr);
+
+        assertThat("We should no longer be able to continue with the phase group",
+                PhasedTestManager.scenarioStateContinue(l_itr));
+    }
 
     @Test
     public void testStandardReportName_default() throws NoSuchMethodException, SecurityException {

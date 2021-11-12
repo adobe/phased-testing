@@ -67,10 +67,13 @@ public class PhasedTestManager {
 
     public static final String STD_MERGE_STEP_ERROR_PREFIX = "Phased Error: Failure in step ";
 
+
     public enum ScenarioState {
         CONTINUE, SKIP_NORESULT, SKIP_PREVIOUS_FAILURE
     };
 
+  
+  
     protected static Properties phasedCache = new Properties();
 
     protected static Map<String, MethodMapping> methodMap = new HashMap<>();
@@ -1085,31 +1088,28 @@ public class PhasedTestManager {
      *         previous step
      *
      */
-    public static ScenarioState scenarioStateDecision(ITestResult in_testResult) {
+    public static boolean scenarioStateContinue(ITestResult in_testResult) {
         final String l_scenarioName = fetchScenarioName(in_testResult);
-        //Case      PHASE               STEP        
-        //Case 1    Producer/NonPhased  1           N/A             Continue    true    testStateIstKeptBetweenPhases_Continue
-        //Case 2    Producer/NonPhased  > 1         FAILED/Skipped  SKIP    false   
-        //Case 3    Producer/NonPhased  > 1         Passed  Continue    true    testStateIstKeptBetweenPhases_Continue
-        //Case 4    Consumer           1            N/A  Continue    true    testStateIstKeptBetweenPhases_Continue
-        //Case 5    Cosnumer           > 1          Passed  Continue    true    
-        //Case 6    Cosnumer           > 1          Failed/Skipped  SKIP    false   
-        //Case 7    Cosnumer           > 1          N/A  SKIP    false
+
+        //Case 1  Producer/NonPhased  1   Not exists  Continue    true    testStateIstKeptBetweenPhases_Continue
+        //Case 2   Producer/NonPhased  > 1     FAILED/Skipped  SKIP    false   
+        //Case 3   Producer/NonPhased  > 1     Passed  Continue    true    testStateIstKeptBetweenPhases_Continue
+        //Case 4   Consumer    1   Not Exists  Continue    true    testStateIstKeptBetweenPhases_Continue
+        //Case 5   Cosnumer    > 1     Passed  Continue    true    
+        //Case 6   Cosnumer    > 1     Failed/Skipped  SKIP    false   
+        //Case 7   Cosnumer    > 1     Not Exists  SKIP    false
 
         //#43 to change this to false
-        //If scenario has not yet been executed in the current phase 
         if (!phasedCache.containsKey(l_scenarioName)) {
-            //True only if we are executing end to end 0_X
-            return hasStepsExecutedInProducer(in_testResult) ? ScenarioState.SKIP_NORESULT
-                    : ScenarioState.CONTINUE;
+
+            return !hasStepsExecutedInProducer(in_testResult);
         }
 
         if (phasedCache.get(l_scenarioName).equals(ClassPathParser.fetchFullName(in_testResult))) {
-            return ScenarioState.CONTINUE;
+            return true;
         }
 
-        return phasedCache.get(l_scenarioName).equals(Boolean.TRUE.toString()) ? ScenarioState.CONTINUE
-                : ScenarioState.SKIP_PREVIOUS_FAILURE;
+        return phasedCache.get(l_scenarioName).equals(Boolean.TRUE.toString());
     }
 
     /**
