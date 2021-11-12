@@ -1011,13 +1011,13 @@ public class PhasedTestManager {
      * There is one Exception. If the cause of the failure is the current test.
      * 
      * <table>
-     * <tr>
-     * <th>CASE</th>
-     * <th>Phase</th>
-     * <th>Current step Nr</th>
-     * <th>Previous Step Result</th>
-     * <th>Expected result</th>
-     * <th>MERGED RESULLT</th></tr>
+     * <th>
+     * <td>CASE</td>
+     * <td>Phase</td>
+     * <td>Current step Nr</td>
+     * <td>Previous Step Result</td>
+     * <td>Expected result</td>
+     * <td>MERGED RESULLT</td></th>
      * <tr>
      * <td>1</td>
      * <td>Producer/NonPhased</td>
@@ -1088,28 +1088,31 @@ public class PhasedTestManager {
      *         previous step
      *
      */
-    public static boolean scenarioStateContinue(ITestResult in_testResult) {
+    public static ScenarioState scenarioStateDecision(ITestResult in_testResult) {
         final String l_scenarioName = fetchScenarioName(in_testResult);
-
-        //Case 1  Producer/NonPhased  1   Not exists  Continue    true    testStateIstKeptBetweenPhases_Continue
+        //Case      PHASE               STEP        
+        //Case 1    Producer/NonPhased  1           N/A             Continue    true    testStateIstKeptBetweenPhases_Continue
         //Case 2   Producer/NonPhased  > 1     FAILED/Skipped  SKIP    false   
         //Case 3   Producer/NonPhased  > 1     Passed  Continue    true    testStateIstKeptBetweenPhases_Continue
-        //Case 4   Consumer    1   Not Exists  Continue    true    testStateIstKeptBetweenPhases_Continue
+        //Case 4    Consumer           1            N/A  Continue    true    testStateIstKeptBetweenPhases_Continue
         //Case 5   Cosnumer    > 1     Passed  Continue    true    
         //Case 6   Cosnumer    > 1     Failed/Skipped  SKIP    false   
-        //Case 7   Cosnumer    > 1     Not Exists  SKIP    false
+        //Case 7    Cosnumer           > 1          N/A  SKIP    false
 
         //#43 to change this to false
+        //If scenario has not yet been executed in the current phase 
         if (!phasedCache.containsKey(l_scenarioName)) {
-
-            return !hasStepsExecutedInProducer(in_testResult);
+            //True only if we are executing end to end 0_X
+            return hasStepsExecutedInProducer(in_testResult) ? ScenarioState.SKIP_NORESULT
+                    : ScenarioState.CONTINUE;
         }
 
         if (phasedCache.get(l_scenarioName).equals(ClassPathParser.fetchFullName(in_testResult))) {
-            return true;
+            return ScenarioState.CONTINUE;
         }
 
-        return phasedCache.get(l_scenarioName).equals(Boolean.TRUE.toString());
+        return phasedCache.get(l_scenarioName).equals(Boolean.TRUE.toString()) ? ScenarioState.CONTINUE
+                : ScenarioState.SKIP_PREVIOUS_FAILURE;
     }
 
     /**
