@@ -1167,6 +1167,7 @@ public class PhasedTestManagerTests {
     
     /**
      * <table>
+     * <caption>Use Cases for Scenario States</caption>
      * <th><td>CASE</td><td>Phase</td><td>Current step Nr</td><td>Previous Step Result</td><td>Expected result</td><td>MERGED RESULLT</td></th>
      * <tr><td>1</td><td>Producer/NonPhased</td><td>1</td><td>N/A</td><td>Continue</td><td>PASSED</td></tr>
      * <tr><td>2</td><td>Producer/NonPhased</td><td>> 1</td><td>FAILED</td><td>SKIP</td><td>FAILED</td></tr>
@@ -1226,6 +1227,7 @@ public class PhasedTestManagerTests {
     
     /**
      * <table>
+     * <caption>Use Cases for Scenario States</caption>
      * <th><td>CASE</td><td>Phase</td><td>Current step Nr</td><td>Previous Step Result</td><td>Expected result</td><td>MERGED RESULLT</td></th>
      * <tr><td>1</td><td>Producer/NonPhased</td><td>1</td><td>N/A</td><td>Continue</td><td>PASSED</td></tr>
      * <tr><td>2</td><td>Producer/NonPhased</td><td>> 1</td><td>FAILED</td><td>SKIP</td><td>FAILED</td></tr>
@@ -1301,6 +1303,7 @@ public class PhasedTestManagerTests {
 
     /**
      * <table>
+     * <caption>Use Cases for Scenario States</caption>
      * <th><td>CASE</td><td>Phase</td><td>Current step Nr</td><td>Previous Step Result</td><td>Expected result</td><td>MERGED RESULT</td></th>
      * <tr><td>1</td><td>Producer/NonPhased</td><td>1</td><td>N/A</td><td>Continue</td><td>PASSED</td></tr>
      * <tr><td>2</td><td>Producer/NonPhased</td><td>> 1</td><td>FAILED</td><td>SKIP</td><td>FAILED</td></tr>
@@ -1380,6 +1383,7 @@ public class PhasedTestManagerTests {
      * Issue #43 : What happens when there is no context.
      * 
      * <table>
+     * <caption>Use Cases for Scenario Sates</caption>
      * <th><td>CASE</td><td>Phase</td><td>Current step Nr</td><td>Previous Step Result</td><td>Expected result</td><td>MERGED RESULLT</td></th>
      * <tr><td>1</td><td>Producer/NonPhased</td><td>1</td><td>N/A</td><td>Continue</td><td>PASSED</td></tr>
      * <tr><td>2</td><td>Producer/NonPhased</td><td>> 1</td><td>FAILED</td><td>SKIP</td><td>FAILED</td></tr>
@@ -1424,6 +1428,7 @@ public class PhasedTestManagerTests {
 
     /**
     * <table>
+    * <caption>Use Cases for Scenario Sates</caption>
     * <th><td>CASE</td><td>Phase</td><td>Current step Nr</td><td>Previous Step Result</td><td>Expected result</td><td>MERGED RESULLT</td></th>
     * <tr><td>1</td><td>Producer/NonPhased</td><td>1</td><td>N/A</td><td>Continue</td><td>PASSED</td></tr>
     * <tr><td>2</td><td>Producer/NonPhased</td><td>> 1</td><td>FAILED</td><td>SKIP</td><td>FAILED</td></tr>
@@ -1486,6 +1491,7 @@ public class PhasedTestManagerTests {
     
     /**
     * <table>
+    * <caption>Use Cases for Scenario Sates</caption>
     * <th><td>CASE</td><td>Phase</td><td>Current step Nr</td><td>Previous Step Result</td><td>Expected result</td><td>MERGED RESULLT</td></th>
     * <tr><td>1</td><td>Producer/NonPhased</td><td>1</td><td>N/A</td><td>Continue</td><td>PASSED</td></tr>
     * <tr><td>2</td><td>Producer/NonPhased</td><td>> 1</td><td>FAILED</td><td>SKIP</td><td>FAILED</td></tr>
@@ -1550,6 +1556,7 @@ public class PhasedTestManagerTests {
      * Issue #43 : What happens when there is no context.
      *
      * <table>
+     * <caption>Use Cases for Scenario Sates</caption>
      * <th><td>CASE</td><td>Phase</td><td>Current step Nr</td><td>Previous Step Result</td><td>Expected result</td><td>MERGED RESULLT</td></th>
      * <tr><td>1</td><td>Producer/NonPhased</td><td>1</td><td>N/A</td><td>Continue</td><td>PASSED</td></tr>
      * <tr><td>2</td><td>Producer/NonPhased</td><td>> 1</td><td>FAILED</td><td>SKIP</td><td>FAILED</td></tr>
@@ -1604,6 +1611,7 @@ public class PhasedTestManagerTests {
 
     /**
      * <table>
+     * <caption>Use Cases for Scenario Sates</caption>
      * <tr><td>CASE</th><th>Phase</th><th>Current stepthr</th><th>Previous Step Result</th><th>Expected result</th><th>MERGED RESULLT</th></tr>
      * <tr><td>1</td><td>Producer/NonPhased</td><td>1</td><td>N/A</td><td>Continue</td><td>PASSED</td></tr>
      * <tr><td>2</td><td>Producer/NonPhased</td><td>> 1</td><td>FAILED</td><td>SKIP</td><td>FAILED</td></tr>
