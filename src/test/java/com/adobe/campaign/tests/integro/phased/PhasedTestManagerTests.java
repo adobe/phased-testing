@@ -1168,7 +1168,7 @@ public class PhasedTestManagerTests {
     /**
      * <table>
      * <caption>Use Cases for Scenario States</caption>
-     * <th><td>CASE</td><td>Phase</td><td>Current step Nr</td><td>Previous Step Result</td><td>Expected result</td><td>MERGED RESULLT</td></th>
+     * <tr><th>CASE</th><th>Phase</th><th>Current step Nr</th><th>Previous Step Result</th><th>Expected result</th><th>MERGED RESULT</th></tr>
      * <tr><td>1</td><td>Producer/NonPhased</td><td>1</td><td>N/A</td><td>Continue</td><td>PASSED</td></tr>
      * <tr><td>2</td><td>Producer/NonPhased</td><td>> 1</td><td>FAILED</td><td>SKIP</td><td>FAILED</td></tr>
      * <tr><td>3</td><td>Producer/NonPhased</td><td>> 1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
@@ -1228,7 +1228,7 @@ public class PhasedTestManagerTests {
     /**
      * <table>
      * <caption>Use Cases for Scenario States</caption>
-     * <th><td>CASE</td><td>Phase</td><td>Current step Nr</td><td>Previous Step Result</td><td>Expected result</td><td>MERGED RESULLT</td></th>
+     * <tr><th>CASE</th><th>Phase</th><th>Current step Nr</th><th>Previous Step Result</th><th>Expected result</th><th>MERGED RESULT</th></tr>
      * <tr><td>1</td><td>Producer/NonPhased</td><td>1</td><td>N/A</td><td>Continue</td><td>PASSED</td></tr>
      * <tr><td>2</td><td>Producer/NonPhased</td><td>> 1</td><td>FAILED</td><td>SKIP</td><td>FAILED</td></tr>
      * <tr><td>3</td><td>Producer/NonPhased</td><td>> 1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
@@ -1384,7 +1384,7 @@ public class PhasedTestManagerTests {
      * 
      * <table>
      * <caption>Use Cases for Scenario Sates</caption>
-     * <th><td>CASE</td><td>Phase</td><td>Current step Nr</td><td>Previous Step Result</td><td>Expected result</td><td>MERGED RESULLT</td></th>
+     * <tr><th>CASE</th><th>Phase</th><th>Current step Nr</th><th>Previous Step Result</th><th>Expected result</th><th>MERGED RESULT</th></tr>
      * <tr><td>1</td><td>Producer/NonPhased</td><td>1</td><td>N/A</td><td>Continue</td><td>PASSED</td></tr>
      * <tr><td>2</td><td>Producer/NonPhased</td><td>> 1</td><td>FAILED</td><td>SKIP</td><td>FAILED</td></tr>
      * <tr><td>3</td><td>Producer/NonPhased</td><td>> 1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
@@ -1429,7 +1429,7 @@ public class PhasedTestManagerTests {
     /**
     * <table>
     * <caption>Use Cases for Scenario Sates</caption>
-    * <th><td>CASE</td><td>Phase</td><td>Current step Nr</td><td>Previous Step Result</td><td>Expected result</td><td>MERGED RESULLT</td></th>
+    * <tr><th>CASE</th><th>Phase</th><th>Current step Nr</th><th>Previous Step Result</th><th>Expected result</th><th>MERGED RESULT</th></tr>
     * <tr><td>1</td><td>Producer/NonPhased</td><td>1</td><td>N/A</td><td>Continue</td><td>PASSED</td></tr>
     * <tr><td>2</td><td>Producer/NonPhased</td><td>> 1</td><td>FAILED</td><td>SKIP</td><td>FAILED</td></tr>
     * <tr><td>3</td><td>Producer/NonPhased</td><td>> 1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
@@ -1492,7 +1492,7 @@ public class PhasedTestManagerTests {
     /**
     * <table>
     * <caption>Use Cases for Scenario Sates</caption>
-    * <th><td>CASE</td><td>Phase</td><td>Current step Nr</td><td>Previous Step Result</td><td>Expected result</td><td>MERGED RESULLT</td></th>
+    * <tr><th>CASE</th><th>Phase</th><th>Current step Nr</th><th>Previous Step Result</th><th>Expected result</th><th>MERGED RESULT</th></tr>
     * <tr><td>1</td><td>Producer/NonPhased</td><td>1</td><td>N/A</td><td>Continue</td><td>PASSED</td></tr>
     * <tr><td>2</td><td>Producer/NonPhased</td><td>> 1</td><td>FAILED</td><td>SKIP</td><td>FAILED</td></tr>
     * <tr><td>3</td><td>Producer/NonPhased</td><td>> 1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
@@ -1557,7 +1557,7 @@ public class PhasedTestManagerTests {
      *
      * <table>
      * <caption>Use Cases for Scenario Sates</caption>
-     * <th><td>CASE</td><td>Phase</td><td>Current step Nr</td><td>Previous Step Result</td><td>Expected result</td><td>MERGED RESULLT</td></th>
+     * <tr><th>CASE</th><th>Phase</th><th>Current step Nr</th><th>Previous Step Result</th><th>Expected result</th><th>MERGED RESULT</th></tr>
      * <tr><td>1</td><td>Producer/NonPhased</td><td>1</td><td>N/A</td><td>Continue</td><td>PASSED</td></tr>
      * <tr><td>2</td><td>Producer/NonPhased</td><td>> 1</td><td>FAILED</td><td>SKIP</td><td>FAILED</td></tr>
      * <tr><td>3</td><td>Producer/NonPhased</td><td>> 1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
@@ -1612,7 +1612,7 @@ public class PhasedTestManagerTests {
     /**
      * <table>
      * <caption>Use Cases for Scenario Sates</caption>
-     * <tr><td>CASE</th><th>Phase</th><th>Current stepthr</th><th>Previous Step Result</th><th>Expected result</th><th>MERGED RESULLT</th></tr>
+     * <tr><th>CASE</th><th>Phase</th><th>Current stepthr</th><th>Previous Step Result</th><th>Expected result</th><th>MERGED RESULT</th></tr>
      * <tr><td>1</td><td>Producer/NonPhased</td><td>1</td><td>N/A</td><td>Continue</td><td>PASSED</td></tr>
      * <tr><td>2</td><td>Producer/NonPhased</td><td>> 1</td><td>FAILED</td><td>SKIP</td><td>FAILED</td></tr>
      * <tr><td>3</td><td>Producer/NonPhased</td><td>> 1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>

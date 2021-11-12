@@ -27,7 +27,6 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
@@ -67,7 +66,13 @@ public class PhasedTestManager {
 
     public static final String STD_MERGE_STEP_ERROR_PREFIX = "Phased Error: Failure in step ";
 
-
+    /**
+     * The different states a step can assume in a scenario
+     *
+     *
+     * Author : gandomi
+     *
+     */
     public enum ScenarioState {
         CONTINUE, SKIP_NORESULT, SKIP_PREVIOUS_FAILURE
     };
@@ -1011,13 +1016,14 @@ public class PhasedTestManager {
      * There is one Exception. If the cause of the failure is the current test.
      * 
      * <table>
-     * <th>
-     * <td>CASE</td>
-     * <td>Phase</td>
-     * <td>Current step Nr</td>
-     * <td>Previous Step Result</td>
-     * <td>Expected result</td>
-     * <td>MERGED RESULLT</td></th>
+     * <caption>Use Cases for Scenario States</caption>
+     * <tr>
+     * <th>CASE</th>
+     * <th>Phase</th>
+     * <th>Current step Nr</th>
+     * <th>Previous Step Result</th>
+     * <th>Expected result</th>
+     * <th>MERGED RESULT</th></tr>
      * <tr>
      * <td>1</td>
      * <td>Producer/NonPhased</td>
