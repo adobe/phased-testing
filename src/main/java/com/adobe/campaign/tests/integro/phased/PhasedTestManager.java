@@ -1035,7 +1035,7 @@ public class PhasedTestManager {
      * <tr>
      * <td>2</td>
      * <td>Producer/NonPhased</td>
-     * <td>> 1</td>
+     * <td>&gt; 1</td>
      * <td>FAILED</td>
      * <td>SKIP</td>
      * <td>FAILED</td>
@@ -1043,7 +1043,7 @@ public class PhasedTestManager {
      * <tr>
      * <td>3</td>
      * <td>Producer/NonPhased</td>
-     * <td>> 1</td>
+     * <td>&gt; 1</td>
      * <td>PASSED</td>
      * <td>Continue</td>
      * <td>PASSED</td>
@@ -1059,7 +1059,7 @@ public class PhasedTestManager {
      * <tr>
      * <td>5</td>
      * <td>Consumer</td>
-     * <td>>1</td>
+     * <td>&gt; 1</td>
      * <td>PASSED</td>
      * <td>Continue</td>
      * <td>PASSED</td>
@@ -1067,7 +1067,7 @@ public class PhasedTestManager {
      * <tr>
      * <td>6</td>
      * <td>Consumer</td>
-     * <td>>1</td>
+     * <td>&gt; 1</td>
      * <td>FAIED/SKIPPED</td>
      * <td>SKIP</td>
      * <td>FAILED</td>
@@ -1075,7 +1075,7 @@ public class PhasedTestManager {
      * <tr>
      * <td>7</td>
      * <td>Consumer</td>
-     * <td>>1</td>
+     * <td>&gt; 1</td>
      * <td>N/A</td>
      * <td>SKIP</td>
      * <td>SKIP</td>

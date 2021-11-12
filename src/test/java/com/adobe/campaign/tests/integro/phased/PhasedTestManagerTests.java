@@ -1170,12 +1170,12 @@ public class PhasedTestManagerTests {
      * <caption>Use Cases for Scenario States</caption>
      * <tr><th>CASE</th><th>Phase</th><th>Current step Nr</th><th>Previous Step Result</th><th>Expected result</th><th>MERGED RESULT</th></tr>
      * <tr><td>1</td><td>Producer/NonPhased</td><td>1</td><td>N/A</td><td>Continue</td><td>PASSED</td></tr>
-     * <tr><td>2</td><td>Producer/NonPhased</td><td>> 1</td><td>FAILED</td><td>SKIP</td><td>FAILED</td></tr>
-     * <tr><td>3</td><td>Producer/NonPhased</td><td>> 1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
+     * <tr><td>2</td><td>Producer/NonPhased</td><td>&gt; 1</td><td>FAILED</td><td>SKIP</td><td>FAILED</td></tr>
+     * <tr><td>3</td><td>Producer/NonPhased</td><td>&gt; 1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
      * <tr><td>4</td><td>Consumer</td><td>1</td><td>N/A</td><td>Continue</td><td>PASSED</td></tr>
-     * <tr><td>5</td><td>Consumer</td><td>>1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
-     * <tr><td>6</td><td>Consumer</td><td>>1</td><td>FAILED/SKIPPED</td><td>SKIP</td><td>FAILED</td></tr>
-     * <tr><td>7</td><td>Consumer</td><td>>1</td><td>N/A</td><td>SKIP</td><td>SKIP</td></tr>
+     * <tr><td>5</td><td>Consumer</td><td>&gt; 1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
+     * <tr><td>6</td><td>Consumer</td><td>&gt; 1</td><td>FAILED/SKIPPED</td><td>SKIP</td><td>FAILED</td></tr>
+     * <tr><td>7</td><td>Consumer</td><td>&gt; 1</td><td>N/A</td><td>SKIP</td><td>SKIP</td></tr>
      * </table>
      * 
      * This is case 1
@@ -1230,12 +1230,12 @@ public class PhasedTestManagerTests {
      * <caption>Use Cases for Scenario States</caption>
      * <tr><th>CASE</th><th>Phase</th><th>Current step Nr</th><th>Previous Step Result</th><th>Expected result</th><th>MERGED RESULT</th></tr>
      * <tr><td>1</td><td>Producer/NonPhased</td><td>1</td><td>N/A</td><td>Continue</td><td>PASSED</td></tr>
-     * <tr><td>2</td><td>Producer/NonPhased</td><td>> 1</td><td>FAILED</td><td>SKIP</td><td>FAILED</td></tr>
-     * <tr><td>3</td><td>Producer/NonPhased</td><td>> 1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
+     * <tr><td>2</td><td>Producer/NonPhased</td><td>&gt; 1</td><td>FAILED</td><td>SKIP</td><td>FAILED</td></tr>
+     * <tr><td>3</td><td>Producer/NonPhased</td><td>&gt; 1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
      * <tr><td>4</td><td>Consumer</td><td>1</td><td>N/A</td><td>Continue</td><td>PASSED</td></tr>
-     * <tr><td>5</td><td>Consumer</td><td>>1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
-     * <tr><td>6</td><td>Consumer</td><td>>1</td><td>FAILED/SKIPPED</td><td>SKIP</td><td>FAILED</td></tr>
-     * <tr><td>7</td><td>Consumer</td><td>>1</td><td>N/A</td><td>SKIP</td><td>SKIP</td></tr>
+     * <tr><td>5</td><td>Consumer</td><td>&gt; 1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
+     * <tr><td>6</td><td>Consumer</td><td>&gt; 1</td><td>FAILED/SKIPPED</td><td>SKIP</td><td>FAILED</td></tr>
+     * <tr><td>7</td><td>Consumer</td><td>&gt; 1</td><td>N/A</td><td>SKIP</td><td>SKIP</td></tr>
      * </table>
      * 
      * This is case 2
@@ -1306,12 +1306,12 @@ public class PhasedTestManagerTests {
      * <caption>Use Cases for Scenario States</caption>
      * <th><td>CASE</td><td>Phase</td><td>Current step Nr</td><td>Previous Step Result</td><td>Expected result</td><td>MERGED RESULT</td></th>
      * <tr><td>1</td><td>Producer/NonPhased</td><td>1</td><td>N/A</td><td>Continue</td><td>PASSED</td></tr>
-     * <tr><td>2</td><td>Producer/NonPhased</td><td>> 1</td><td>FAILED</td><td>SKIP</td><td>FAILED</td></tr>
-     * <tr><td>3</td><td>Producer/NonPhased</td><td>> 1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
+     * <tr><td>2</td><td>Producer/NonPhased</td><td>&gt; 1</td><td>FAILED</td><td>SKIP</td><td>FAILED</td></tr>
+     * <tr><td>3</td><td>Producer/NonPhased</td><td>&gt; 1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
      * <tr><td>4</td><td>Consumer</td>          <td>1</td><td>N/A</td><td>Continue</td><td>PASSED</td></tr>
-     * <tr><td>5</td><td>Consumer</td>          <td>>1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
-     * <tr><td>6</td><td>Consumer</td>          <td>>1</td><td>FAILED/SKIPPED</td><td>SKIP</td><td>FAILED</td></tr>
-     * <tr><td>7</td><td>Consumer</td>          <td>>1</td><td>N/A</td><td>SKIP</td><td>SKIP</td></tr>
+     * <tr><td>5</td><td>Consumer</td>          <td>&gt; 1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
+     * <tr><td>6</td><td>Consumer</td>          <td>&gt; 1</td><td>FAILED/SKIPPED</td><td>SKIP</td><td>FAILED</td></tr>
+     * <tr><td>7</td><td>Consumer</td>          <td>&gt; 1</td><td>N/A</td><td>SKIP</td><td>SKIP</td></tr>
      * </table>
      * 
      * This is case 3
@@ -1386,12 +1386,12 @@ public class PhasedTestManagerTests {
      * <caption>Use Cases for Scenario Sates</caption>
      * <tr><th>CASE</th><th>Phase</th><th>Current step Nr</th><th>Previous Step Result</th><th>Expected result</th><th>MERGED RESULT</th></tr>
      * <tr><td>1</td><td>Producer/NonPhased</td><td>1</td><td>N/A</td><td>Continue</td><td>PASSED</td></tr>
-     * <tr><td>2</td><td>Producer/NonPhased</td><td>> 1</td><td>FAILED</td><td>SKIP</td><td>FAILED</td></tr>
-     * <tr><td>3</td><td>Producer/NonPhased</td><td>> 1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
+     * <tr><td>2</td><td>Producer/NonPhased</td><td>&gt; 1</td><td>FAILED</td><td>SKIP</td><td>FAILED</td></tr>
+     * <tr><td>3</td><td>Producer/NonPhased</td><td>&gt; 1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
      * <tr><td>4</td><td>Consumer</td><td>1</td><td>N/A</td><td>Continue</td><td>PASSED</td></tr>
-     * <tr><td>5</td><td>Consumer</td><td>>1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
-     * <tr><td>6</td><td>Consumer</td><td>>1</td><td>FAILED/SKIPPED</td><td>SKIP</td><td>FAILED</td></tr>
-     * <tr><td>7</td><td>Consumer</td><td>>1</td><td>N/A</td><td>SKIP</td><td>SKIP</td></tr>
+     * <tr><td>5</td><td>Consumer</td><td>&gt; 1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
+     * <tr><td>6</td><td>Consumer</td><td>&gt; 1</td><td>FAILED/SKIPPED</td><td>SKIP</td><td>FAILED</td></tr>
+     * <tr><td>7</td><td>Consumer</td><td>&gt; 1</td><td>N/A</td><td>SKIP</td><td>SKIP</td></tr>
      * </table>
      * 
      * This is case 4
@@ -1431,12 +1431,12 @@ public class PhasedTestManagerTests {
     * <caption>Use Cases for Scenario Sates</caption>
     * <tr><th>CASE</th><th>Phase</th><th>Current step Nr</th><th>Previous Step Result</th><th>Expected result</th><th>MERGED RESULT</th></tr>
     * <tr><td>1</td><td>Producer/NonPhased</td><td>1</td><td>N/A</td><td>Continue</td><td>PASSED</td></tr>
-    * <tr><td>2</td><td>Producer/NonPhased</td><td>> 1</td><td>FAILED</td><td>SKIP</td><td>FAILED</td></tr>
-    * <tr><td>3</td><td>Producer/NonPhased</td><td>> 1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
+    * <tr><td>2</td><td>Producer/NonPhased</td><td>&gt; 1</td><td>FAILED</td><td>SKIP</td><td>FAILED</td></tr>
+    * <tr><td>3</td><td>Producer/NonPhased</td><td>&gt; 1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
     * <tr><td>4</td><td>Consumer</td>          <td>1</td><td>N/A</td><td>Continue</td><td>PASSED</td></tr>
-    * <tr><td>5</td><td>Consumer</td>          <td>>1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
-    * <tr><td>6</td><td>Consumer</td>          <td>>1</td><td>FAILED/SKIPPED</td><td>SKIP</td><td>FAILED</td></tr>
-    * <tr><td>7</td><td>Consumer</td>          <td>>1</td><td>N/A</td><td>SKIP</td><td>SKIP</td></tr>
+    * <tr><td>5</td><td>Consumer</td>          <td>&gt; 1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
+    * <tr><td>6</td><td>Consumer</td>          <td>&gt; 1</td><td>FAILED/SKIPPED</td><td>SKIP</td><td>FAILED</td></tr>
+    * <tr><td>7</td><td>Consumer</td>          <td>&gt; 1</td><td>N/A</td><td>SKIP</td><td>SKIP</td></tr>
     * </table>
     * 
     * This is case 5
@@ -1494,12 +1494,12 @@ public class PhasedTestManagerTests {
     * <caption>Use Cases for Scenario Sates</caption>
     * <tr><th>CASE</th><th>Phase</th><th>Current step Nr</th><th>Previous Step Result</th><th>Expected result</th><th>MERGED RESULT</th></tr>
     * <tr><td>1</td><td>Producer/NonPhased</td><td>1</td><td>N/A</td><td>Continue</td><td>PASSED</td></tr>
-    * <tr><td>2</td><td>Producer/NonPhased</td><td>> 1</td><td>FAILED</td><td>SKIP</td><td>FAILED</td></tr>
-    * <tr><td>3</td><td>Producer/NonPhased</td><td>> 1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
+    * <tr><td>2</td><td>Producer/NonPhased</td><td>&gt; 1</td><td>FAILED</td><td>SKIP</td><td>FAILED</td></tr>
+    * <tr><td>3</td><td>Producer/NonPhased</td><td>&gt; 1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
     * <tr><td>4</td><td>Consumer</td>          <td>1</td><td>N/A</td><td>Continue</td><td>PASSED</td></tr>
-    * <tr><td>5</td><td>Consumer</td>          <td>>1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
-    * <tr><td>6</td><td>Consumer</td>          <td>>1</td><td>FAILED/SKIPPED</td><td>SKIP</td><td>FAILED</td></tr>
-    * <tr><td>7</td><td>Consumer</td>          <td>>1</td><td>N/A</td><td>SKIP</td><td>SKIP</td></tr>
+    * <tr><td>5</td><td>Consumer</td>          <td>&gt; 1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
+    * <tr><td>6</td><td>Consumer</td>          <td>&gt; 1</td><td>FAILED/SKIPPED</td><td>SKIP</td><td>FAILED</td></tr>
+    * <tr><td>7</td><td>Consumer</td>          <td>&gt; 1</td><td>N/A</td><td>SKIP</td><td>SKIP</td></tr>
     * </table>
     * 
     * This is case 6
@@ -1559,12 +1559,12 @@ public class PhasedTestManagerTests {
      * <caption>Use Cases for Scenario Sates</caption>
      * <tr><th>CASE</th><th>Phase</th><th>Current step Nr</th><th>Previous Step Result</th><th>Expected result</th><th>MERGED RESULT</th></tr>
      * <tr><td>1</td><td>Producer/NonPhased</td><td>1</td><td>N/A</td><td>Continue</td><td>PASSED</td></tr>
-     * <tr><td>2</td><td>Producer/NonPhased</td><td>> 1</td><td>FAILED</td><td>SKIP</td><td>FAILED</td></tr>
-     * <tr><td>3</td><td>Producer/NonPhased</td><td>> 1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
+     * <tr><td>2</td><td>Producer/NonPhased</td><td>&gt; 1</td><td>FAILED</td><td>SKIP</td><td>FAILED</td></tr>
+     * <tr><td>3</td><td>Producer/NonPhased</td><td>&gt; 1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
      * <tr><td>4</td><td>Consumer</td>          <td>1</td><td>N/A</td><td>Continue</td><td>PASSED</td></tr>
-     * <tr><td>5</td><td>Consumer</td>          <td>>1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
-     * <tr><td>6</td><td>Consumer</td>          <td>>1</td><td>FAILED/SKIPPED</td><td>SKIP</td><td>FAILED</td></tr>
-     * <tr><td>7</td><td>Consumer</td>          <td>>1</td><td>N/A</td><td>SKIP</td><td>SKIP</td></tr>
+     * <tr><td>5</td><td>Consumer</td>          <td>&gt; 1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
+     * <tr><td>6</td><td>Consumer</td>          <td>&gt; 1</td><td>FAILED/SKIPPED</td><td>SKIP</td><td>FAILED</td></tr>
+     * <tr><td>7</td><td>Consumer</td>          <td>&gt; 1</td><td>N/A</td><td>SKIP</td><td>SKIP</td></tr>
      * </table>
      * 
      * This is case 7
@@ -1614,12 +1614,12 @@ public class PhasedTestManagerTests {
      * <caption>Use Cases for Scenario Sates</caption>
      * <tr><th>CASE</th><th>Phase</th><th>Current stepthr</th><th>Previous Step Result</th><th>Expected result</th><th>MERGED RESULT</th></tr>
      * <tr><td>1</td><td>Producer/NonPhased</td><td>1</td><td>N/A</td><td>Continue</td><td>PASSED</td></tr>
-     * <tr><td>2</td><td>Producer/NonPhased</td><td>> 1</td><td>FAILED</td><td>SKIP</td><td>FAILED</td></tr>
-     * <tr><td>3</td><td>Producer/NonPhased</td><td>> 1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
+     * <tr><td>2</td><td>Producer/NonPhased</td><td>&gt; 1</td><td>FAILED</td><td>SKIP</td><td>FAILED</td></tr>
+     * <tr><td>3</td><td>Producer/NonPhased</td><td>&gt; 1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
      * <tr><td>4</td><td>Consumer</td><td>1</td><td>N/A</td><td>Continue</td><td>PASSED</td></tr>
-     * <tr><td>5</td><td>Consumer</td><td>>1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
-     * <tr><td>6</td><td>Consumer</td><td>>1</td><td>FAILED/SKIPPED</td><td>SKIP</td><td>FAILED</td></tr>
-     * <tr><td>7</td><td>Consumer</td><td>>1</td><td>N/A</td><td>SKIP</td><td>SKIP</td></tr>
+     * <tr><td>5</td><td>Consumer</td><td>&gt; 1</td><td>PASSED</td><td>Continue</td><td>PASSED</td></tr>
+     * <tr><td>6</td><td>Consumer</td><td>&gt; 1</td><td>FAILED/SKIPPED</td><td>SKIP</td><td>FAILED</td></tr>
+     * <tr><td>7</td><td>Consumer</td><td>&gt; 1</td><td>N/A</td><td>SKIP</td><td>SKIP</td></tr>
      * </table>
      * 
      * This is case ???
