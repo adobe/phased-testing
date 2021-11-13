@@ -279,6 +279,7 @@ A configuration check is done in the beginning. The phased test steps are checke
 - Upgraded java version to Java 11
 - Activated sonar scans
 - Solved Sonar highlighted bugs #20, #21, #23, #24
+- Fixed issue #28 where the skip message when no steps have been executed previously for the current scenario phase group happens
 
 ### 7.0.7
 - Migrated to the public git repository.
