@@ -75,7 +75,8 @@ public class PhasedTestManager {
      */
     public enum ScenarioState {
         CONTINUE, SKIP_NORESULT, SKIP_PREVIOUS_FAILURE
-    }  
+   }  
+
   
     protected static Properties phasedCache = new Properties();
 
@@ -974,7 +975,8 @@ public class PhasedTestManager {
      * be the class including the phase test group. It allows us to know if the
      * test is allowed to continue.
      * 
-     * Once the context is logged as false for a test it remains false
+     * Once the context is logged as false for a test it re
+     s false
      *
      * Author : gandomi
      *
