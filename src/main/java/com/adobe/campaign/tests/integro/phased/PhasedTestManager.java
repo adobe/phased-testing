@@ -75,9 +75,7 @@ public class PhasedTestManager {
      */
     public enum ScenarioState {
         CONTINUE, SKIP_NORESULT, SKIP_PREVIOUS_FAILURE
-    };
-
-  
+    }  
   
     protected static Properties phasedCache = new Properties();
 
