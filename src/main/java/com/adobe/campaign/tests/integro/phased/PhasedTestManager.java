@@ -27,7 +27,6 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
@@ -67,6 +66,19 @@ public class PhasedTestManager {
 
     public static final String STD_MERGE_STEP_ERROR_PREFIX = "Phased Error: Failure in step ";
 
+    /**
+     * The different states a step can assume in a scenario
+     *
+     *
+     * Author : gandomi
+     *
+     */
+    public enum ScenarioState {
+        CONTINUE, SKIP_NORESULT, SKIP_PREVIOUS_FAILURE
+    };
+
+  
+  
     protected static Properties phasedCache = new Properties();
 
     protected static Map<String, MethodMapping> methodMap = new HashMap<>();
@@ -1002,37 +1014,111 @@ public class PhasedTestManager {
      * we will continue.
      * <p>
      * There is one Exception. If the cause of the failure is the current test.
+     * 
+     * <table>
+     * <caption>Use Cases for Scenario States</caption>
+     * <tr>
+     * <th>CASE</th>
+     * <th>Phase</th>
+     * <th>Current step Nr</th>
+     * <th>Previous Step Result</th>
+     * <th>Expected result</th>
+     * <th>MERGED RESULT</th></tr>
+     * <tr>
+     * <td>1</td>
+     * <td>Producer/NonPhased</td>
+     * <td>1</td>
+     * <td>N/A</td>
+     * <td>Continue</td>
+     * <td>PASSED</td>
+     * </tr>
+     * <tr>
+     * <td>2</td>
+     * <td>Producer/NonPhased</td>
+     * <td>&gt; 1</td>
+     * <td>FAILED</td>
+     * <td>SKIP</td>
+     * <td>FAILED</td>
+     * </tr>
+     * <tr>
+     * <td>3</td>
+     * <td>Producer/NonPhased</td>
+     * <td>&gt; 1</td>
+     * <td>PASSED</td>
+     * <td>Continue</td>
+     * <td>PASSED</td>
+     * </tr>
+     * <tr>
+     * <td>4</td>
+     * <td>Consumer</td>
+     * <td>1</td>
+     * <td>N/A</td>
+     * <td>Continue</td>
+     * <td>PASSED</td>
+     * </tr>
+     * <tr>
+     * <td>5</td>
+     * <td>Consumer</td>
+     * <td>&gt; 1</td>
+     * <td>PASSED</td>
+     * <td>Continue</td>
+     * <td>PASSED</td>
+     * </tr>
+     * <tr>
+     * <td>6</td>
+     * <td>Consumer</td>
+     * <td>&gt; 1</td>
+     * <td>FAIED/SKIPPED</td>
+     * <td>SKIP</td>
+     * <td>FAILED</td>
+     * </tr>
+     * <tr>
+     * <td>7</td>
+     * <td>Consumer</td>
+     * <td>&gt; 1</td>
+     * <td>N/A</td>
+     * <td>SKIP</td>
+     * <td>SKIP</td>
+     * </tr>
+     * </table>
      *
      * Author : gandomi
      *
      * @param in_testResult
      *        The test result
-     * @return true if the log state is equal to true (1) or if we have not yet
-     *         stored a context for the scenario.
+     * @return A decision regarding the continuation of the scenario. We also
+     *         provide the reasons as to why the skipping happens.
+     *         ScenarioState.SKIP_NORESULT returns when we should skip due to
+     *         non-execution of a previous step. SKIP_PREVIOUS_FAILURE is
+     *         returned when we are supposed o skip because of a failure in a
+     *         previous step
      *
      */
-    public static boolean scenarioStateContinue(ITestResult in_testResult) {
+    public static ScenarioState scenarioStateDecision(ITestResult in_testResult) {
         final String l_scenarioName = fetchScenarioName(in_testResult);
-
-        //Case 1  Producer/NonPhased  1   Not exists  Continue    true    testStateIstKeptBetweenPhases_Continue
+        //Case      PHASE               STEP        
+        //Case 1    Producer/NonPhased  1           N/A             Continue    true    testStateIstKeptBetweenPhases_Continue
         //Case 2   Producer/NonPhased  > 1     FAILED/Skipped  SKIP    false   
         //Case 3   Producer/NonPhased  > 1     Passed  Continue    true    testStateIstKeptBetweenPhases_Continue
-        //Case 4   Consumer    1   Not Exists  Continue    true    testStateIstKeptBetweenPhases_Continue
+        //Case 4    Consumer           1            N/A  Continue    true    testStateIstKeptBetweenPhases_Continue
         //Case 5   Cosnumer    > 1     Passed  Continue    true    
         //Case 6   Cosnumer    > 1     Failed/Skipped  SKIP    false   
-        //Case 7   Cosnumer    > 1     Not Exists  SKIP    false
+        //Case 7    Cosnumer           > 1          N/A  SKIP    false
 
         //#43 to change this to false
+        //If scenario has not yet been executed in the current phase 
         if (!phasedCache.containsKey(l_scenarioName)) {
-
-            return !hasStepsExecutedInProducer(in_testResult);
+            //True only if we are executing end to end 0_X
+            return hasStepsExecutedInProducer(in_testResult) ? ScenarioState.SKIP_NORESULT
+                    : ScenarioState.CONTINUE;
         }
 
         if (phasedCache.get(l_scenarioName).equals(ClassPathParser.fetchFullName(in_testResult))) {
-            return true;
+            return ScenarioState.CONTINUE;
         }
 
-        return phasedCache.get(l_scenarioName).equals(Boolean.TRUE.toString());
+        return phasedCache.get(l_scenarioName).equals(Boolean.TRUE.toString()) ? ScenarioState.CONTINUE
+                : ScenarioState.SKIP_PREVIOUS_FAILURE;
     }
 
     /**
