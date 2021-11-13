@@ -145,12 +145,21 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
 
             PhasedTestManager.storePhasedContext(ClassPathParser.fetchFullName(l_method), l_dataProvider);
 
-            if (!PhasedTestManager.scenarioStateContinue(result)) {
-                final String skipMessage = PhasedTestManager.PHASED_TEST_LOG_PREFIX
+            switch (PhasedTestManager.scenarioStateDecision(result)) {
+                case SKIP_PREVIOUS_FAILURE : 
+                        final String skipMessageSKIPFAILURE = PhasedTestManager.PHASED_TEST_LOG_PREFIX
                         + "Skipping scenario step " + ClassPathParser.fetchFullName(result)
                         + " due to failure in a previous steps.";
-                log.info(skipMessage);
-                throw new SkipException(skipMessage);
+                        log.info(skipMessageSKIPFAILURE);
+                        throw new SkipException(skipMessageSKIPFAILURE);
+                case SKIP_NORESULT : 
+                            final String skipMessageNoResult = PhasedTestManager.PHASED_TEST_LOG_PREFIX
+                            + "Skipping scenario step " + ClassPathParser.fetchFullName(result)
+                            + " because the previous steps have no been execued.";
+                        log.error(skipMessageNoResult);
+                        throw new SkipException(skipMessageNoResult);
+                default : 
+                    //Continue
             }
         }
     }
@@ -228,7 +237,7 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
      */
     protected void standardPostTestActions(ITestResult result) {
         if (PhasedTestManager.isPhasedTest(result.getMethod().getConstructorOrMethod().getMethod())) {
-            //TRIM add propety check
+            //TRIM add property check
             appendShuffleGroupToName(result);
             PhasedTestManager.scenarioStateStore(result);
         }

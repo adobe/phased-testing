@@ -206,6 +206,15 @@ By default we deactivate retry analyzer for the phased tests. However if you rea
 #### PHASED.TESTS.REPORT.BY.PHASE_GROUP
 By default we do not modify reports. Each step in a scenario is reported as is. We have introduced a "Report By Phase Group" functionality, which is activated with this property.
 
+## Phase Contexts - Managing the Scenario Step Executions
+Although we try to keep the execution of a scenario like any other test scenario, we feel that it is useful to document how he state of a scenario works.
+
+### On Failure
+Whenever a scenario step fails the following steps are marked as SKIPPED.
+
+### On Non-Execution of a Phase
+If a phase is not executed, the steps in the next phase are also SKIPPED.
+
 ## Managing Phased Data
 The way data is stored between two phases is in two ways:
 * Simple properties file (Default)
