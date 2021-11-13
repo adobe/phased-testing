@@ -24,7 +24,7 @@ The following dependency needs to be added to your pom file:
  <dependency>
     <groupId>com.adobe.campaign.tests.phased</groupId>
     <artifactId>phased-testing-testng</artifactId>
-    <version>7.0.7</version>
+    <version>7.0.8</version>
 </dependency>
 ```
  
@@ -206,6 +206,15 @@ By default we deactivate retry analyzer for the phased tests. However if you rea
 #### PHASED.TESTS.REPORT.BY.PHASE_GROUP
 By default we do not modify reports. Each step in a scenario is reported as is. We have introduced a "Report By Phase Group" functionality, which is activated with this property.
 
+## Phase Contexts - Managing the Scenario Step Executions
+Although we try to keep the execution of a scenario like any other test scenario, we feel that it is useful to document how he state of a scenario works.
+
+### On Failure
+Whenever a scenario step fails the following steps are marked as SKIPPED.
+
+### On Non-Execution of a Phase
+If a phase is not executed, the steps in the next phase are also SKIPPED.
+
 ## Managing Phased Data
 The way data is stored between two phases is in two ways:
 * Simple properties file (Default)
@@ -266,6 +275,12 @@ We now allow for a user to also include data providers in connection to Phased T
 A configuration check is done in the beginning. The phased test steps are checked and their arguments are compared to the number of data providers + the injected data provider for phased tests. If the number of arguments does not correspond to the total number of data providers, a `PhasedTestConfigurationException` is thrown right at the beginning.
 
 ## Release Notes
+### 7.0.8
+- Upgraded java version to Java 11
+- Activated sonar scans
+- Solved Sonar highlighted bugs #20, #21, #23, #24
+- Fixed issue #28 where the skip message when no steps have been executed previously for the current scenario phase group happens
+
 ### 7.0.7
 - Migrated to the public git repository.
 
