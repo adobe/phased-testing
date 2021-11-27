@@ -67,6 +67,7 @@ public class PhasedTestManagerTests {
         System.clearProperty(PhasedTestManager.PROP_SELECTED_PHASE);
         System.clearProperty(PhasedTestManager.PROP_PHASED_TEST_DATABROKER);
         System.clearProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS);
+        System.clearProperty(PhasedTestManager.PROP_TEST_SELECTION_BY_PROPERTIES);
 
         PhasedTestManager.deactivateMergedReports();
         PhasedTestManager.MergedReportData.resetReport();
@@ -3217,5 +3218,4 @@ public class PhasedTestManagerTests {
                         PhasedSeries_H_SingleClass.class.getTypeName()));
 
     }
-
 }

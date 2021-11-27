@@ -11,39 +11,11 @@
  */
 package com.adobe.campaign.tests.integro.phased;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.testng.IAlterSuiteListener;
-import org.testng.IAnnotationTransformer;
-import org.testng.ITestContext;
-import org.testng.ITestListener;
-import org.testng.ITestNGMethod;
-import org.testng.ITestResult;
-import org.testng.SkipException;
-import org.testng.TestNGException;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterGroups;
-import org.testng.annotations.AfterSuite;
-import org.testng.annotations.AfterTest;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeGroups;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.BeforeTest;
-import org.testng.annotations.IConfigurationAnnotation;
-import org.testng.annotations.ITestAnnotation;
+import org.testng.*;
+import org.testng.annotations.*;
 import org.testng.internal.BaseTestMethod;
 import org.testng.internal.TestResult;
 import org.testng.internal.annotations.DisabledRetryAnalyzer;
@@ -51,7 +23,12 @@ import org.testng.xml.XmlClass;
 import org.testng.xml.XmlSuite;
 import org.testng.xml.XmlTest;
 
-import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class PhasedTestListener implements ITestListener, IAnnotationTransformer, IAlterSuiteListener {
 
@@ -89,13 +66,21 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
             PhasedTestManager.importPhaseData();
         }
 
-        //Attach new classes to suite
-        final Set<XmlClass> l_newXMLTests = PhasedTestManager.fetchExecutedPhasedClasses().stream()
-                .map(XmlClass::new).collect(Collectors.toSet());
-        
-        //add the original test classes
-        l_newXMLTests.addAll(suites.get(0).getTests().get(0).getXmlClasses());
-        suites.get(0).getTests().get(0).setXmlClasses(l_newXMLTests.stream().collect(Collectors.toList()));
+        //Inject the phased tests executed in the previous phase
+        for (XmlTest lt_tests : suites.get(0).getTests().stream()
+                .filter(t -> t.getIncludedGroups().contains(PhasedTestManager.STD_GROUP_SELECT_TESTS_BY_PRODUCER))
+                .collect(Collectors.toList())) {
+
+            PhasedTestManager.activateTestSelectionByProducerMode();
+
+            //Attach new classes to suite
+            final Set<XmlClass> l_newXMLTests = PhasedTestManager.fetchExecutedPhasedClasses().stream()
+                    .map(XmlClass::new).collect(Collectors.toSet());
+
+            //add the original test classes
+            l_newXMLTests.addAll(lt_tests.getXmlClasses());
+            lt_tests.setXmlClasses(l_newXMLTests.stream().collect(Collectors.toList()));
+        }
 
         //Do we keep this?
         IAlterSuiteListener.super.alter(suites);
@@ -361,7 +346,7 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
             PhasedTestManager.exportPhaseData();
         }
 
-        //Activating merge results if the value is set in the sysem properties
+        //Activating merge results if the value is set in the system properties
         if (System.getProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS, "NOTSET")
                 .equalsIgnoreCase("true")) {
             PhasedTestManager.activateMergedReports();
@@ -533,6 +518,17 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
             Method testMethod) {
 
         if (testClass != null) {
+
+            //inject the
+            if (PhasedTestManager.isTestsSelectedByProducerMode() && PhasedTestManager.fetchExecutedPhasedClasses().contains(testClass.getTypeName())) {
+
+                //Create new group array
+                Set<String> l_newArrayString = new HashSet<String>();
+                Arrays.stream(annotation.getGroups()).forEach(i -> l_newArrayString.add(i));
+                l_newArrayString.add(PhasedTestManager.STD_GROUP_SELECT_TESTS_BY_PRODUCER);
+                String[] l_newGroupArray = new String[l_newArrayString.size()];
+                annotation.setGroups(l_newArrayString.toArray(l_newGroupArray));
+            }
 
             if (PhasedTestManager.isPhasedTestShuffledMode(testClass)) {
                 annotation.setDataProvider(PhasedDataProvider.SHUFFLED);

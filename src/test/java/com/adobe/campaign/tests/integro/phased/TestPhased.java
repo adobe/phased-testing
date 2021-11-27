@@ -11,31 +11,17 @@
  */
 package com.adobe.campaign.tests.integro.phased;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.testng.Assert.assertThrows;
-
-import java.io.File;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.stream.Collectors;
-
+import com.adobe.campaign.tests.integro.phased.data.*;
+import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_RecipientClass.PhasedSeries_J_ShuffledClassInAClass;
+import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledDP;
+import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledDPSimple;
+import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledNoArgs;
+import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledWrongArgs;
+import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
+import com.adobe.campaign.tests.integro.phased.utils.TestTools;
 import org.hamcrest.Matchers;
 import org.mockito.Mockito;
-import org.testng.ITestContext;
-import org.testng.ITestNGMethod;
-import org.testng.ITestResult;
-import org.testng.TestListenerAdapter;
-import org.testng.TestNG;
-import org.testng.TestNGException;
+import org.testng.*;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.testng.internal.ConstructorOrMethod;
@@ -44,28 +30,14 @@ import org.testng.xml.XmlPackage;
 import org.testng.xml.XmlSuite;
 import org.testng.xml.XmlTest;
 
-import com.adobe.campaign.tests.integro.phased.data.NormalSeries_A;
-import com.adobe.campaign.tests.integro.phased.data.PhasedDataBrokerTestImplementation;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_A;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_B_NoInActive;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_C_NonAnnotatedDependencies;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_D_SingleNoPhase;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_E_FullMonty;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_F_Shuffle;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_G_DefaultProvider;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClass;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClassWithError;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_SingleClass;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_I_ShuffledProduceKey;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_I_SingleClassProduceTest;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_K_ShuffledClass_noproviders;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_RecipientClass.PhasedSeries_J_ShuffledClassInAClass;
-import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledDP;
-import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledDPSimple;
-import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledNoArgs;
-import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledWrongArgs;
-import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
-import com.adobe.campaign.tests.integro.phased.utils.TestTools;
+import java.io.File;
+import java.lang.reflect.Method;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
+import static org.testng.Assert.assertThrows;
 
 public class TestPhased {
     @BeforeMethod
@@ -80,6 +52,8 @@ public class TestPhased {
         System.clearProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS);
 
         PhasedTestManager.deactivateMergedReports();
+        PhasedTestManager.deactivateTestSelectionByProducerMode();
+
         PhasedTestManager.MergedReportData.resetReport();
 
         //Delete temporary cache
@@ -142,12 +116,9 @@ public class TestPhased {
     }
 
     /**
-     * In this case if no shuffle is possible, and we have not set a Phase Event
-     * we should execute it as a normal test
-     *
+     * In this case if no shuffle is possible, and we have not set a Phase Event we should execute it as a normal test
+     * <p>
      * Author : gandomi
-     *
-     *
      */
     @Test
     public void testSINGLE_whereNoPhaseEventHasBeenSet() {
@@ -181,13 +152,10 @@ public class TestPhased {
     }
 
     /**
-     * In this case when we have not set any value regarding the Phase state we
-     * are in the state IANACTIVE. In this case the execution of not is defined
-     * by the Class Annotation
-     *
+     * In this case when we have not set any value regarding the Phase state we are in the state IANACTIVE. In this case
+     * the execution of not is defined by the Class Annotation
+     * <p>
      * Author : gandomi
-     *
-     *
      */
     @Test
     public void testProducer_ThatTheTestsOnlyExecuteUptoTheLimit_NoValueSet() {
@@ -228,12 +196,10 @@ public class TestPhased {
     }
 
     /**
-     * In this case when we have not set any value regarding the Phase state we
-     * are in the state IANACTIVE. In this case the execution of not is defined
-     * by the Class Annotation
-     *
+     * In this case when we have not set any value regarding the Phase state we are in the state IANACTIVE. In this case
+     * the execution of not is defined by the Class Annotation
+     * <p>
      * Author : gandomi
-     *
      */
     @Test
     public void testInActiveNoExecutions() {
@@ -312,12 +278,9 @@ public class TestPhased {
     }
 
     /**
-     * Related to issue #43 Skip consumer tests if the producer has not been
-     * executed.
-     *
+     * Related to issue #43 Skip consumer tests if the producer has not been executed.
+     * <p>
      * Author : gandomi
-     *
-     *
      */
     @Test
     public void testConsumerShuffled_noProducerHasRun() {
@@ -375,12 +338,9 @@ public class TestPhased {
     }
 
     /**
-     * Related to issue #43 Skip consumer tests if the producer has not been
-     * executed.
-     *
+     * Related to issue #43 Skip consumer tests if the producer has not been executed.
+     * <p>
      * Author : gandomi
-     *
-     *
      */
     @Test
     public void testConsumerSingle_noProducerHasRun() {
@@ -510,10 +470,8 @@ public class TestPhased {
 
     /**
      * Here we check that the consuming a producing is taken into account
-     *
+     * <p>
      * Author : gandomi
-     *
-     *
      */
     @Test
     public void testDataDependencyCheck() {
@@ -1459,12 +1417,9 @@ public class TestPhased {
     }
 
     /**
-     * in this example we check the precedence of the Runtime properties over
-     * the configuration files
-     *
+     * in this example we check the precedence of the Runtime properties over the configuration files
+     * <p>
      * Author : gandomi
-     *
-     *
      */
     @Test
     public void testProducer_SingleRun_DataBrokerSystemProperty() {
@@ -1511,12 +1466,9 @@ public class TestPhased {
     }
 
     /**
-     * in this example we check the precedence of the Runtime properties over
-     * the configuration files
-     *
+     * in this example we check the precedence of the Runtime properties over the configuration files
+     * <p>
      * Author : gandomi
-     *
-     *
      */
     @Test
     public void testProducer_SingleRun_DataBroker_Negative() {
@@ -2602,13 +2554,11 @@ public class TestPhased {
 
     /**
      * Testing the AppendShuffledGroupMethod
-     *
+     * <p>
      * Author : gandomi
-     * 
+     *
      * @throws SecurityException
      * @throws NoSuchMethodException
-     *
-     *
      */
     @SuppressWarnings("unchecked")
     @Test
@@ -2621,7 +2571,9 @@ public class TestPhased {
 
         //TODO replace, since this is invalid in later versions of Mockito
         //Mockito.when(l_itr.getMethod()).thenThrow(NoSuchFieldException.class);
-        Mockito.when(l_itr.getMethod()).thenAnswer(invocation -> { throw new NoSuchFieldException("Mocked Exception"); });
+        Mockito.when(l_itr.getMethod()).thenAnswer(invocation -> {
+            throw new NoSuchFieldException("Mocked Exception");
+        });
         Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "A" });
         Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
         Mockito.when(l_com.getMethod()).thenReturn(l_myTestNoArgs);
@@ -2642,7 +2594,9 @@ public class TestPhased {
 
         //TODO replace, since this is invalid in later versions of Mockito
         //Mockito.when(l_itr.getMethod()).thenThrow(IllegalAccessException.class);
-        Mockito.when(l_itr.getMethod()).thenAnswer(invocation -> { throw new IllegalAccessException("Mocked Exception"); });
+        Mockito.when(l_itr.getMethod()).thenAnswer(invocation -> {
+            throw new IllegalAccessException("Mocked Exception");
+        });
         Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "A" });
         Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
         Mockito.when(l_com.getMethod()).thenReturn(l_myTestNoArgs);
@@ -2946,19 +2900,10 @@ public class TestPhased {
 
     }
 
-    
-    
     /************** Testing issue #9 ******************/
-    
-    /**
-     * Starting from here we use he properties file as a test selector.
-     *
-     * Author : gandomi
-     *
-     *
-     */
+
     @Test
-    public void testConsumer_selectionBasedOnPopertiesFile() {
+    public void testConsumer_selectionBasedOnProducer_Deactivated() {
         // Rampup
         TestNG myTestNG = TestTools.createTestNG();
         TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
@@ -2974,19 +2919,164 @@ public class TestPhased {
 
         Phases.CONSUMER.activate();
         Properties phasedCache = PhasedTestManager.phasedCache;
-        phasedCache.put(PhasedSeries_H_SingleClass.class.getTypeName()+".step2("
+        phasedCache.put(PhasedSeries_H_SingleClass.class.getTypeName() + ".step2("
                 + PhasedTestManager.STD_PHASED_GROUP_SINGLE + ")", "AB");
 
-        PhasedTestManager.storeTestData(PhasedSeries_H_SingleClass.class,
-                PhasedTestManager.STD_PHASED_GROUP_SINGLE, "true");
+        PhasedTestManager
+                .storeTestData(PhasedSeries_H_SingleClass.class, PhasedTestManager.STD_PHASED_GROUP_SINGLE, "true");
+
+        assertThat("We should not be in the SELECT_BY_PRODUCER mode",
+                !PhasedTestManager.isTestsSelectedByProducerMode());
 
         myTestNG.run();
 
-        assertThat("We should have 1 successful methods of phased Tests",
+        assertThat("We should not be in the SELECT_BY_PRODUCER mode",
+                !PhasedTestManager.isTestsSelectedByProducerMode());
+
+        assertThat(
+                "Since we have not passed the test group PHASED_PRODUCED_TESTS, we should have no successful methods of phased Tests",
                 tla.getPassedTests().stream()
                         .filter(m -> m.getInstance().getClass().equals(PhasedSeries_H_SingleClass.class))
-                        .collect(Collectors.toList()).size(),
-                is(equalTo(1)));
+                        .collect(Collectors.toList()).size(), is(equalTo(0)));
+    }
 
+    /**
+     * Starting from here we use he properties file as a test selector.
+     * <p>
+     * Author : gandomi
+     */
+    @Test
+    public void testConsumer_selectionBasedOnProducerFile() {
+        // Rampup
+        TestNG myTestNG = TestTools.createTestNG();
+        TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
+
+        // Define suites
+        XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG, "Automated Suite Phased Testing");
+
+        // Add listeners
+        mySuite.addListener(PhasedTestListener.class.getTypeName());
+
+        // Create an instance of XmlTest and assign a name for it.
+        XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Phased Tests");
+
+        //This activates the selection
+        myTest.addIncludedGroup(PhasedTestManager.STD_GROUP_SELECT_TESTS_BY_PRODUCER);
+
+        Phases.CONSUMER.activate();
+        Properties phasedCache = PhasedTestManager.phasedCache;
+        phasedCache.put(PhasedSeries_H_SingleClass.class.getTypeName() + ".step2("
+                + PhasedTestManager.STD_PHASED_GROUP_SINGLE + ")", "AB");
+
+        PhasedTestManager
+                .storeTestData(PhasedSeries_H_SingleClass.class, PhasedTestManager.STD_PHASED_GROUP_SINGLE, "true");
+
+        assertThat("We should not be in the SELECT_BY_PRODUCER mode",
+                !PhasedTestManager.isTestsSelectedByProducerMode());
+
+        myTestNG.run();
+
+        assertThat("We should be in the SELECT_BY_PRODUCER mode", PhasedTestManager.isTestsSelectedByProducerMode());
+
+        assertThat("The number of tests should not have changed",
+                tla.getTestContexts().get(0).getSuite().getXmlSuite().getTests().size(), equalTo(1));
+
+        assertThat("We should have 1 successful methods of phased Tests", tla.getPassedTests().stream()
+                .filter(m -> m.getInstance().getClass().equals(PhasedSeries_H_SingleClass.class))
+                .collect(Collectors.toList()).size(), is(equalTo(1)));
+
+    }
+
+    /**
+     * In this test the same phased test is select by direct group selection and by selection through producer what we
+     * want is that this test should only be executed once
+     */
+    @Test
+    public void testSelectedByProducer_groupSelected() {
+        // Rampup
+        TestNG myTestNG = TestTools.createTestNG();
+        TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
+
+        // Define suites
+        XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG, "Automated Suite Phased Testing");
+
+        // Add listeners
+        mySuite.addListener(PhasedTestListener.class.getTypeName());
+
+        // Create an instance of XmlTest and assign a name for it.
+        XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Repetetive Phased Tests Producer");
+
+        //Define packages
+        List<XmlPackage> l_packages = new ArrayList<>();
+        l_packages.add(new XmlPackage("com.adobe.campaign.tests.integro.phased.data"));
+        myTest.setXmlPackages(l_packages);
+
+        myTest.addIncludedGroup("PROPERTIES_SELECT");
+
+        Phases.CONSUMER.activate();
+
+        //Fill producer data
+        Properties phasedCache = PhasedTestManager.phasedCache;
+        phasedCache.put(PhasedSeries_H_SingleClass.class.getTypeName() + ".step2("
+                + PhasedTestManager.STD_PHASED_GROUP_SINGLE + ")", "AB");
+
+        PhasedTestManager
+                .storeTestData(PhasedSeries_H_SingleClass.class, PhasedTestManager.STD_PHASED_GROUP_SINGLE, "true");
+
+        myTestNG.run();
+
+        assertThat("We should have 1 successful methods of phased Tests", tla.getPassedTests().stream()
+                .filter(m -> m.getInstance().getClass().equals(PhasedSeries_H_SingleClass.class))
+                .collect(Collectors.toList()).size(), is(equalTo(1)));
+    }
+
+    /**
+     * Testing how the feature of selection by properties works if we have many tests. In this example we have two
+     * tests. The first one executes a normal test. The second one has the execute by producer activated
+     */
+    @Test
+    public void testSelectByProperties_multiTest() {
+        // Rampup
+        TestNG myTestNG = TestTools.createTestNG();
+        TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
+
+        // Define suites
+        XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG, "Automated Suite Phased Testing");
+
+        // Add listeners
+        mySuite.addListener(PhasedTestListener.class.getTypeName());
+
+        // Test1 - include a simple test
+        XmlTest myTest1 = TestTools.attachTestToSuite(mySuite, "Two tests in suite #1. Normal test");
+
+        //Define packages
+        List<XmlPackage> l_packages = new ArrayList<>();
+        l_packages.add(new XmlPackage("com.adobe.campaign.tests.integro.phased.data"));
+        myTest1.setXmlPackages(l_packages);
+
+        myTest1.addIncludedGroup("PROPERTIES_TEST2");
+
+        //Test 2 - Include the phased test to be selected from producer
+
+        XmlTest myTest2 = TestTools.attachTestToSuite(mySuite, "Two tests in suite. Contains phased test.");
+
+        //This activates the selection for selection by Producerr
+        myTest2.addIncludedGroup(PhasedTestManager.STD_GROUP_SELECT_TESTS_BY_PRODUCER);
+
+        Phases.CONSUMER.activate();
+
+        //Fill producer data
+        Properties phasedCache = PhasedTestManager.phasedCache;
+        phasedCache.put(PhasedSeries_H_SingleClass.class.getTypeName() + ".step2("
+                + PhasedTestManager.STD_PHASED_GROUP_SINGLE + ")", "AB");
+
+        PhasedTestManager
+                .storeTestData(PhasedSeries_H_SingleClass.class, PhasedTestManager.STD_PHASED_GROUP_SINGLE, "true");
+
+        myTestNG.run();
+
+        assertThat("We should have 1 successful methods of phased Tests", tla.getPassedTests().stream()
+                .filter(m -> m.getInstance().getClass().equals(PhasedSeries_H_SingleClass.class))
+                .collect(Collectors.toList()).size(), is(equalTo(1)));
     }
 }
