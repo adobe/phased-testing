@@ -67,7 +67,7 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
         }
 
         //Inject the phased tests executed in the previous phase
-        for (XmlTest lt_tests : suites.get(0).getTests().stream()
+        for (XmlTest lt_xmlTest : suites.get(0).getTests().stream()
                 .filter(t -> t.getIncludedGroups().contains(PhasedTestManager.STD_GROUP_SELECT_TESTS_BY_PRODUCER))
                 .collect(Collectors.toList())) {
 
@@ -78,8 +78,8 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
                     .map(XmlClass::new).collect(Collectors.toSet());
 
             //add the original test classes
-            l_newXMLTests.addAll(lt_tests.getXmlClasses());
-            lt_tests.setXmlClasses(l_newXMLTests.stream().collect(Collectors.toList()));
+            l_newXMLTests.addAll(lt_xmlTest.getXmlClasses());
+            lt_xmlTest.setXmlClasses(l_newXMLTests.stream().collect(Collectors.toList()));
         }
 
         //Do we keep this?

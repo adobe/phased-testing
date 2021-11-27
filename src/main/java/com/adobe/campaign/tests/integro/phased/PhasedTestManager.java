@@ -1152,9 +1152,8 @@ public class PhasedTestManager {
      */
     public static void generateStepFailure(ITestResult in_failedTestResult) {
         if (in_failedTestResult.getStatus() != ITestResult.FAILURE) {
-            throw new IllegalArgumentException(
-                    "The given Test Result for " + in_failedTestResult.getMethod().getMethodName()
-                            + " is not a failed test.");
+            throw new IllegalArgumentException("The given Test Result for "
+                    + in_failedTestResult.getMethod().getMethodName() + " is not a failed test.");
         }
         Throwable l_thrownException = in_failedTestResult.getThrowable();
         StringBuilder sb = new StringBuilder();
@@ -1325,8 +1324,8 @@ public class PhasedTestManager {
             return lr_defaultReturnValue;
         }
 
-        if (l_dataproviderName.equals(PhasedTestManager.STD_PHASED_GROUP_SINGLE) || l_dataproviderName
-                .startsWith(PhasedTestManager.STD_PHASED_GROUP_PREFIX)) {
+        if (l_dataproviderName.equals(PhasedTestManager.STD_PHASED_GROUP_SINGLE)
+                || l_dataproviderName.startsWith(PhasedTestManager.STD_PHASED_GROUP_PREFIX)) {
             return lr_defaultReturnValue;
         }
 
@@ -1342,8 +1341,8 @@ public class PhasedTestManager {
         //Fetch the dataprovider method
         Method m = Arrays.asList(l_dataProviderClass.getDeclaredMethods()).stream()
                 .filter(a -> a.isAnnotationPresent(DataProvider.class))
-                .filter(f -> f.getDeclaredAnnotation(DataProvider.class).name().equals(l_dataproviderName)).findFirst()
-                .orElse(null);
+                .filter(f -> f.getDeclaredAnnotation(DataProvider.class).name().equals(l_dataproviderName))
+                .findFirst().orElse(null);
 
         if (m != null) {
             //In case of private data providers
@@ -1351,12 +1350,13 @@ public class PhasedTestManager {
         } else {
             throw new PhasedTestConfigurationException(
                     "No method found which matched the data provider class " + l_dataProviderClass.getTypeName()
-                            + " or data prrovider name " + l_dataproviderName);
+                            + " or data provider name " + l_dataproviderName);
         }
 
         try {
             return (Object[][]) m.invoke(l_dataProviderClass.newInstance(), new Object[0]);
-        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | InstantiationException e) {
+        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException
+                | InstantiationException e) {
             log.error(PhasedTestManager.PHASED_TEST_LOG_PREFIX
                     + "Problem when fetching the user defined data providers.");
             throw new PhasedTestConfigurationException("Unable to call thee data provider method", e);
@@ -1418,10 +1418,11 @@ public class PhasedTestManager {
             Field exceptionMessage = l_changeClass.getDeclaredField("detailMessage");
             exceptionMessage.setAccessible(true);
             exceptionMessage.set(in_exception, in_newMessage);
-        } catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
+        } catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException
+                | SecurityException e) {
 
             throw new PhasedTestConfigurationException(
-                    "We were unable to chnage the message in the thrown exception " + in_exception.getClass().getName(),
+                    "We were unable to change the message in the thrown exception " + in_exception.getClass().getName(),
                     e);
         }
 
