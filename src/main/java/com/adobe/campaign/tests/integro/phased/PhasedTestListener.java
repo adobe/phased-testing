@@ -36,7 +36,7 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
 
     @Override
     public void alter(List<XmlSuite> suites) {
-        /*** Import DataBroker ***/
+        // *** Import DataBroker ***
         String l_phasedDataBrokerClass = null;
         if (System.getProperties().containsKey(PhasedTestManager.PROP_PHASED_TEST_DATABROKER)) {
             l_phasedDataBrokerClass = System.getProperty(PhasedTestManager.PROP_PHASED_TEST_DATABROKER);
@@ -60,7 +60,7 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
             }
         }
 
-        /*** import context for consumer ***/
+        // *** import context for consumer ***
         //The second condition is there for testing purposes. You can bypass the file by filling the Test
         if (Phases.CONSUMER.isSelected() && PhasedTestManager.getPhasedCache().isEmpty()) {
             PhasedTestManager.importPhaseData();
@@ -79,7 +79,7 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
 
             //add the original test classes
             l_newXMLTests.addAll(lt_xmlTest.getXmlClasses());
-            lt_xmlTest.setXmlClasses(l_newXMLTests.stream().collect(Collectors.toList()));
+            lt_xmlTest.setXmlClasses(new ArrayList<>(l_newXMLTests));
         }
 
         //Do we keep this?
@@ -225,7 +225,6 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
             Field methodName = BaseTestMethod.class.getDeclaredField("m_methodName");
             methodName.setAccessible(true);
             methodName.set(in_testResult.getMethod(), l_newName);
-            String debug = in_testResult.getMethod().getMethodName();
         } catch (IllegalAccessException | NoSuchFieldException e) {
             throw new PhasedTestException(
                     "Error while changing the phased step name " + in_testResult.getName() + ".", e);
@@ -420,7 +419,7 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
 
                         if (PhasedTestManager.fetchScenarioName(lt_currentSkip).equals(lt_phasedClass)) {
 
-                            if (l_allSkipped == false) {
+                            if (!l_allSkipped) {
                                 log.debug(PhasedTestManager.PHASED_TEST_LOG_PREFIX + "Removing "
                                         + ClassPathParser.fetchFullName(lt_currentSkip)
                                         + " because there are unskipped values.");

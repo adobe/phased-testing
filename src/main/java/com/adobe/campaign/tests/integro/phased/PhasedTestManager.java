@@ -769,8 +769,8 @@ public class PhasedTestManager {
 
         if (PhasedTestManager.isPhasedTestSingleMode(in_method)) {
             final Class<?> l_declaringClass = in_method.getDeclaringClass();
-            List<Method> l_myMethods = Arrays.asList(l_declaringClass.getMethods()).stream()
-                    .filter(f -> PhasedTestManager.isPhasedTest(f)).collect(Collectors.toList());
+            List<Method> l_myMethods = Arrays.stream(l_declaringClass.getMethods())
+                    .filter(PhasedTestManager::isPhasedTest).collect(Collectors.toList());
 
             Comparator<Method> compareMethodByName = (Method m1, Method m2) -> m1.getName().compareTo(m2.getName());
 
@@ -1240,29 +1240,12 @@ public class PhasedTestManager {
     }
 
     /**
-     * Allows you to defined the generated name when phased steps are merged for
-     * a scenario. If nothing is set we use the phase group.
-     * <p>
-     * Author : gandomi
-     *
-     * @param in_prefix A sorted set of report elements to be added as prefix to the
-     *                  scenario name
-     * @param in_suffix A sorted set of report elements to be added as suffix to the
-     *                  scenario name
-     */
-    public static void configureMergedReportName(LinkedHashSet<PhasedReportElements> in_prefix,
-            LinkedHashSet<PhasedReportElements> in_suffix) {
-        MergedReportData.configureMergedReportName(in_prefix, in_suffix);
-    }
-
-    /**
      * With this method we activate the merged reports
      * <p>
      * Author : gandomi
      */
     public static void activateMergedReports() {
         mergedReportsActivated = true;
-
     }
 
     /**
@@ -1339,7 +1322,7 @@ public class PhasedTestManager {
         }
 
         //Fetch the dataprovider method
-        Method m = Arrays.asList(l_dataProviderClass.getDeclaredMethods()).stream()
+        Method m = Arrays.stream(l_dataProviderClass.getDeclaredMethods())
                 .filter(a -> a.isAnnotationPresent(DataProvider.class))
                 .filter(f -> f.getDeclaredAnnotation(DataProvider.class).name().equals(l_dataproviderName))
                 .findFirst().orElse(null);
