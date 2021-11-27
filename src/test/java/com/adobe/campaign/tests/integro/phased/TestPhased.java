@@ -11,32 +11,17 @@
  */
 package com.adobe.campaign.tests.integro.phased;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.testng.Assert.assertThrows;
-
-import java.io.File;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.stream.Collectors;
-
+import com.adobe.campaign.tests.integro.phased.data.*;
+import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_RecipientClass.PhasedSeries_J_ShuffledClassInAClass;
+import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledDP;
+import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledDPSimple;
+import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledNoArgs;
+import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledWrongArgs;
+import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
+import com.adobe.campaign.tests.integro.phased.utils.TestTools;
 import org.hamcrest.Matchers;
 import org.mockito.Mockito;
-import org.testng.ITestContext;
-import org.testng.ITestNGMethod;
-import org.testng.ITestResult;
-import org.testng.TestListenerAdapter;
-import org.testng.TestNG;
-import org.testng.TestNGException;
+import org.testng.*;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.testng.internal.ConstructorOrMethod;
@@ -45,28 +30,14 @@ import org.testng.xml.XmlPackage;
 import org.testng.xml.XmlSuite;
 import org.testng.xml.XmlTest;
 
-import com.adobe.campaign.tests.integro.phased.data.NormalSeries_A;
-import com.adobe.campaign.tests.integro.phased.data.PhasedDataBrokerTestImplementation;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_A;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_B_NoInActive;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_C_NonAnnotatedDependencies;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_D_SingleNoPhase;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_E_FullMonty;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_F_Shuffle;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_G_DefaultProvider;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClass;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClassWithError;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_SingleClass;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_I_ShuffledProduceKey;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_I_SingleClassProduceTest;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_K_ShuffledClass_noproviders;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_RecipientClass.PhasedSeries_J_ShuffledClassInAClass;
-import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledDP;
-import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledDPSimple;
-import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledNoArgs;
-import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledWrongArgs;
-import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
-import com.adobe.campaign.tests.integro.phased.utils.TestTools;
+import java.io.File;
+import java.lang.reflect.Method;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
+import static org.testng.Assert.assertThrows;
 
 public class TestPhased {
     @BeforeMethod
@@ -81,6 +52,8 @@ public class TestPhased {
         System.clearProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS);
 
         PhasedTestManager.deactivateMergedReports();
+        PhasedTestManager.deactivateTestSelectionByProducerMode();
+
         PhasedTestManager.MergedReportData.resetReport();
 
         //Delete temporary cache
@@ -129,26 +102,21 @@ public class TestPhased {
                 is(equalTo(0)));
 
         assertThat("We should have 2 successful methods of phased Tests",
-                tla.getPassedTests().stream()
-                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_A.class))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getPassedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_A.class)).count(),
                 is(equalTo(2)));
 
         assertThat("We should have 1 successful methods of normal tests",
-                tla.getPassedTests().stream()
-                        .filter(m -> m.getInstance().getClass().equals(NormalSeries_A.class))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getPassedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(NormalSeries_A.class)).count(),
                 is(equalTo(1)));
 
     }
 
     /**
-     * In this case if no shuffle is possible, and we have not set a Phase Event
-     * we should execute it as a normal test
-     *
+     * In this case if no shuffle is possible, and we have not set a Phase Event we should execute it as a normal test
+     * <p>
      * Author : gandomi
-     *
-     *
      */
     @Test
     public void testSINGLE_whereNoPhaseEventHasBeenSet() {
@@ -175,20 +143,16 @@ public class TestPhased {
                 is(equalTo(0)));
 
         assertThat("All Tests shuld have been executed",
-                tla.getPassedTests().stream()
-                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_D_SingleNoPhase.class))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getPassedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_D_SingleNoPhase.class)).count(),
                 is(equalTo(3)));
     }
 
     /**
-     * In this case when we have not set any value regarding the Phase state we
-     * are in the state IANACTIVE. In this case the execution of not is defined
-     * by the Class Annotation
-     *
+     * In this case when we have not set any value regarding the Phase state we are in the state IANACTIVE. In this case
+     * the execution of not is defined by the Class Annotation
+     * <p>
      * Author : gandomi
-     *
-     *
      */
     @Test
     public void testProducer_ThatTheTestsOnlyExecuteUptoTheLimit_NoValueSet() {
@@ -215,26 +179,22 @@ public class TestPhased {
                 is(equalTo(0)));
 
         assertThat("We should have 3 successful methods of phased Tests",
-                tla.getPassedTests().stream()
-                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_A.class))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getPassedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_A.class)).count(),
                 is(equalTo(3)));
 
         assertThat("We should have 1 successful methods of normal tests",
-                tla.getPassedTests().stream()
-                        .filter(m -> m.getInstance().getClass().equals(NormalSeries_A.class))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getPassedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(NormalSeries_A.class)).count(),
                 is(equalTo(1)));
 
     }
 
     /**
-     * In this case when we have not set any value regarding the Phase state we
-     * are in the state IANACTIVE. In this case the execution of not is defined
-     * by the Class Annotation
-     *
+     * In this case when we have not set any value regarding the Phase state we are in the state IANACTIVE. In this case
+     * the execution of not is defined by the Class Annotation
+     * <p>
      * Author : gandomi
-     *
      */
     @Test
     public void testInActiveNoExecutions() {
@@ -251,20 +211,18 @@ public class TestPhased {
         // Create an instance of XmlTest and assign a name for it.
         XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Phased Tests");
 
-        myTest.setXmlClasses(Arrays.asList(new XmlClass(PhasedSeries_B_NoInActive.class)));
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(PhasedSeries_B_NoInActive.class)));
 
         myTestNG.run();
 
         assertThat("We should have no executed methods of phased Tests",
-                tla.getFailedTests().stream()
-                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_B_NoInActive.class))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getFailedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_B_NoInActive.class)).count(),
                 is(equalTo(0)));
 
         assertThat("We should have no executed methods of phased Tests",
-                tla.getPassedTests().stream()
-                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_B_NoInActive.class))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getPassedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_B_NoInActive.class)).count(),
                 is(equalTo(0)));
 
     }
@@ -299,26 +257,21 @@ public class TestPhased {
         myTestNG.run();
 
         assertThat("We should have 1 successful methods of phased Tests",
-                tla.getPassedTests().stream()
-                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_H_SingleClass.class))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getPassedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_H_SingleClass.class)).count(),
                 is(equalTo(1)));
 
         assertThat("We should have 1 successful methods of normal tests",
-                tla.getPassedTests().stream()
-                        .filter(m -> m.getInstance().getClass().equals(NormalSeries_A.class))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getPassedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(NormalSeries_A.class)).count(),
                 is(equalTo(1)));
 
     }
 
     /**
-     * Related to issue #43 Skip consumer tests if the producer has not been
-     * executed.
-     *
+     * Related to issue #43 Skip consumer tests if the producer has not been executed.
+     * <p>
      * Author : gandomi
-     *
-     *
      */
     @Test
     public void testConsumerShuffled_noProducerHasRun() {
@@ -348,40 +301,33 @@ public class TestPhased {
 
         //This is because the Phase group 0-3 should still be executed
         assertThat("We should have 3 successful methods of phased Tests",
-                tla.getPassedTests().stream()
-                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_H_ShuffledClass.class))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getPassedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_H_ShuffledClass.class)).count(),
                 is(equalTo(3)));
 
         //This is because the Phase groups 1-3 and 2-3 should not be executed
         assertThat("We should have no failed methods of phased Tests",
-                tla.getFailedTests().stream()
-                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_H_ShuffledClass.class))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getFailedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_H_ShuffledClass.class)).count(),
                 is(equalTo(0)));
 
         //This is because phase groups 1-3 and 2-3 should not have the necessary context to run 
         assertThat("We should have 3 skipped methods of phased Tests",
-                tla.getSkippedTests().stream()
-                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_H_ShuffledClass.class))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getSkippedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_H_ShuffledClass.class)).count(),
                 is(equalTo(3)));
 
         assertThat("We should have 1 successful methods of normal tests",
-                tla.getPassedTests().stream()
-                        .filter(m -> m.getInstance().getClass().equals(NormalSeries_A.class))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getPassedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(NormalSeries_A.class)).count(),
                 is(equalTo(1)));
 
     }
 
     /**
-     * Related to issue #43 Skip consumer tests if the producer has not been
-     * executed.
-     *
+     * Related to issue #43 Skip consumer tests if the producer has not been executed.
+     * <p>
      * Author : gandomi
-     *
-     *
      */
     @Test
     public void testConsumerSingle_noProducerHasRun() {
@@ -412,36 +358,32 @@ public class TestPhased {
 
         //This is because the Phase group 0-3 should still be executed
         assertThat("We should have 0 successful methods of phased Tests",
-                tla.getPassedTests().stream()
-                        .filter(m -> m.getInstance().getClass().equals(l_targetTestClass))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getPassedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(l_targetTestClass)).count(),
                 is(equalTo(0)));
 
         //This is because the Phase groups 1-3 and 2-3 should not be executed
         assertThat("We should have no failed methods of phased Tests",
-                tla.getFailedTests().stream()
-                        .filter(m -> m.getInstance().getClass().equals(l_targetTestClass))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getFailedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(l_targetTestClass)).count(),
                 is(equalTo(0)));
 
         //This is because phase groups 1-3 and 2-3 should not have the necessary context to run 
         assertThat("We should have 1 skipped methods of phased Tests",
-                tla.getSkippedTests().stream()
-                        .filter(m -> m.getInstance().getClass().equals(l_targetTestClass))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getSkippedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(l_targetTestClass)).count(),
                 is(equalTo(1)));
 
         assertThat("We should have 1 successful methods of normal tests",
-                tla.getPassedTests().stream()
-                        .filter(m -> m.getInstance().getClass().equals(NormalSeries_A.class))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getPassedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(NormalSeries_A.class)).count(),
                 is(equalTo(1)));
 
     }
 
     @Test
     public void testFullMonty_SingleRun() {
-        /***** PRODUCER ****/
+        //  ***** PRODUCER ****
         TestNG myTestNG = TestTools.createTestNG();
         TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
 
@@ -454,27 +396,25 @@ public class TestPhased {
         // Create an instance of XmlTest and assign a name for it.
         XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Phased Tests");
 
-        myTest.setXmlClasses(Arrays.asList(new XmlClass(PhasedSeries_E_FullMonty.class)));
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(PhasedSeries_E_FullMonty.class)));
 
         Phases.PRODUCER.activate();
         myTestNG.run();
 
         assertThat("We should have 2 successful methods of phased Tests",
-                tla.getPassedTests().stream()
-                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_E_FullMonty.class))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getPassedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_E_FullMonty.class)).count(),
                 is(equalTo(2)));
 
         assertThat("We should have 2 successful methods of phased Tests",
-                tla.getPassedTests().stream()
-                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_E_FullMonty.class))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getPassedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_E_FullMonty.class)).count(),
                 is(equalTo(2)));
 
         assertThat("We should have no unsuccesful methods of phased Tests",
                 tla.getFailedTests().size() + tla.getSkippedTests().size(), is(equalTo(0)));
 
-        /***** COSNUMER ****/
+        // ***** COSNUMER ****
 
         //Clear data
         PhasedTestManager.clearCache();
@@ -492,14 +432,13 @@ public class TestPhased {
         // Create an instance of XmlTest and assign a name for it.
         XmlTest myTest2 = TestTools.attachTestToSuite(mySuite2, "Test Phased Tests");
 
-        myTest2.setXmlClasses(Arrays.asList(new XmlClass(PhasedSeries_E_FullMonty.class)));
+        myTest2.setXmlClasses(Collections.singletonList(new XmlClass(PhasedSeries_E_FullMonty.class)));
 
         myTestNG2.run();
 
         assertThat("We should have 1 successful methods of phased Tests",
-                tla2.getPassedTests().stream()
-                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_E_FullMonty.class))
-                        .collect(Collectors.toList()).size(),
+                (int) tla2.getPassedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_E_FullMonty.class)).count(),
                 is(equalTo(1)));
 
         assertThat("We should have no unsuccesful methods of phased Tests",
@@ -507,14 +446,12 @@ public class TestPhased {
 
     }
 
-    /***** Tests for DataDependencies ******/
+    // ***** Tests for DataDependencies ******
 
     /**
      * Here we check that the consuming a producing is taken into account
-     *
+     * <p>
      * Author : gandomi
-     *
-     *
      */
     @Test
     public void testDataDependencyCheck() {
@@ -531,13 +468,13 @@ public class TestPhased {
         // Create an instance of XmlTest and assign a name for it.
         XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Phased Tests");
 
-        myTest.setXmlClasses(Arrays.asList(new XmlClass(PhasedSeries_C_NonAnnotatedDependencies.class)));
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(PhasedSeries_C_NonAnnotatedDependencies.class)));
 
         myTestNG.run();
 
-        assertThat("We should have no successful methods of phased Tests", tla.getPassedTests().stream()
-                .filter(m -> m.getInstance().getClass().equals(PhasedSeries_C_NonAnnotatedDependencies.class))
-                .collect(Collectors.toList()).size(), is(equalTo(3)));
+        assertThat("We should have no successful methods of phased Tests", (int) tla.getPassedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_C_NonAnnotatedDependencies.class)).count(),
+                is(equalTo(3)));
 
         assertThat("We should have no successful methods of phased Tests",
                 tla.getFailedTests().size() + tla.getSkippedTests().size(), is(equalTo(0)));
@@ -562,7 +499,7 @@ public class TestPhased {
         XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Repetetive Phased Tests");
 
         final Class<PhasedSeries_F_Shuffle> l_testClass = PhasedSeries_F_Shuffle.class;
-        myTest.setXmlClasses(Arrays.asList(new XmlClass(l_testClass)));
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
         // Add package to test
 
@@ -572,8 +509,7 @@ public class TestPhased {
         myTestNG.run();
 
         assertThat("We should have 6 successful methods of phased Tests",
-                tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
                 is(equalTo(6)));
 
         //Global
@@ -658,7 +594,7 @@ public class TestPhased {
         XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Repetetive Phased Tests");
 
         final Class<PhasedSeries_F_Shuffle> l_testClass = PhasedSeries_F_Shuffle.class;
-        myTest.setXmlClasses(Arrays.asList(new XmlClass(l_testClass)));
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
         // Add package to test
 
@@ -669,8 +605,7 @@ public class TestPhased {
         myTestNG.run();
 
         assertThat("We should have 6 successful methods of phased Tests",
-                tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
                 is(equalTo(6)));
 
         //Global
@@ -759,7 +694,7 @@ public class TestPhased {
         XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Shuffled Phased Tests");
 
         final Class<PhasedSeries_F_Shuffle> l_testClass = PhasedSeries_F_Shuffle.class;
-        myTest.setXmlClasses(Arrays.asList(new XmlClass(l_testClass)));
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
         // Add package to test
 
@@ -786,8 +721,7 @@ public class TestPhased {
         myTestNG.run();
 
         assertThat("We should have 6 successful methods of phased Tests",
-                tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
                 is(equalTo(6)));
 
         //Global
@@ -885,7 +819,7 @@ public class TestPhased {
         XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Shuffled Phased Tests");
 
         final Class<PhasedSeries_F_Shuffle> l_testClass = PhasedSeries_F_Shuffle.class;
-        myTest.setXmlClasses(Arrays.asList(new XmlClass(l_testClass)));
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
         // Add package to test
 
@@ -911,16 +845,12 @@ public class TestPhased {
         PhasedTestManager.storeTestData(PhasedSeries_F_Shuffle.class,
                 PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2", "true");
 
-        Properties l_cache = PhasedTestManager.phasedCache;
-
-        Properties l_contex = PhasedTestManager.phaseContext;
         //Add the test context
 
         myTestNG.run();
 
         assertThat("We should have 6 successful methods of phased Tests",
-                tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
                 is(equalTo(6)));
 
         //Global
@@ -1024,7 +954,7 @@ public class TestPhased {
         XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Repetetive Phased Tests Producer");
 
         final Class<PhasedSeries_F_Shuffle> l_testClass = PhasedSeries_F_Shuffle.class;
-        myTest.setXmlClasses(Arrays.asList(new XmlClass(l_testClass)));
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
         // Add package to test
 
@@ -1034,8 +964,7 @@ public class TestPhased {
         myTestNG.run();
 
         assertThat("We should have 6 successful methods of phased Tests",
-                tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
                 is(equalTo(6)));
 
         //Global
@@ -1075,13 +1004,13 @@ public class TestPhased {
         // Create an instance of XmlTest and assign a name for it.
         XmlTest myTest2 = TestTools.attachTestToSuite(mySuite2, "Test Repetetive Phased Tests Consumer");
 
-        myTest2.setXmlClasses(Arrays.asList(new XmlClass(l_testClass)));
+        myTest2.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
         myTestNG2.run();
 
         assertThat("We should have 6 successful methods of phased Tests",
-                tla2.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass))
-                        .collect(Collectors.toList()).size(),
+                (int) tla2.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass))
+                        .count(),
                 is(equalTo(6)));
 
         //STEP 1
@@ -1173,7 +1102,7 @@ public class TestPhased {
         XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Merged Phased Tests Producer");
 
         final Class<PhasedSeries_F_Shuffle> l_testClass = PhasedSeries_F_Shuffle.class;
-        myTest.setXmlClasses(Arrays.asList(new XmlClass(l_testClass)));
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
         // Add package to test
 
@@ -1184,8 +1113,7 @@ public class TestPhased {
         myTestNG.run();
 
         assertThat("We should have 6 successful methods of phased Tests",
-                tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
                 is(equalTo(6)));
 
         //Global
@@ -1222,13 +1150,13 @@ public class TestPhased {
         XmlTest myTest2 = TestTools.attachTestToSuite(mySuite2,
                 "Test Repetetive Phased Merged Tests Consumer");
 
-        myTest2.setXmlClasses(Arrays.asList(new XmlClass(l_testClass)));
+        myTest2.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
         myTestNG2.run();
 
         assertThat("We should have 6 successful methods of phased Tests",
-                tla2.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass))
-                        .collect(Collectors.toList()).size(),
+                (int) tla2.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass))
+                        .count(),
                 is(equalTo(6)));
 
         //STEP 1
@@ -1318,14 +1246,13 @@ public class TestPhased {
         XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Repetetive Phased Tests");
 
         final Class<PhasedSeries_F_Shuffle> l_testClass = PhasedSeries_F_Shuffle.class;
-        myTest.setXmlClasses(Arrays.asList(new XmlClass(l_testClass)));
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
         // Add package to test
         myTestNG.run();
 
         assertThat("We should have 6 successful methods of phased Tests",
-                tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
                 is(equalTo(3)));
 
         //STEP 1
@@ -1362,7 +1289,7 @@ public class TestPhased {
         // Create an instance of XmlTest and assign a name for it.
         XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Simple Phased Tests");
 
-        myTest.setXmlClasses(Arrays.asList(new XmlClass(PhasedSeries_G_DefaultProvider.class)));
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(PhasedSeries_G_DefaultProvider.class)));
 
         Phases.PRODUCER.activate();
 
@@ -1372,9 +1299,8 @@ public class TestPhased {
                 is(equalTo(0)));
 
         assertThat("We should have 2 successful methods of phased Tests",
-                tla.getPassedTests().stream()
-                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_G_DefaultProvider.class))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getPassedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_G_DefaultProvider.class)).count(),
                 is(equalTo(2)));
 
         assertThat("We should have executed step1 with the phased group 0",
@@ -1395,7 +1321,7 @@ public class TestPhased {
         // Create an instance of XmlTest and assign a name for it.
         XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Simple Phased Tests");
 
-        myTest.setXmlClasses(Arrays.asList(new XmlClass(PhasedSeries_G_DefaultProvider.class)));
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(PhasedSeries_G_DefaultProvider.class)));
 
         Phases.PRODUCER.activate();
 
@@ -1405,9 +1331,8 @@ public class TestPhased {
                 is(equalTo(0)));
 
         assertThat("We should have 2 successful methods of phased Tests",
-                tla.getPassedTests().stream()
-                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_G_DefaultProvider.class))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getPassedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_G_DefaultProvider.class)).count(),
                 is(equalTo(3)));
 
         assertThat("We should have executed step1 with the phased default group ",
@@ -1435,16 +1360,15 @@ public class TestPhased {
         // Create an instance of XmlTest and assign a name for it.
         XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Simple Phased Tests");
 
-        myTest.setXmlClasses(Arrays.asList(new XmlClass(PhasedSeries_E_FullMonty.class)));
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(PhasedSeries_E_FullMonty.class)));
 
         Phases.PRODUCER.activate();
 
         myTestNG.run();
 
         assertThat("We should have 2 successful methods of phased Tests",
-                tla.getPassedTests().stream()
-                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_E_FullMonty.class))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getPassedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_E_FullMonty.class)).count(),
                 is(equalTo(2)));
 
         //Check that file was retreived
@@ -1455,17 +1379,14 @@ public class TestPhased {
         //I.e. 2 step cache data + 1 scenario state
         //There is a comment line in the beginning
         assertThat("We should have three +1 lines",
-                GeneralTestUtils.fetchFileContentLines(l_storedFile).size(), Matchers.equalTo(4));
+                GeneralTestUtils.fetchFileContentDataLines(l_storedFile).size(), Matchers.equalTo(3));
 
     }
 
     /**
-     * in this example we check the precedence of the Runtime properties over
-     * the configuration files
-     *
+     * in this example we check the precedence of the Runtime properties over the configuration files
+     * <p>
      * Author : gandomi
-     *
-     *
      */
     @Test
     public void testProducer_SingleRun_DataBrokerSystemProperty() {
@@ -1485,7 +1406,7 @@ public class TestPhased {
         // Create an instance of XmlTest and assign a name for it.
         XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Simple Phased Tests");
 
-        myTest.setXmlClasses(Arrays.asList(new XmlClass(PhasedSeries_E_FullMonty.class)));
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(PhasedSeries_E_FullMonty.class)));
 
         Phases.PRODUCER.activate();
         System.setProperty(PhasedTestManager.PROP_PHASED_TEST_DATABROKER,
@@ -1494,9 +1415,8 @@ public class TestPhased {
         myTestNG.run();
 
         assertThat("We should have 2 successful methods of phased Tests",
-                tla.getPassedTests().stream()
-                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_E_FullMonty.class))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getPassedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_E_FullMonty.class)).count(),
                 is(equalTo(2)));
 
         //Check that file was retreived
@@ -1507,17 +1427,14 @@ public class TestPhased {
         //I.e. 2 step cache data + 1 scenario state     
         //+ 1 line for the comment
         assertThat("We should have three +1  lines",
-                GeneralTestUtils.fetchFileContentLines(l_storedFile).size(), Matchers.equalTo(3 + 1));
+                GeneralTestUtils.fetchFileContentDataLines(l_storedFile).size(), Matchers.equalTo(2 + 1));
 
     }
 
     /**
-     * in this example we check the precedence of the Runtime properties over
-     * the configuration files
-     *
+     * in this example we check the precedence of the Runtime properties over the configuration files
+     * <p>
      * Author : gandomi
-     *
-     *
      */
     @Test
     public void testProducer_SingleRun_DataBroker_Negative() {
@@ -1537,26 +1454,23 @@ public class TestPhased {
         // Create an instance of XmlTest and assign a name for it.
         XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Simple Phased Tests");
 
-        myTest.setXmlClasses(Arrays.asList(new XmlClass(PhasedSeries_E_FullMonty.class)));
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(PhasedSeries_E_FullMonty.class)));
 
-        assertThrows(TestNGException.class, () -> myTestNG.run());
+        assertThrows(TestNGException.class, myTestNG::run);
 
         assertThat("We should have no successful methods of phased Tests",
-                tla.getPassedTests().stream()
-                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_E_FullMonty.class))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getPassedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_E_FullMonty.class)).count(),
                 is(equalTo(0)));
 
         assertThat("We should have no failed methods of phased Tests",
-                tla.getFailedTests().stream()
-                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_E_FullMonty.class))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getFailedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_E_FullMonty.class)).count(),
                 is(equalTo(0)));
 
         assertThat("We should have no skipped methods of phased Tests",
-                tla.getSkippedTests().stream()
-                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_E_FullMonty.class))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getSkippedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_E_FullMonty.class)).count(),
                 is(equalTo(0)));
 
     }
@@ -1578,7 +1492,7 @@ public class TestPhased {
         // Create an instance of XmlTest and assign a name for it.
         XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Simple Phased Tests");
 
-        myTest.setXmlClasses(Arrays.asList(new XmlClass(PhasedSeries_H_SingleClass.class)));
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(PhasedSeries_H_SingleClass.class)));
 
         Phases.PRODUCER.activate();
 
@@ -1588,9 +1502,8 @@ public class TestPhased {
                 is(equalTo(0)));
 
         assertThat("We should have 2 successful methods of phased Tests",
-                tla.getPassedTests().stream()
-                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_H_SingleClass.class))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getPassedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_H_SingleClass.class)).count(),
                 is(equalTo(2)));
     }
 
@@ -1609,7 +1522,7 @@ public class TestPhased {
         // Create an instance of XmlTest and assign a name for it.
         XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Simple Phased Tests");
 
-        myTest.setXmlClasses(Arrays.asList(new XmlClass(PhasedSeries_H_SingleClass.class)));
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(PhasedSeries_H_SingleClass.class)));
 
         Phases.PRODUCER.activate();
         System.setProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS, "true");
@@ -1620,9 +1533,8 @@ public class TestPhased {
                 is(equalTo(0)));
 
         assertThat("We should have 2 successful methods of phased Tests",
-                tla.getPassedTests().stream()
-                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_H_SingleClass.class))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getPassedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_H_SingleClass.class)).count(),
                 is(equalTo(2)));
 
         ITestContext context = tla.getTestContexts().get(0);
@@ -1639,7 +1551,7 @@ public class TestPhased {
 
     @Test
     public void testSINGLE_ClassLevelFullMonty() {
-        /***** PRODUCER ****/
+        // ***** PRODUCER ****
         TestNG myTestNG = TestTools.createTestNG();
         TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
 
@@ -1654,25 +1566,23 @@ public class TestPhased {
 
         final Class<PhasedSeries_H_SingleClass> l_testClass = PhasedSeries_H_SingleClass.class;
 
-        myTest.setXmlClasses(Arrays.asList(new XmlClass(l_testClass)));
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
         Phases.PRODUCER.activate();
         myTestNG.run();
 
         assertThat("We should have 2 successful methods of phased Tests",
-                tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
                 is(equalTo(2)));
 
         assertThat("We should have 2 successful methods of phased Tests",
-                tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
                 is(equalTo(2)));
 
         assertThat("We should have no unsuccesful methods of phased Tests",
                 tla.getFailedTests().size() + tla.getSkippedTests().size(), is(equalTo(0)));
 
-        /***** COSNUMER ****/
+        // ***** COSNUMER ****
 
         //Clear data
         PhasedTestManager.clearCache();
@@ -1690,13 +1600,13 @@ public class TestPhased {
         // Create an instance of XmlTest and assign a name for it.
         XmlTest myTest2 = TestTools.attachTestToSuite(mySuite2, "Test Phased Tests");
 
-        myTest2.setXmlClasses(Arrays.asList(new XmlClass(l_testClass)));
+        myTest2.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
         myTestNG2.run();
 
         assertThat("We should have 1 successful methods of phased Tests",
-                tla2.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass))
-                        .collect(Collectors.toList()).size(),
+                (int) tla2.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass))
+                        .count(),
                 is(equalTo(1)));
 
         assertThat("We should have no unsuccesful methods of phased Tests",
@@ -1706,7 +1616,7 @@ public class TestPhased {
 
     @Test
     public void testSHUFFLED_ClassLevelFullMonty() {
-        /******** PRODUCER ********/
+        // ******** PRODUCER ********
         // Rampup
         TestNG myTestNG = TestTools.createTestNG();
         TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
@@ -1721,7 +1631,7 @@ public class TestPhased {
         XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Repetetive Phased Tests Producer");
 
         final Class<PhasedSeries_H_ShuffledClass> l_testClass = PhasedSeries_H_ShuffledClass.class;
-        myTest.setXmlClasses(Arrays.asList(new XmlClass(l_testClass)));
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
         // Add package to test
 
@@ -1730,15 +1640,14 @@ public class TestPhased {
         myTestNG.run();
 
         assertThat("We should have 6 successful methods of phased Tests",
-                tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
                 is(equalTo(6)));
 
         //Global
         assertThat("We should have no failed tests", tla.getFailedTests().size(), equalTo(0));
         assertThat("We should have no skipped tests", tla.getSkippedTests().size(), equalTo(0));
 
-        /******** CONSUMER ********/
+        // ******** CONSUMER ********
 
         Phases.CONSUMER.activate();
 
@@ -1754,13 +1663,13 @@ public class TestPhased {
         // Create an instance of XmlTest and assign a name for it.
         XmlTest myTest2 = TestTools.attachTestToSuite(mySuite2, "Test Repetetive Phased Tests Consumer");
 
-        myTest2.setXmlClasses(Arrays.asList(new XmlClass(l_testClass)));
+        myTest2.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
         myTestNG2.run();
 
         assertThat("We should have 6 successful methods of phased Tests",
-                tla2.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass))
-                        .collect(Collectors.toList()).size(),
+                (int) tla2.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass))
+                        .count(),
                 is(equalTo(6)));
 
         //STEP 1
@@ -1823,7 +1732,7 @@ public class TestPhased {
 
     @Test(description = "Shuffling with an error")
     public void testSHUFFLED_ClassLevelFullMonty_Negative() {
-        /******** PRODUCER ********/
+        // ******** PRODUCER ********
         // Rampup
         TestNG myTestNG = TestTools.createTestNG();
         TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
@@ -1839,7 +1748,7 @@ public class TestPhased {
         XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Repetetive Phased Tests Producer");
 
         final Class<PhasedSeries_H_ShuffledClassWithError> l_testClass = PhasedSeries_H_ShuffledClassWithError.class;
-        myTest.setXmlClasses(Arrays.asList(new XmlClass(l_testClass)));
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
         // Add package to test
 
@@ -1887,7 +1796,7 @@ public class TestPhased {
                 tla.getSkippedTests().stream().filter(m -> m.getName().startsWith("step3")).anyMatch(
                         m -> m.getParameters()[0].equals(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0")));
 
-        /******** CONSUMER ********/
+        // ******** CONSUMER ********
 
         Phases.CONSUMER.activate();
 
@@ -1904,7 +1813,7 @@ public class TestPhased {
         // Create an instance of XmlTest and assign a name for it.
         XmlTest myTest2 = TestTools.attachTestToSuite(mySuite2, "Test Repetetive Phased Tests Consumer");
 
-        myTest2.setXmlClasses(Arrays.asList(new XmlClass(l_testClass)));
+        myTest2.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
         myTestNG2.run();
 
@@ -1988,7 +1897,7 @@ public class TestPhased {
         XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Repetetive Phased Tests Producer");
 
         final Class<PhasedSeries_H_ShuffledClassWithError> l_testClass = PhasedSeries_H_ShuffledClassWithError.class;
-        myTest.setXmlClasses(Arrays.asList(new XmlClass(l_testClass)));
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
         // Add package to test
 
@@ -2050,7 +1959,7 @@ public class TestPhased {
                 tla.getSkippedTests().stream().filter(m -> m.getName().startsWith("step3")).anyMatch(
                         m -> m.getParameters()[0].equals(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0")));
 
-        /******** CONSUMER ********/
+        // ******** CONSUMER ********
 
         Phases.CONSUMER.activate();
 
@@ -2067,7 +1976,7 @@ public class TestPhased {
         // Create an instance of XmlTest and assign a name for it.
         XmlTest myTest2 = TestTools.attachTestToSuite(mySuite2, "Test Repetetive Phased Tests Consumer");
 
-        myTest2.setXmlClasses(Arrays.asList(new XmlClass(l_testClass)));
+        myTest2.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
         myTestNG2.run();
 
@@ -2146,7 +2055,7 @@ public class TestPhased {
 
     @Test
     public void test_WithoutDataProvider() {
-        /******** PRODUCER ********/
+        // ******** PRODUCER ********
         // Rampup
         TestNG myTestNG = TestTools.createTestNG();
         TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
@@ -2161,7 +2070,7 @@ public class TestPhased {
         XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Repetetive Phased Tests Producer");
 
         final Class<PhasedSeries_K_ShuffledClass_noproviders> l_testClass = PhasedSeries_K_ShuffledClass_noproviders.class;
-        myTest.setXmlClasses(Arrays.asList(new XmlClass(l_testClass)));
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
         // Add package to test
 
@@ -2170,15 +2079,14 @@ public class TestPhased {
         myTestNG.run();
 
         assertThat("We should have 6 successful methods of phased Tests",
-                tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
                 is(equalTo(6)));
 
         //Global
         assertThat("We should have no failed tests", tla.getFailedTests().size(), equalTo(0));
         assertThat("We should have no skipped tests", tla.getSkippedTests().size(), equalTo(0));
 
-        /******** CONSUMER ********/
+        // ******** CONSUMER ********
 
         Phases.CONSUMER.activate();
 
@@ -2194,13 +2102,13 @@ public class TestPhased {
         // Create an instance of XmlTest and assign a name for it.
         XmlTest myTest2 = TestTools.attachTestToSuite(mySuite2, "Test Repetetive Phased Tests Consumer");
 
-        myTest2.setXmlClasses(Arrays.asList(new XmlClass(l_testClass)));
+        myTest2.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
         myTestNG2.run();
 
         assertThat("We should have 6 successful methods of phased Tests",
-                tla2.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass))
-                        .collect(Collectors.toList()).size(),
+                (int) tla2.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass))
+                        .count(),
                 is(equalTo(6)));
 
         //STEP 1
@@ -2277,15 +2185,14 @@ public class TestPhased {
         XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Repetetive Phased Tests Producer");
 
         final Class<PhasedSeries_K_ShuffledClass_noproviders> l_testClass = PhasedSeries_K_ShuffledClass_noproviders.class;
-        myTest.setXmlClasses(Arrays.asList(new XmlClass(l_testClass)));
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
         // Add package to test
 
         myTestNG.run();
 
         assertThat("We should have 3 successful methods of phased Tests",
-                tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
                 is(equalTo(3)));
 
         //Global
@@ -2324,15 +2231,14 @@ public class TestPhased {
         XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Repetetive Phased Tests Producer");
 
         final Class<PhasedSeries_K_ShuffledClass_noproviders> l_testClass = PhasedSeries_K_ShuffledClass_noproviders.class;
-        myTest.setXmlClasses(Arrays.asList(new XmlClass(l_testClass)));
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
         // Add package to test
 
         myTestNG.run();
 
         assertThat("We should have 3 successful method of phased Tests",
-                tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
                 is(equalTo(3)));
 
         //Global
@@ -2371,15 +2277,14 @@ public class TestPhased {
         XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Repetetive Phased Tests Producer");
 
         final Class<PhasedSeries_H_ShuffledClassWithError> l_testClass = PhasedSeries_H_ShuffledClassWithError.class;
-        myTest.setXmlClasses(Arrays.asList(new XmlClass(l_testClass)));
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
         // Add package to test
 
         myTestNG.run();
 
         assertThat("We should have 3 successful method of phased Tests",
-                tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
                 is(equalTo(1)));
 
         //Global
@@ -2455,7 +2360,7 @@ public class TestPhased {
         // Create an instance of XmlTest and assign a name for it.
         XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Simple Phased Tests - produce");
 
-        myTest.setXmlClasses(Arrays.asList(new XmlClass(PhasedSeries_I_SingleClassProduceTest.class)));
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(PhasedSeries_I_SingleClassProduceTest.class)));
 
         Phases.PRODUCER.activate();
 
@@ -2470,15 +2375,15 @@ public class TestPhased {
         assertThat("We should have no failed methods of phased Tests", tla.getFailedTests().size(),
                 is(equalTo(0)));
 
-        assertThat("We should have 1 successful method of phased Tests", tla.getPassedTests().stream()
-                .filter(m -> m.getInstance().getClass().equals(PhasedSeries_I_SingleClassProduceTest.class))
-                .collect(Collectors.toList()).size(), is(equalTo(1)));
+        assertThat("We should have 1 successful method of phased Tests", (int) tla.getPassedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_I_SingleClassProduceTest.class)).count(),
+                is(equalTo(1)));
     }
 
     @Test
     public void testProducer_produceWithKeyCascaded() {
 
-        /******** PRODUCER ********/
+        // ******** PRODUCER ********
         // Rampup
         TestNG myTestNG = TestTools.createTestNG();
         TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
@@ -2495,7 +2400,7 @@ public class TestPhased {
                 "Test Repetetive Phased Tests Producer - Produce with Key");
 
         final Class<PhasedSeries_I_ShuffledProduceKey> l_testClass = PhasedSeries_I_ShuffledProduceKey.class;
-        myTest.setXmlClasses(Arrays.asList(new XmlClass(l_testClass)));
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
         // Add package to test
 
@@ -2504,114 +2409,22 @@ public class TestPhased {
         myTestNG.run();
 
         assertThat("We should have 6 successful methods of phased Tests",
-                tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
                 is(equalTo(6)));
 
         //Global
         assertThat("We should have no failed tests", tla.getFailedTests().size(), equalTo(0));
         assertThat("We should have no skipped tests", tla.getSkippedTests().size(), equalTo(0));
 
-        /******** CONSUMER ********/
-        /*
-        //Clear data
-        PhasedTestManager.clearCache();
-        System.setProperty(PhasedTestManager.PROP_PHASED_TEST_STATE, PhasedTestState.CONSUMER.name());
-        
-        TestNG myTestNG2 = TestTools.createTestNG();
-        TestListenerAdapter tla2 = TestTools.fetchTestResultsHandler(myTestNG2);
-        
-        // Define suites
-        XmlSuite mySuite2 = TestTools.addSuitToTestNGTest(myTestNG2, "Automated Suite Phased Testing");
-        
-        // Add listeners
-        mySuite2.addListener("com.adobe.campaign.tests.integro.phased.PhasedTestListener");
-        
-        // Create an instance of XmlTest and assign a name for it.
-        XmlTest myTest2 = TestTools.attachTestToSuite(mySuite2, "Test Repetetive Phased Tests Consumer");
-        
-        myTest2.setXmlClasses(Arrays.asList(new XmlClass(l_testClass)));
-        
-        myTestNG2.run();
-        
-        assertThat("We should have 6 successful methods of phased Tests",
-                tla2.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass))
-                        .collect(Collectors.toList()).size(),
-                is(equalTo(6)));
-        
-        //STEP 1
-        assertThat("We should have no executions for the phased group 0",
-                tla2.getPassedTests().stream().filter(m -> m.getName().equals("step1"))
-                        .noneMatch(m -> m.getParameters()[0].equals(PhasedTestManager.STD_PHASED_GROUP_PREFIX+"0_3")));
-        
-        assertThat("We should NOT have executed step1 with the phased group 0",
-                tla2.getPassedTests().stream().filter(m -> m.getName().equals("step1"))
-                        .noneMatch(m -> m.getParameters()[0].equals(PhasedTestManager.STD_PHASED_GROUP_PREFIX+"1_3")));
-        
-        assertThat("We should NOT have executed step1 with the phased group 1",
-                tla2.getPassedTests().stream().filter(m -> m.getName().equals("step1"))
-                        .noneMatch(m -> m.getParameters()[0].equals(PhasedTestManager.STD_PHASED_GROUP_PREFIX+"2_3")));
-        
-        assertThat("We should have executed step1 with the phased group 2",
-                tla2.getPassedTests().stream().filter(m -> m.getName().equals("step1"))
-                        .anyMatch(m -> m.getParameters()[0].equals(PhasedTestManager.STD_PHASED_GROUP_PREFIX+"3_3")));
-        
-        //STEP 2
-        
-        assertThat("We should have no executions for the phased group 0",
-                tla2.getPassedTests().stream().filter(m -> m.getName().equals("step2"))
-                        .noneMatch(m -> m.getParameters()[0].equals(PhasedTestManager.STD_PHASED_GROUP_PREFIX+"0_3")));
-        
-        assertThat("We should NOT have executed step2 with the phased group 1",
-                tla2.getPassedTests().stream().filter(m -> m.getName().equals("step2"))
-                        .noneMatch(m -> m.getParameters()[0].equals(PhasedTestManager.STD_PHASED_GROUP_PREFIX+"1_3")));
-        
-        assertThat("We should have executed step2 with the phased group 2",
-                tla2.getPassedTests().stream().filter(m -> m.getName().equals("step2"))
-                        .anyMatch(m -> m.getParameters()[0].equals(PhasedTestManager.STD_PHASED_GROUP_PREFIX+"2_3")));
-        
-        assertThat("We should have executed step2 with the phased group 3",
-                tla2.getPassedTests().stream().filter(m -> m.getName().equals("step2"))
-                        .anyMatch(m -> m.getParameters()[0].equals(PhasedTestManager.STD_PHASED_GROUP_PREFIX+"3_3")));
-        
-        //STEP 3
-        assertThat("We should have no executions for the phased group 0",
-                tla2.getPassedTests().stream().filter(m -> m.getName().equals("step3"))
-                        .noneMatch(m -> m.getParameters()[0].equals(PhasedTestManager.STD_PHASED_GROUP_PREFIX+"0_3")));
-        
-        assertThat("We should have executed step3 with the phased group 1",
-                tla2.getPassedTests().stream().filter(m -> m.getName().equals("step3"))
-                        .anyMatch(m -> m.getParameters()[0].equals(PhasedTestManager.STD_PHASED_GROUP_PREFIX+"1_3")));
-        
-        assertThat("We should have executed step3 with the phased group 2",
-                tla2.getPassedTests().stream().filter(m -> m.getName().equals("step3"))
-                        .anyMatch(m -> m.getParameters()[0].equals(PhasedTestManager.STD_PHASED_GROUP_PREFIX+"2_3")));
-        
-        assertThat("We should have executed step3 with the phased group 3",
-                tla2.getPassedTests().stream().filter(m -> m.getName().equals("step3"))
-                        .anyMatch(m -> m.getParameters()[0].equals(PhasedTestManager.STD_PHASED_GROUP_PREFIX+"3_3")));
-        
-        //Global
-        assertThat("We should have no failed tests", tla2.getFailedTests().size(), equalTo(0));
-        assertThat("We should have no skipped tests", tla2.getSkippedTests().size(), equalTo(0));
-        
-        */
-
     }
 
-    /************** Test The listener **************/
+    /*   ************* Test The listener **************/
 
-    /**
+    /*
      * Testing the AppendShuffledGroupMethod
-     *
+     * <p>
      * Author : gandomi
-     * 
-     * @throws SecurityException
-     * @throws NoSuchMethodException
-     *
-     *
      */
-    @SuppressWarnings("unchecked")
     @Test
     public void testAppendShuffledGroupName() throws NoSuchMethodException, SecurityException {
         final Method l_myTestNoArgs = PhasedSeries_H_SingleClass.class.getMethod("step2", String.class);
@@ -2622,7 +2435,9 @@ public class TestPhased {
 
         //TODO replace, since this is invalid in later versions of Mockito
         //Mockito.when(l_itr.getMethod()).thenThrow(NoSuchFieldException.class);
-        Mockito.when(l_itr.getMethod()).thenAnswer(invocation -> { throw new NoSuchFieldException("Mocked Exception"); });
+        Mockito.when(l_itr.getMethod()).thenAnswer(invocation -> {
+            throw new NoSuchFieldException("Mocked Exception");
+        });
         Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "A" });
         Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
         Mockito.when(l_com.getMethod()).thenReturn(l_myTestNoArgs);
@@ -2632,7 +2447,6 @@ public class TestPhased {
 
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void testAppendShuffledGroupName2() throws NoSuchMethodException, SecurityException {
         final Method l_myTestNoArgs = PhasedSeries_H_SingleClass.class.getMethod("step2", String.class);
@@ -2643,7 +2457,9 @@ public class TestPhased {
 
         //TODO replace, since this is invalid in later versions of Mockito
         //Mockito.when(l_itr.getMethod()).thenThrow(IllegalAccessException.class);
-        Mockito.when(l_itr.getMethod()).thenAnswer(invocation -> { throw new IllegalAccessException("Mocked Exception"); });
+        Mockito.when(l_itr.getMethod()).thenAnswer(invocation -> {
+            throw new IllegalAccessException("Mocked Exception");
+        });
         Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "A" });
         Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
         Mockito.when(l_com.getMethod()).thenReturn(l_myTestNoArgs);
@@ -2655,7 +2471,7 @@ public class TestPhased {
 
     @Test
     public void testSHUFFLED_ClassInAClass() {
-        /******** PRODUCER ********/
+        // ******** PRODUCER ********
         // Rampup
         TestNG myTestNG = TestTools.createTestNG();
         TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
@@ -2683,16 +2499,14 @@ public class TestPhased {
                 is(equalTo(12)));
 
         assertThat("We should have 6 successful methods of phased Tests",
-                tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
                 is(equalTo(6)));
 
         //Global
         assertThat("We should have no failed tests", tla.getFailedTests().size(), equalTo(0));
         assertThat("We should have no skipped tests", tla.getSkippedTests().size(), equalTo(0));
 
-        /******** CONSUMER ********/
-
+        // ******** CONSUMER ********
         Phases.CONSUMER.activate();
 
         TestNG myTestNG2 = TestTools.createTestNG();
@@ -2707,13 +2521,13 @@ public class TestPhased {
         // Create an instance of XmlTest and assign a name for it.
         XmlTest myTest2 = TestTools.attachTestToSuite(mySuite2, "Test Repetetive Phased Tests Consumer");
 
-        myTest2.setXmlClasses(Arrays.asList(new XmlClass(l_testClass)));
+        myTest2.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
         myTestNG2.run();
 
         assertThat("We should have 6 successful methods of phased Tests",
-                tla2.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass))
-                        .collect(Collectors.toList()).size(),
+                (int) tla2.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass))
+                        .count(),
                 is(equalTo(6)));
 
         //STEP 1
@@ -2791,7 +2605,7 @@ public class TestPhased {
         XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Repetetive Phased Tests Producer");
 
         final Class<PhasedSeries_L_ShuffledDP> l_testClass = PhasedSeries_L_ShuffledDP.class;
-        myTest.setXmlClasses(Arrays.asList(new XmlClass(l_testClass)));
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
         // Add package to test
 
@@ -2800,8 +2614,7 @@ public class TestPhased {
         myTestNG.run();
 
         assertThat("We should have 6 successful methods of phased Tests",
-                tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
                 is(equalTo(6)));
 
         //Global
@@ -2825,7 +2638,7 @@ public class TestPhased {
         XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Repetetive Phased Tests Producer");
 
         final Class<PhasedSeries_L_ShuffledDPSimple> l_testClass = PhasedSeries_L_ShuffledDPSimple.class;
-        myTest.setXmlClasses(Arrays.asList(new XmlClass(l_testClass)));
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
         // Add package to test
 
@@ -2834,8 +2647,7 @@ public class TestPhased {
         myTestNG.run();
 
         assertThat("We should have 6 successful methods of phased Tests",
-                tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass))
-                        .collect(Collectors.toList()).size(),
+                (int) tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
                 is(equalTo(6)));
 
         //Global
@@ -2859,7 +2671,7 @@ public class TestPhased {
         XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Repetetive Phased Tests Producer");
 
         final Class<PhasedSeries_L_ShuffledDPSimple> l_testClass = PhasedSeries_L_ShuffledDPSimple.class;
-        myTest.setXmlClasses(Arrays.asList(new XmlClass(l_testClass)));
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
         // Add package to test
 
@@ -2871,9 +2683,8 @@ public class TestPhased {
         ITestContext context = tla.getTestContexts().get(0);
 
         assertThat("We should have 6 successful methods of phased Tests",
-                context.getPassedTests().getAllResults().stream()
-                        .filter(m -> m.getInstance().getClass().equals(l_testClass))
-                        .collect(Collectors.toList()).size(),
+                (int) context.getPassedTests().getAllResults().stream()
+                        .filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
                 is(equalTo(4)));
 
         //Global
@@ -2912,13 +2723,13 @@ public class TestPhased {
         XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Repetetive Phased Tests Producer");
 
         final Class<PhasedSeries_L_ShuffledNoArgs> l_testClass = PhasedSeries_L_ShuffledNoArgs.class;
-        myTest.setXmlClasses(Arrays.asList(new XmlClass(l_testClass)));
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
         // Add package to test
 
         Phases.PRODUCER.activate();
 
-        assertThrows(PhasedTestConfigurationException.class, () -> myTestNG.run());
+        assertThrows(PhasedTestConfigurationException.class, myTestNG::run);
 
     }
 
@@ -2938,14 +2749,195 @@ public class TestPhased {
         XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Repetetive Phased Tests Producer");
 
         final Class<PhasedSeries_L_ShuffledWrongArgs> l_testClass = PhasedSeries_L_ShuffledWrongArgs.class;
-        myTest.setXmlClasses(Arrays.asList(new XmlClass(l_testClass)));
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
         // Add package to test
 
         Phases.PRODUCER.activate();
 
-        assertThrows(PhasedTestConfigurationException.class, () -> myTestNG.run());
+        assertThrows(PhasedTestConfigurationException.class, myTestNG::run);
 
     }
 
+    /************** Testing issue #9 ******************/
+
+    @Test
+    public void testConsumer_selectionBasedOnProducer_Deactivated() {
+        // Rampup
+        TestNG myTestNG = TestTools.createTestNG();
+        TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
+
+        // Define suites
+        XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG, "Automated Suite Phased Testing");
+
+        // Add listeners
+        mySuite.addListener(PhasedTestListener.class.getTypeName());
+
+        // Create an instance of XmlTest and assign a name for it.
+        TestTools.attachTestToSuite(mySuite, "Test Phased Tests");
+
+        Phases.CONSUMER.activate();
+        Properties phasedCache = PhasedTestManager.phasedCache;
+        phasedCache.put(PhasedSeries_H_SingleClass.class.getTypeName() + ".step2("
+                + PhasedTestManager.STD_PHASED_GROUP_SINGLE + ")", "AB");
+
+        PhasedTestManager
+                .storeTestData(PhasedSeries_H_SingleClass.class, PhasedTestManager.STD_PHASED_GROUP_SINGLE, "true");
+
+        assertThat("We should not be in the SELECT_BY_PRODUCER mode",
+                !PhasedTestManager.isTestsSelectedByProducerMode());
+
+        myTestNG.run();
+
+        assertThat("We should not be in the SELECT_BY_PRODUCER mode",
+                !PhasedTestManager.isTestsSelectedByProducerMode());
+
+        assertThat(
+                "Since we have not passed the test group PHASED_PRODUCED_TESTS, we should have no successful methods of phased Tests",
+                (int) tla.getPassedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_H_SingleClass.class)).count(),
+                is(equalTo(0)));
+    }
+
+    /**
+     * Starting from here we use he properties file as a test selector.
+     * <p>
+     * Author : gandomi
+     */
+    @Test
+    public void testConsumer_selectionBasedOnProducerFile() {
+        // Rampup
+        TestNG myTestNG = TestTools.createTestNG();
+        TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
+
+        // Define suites
+        XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG, "Automated Suite Phased Testing");
+
+        // Add listeners
+        mySuite.addListener(PhasedTestListener.class.getTypeName());
+
+        // Create an instance of XmlTest and assign a name for it.
+        XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Phased Tests");
+
+        //This activates the selection
+        myTest.addIncludedGroup(PhasedTestManager.STD_GROUP_SELECT_TESTS_BY_PRODUCER);
+
+        Phases.CONSUMER.activate();
+        Properties phasedCache = PhasedTestManager.phasedCache;
+        phasedCache.put(PhasedSeries_H_SingleClass.class.getTypeName() + ".step2("
+                + PhasedTestManager.STD_PHASED_GROUP_SINGLE + ")", "AB");
+
+        PhasedTestManager
+                .storeTestData(PhasedSeries_H_SingleClass.class, PhasedTestManager.STD_PHASED_GROUP_SINGLE, "true");
+
+        assertThat("We should not be in the SELECT_BY_PRODUCER mode",
+                !PhasedTestManager.isTestsSelectedByProducerMode());
+
+        myTestNG.run();
+
+        assertThat("We should be in the SELECT_BY_PRODUCER mode", PhasedTestManager.isTestsSelectedByProducerMode());
+
+        assertThat("The number of tests should not have changed",
+                tla.getTestContexts().get(0).getSuite().getXmlSuite().getTests().size(), equalTo(1));
+
+        assertThat("We should have 1 successful methods of phased Tests", (int) tla.getPassedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_H_SingleClass.class)).count(),
+                is(equalTo(1)));
+
+    }
+
+    /**
+     * In this test the same phased test is select by direct group selection and by selection through producer what we
+     * want is that this test should only be executed once
+     */
+    @Test
+    public void testSelectedByProducer_groupSelected() {
+        // Rampup
+        TestNG myTestNG = TestTools.createTestNG();
+        TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
+
+        // Define suites
+        XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG, "Automated Suite Phased Testing");
+
+        // Add listeners
+        mySuite.addListener(PhasedTestListener.class.getTypeName());
+
+        // Create an instance of XmlTest and assign a name for it.
+        XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Repetetive Phased Tests Producer");
+
+        //Define packages
+        List<XmlPackage> l_packages = new ArrayList<>();
+        l_packages.add(new XmlPackage("com.adobe.campaign.tests.integro.phased.data"));
+        myTest.setXmlPackages(l_packages);
+
+        myTest.addIncludedGroup("PROPERTIES_SELECT");
+
+        Phases.CONSUMER.activate();
+
+        //Fill producer data
+        Properties phasedCache = PhasedTestManager.phasedCache;
+        phasedCache.put(PhasedSeries_H_SingleClass.class.getTypeName() + ".step2("
+                + PhasedTestManager.STD_PHASED_GROUP_SINGLE + ")", "AB");
+
+        PhasedTestManager
+                .storeTestData(PhasedSeries_H_SingleClass.class, PhasedTestManager.STD_PHASED_GROUP_SINGLE, "true");
+
+        myTestNG.run();
+
+        assertThat("We should have 1 successful methods of phased Tests", (int) tla.getPassedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_H_SingleClass.class)).count(),
+                is(equalTo(1)));
+    }
+
+    /**
+     * Testing how the feature of selection by properties works if we have many tests. In this example we have two
+     * tests. The first one executes a normal test. The second one has the execute by producer activated
+     */
+    @Test
+    public void testSelectByProperties_multiTest() {
+        // Rampup
+        TestNG myTestNG = TestTools.createTestNG();
+        TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
+
+        // Define suites
+        XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG, "Automated Suite Phased Testing");
+
+        // Add listeners
+        mySuite.addListener(PhasedTestListener.class.getTypeName());
+
+        // Test1 - include a simple test
+        XmlTest myTest1 = TestTools.attachTestToSuite(mySuite, "Two tests in suite #1. Normal test");
+
+        //Define packages
+        List<XmlPackage> l_packages = new ArrayList<>();
+        l_packages.add(new XmlPackage("com.adobe.campaign.tests.integro.phased.data"));
+        myTest1.setXmlPackages(l_packages);
+
+        myTest1.addIncludedGroup("PROPERTIES_TEST2");
+
+        //Test 2 - Include the phased test to be selected from producer
+
+        XmlTest myTest2 = TestTools.attachTestToSuite(mySuite, "Two tests in suite. Contains phased test.");
+
+        //This activates the selection for selection by Producerr
+        myTest2.addIncludedGroup(PhasedTestManager.STD_GROUP_SELECT_TESTS_BY_PRODUCER);
+
+        Phases.CONSUMER.activate();
+
+        //Fill producer data
+        Properties phasedCache = PhasedTestManager.phasedCache;
+        phasedCache.put(PhasedSeries_H_SingleClass.class.getTypeName() + ".step2("
+                + PhasedTestManager.STD_PHASED_GROUP_SINGLE + ")", "AB");
+
+        PhasedTestManager
+                .storeTestData(PhasedSeries_H_SingleClass.class, PhasedTestManager.STD_PHASED_GROUP_SINGLE, "true");
+
+        myTestNG.run();
+
+        assertThat("We should have a total of 2 successful methods", tla.getPassedTests().size(), is(equalTo(2)));
+
+        assertThat("We should have 1 successful methods of phased Tests", (int) tla.getPassedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_H_SingleClass.class)).count(),
+                is(equalTo(1)));
+    }
 }

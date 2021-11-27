@@ -11,44 +11,81 @@
  */
 package com.adobe.campaign.tests.integro.phased;
 
+import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.testng.*;
+import org.testng.annotations.*;
+import org.testng.internal.BaseTestMethod;
+import org.testng.internal.TestResult;
+import org.testng.internal.annotations.DisabledRetryAnalyzer;
+import org.testng.xml.XmlClass;
+import org.testng.xml.XmlSuite;
+import org.testng.xml.XmlTest;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.testng.IAnnotationTransformer;
-import org.testng.ITestContext;
-import org.testng.ITestListener;
-import org.testng.ITestNGMethod;
-import org.testng.ITestResult;
-import org.testng.SkipException;
-import org.testng.TestNGException;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterGroups;
-import org.testng.annotations.AfterSuite;
-import org.testng.annotations.AfterTest;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeGroups;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.BeforeTest;
-import org.testng.annotations.IConfigurationAnnotation;
-import org.testng.annotations.ITestAnnotation;
-import org.testng.internal.BaseTestMethod;
-import org.testng.internal.TestResult;
-import org.testng.internal.annotations.DisabledRetryAnalyzer;
+public class PhasedTestListener implements ITestListener, IAnnotationTransformer, IAlterSuiteListener {
 
-import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
-
-public class PhasedTestListener implements ITestListener, IAnnotationTransformer {
     protected static Logger log = LogManager.getLogger();
+
+    @Override
+    public void alter(List<XmlSuite> suites) {
+        // *** Import DataBroker ***
+        String l_phasedDataBrokerClass = null;
+        if (System.getProperties().containsKey(PhasedTestManager.PROP_PHASED_TEST_DATABROKER)) {
+            l_phasedDataBrokerClass = System.getProperty(PhasedTestManager.PROP_PHASED_TEST_DATABROKER);
+        } else if (suites.get(0).getAllParameters()
+                .containsKey(PhasedTestManager.PROP_PHASED_TEST_DATABROKER)) {
+            l_phasedDataBrokerClass = suites.get(0)
+                    .getParameter(PhasedTestManager.PROP_PHASED_TEST_DATABROKER);
+        } else if (!Phases.NON_PHASED.isSelected()) {
+            log.info(PhasedTestManager.PHASED_TEST_LOG_PREFIX
+                    + "No PhasedDataBroker set. Using the file system path " + PhasedTestManager.STD_STORE_DIR
+                    + "/" + PhasedTestManager.STD_STORE_FILE + " instead ");
+        }
+
+        if (l_phasedDataBrokerClass != null) {
+            try {
+                PhasedTestManager.setDataBroker(l_phasedDataBrokerClass);
+            } catch (PhasedTestConfigurationException e) {
+                log.error(PhasedTestManager.PHASED_TEST_LOG_PREFIX
+                        + "Errors while setting the PhasedDataBroker", e);
+                throw new TestNGException(e);
+            }
+        }
+
+        // *** import context for consumer ***
+        //The second condition is there for testing purposes. You can bypass the file by filling the Test
+        if (Phases.CONSUMER.isSelected() && PhasedTestManager.getPhasedCache().isEmpty()) {
+            PhasedTestManager.importPhaseData();
+        }
+
+        //Inject the phased tests executed in the previous phase
+        for (XmlTest lt_xmlTest : suites.get(0).getTests().stream()
+                .filter(t -> t.getIncludedGroups().contains(PhasedTestManager.STD_GROUP_SELECT_TESTS_BY_PRODUCER))
+                .collect(Collectors.toList())) {
+
+            PhasedTestManager.activateTestSelectionByProducerMode();
+
+            //Attach new classes to suite
+            final Set<XmlClass> l_newXMLTests = PhasedTestManager.fetchExecutedPhasedClasses().stream()
+                    .map(XmlClass::new).collect(Collectors.toSet());
+
+            //add the original test classes
+            l_newXMLTests.addAll(lt_xmlTest.getXmlClasses());
+            lt_xmlTest.setXmlClasses(new ArrayList<>(l_newXMLTests));
+        }
+
+        //Do we keep this?
+        IAlterSuiteListener.super.alter(suites);
+
+    }
 
     @Override
     public void transform(IConfigurationAnnotation annotation, Class testClass, Constructor testConstructor,
@@ -188,7 +225,6 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
             Field methodName = BaseTestMethod.class.getDeclaredField("m_methodName");
             methodName.setAccessible(true);
             methodName.set(in_testResult.getMethod(), l_newName);
-            String debug = in_testResult.getMethod().getMethodName();
         } catch (IllegalAccessException | NoSuchFieldException e) {
             throw new PhasedTestException(
                     "Error while changing the phased step name " + in_testResult.getName() + ".", e);
@@ -260,36 +296,6 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
         log.debug(PhasedTestManager.PHASED_TEST_LOG_PREFIX + "onStart - current Execution State is : "
                 + Phases.getCurrentPhase());
 
-        /*** Import DataBroker ***/
-        String l_phasedDataBrokerClass = null;
-        if (System.getProperties().containsKey(PhasedTestManager.PROP_PHASED_TEST_DATABROKER)) {
-            l_phasedDataBrokerClass = System.getProperty(PhasedTestManager.PROP_PHASED_TEST_DATABROKER);
-        } else if (context.getSuite().getXmlSuite().getAllParameters()
-                .containsKey(PhasedTestManager.PROP_PHASED_TEST_DATABROKER)) {
-            l_phasedDataBrokerClass = context.getSuite().getXmlSuite()
-                    .getParameter(PhasedTestManager.PROP_PHASED_TEST_DATABROKER);
-        } else if (!Phases.NON_PHASED.isSelected()) {
-            log.info(PhasedTestManager.PHASED_TEST_LOG_PREFIX
-                    + "No PhasedDataBroker set. Using the file system path " + PhasedTestManager.STD_STORE_DIR
-                    + "/" + PhasedTestManager.STD_STORE_FILE + " instead ");
-        }
-
-        if (l_phasedDataBrokerClass != null) {
-            try {
-                PhasedTestManager.setDataBroker(l_phasedDataBrokerClass);
-            } catch (PhasedTestConfigurationException e) {
-                log.error(PhasedTestManager.PHASED_TEST_LOG_PREFIX
-                        + "Errors while setting the PhasedDataBroker", e);
-                throw new TestNGException(e);
-            }
-        }
-
-        /*** import context for consumer ***/
-        //The second condition is there for testing purposes. You can bypass the file by filling the Test
-        if (Phases.CONSUMER.isSelected() && PhasedTestManager.getPhasedCache().isEmpty()) {
-            PhasedTestManager.importPhaseData();
-        }
-
         //Creating a method map
         Map<Class, List<String>> l_classMethodMap = new HashMap<>();
         for (ITestNGMethod lt_testNGMethod : context.getSuite().getAllMethods()) {
@@ -339,7 +345,7 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
             PhasedTestManager.exportPhaseData();
         }
 
-        //Activating merge results if the value is set in the sysem properties
+        //Activating merge results if the value is set in the system properties
         if (System.getProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS, "NOTSET")
                 .equalsIgnoreCase("true")) {
             PhasedTestManager.activateMergedReports();
@@ -380,7 +386,8 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
                         .fetchDurationMillis(l_phasedScenarios.get(lt_phasedClass));
 
                 //When the phase test scenario was not a success
-                if (!PhasedTestManager.getPhasedCache().get(lt_phasedClass).equals(Boolean.TRUE.toString())) {
+                if (!PhasedTestManager.getScenarioContext().get(lt_phasedClass)
+                        .equals(Boolean.TRUE.toString())) {
 
                     //Delete all the passed steps : These steps are not remevant if we are merging the step results
                     Iterator<ITestResult> lt_passedTestIterator = context.getPassedTests().getAllResults()
@@ -412,7 +419,7 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
 
                         if (PhasedTestManager.fetchScenarioName(lt_currentSkip).equals(lt_phasedClass)) {
 
-                            if (l_allSkipped == false) {
+                            if (!l_allSkipped) {
                                 log.debug(PhasedTestManager.PHASED_TEST_LOG_PREFIX + "Removing "
                                         + ClassPathParser.fetchFullName(lt_currentSkip)
                                         + " because there are unskipped values.");
@@ -510,6 +517,17 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
             Method testMethod) {
 
         if (testClass != null) {
+
+            //inject the
+            if (PhasedTestManager.isTestsSelectedByProducerMode() && PhasedTestManager.fetchExecutedPhasedClasses().contains(testClass.getTypeName())) {
+
+                //Create new group array
+                Set<String> l_newArrayString = new HashSet<String>();
+                Arrays.stream(annotation.getGroups()).forEach(i -> l_newArrayString.add(i));
+                l_newArrayString.add(PhasedTestManager.STD_GROUP_SELECT_TESTS_BY_PRODUCER);
+                String[] l_newGroupArray = new String[l_newArrayString.size()];
+                annotation.setGroups(l_newArrayString.toArray(l_newGroupArray));
+            }
 
             if (PhasedTestManager.isPhasedTestShuffledMode(testClass)) {
                 annotation.setDataProvider(PhasedDataProvider.SHUFFLED);

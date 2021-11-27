@@ -149,6 +149,68 @@ public class GeneralTestUtilsTests {
     }
 
     @Test
+    public void testFetchingFileLines() {
+        File l_cacheDir = GeneralTestUtils.createCacheDirectory(TEST_CACHE_DIR);
+        File l_file = new File(l_cacheDir, TEST_CACHE_File);
+        
+        
+        //Create test data
+        Properties l_testProperties = new Properties();
+        l_testProperties.put("A", "B");
+        l_testProperties.put("C", "D");
+           
+        try (FileWriter fw = new FileWriter(l_file)) {
+
+            l_testProperties.store(fw, null);            
+
+        } catch (IOException e) {
+            throw new PhasedTestException("Error when creating file " + l_file + ".", e);
+        }
+
+        List<String> l_fileLines = GeneralTestUtils.fetchFileContentLines(l_file);
+        assertThat("We should have the correct number of tests", l_fileLines.size(),
+                Matchers.is(Matchers.equalTo(3)));
+
+    }
+
+    @Test
+    public void testFetchingFileLines_NonCommented() {
+        File l_cacheDir = GeneralTestUtils.createCacheDirectory(TEST_CACHE_DIR);
+        File l_file = new File(l_cacheDir, TEST_CACHE_File);
+        
+        
+        //Create test data
+        Properties l_testProperties = new Properties();
+        l_testProperties.put("A", "B");
+        l_testProperties.put("C", "D");
+           
+        try (FileWriter fw = new FileWriter(l_file)) {
+
+            l_testProperties.store(fw, null);            
+
+        } catch (IOException e) {
+            throw new PhasedTestException("Error when creating file " + l_file + ".", e);
+        }
+
+        assertThat("We should have the correct number of lines", GeneralTestUtils.fetchFileContentLines(l_file).size(),
+                Matchers.is(Matchers.equalTo(3)));
+        assertThat("We should have the correct number of tests", GeneralTestUtils.fetchFileContentDataLines(l_file).size(),
+                Matchers.is(Matchers.equalTo(2)));
+    }
+    
+    @Test
+    public void testFetchingFileDataLines_NegativeNonExistant() {
+        File l_cacheDir = GeneralTestUtils.createCacheDirectory(TEST_CACHE_DIR);
+        File l_file = new File(l_cacheDir, TEST_CACHE_File);
+
+        List<String> l_fileLines = GeneralTestUtils.fetchFileContentDataLines(l_file);
+        assertThat("We should have the correct number of tests", l_fileLines.size(),
+                Matchers.is(Matchers.equalTo(0)));
+
+    }
+    
+    
+    @Test
     public void testFetchingFileLines_NegativeNonExistant() {
         File l_cacheDir = GeneralTestUtils.createCacheDirectory(TEST_CACHE_DIR);
         File l_file = new File(l_cacheDir, TEST_CACHE_File);

@@ -206,6 +206,11 @@ By default we deactivate retry analyzer for the phased tests. However if you rea
 #### PHASED.TESTS.REPORT.BY.PHASE_GROUP
 By default we do not modify reports. Each step in a scenario is reported as is. We have introduced a "Report By Phase Group" functionality, which is activated with this property.
 
+## Executing a CONSUMER phase based on the PRODUCED Data
+Usually when your test code is in the repository of the product being tested, you will be having a delta in tests between two versions **N** & **N+1**. In such cases you will want to only execute the tests that exist in both versions. 
+
+For this, as of version 7.0.9, we have introduced the functionality that allows you to automatically select the phased tests that were executed in a previous phase. This means that when activated in a CONSUMER Phase, the selection is made based on the tests that were executed in the PRODUCER Phase. This functionality is activated when you pass or include the test group `PHASED_PRODUCED_TESTS`.
+
 ## Phase Contexts - Managing the Scenario Step Executions
 Although we try to keep the execution of a scenario like any other test scenario, we feel that it is useful to document how he state of a scenario works.
 
@@ -275,6 +280,9 @@ We now allow for a user to also include data providers in connection to Phased T
 A configuration check is done in the beginning. The phased test steps are checked and their arguments are compared to the number of data providers + the injected data provider for phased tests. If the number of arguments does not correspond to the total number of data providers, a `PhasedTestConfigurationException` is thrown right at the beginning.
 
 ## Release Notes
+### 7.0.9-SNAPSHOT
+- Implemented the new select tess to run based on the producer phase (#9)
+
 ### 7.0.8
 - Upgraded java version to Java 11
 - Activated sonar scans
@@ -287,7 +295,7 @@ A configuration check is done in the beginning. The phased test steps are checke
 ### 7.0.5
 - You can now define Phase setup methods. `@BeforePhase` & `@AfterPhase` can be set on a normal TestNG Before and After method. The method will then be executed in before or after a phase starts. (#40) 
 - We now allow for user defined data providers in a phased test. For the data provider to be considered, i needs to be declared at class level and not at method level. (#26)
--  We can now configure the reports to include the data providers.
+- We can now configure the reports to include the data providers.
 - We now throw an error if the arguments of the phased steps do not correspond to expected number of parameters (phased + user defined) (#28 & #27 & #38)
 - Solved issue with tests continuing in consumer mode even if their steps had not been executed in the producer phase (#43)
 
@@ -297,8 +305,8 @@ A configuration check is done in the beginning. The phased test steps are checke
 - Other issues corrected are : #20, #22, #23, #24, #25
 
 ### 7.0.3
-- #15 Renamed old produce/consume to produceInStep/consumeFromStep. The old produceWithKey/consumeWith key are now deprecated. Instead you should use produceWithKey/consumeWith 
-- #8  We an now export the phase cache at will. This is very useful for debugging or for Data Broker testing. Added a method PhasedTestManager.fetchExportFile which help return the selected export file 
+- Renamed old produce/consume to produceInStep/consumeFromStep. The old produceWithKey/consumeWith key are now deprecated. Instead you should use produceWithKey/consumeWith (#15) 
+- We can now export the phase cache at will. This is very useful for debugging or for Data Broker testing. Added a method PhasedTestManager.fetchExportFile which help return the selected export file (#8)
 
 ### 7.0.0
 - Migrated to TestNG 7.4
