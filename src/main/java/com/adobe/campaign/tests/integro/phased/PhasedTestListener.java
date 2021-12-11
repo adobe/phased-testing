@@ -67,6 +67,7 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
         }
 
         //Inject the phased tests executed in the previous phase
+        // This is activated when the test group "PHASED_PRODUCED_TESTS" group
         for (XmlTest lt_xmlTest : suites.get(0).getTests().stream()
                 .filter(t -> t.getIncludedGroups().contains(PhasedTestManager.STD_GROUP_SELECT_TESTS_BY_PRODUCER))
                 .collect(Collectors.toList())) {

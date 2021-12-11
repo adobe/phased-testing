@@ -33,6 +33,7 @@ public class PhasedTestManager {
     protected static final String STD_KEY_CLASS_SEPARATOR = "->";
 
     public static final String PHASED_TEST_LOG_PREFIX = "[Phased Testing] ";
+    public static final String STD_SCENARIO_CONTEXT_SEPARATOR = ";";
 
     protected static Logger log = LogManager.getLogger();
 
@@ -54,7 +55,7 @@ public class PhasedTestManager {
     protected static final String STD_PHASED_GROUP_PREFIX = "phased-shuffledGroup_";
     protected static final String STD_PHASED_GROUP_SINGLE = "phased-singleRun";
 
-    public static final String STD_MERGE_STEP_ERROR_PREFIX = "Phased Error: Failure in step ";
+    public static final String  STD_MERGE_STEP_ERROR_PREFIX = "Phased Error: Failure in step ";
 
     /**
      * The different states a step can assume in a scenario
@@ -1512,7 +1513,7 @@ public class PhasedTestManager {
         ScenarioContextData() {
             passed=true;
             duration=0;
-            failedStep="N/A";
+            failedStep="NA";
         }
 
         /**
@@ -1528,6 +1529,34 @@ public class PhasedTestManager {
                 failedStep = ClassPathParser.fetchFullName(in_testResult);
             }
             duration += (in_testResult.getEndMillis()-in_testResult.getStartMillis());
+        }
+
+        /**
+         * Exports the content of this class to a CSV (";" separated) string
+         *
+         * Author : gandomi
+         *
+         * @return A string representation of this class
+         */
+        public String exportToString() {
+            StringBuilder sb =  new StringBuilder(Boolean.toString(this.passed));
+            sb.append(";").append(this.duration).append(";").append(this.failedStep);
+            return sb.toString();
+        }
+
+        /**
+         * Imports the values of a string.
+         *
+         * Author : gandomi
+         *
+         * @param in_importString A string that is used to populate the fields of this class.
+         */
+        public void importFromString(String in_importString) {
+            String[] l_valueArray = in_importString.split(STD_SCENARIO_CONTEXT_SEPARATOR);
+            this.passed = Boolean.valueOf(l_valueArray[0]);
+            this.duration = Long.valueOf(l_valueArray[1]);
+            this.failedStep = l_valueArray[2];
+
         }
     }
 }

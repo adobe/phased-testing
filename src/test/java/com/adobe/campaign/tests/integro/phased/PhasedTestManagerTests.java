@@ -32,6 +32,7 @@ import java.util.*;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertThrows;
 
 public class PhasedTestManagerTests {
@@ -3215,7 +3216,7 @@ public class PhasedTestManagerTests {
 
         assertThat("We should by default be passed", x.passed);
         assertThat("We should by default have the 0 duration", x.duration, Matchers.equalTo(0L));
-        assertThat("The default failed step should be correct", x.failedStep, Matchers.equalTo("N/A"));
+        assertThat("The default failed step should be correct", x.failedStep, Matchers.equalTo("NA"));
     }
 
     @Test
@@ -3244,7 +3245,7 @@ public class PhasedTestManagerTests {
         assertThat("We should be passed", x.passed);
         assertThat("We should by default have the 0 duration", x.duration, Matchers.equalTo(15L));
         assertThat("The failed step should not have changed failed step should be correct", x.failedStep,
-                Matchers.equalTo("N/A"));
+                Matchers.equalTo("NA"));
 
     }
 
@@ -3311,4 +3312,28 @@ public class PhasedTestManagerTests {
                 l_scenarioContext.failedStep, Matchers.equalTo(l_scenarioContext.failedStep));
 
     }
+
+    @Test
+    public void testScenarioContextDataToString() {
+        PhasedTestManager.ScenarioContextData l_scenarioContext = new PhasedTestManager.ScenarioContextData();
+        l_scenarioContext.passed = false;
+        l_scenarioContext.duration = 2;
+        l_scenarioContext.failedStep = "abc";
+
+        assertThat("The toString method should correctly export the data", l_scenarioContext.exportToString(),
+                Matchers.equalTo("false;2;abc"));
+
+        //import
+        PhasedTestManager.ScenarioContextData l_scenarioContextImported = new PhasedTestManager.ScenarioContextData();
+
+        l_scenarioContextImported.importFromString("false;2;abc");
+
+        assertThat("The passed should be correctly imported", l_scenarioContextImported.passed,
+                Matchers.equalTo(l_scenarioContext.passed));
+        assertThat("The duration should be correctly imported", l_scenarioContextImported.duration,
+                Matchers.equalTo(l_scenarioContext.duration));
+        assertThat("The failedStep should be correctly imported", l_scenarioContextImported.failedStep,
+                Matchers.equalTo(l_scenarioContext.failedStep));
+    }
+
 }
