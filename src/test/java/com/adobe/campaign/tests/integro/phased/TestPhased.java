@@ -2759,7 +2759,7 @@ public class TestPhased {
 
     }
 
-    /************** Testing issue #9 ******************/
+    // ************** Testing issue #9 regarding the feature "select tests by produced data "
 
     @Test
     public void testConsumer_selectionBasedOnProducer_Deactivated() {
@@ -2800,7 +2800,7 @@ public class TestPhased {
     }
 
     /**
-     * Starting from here we use he properties file as a test selector.
+     * Starting from here we use the properties file as a test selector.
      * <p>
      * Author : gandomi
      */
@@ -2823,6 +2823,55 @@ public class TestPhased {
         myTest.addIncludedGroup(PhasedTestManager.STD_GROUP_SELECT_TESTS_BY_PRODUCER);
 
         Phases.CONSUMER.activate();
+        Properties phasedCache = PhasedTestManager.phasedCache;
+        phasedCache.put(PhasedSeries_H_SingleClass.class.getTypeName() + ".step2("
+                + PhasedTestManager.STD_PHASED_GROUP_SINGLE + ")", "AB");
+
+        PhasedTestManager
+                .storeTestData(PhasedSeries_H_SingleClass.class, PhasedTestManager.STD_PHASED_GROUP_SINGLE, "true");
+
+        assertThat("We should not be in the SELECT_BY_PRODUCER mode",
+                !PhasedTestManager.isTestsSelectedByProducerMode());
+
+        myTestNG.run();
+
+        assertThat("We should be in the SELECT_BY_PRODUCER mode", PhasedTestManager.isTestsSelectedByProducerMode());
+
+        assertThat("The number of tests should not have changed",
+                tla.getTestContexts().get(0).getSuite().getXmlSuite().getTests().size(), equalTo(1));
+
+        assertThat("We should have 1 successful methods of phased Tests", (int) tla.getPassedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_H_SingleClass.class)).count(),
+                is(equalTo(1)));
+
+    }
+
+    /**
+     * Starting from here we use the properties file as a test selector.
+     *
+     * In this case we are in producer mode.
+     * <p>
+     * Author : gandomi
+     */
+    @Test
+    public void testConsumer_selectionBasedOnProducerFile_NegativeInProducer() {
+        // Rampup
+        TestNG myTestNG = TestTools.createTestNG();
+        TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
+
+        // Define suites
+        XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG, "Automated Suite Phased Testing");
+
+        // Add listeners
+        mySuite.addListener(PhasedTestListener.class.getTypeName());
+
+        // Create an instance of XmlTest and assign a name for it.
+        XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Phased Tests");
+
+        //This activates the selection
+        myTest.addIncludedGroup(PhasedTestManager.STD_GROUP_SELECT_TESTS_BY_PRODUCER);
+
+        Phases.PRODUCER.activate();
         Properties phasedCache = PhasedTestManager.phasedCache;
         phasedCache.put(PhasedSeries_H_SingleClass.class.getTypeName() + ".step2("
                 + PhasedTestManager.STD_PHASED_GROUP_SINGLE + ")", "AB");

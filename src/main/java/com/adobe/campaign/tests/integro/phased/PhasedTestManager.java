@@ -900,8 +900,7 @@ public class PhasedTestManager {
      * be the class including the phase test group. It allows us to know if the
      * test is allowed to continue.
      * <p>
-     * Once the context is logged as false for a test it re
-     * s false
+     * Once the context is logged as false for a test it remains false
      * <p>
      * Author : gandomi
      *
@@ -1447,7 +1446,7 @@ public class PhasedTestManager {
      * <p>
      * Author : gandomi
      *
-     * @param in_testResult A test result object containing the necessary analysis daata
+     * @param in_testResult A test result object containing the necessary analysis data
      * @return The number of steps planned before a phase change. If we are
      * non-phased we return 0
      */
@@ -1503,5 +1502,32 @@ public class PhasedTestManager {
         }
 
         return in_scenario;
+    }
+
+    protected static class ScenarioContextData {
+        protected boolean passed;
+        protected long duration;
+        protected String failedStep;
+
+        ScenarioContextData() {
+            passed=true;
+            duration=0;
+            failedStep="N/A";
+        }
+
+        /**
+         * Given a TestResult object we will update the given scenarioContext
+         *
+         * Author : gandomi
+         *
+         * @param in_testResult
+         */
+        public void synchronizeSate(ITestResult in_testResult) {
+            if (in_testResult.getStatus()== ITestResult.FAILURE) {
+                passed = false;
+                failedStep = ClassPathParser.fetchFullName(in_testResult);
+            }
+            duration += (in_testResult.getEndMillis()-in_testResult.getStartMillis());
+        }
     }
 }

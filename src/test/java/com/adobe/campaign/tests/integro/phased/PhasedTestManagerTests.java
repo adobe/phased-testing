@@ -11,6 +11,12 @@
  */
 package com.adobe.campaign.tests.integro.phased;
 
+import com.adobe.campaign.tests.integro.phased.data.*;
+import com.adobe.campaign.tests.integro.phased.data.dp.*;
+import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
+import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
+import org.hamcrest.Matchers;
+import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.ITestNGMethod;
 import org.testng.ITestResult;
@@ -18,45 +24,15 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.testng.internal.ConstructorOrMethod;
-import com.adobe.campaign.tests.integro.phased.data.NormalSeries_A;
-import com.adobe.campaign.tests.integro.phased.data.PhasedDataBrokerTestImplementation;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_A;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_B_NoInActive;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_F_Shuffle;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClass;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClassWithError;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_SingleClass;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_K_ShuffledClass_noproviders;
-import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_DPDefinitionInexistant;
-import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_PROVIDER;
-import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledDP;
-import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledDPPrivate;
-import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledDPSimple;
-import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledDPSimplePrivate;
-import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
-import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
+
+import java.io.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.*;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.testng.Assert.assertThrows;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-
-import org.hamcrest.Matchers;
-import org.mockito.Mockito;
 
 public class PhasedTestManagerTests {
     @BeforeClass
@@ -3216,6 +3192,123 @@ public class PhasedTestManagerTests {
         assertThat("We should two entries", l_setOfClasses,
                 Matchers.containsInAnyOrder(PhasedSeries_K_ShuffledClass_noproviders.class.getTypeName(),
                         PhasedSeries_H_SingleClass.class.getTypeName()));
+
+    }
+
+    @Test
+    public void testScenarioContextData() {
+
+        PhasedTestManager.ScenarioContextData x = new PhasedTestManager.ScenarioContextData();
+        x.passed=true;
+        x.duration=2;
+        x.failedStep="abc";
+
+        assertThat("We should have the correct state", x.passed);
+        assertThat("We should have the correct duration", x.duration, Matchers.equalTo(2L));
+        assertThat("the failed step should be ccorrect", x.failedStep, Matchers.equalTo("abc"));
+    }
+
+    @Test
+    public void testDefaultScenarioContextData() {
+
+        PhasedTestManager.ScenarioContextData x = new PhasedTestManager.ScenarioContextData();
+
+        assertThat("We should by default be passed", x.passed);
+        assertThat("We should by default have the 0 duration", x.duration, Matchers.equalTo(0L));
+        assertThat("The default failed step should be correct", x.failedStep, Matchers.equalTo("N/A"));
+    }
+
+    @Test
+    public void testScenarioContextData_synchronizeState() throws NoSuchMethodException {
+        PhasedTestManager.ScenarioContextData x = new PhasedTestManager.ScenarioContextData();
+        x.passed = true;
+        x.duration = 2;
+
+        //Define previous step
+        final Method l_myTestBeforeWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step1",
+                String.class);
+        ITestResult l_itr = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
+        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
+
+        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
+        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
+        Mockito.when(l_itr.getEndMillis()).thenReturn(14L);
+        Mockito.when(l_itr.getStartMillis()).thenReturn(1L);
+        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "0_1" });
+        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
+        Mockito.when(l_com.getMethod()).thenReturn(l_myTestBeforeWithOneArg);
+
+        x.synchronizeSate(l_itr);
+
+        assertThat("We should be passed", x.passed);
+        assertThat("We should by default have the 0 duration", x.duration, Matchers.equalTo(15L));
+        assertThat("The failed step should not have changed failed step should be correct", x.failedStep,
+                Matchers.equalTo("N/A"));
+
+    }
+
+    @Test
+    public void testScenarioContextData_synchronizeStateFAILURE() throws NoSuchMethodException {
+        PhasedTestManager.ScenarioContextData l_scenarioContext = new PhasedTestManager.ScenarioContextData();
+        l_scenarioContext.passed = true;
+        l_scenarioContext.duration = 2;
+
+        //Define previous step
+        final Method l_myTestBeforeWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step1",
+                String.class);
+        ITestResult l_itr = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
+        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
+
+        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
+        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.FAILURE);
+        Mockito.when(l_itr.getEndMillis()).thenReturn(14L);
+        Mockito.when(l_itr.getStartMillis()).thenReturn(1L);
+        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "0_1" });
+        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
+        Mockito.when(l_com.getMethod()).thenReturn(l_myTestBeforeWithOneArg);
+
+        l_scenarioContext.synchronizeSate(l_itr);
+        String l_failedStep = ClassPathParser.fetchFullName(l_itr);
+
+        assertThat("We should be failed", !l_scenarioContext.passed);
+        assertThat("We should by default have the 0 duration", l_scenarioContext.duration, Matchers.equalTo(15L));
+        assertThat("The failed step should not have changed failed step should be correct",
+                l_scenarioContext.failedStep, Matchers.equalTo(l_failedStep));
+
+    }
+
+    @Test
+    public void testScenarioContextData_synchronizeStateSKIP() throws NoSuchMethodException {
+        PhasedTestManager.ScenarioContextData l_scenarioContext = new PhasedTestManager.ScenarioContextData();
+        l_scenarioContext.passed = false;
+        l_scenarioContext.duration = 2;
+
+        l_scenarioContext.failedStep="com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClassWithError.step1(0_1)";
+
+        //Define previous step
+        final Method l_myTestBeforeWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step2",
+                String.class);
+        ITestResult l_itr = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
+        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
+
+        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
+        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SKIP);
+        Mockito.when(l_itr.getEndMillis()).thenReturn(14L);
+        Mockito.when(l_itr.getStartMillis()).thenReturn(1L);
+        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "0_1" });
+        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
+        Mockito.when(l_com.getMethod()).thenReturn(l_myTestBeforeWithOneArg);
+
+        l_scenarioContext.synchronizeSate(l_itr);
+        String l_failedStep = ClassPathParser.fetchFullName(l_itr);
+
+        assertThat("We should be failed", !l_scenarioContext.passed);
+        assertThat("We should by default have the 0 duration", l_scenarioContext.duration, Matchers.equalTo(15L));
+        assertThat("The failed step should not have changed failed step should be correct",
+                l_scenarioContext.failedStep, Matchers.equalTo(l_scenarioContext.failedStep));
 
     }
 }
