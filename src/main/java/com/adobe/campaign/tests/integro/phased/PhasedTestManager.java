@@ -68,7 +68,7 @@ public class PhasedTestManager {
     }
 
     protected static Properties phasedCache = new Properties();
-    private static final Properties scenarioContext = new Properties();
+    private static  Map<String, ScenarioContextData> scenarioContext = new HashMap<>();
 
     protected static Map<String, MethodMapping> methodMap = new HashMap<>();
 
@@ -126,7 +126,7 @@ public class PhasedTestManager {
     /**
      * @return the scenarioContext
      */
-    protected static Properties getScenarioContext() {
+    protected static Map<String, ScenarioContextData> getScenarioContext() {
         return scenarioContext;
     }
 
@@ -519,7 +519,8 @@ public class PhasedTestManager {
         //Import scenario contexts into scenario context
         lr_importedProperties.stringPropertyNames().stream().filter(k -> k.startsWith(SCENARIO_CONTEXT_PREFIX)).forEach(
                 fk -> scenarioContext
-                        .put(fk.substring(SCENARIO_CONTEXT_PREFIX.length()), lr_importedProperties.get(fk)));
+                        .put(fk.substring(SCENARIO_CONTEXT_PREFIX.length()), new ScenarioContextData(
+                                (String) lr_importedProperties.get(fk))));
 
         return lr_importedProperties;
     }
@@ -748,12 +749,31 @@ public class PhasedTestManager {
      * @return The key used to store the value in the cache
      */
     protected static String storeTestData(Class in_class, String in_phaseGroup, String in_storedData) {
+        ScenarioContextData l_scenarioContext = new ScenarioContextData();
+        l_scenarioContext.passed =  Boolean.valueOf(in_storedData);
+
+        return storeTestData(in_class, in_phaseGroup, l_scenarioContext);
+
+    }
+
+    /**
+     * For testing purposes only. Used when we want to test the consumer
+     * <p>
+     * Author : gandomi
+     *
+     * @param in_class      A test method
+     * @param in_phaseGroup A phase group Id
+     * @param in_storedData The data to be stored for the scenario step
+     * @return The key used to store the value in the cache
+     */
+    protected static String storeTestData(Class in_class, String in_phaseGroup, ScenarioContextData in_storedData) {
         phaseContext.put(in_class.getTypeName(), in_phaseGroup);
 
         final String lr_storedKey = generateStepKeyIdentity(in_class.getTypeName());
+        ScenarioContextData l_scenarioContext = new ScenarioContextData();
+        //l_scenarioContext.
         scenarioContext.put(lr_storedKey, in_storedData);
         return lr_storedKey;
-
     }
 
     /**
@@ -914,16 +934,21 @@ public class PhasedTestManager {
 
         if (scenarioContext.containsKey(l_scenarioName)) {
 
+            scenarioContext.get(l_scenarioName).synchronizeState(in_testResult);
+
             //If the phase context is true we check if the state for the scenario should change. Otherwise we interrupt the tests
+
+            /*
             if (scenarioContext.get(l_scenarioName).equals(Boolean.TRUE.toString()) || scenarioContext
                     .get(l_scenarioName).equals(l_stepName)) {
                 scenarioContext.put(l_scenarioName,
                         in_testResult.getStatus() == ITestResult.SUCCESS ? Boolean.TRUE.toString() : l_stepName);
-            }
+            }*/
 
         } else {
-            scenarioContext.put(l_scenarioName,
-                    (in_testResult.getStatus() == ITestResult.SUCCESS) ? Boolean.TRUE.toString() : l_stepName);
+            ScenarioContextData l_scenarioContextData = new ScenarioContextData();
+            l_scenarioContextData.synchronizeState(in_testResult);
+            scenarioContext.put(l_scenarioName,l_scenarioContextData);
         }
 
     }
@@ -1020,14 +1045,14 @@ public class PhasedTestManager {
      */
     public static ScenarioState scenarioStateDecision(ITestResult in_testResult) {
         final String l_scenarioName = fetchScenarioName(in_testResult);
-        //Case      PHASE               STEP        
+        //Case      PHASE               STEP    Previous_Step       Expected_Result
         //Case 1    Producer/NonPhased  1           N/A             Continue    true    testStateIstKeptBetweenPhases_Continue
-        //Case 2   Producer/NonPhased  > 1     FAILED/Skipped  SKIP    false   
-        //Case 3   Producer/NonPhased  > 1     Passed  Continue    true    testStateIstKeptBetweenPhases_Continue
-        //Case 4    Consumer           1            N/A  Continue    true    testStateIstKeptBetweenPhases_Continue
-        //Case 5   Cosnumer    > 1     Passed  Continue    true    
-        //Case 6   Cosnumer    > 1     Failed/Skipped  SKIP    false   
-        //Case 7    Cosnumer           > 1          N/A  SKIP    false
+        //Case 2   Producer/NonPhased  > 1     FAILED/Skipped       SKIP    false
+        //Case 3   Producer/NonPhased  > 1     Passed               Continue    true    testStateIstKeptBetweenPhases_Continue
+        //Case 4    Consumer           1            N/A             Continue    true    testStateIstKeptBetweenPhases_Continue
+        //Case 5   Cosnumer            > 1     Passed               Continue    true
+        //Case 6   Cosnumer            > 1     Failed/Skipped       SKIP    false
+        //Case 7    Cosnumer           > 1          N/A             SKIP    false
 
         //#43 to change this to false
         //If scenario has not yet been executed in the current phase 
@@ -1040,8 +1065,8 @@ public class PhasedTestManager {
             return ScenarioState.CONTINUE;
         }
 
-        return getScenarioContext().get(l_scenarioName)
-                .equals(Boolean.TRUE.toString()) ? ScenarioState.CONTINUE : ScenarioState.SKIP_PREVIOUS_FAILURE;
+        return getScenarioContext().get(l_scenarioName).passed
+                ? ScenarioState.CONTINUE : ScenarioState.SKIP_PREVIOUS_FAILURE;
     }
 
     /**
@@ -1480,7 +1505,7 @@ public class PhasedTestManager {
      */
     public static Set<String> fetchExecutedPhasedClasses() {
 
-        return getScenarioContext().stringPropertyNames().stream().map(PhasedTestManager::fetchClassFromScenarioContext)
+        return getScenarioContext().keySet().stream().map(PhasedTestManager::fetchClassFromScenarioContext)
                 .collect(Collectors.toSet());
     }
 
@@ -1517,13 +1542,21 @@ public class PhasedTestManager {
         }
 
         /**
+         * Used in the case of importing of contexts
+         * @param in_importString
+         */
+        protected ScenarioContextData(String in_importString) {
+            this.importFromString(in_importString);
+        }
+
+        /**
          * Given a TestResult object we will update the given scenarioContext
          *
          * Author : gandomi
          *
          * @param in_testResult
          */
-        public void synchronizeSate(ITestResult in_testResult) {
+        public void synchronizeState(ITestResult in_testResult) {
             if (in_testResult.getStatus()== ITestResult.FAILURE) {
                 passed = false;
                 failedStep = ClassPathParser.fetchFullName(in_testResult);
