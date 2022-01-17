@@ -935,15 +935,6 @@ public class PhasedTestManager {
 
             scenarioContext.get(l_scenarioName).synchronizeState(in_testResult);
 
-            //If the phase context is true we check if the state for the scenario should change. Otherwise we interrupt the tests
-
-            /*
-            if (scenarioContext.get(l_scenarioName).equals(Boolean.TRUE.toString()) || scenarioContext
-                    .get(l_scenarioName).equals(l_stepName)) {
-                scenarioContext.put(l_scenarioName,
-                        in_testResult.getStatus() == ITestResult.SUCCESS ? Boolean.TRUE.toString() : l_stepName);
-            }*/
-
         } else {
             ScenarioContextData l_scenarioContextData = new ScenarioContextData();
             l_scenarioContextData.synchronizeState(in_testResult);
