@@ -468,7 +468,7 @@ public class PhasedTestManager {
         log.info(PHASED_TEST_LOG_PREFIX + " Exporting Phased Testing data to " + in_file.getPath());
 
         Properties lt_transformedScenarios = new Properties();
-        scenarioContext.forEach((key, value) -> lt_transformedScenarios.put(attachContextFlag(key.toString()), value));
+        scenarioContext.forEach((key, value) -> lt_transformedScenarios.put(attachContextFlag(key.toString()), value.exportToString()));
 
         try (FileWriter fw = new FileWriter(in_file)) {
 
@@ -509,7 +509,6 @@ public class PhasedTestManager {
         } catch (IOException e) {
             log.error("Error when loading file " + in_phasedTestFile);
             throw new PhasedTestException("Error when loading file " + in_phasedTestFile.getPath() + ".", e);
-
         }
 
         //Import produced data into phase cache
@@ -1019,7 +1018,7 @@ public class PhasedTestManager {
      * <td>6</td>
      * <td>Consumer</td>
      * <td>&gt; 1</td>
-     * <td>FAIED/SKIPPED</td>
+     * <td>FAILED/SKIPPED</td>
      * <td>SKIP</td>
      * <td>FAILED</td>
      * </tr>
@@ -1557,11 +1556,13 @@ public class PhasedTestManager {
          * @param in_testResult
          */
         public void synchronizeState(ITestResult in_testResult) {
-            if (in_testResult.getStatus()== ITestResult.FAILURE) {
-                passed = false;
+            switch (in_testResult.getStatus()) {
+            case ITestResult.FAILURE:
                 failedStep = ClassPathParser.fetchFullName(in_testResult);
+            case ITestResult.SKIP:
+                passed = false;
             }
-            duration += (in_testResult.getEndMillis()-in_testResult.getStartMillis());
+            duration += (in_testResult.getEndMillis() - in_testResult.getStartMillis());
         }
 
         /**

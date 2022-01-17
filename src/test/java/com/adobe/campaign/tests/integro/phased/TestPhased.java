@@ -846,8 +846,11 @@ public class TestPhased {
                 PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2", "true");
 
         //Add the test context
+        assertThat("The context should still be correct", PhasedTestManager.getScenarioContext().size(),equalTo(3));
 
         myTestNG.run();
+
+        assertThat("The context should still be correct after the run", PhasedTestManager.getScenarioContext().size(),equalTo(4));
 
         assertThat("We should have 6 successful methods of phased Tests",
                 (int) tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),

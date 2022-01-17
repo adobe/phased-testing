@@ -388,8 +388,7 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
                         .fetchDurationMillis(l_phasedScenarios.get(lt_phasedClass));
 
                 //When the phase test scenario was not a success
-                if (!PhasedTestManager.getScenarioContext().get(lt_phasedClass)
-                        .equals(Boolean.TRUE.toString())) {
+                if (!PhasedTestManager.getScenarioContext().get(lt_phasedClass).passed) {
 
                     //Delete all the passed steps : These steps are not remevant if we are merging the step results
                     Iterator<ITestResult> lt_passedTestIterator = context.getPassedTests().getAllResults()
