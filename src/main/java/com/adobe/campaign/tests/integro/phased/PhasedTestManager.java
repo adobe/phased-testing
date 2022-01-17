@@ -1059,11 +1059,6 @@ public class PhasedTestManager {
             //True only if we are executing end to end 0_X
             return hasStepsExecutedInProducer(in_testResult) ? ScenarioState.SKIP_NORESULT : ScenarioState.CONTINUE;
         }
-
-        if (getScenarioContext().get(l_scenarioName).equals(ClassPathParser.fetchFullName(in_testResult))) {
-            return ScenarioState.CONTINUE;
-        }
-
         return getScenarioContext().get(l_scenarioName).passed
                 ? ScenarioState.CONTINUE : ScenarioState.SKIP_PREVIOUS_FAILURE;
     }
