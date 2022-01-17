@@ -252,7 +252,7 @@ public class TestPhased {
                 + PhasedTestManager.STD_PHASED_GROUP_SINGLE + ")", "AB");
 
         PhasedTestManager.storeTestData(PhasedSeries_H_SingleClass.class,
-                PhasedTestManager.STD_PHASED_GROUP_SINGLE, "true");
+                PhasedTestManager.STD_PHASED_GROUP_SINGLE, true);
 
         myTestNG.run();
 
@@ -712,11 +712,11 @@ public class TestPhased {
         PhasedTestManager.storeTestData(l_myTest2, PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1", "AB");
 
         PhasedTestManager.storeTestData(PhasedSeries_F_Shuffle.class,
-                PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0", "true");
+                PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0", true);
         PhasedTestManager.storeTestData(PhasedSeries_F_Shuffle.class,
-                PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1", "true");
+                PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1", true);
         PhasedTestManager.storeTestData(PhasedSeries_F_Shuffle.class,
-                PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2", "true");
+                PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2", true);
 
         myTestNG.run();
 
@@ -839,11 +839,11 @@ public class TestPhased {
         PhasedTestManager.storeTestData(l_myTest2, PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1", "AB");
 
         PhasedTestManager.storeTestData(PhasedSeries_F_Shuffle.class,
-                PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0", "true");
+                PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0", true);
         PhasedTestManager.storeTestData(PhasedSeries_F_Shuffle.class,
-                PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1", "true");
+                PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1", true);
         PhasedTestManager.storeTestData(PhasedSeries_F_Shuffle.class,
-                PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2", "true");
+                PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2", true);
 
         //Add the test context
         assertThat("The context should still be correct", PhasedTestManager.getScenarioContext().size(),equalTo(3));
@@ -2785,7 +2785,7 @@ public class TestPhased {
                 + PhasedTestManager.STD_PHASED_GROUP_SINGLE + ")", "AB");
 
         PhasedTestManager
-                .storeTestData(PhasedSeries_H_SingleClass.class, PhasedTestManager.STD_PHASED_GROUP_SINGLE, "true");
+                .storeTestData(PhasedSeries_H_SingleClass.class, PhasedTestManager.STD_PHASED_GROUP_SINGLE, true);
 
         assertThat("We should not be in the SELECT_BY_PRODUCER mode",
                 !PhasedTestManager.isTestsSelectedByProducerMode());
@@ -2831,7 +2831,7 @@ public class TestPhased {
                 + PhasedTestManager.STD_PHASED_GROUP_SINGLE + ")", "AB");
 
         PhasedTestManager
-                .storeTestData(PhasedSeries_H_SingleClass.class, PhasedTestManager.STD_PHASED_GROUP_SINGLE, "true");
+                .storeTestData(PhasedSeries_H_SingleClass.class, PhasedTestManager.STD_PHASED_GROUP_SINGLE, true);
 
         assertThat("We should not be in the SELECT_BY_PRODUCER mode",
                 !PhasedTestManager.isTestsSelectedByProducerMode());
@@ -2880,7 +2880,7 @@ public class TestPhased {
                 + PhasedTestManager.STD_PHASED_GROUP_SINGLE + ")", "AB");
 
         PhasedTestManager
-                .storeTestData(PhasedSeries_H_SingleClass.class, PhasedTestManager.STD_PHASED_GROUP_SINGLE, "true");
+                .storeTestData(PhasedSeries_H_SingleClass.class, PhasedTestManager.STD_PHASED_GROUP_SINGLE, true);
 
         assertThat("We should not be in the SELECT_BY_PRODUCER mode",
                 !PhasedTestManager.isTestsSelectedByProducerMode());
@@ -2932,7 +2932,7 @@ public class TestPhased {
                 + PhasedTestManager.STD_PHASED_GROUP_SINGLE + ")", "AB");
 
         PhasedTestManager
-                .storeTestData(PhasedSeries_H_SingleClass.class, PhasedTestManager.STD_PHASED_GROUP_SINGLE, "true");
+                .storeTestData(PhasedSeries_H_SingleClass.class, PhasedTestManager.STD_PHASED_GROUP_SINGLE, true);
 
         myTestNG.run();
 
@@ -2982,7 +2982,7 @@ public class TestPhased {
                 + PhasedTestManager.STD_PHASED_GROUP_SINGLE + ")", "AB");
 
         PhasedTestManager
-                .storeTestData(PhasedSeries_H_SingleClass.class, PhasedTestManager.STD_PHASED_GROUP_SINGLE, "true");
+                .storeTestData(PhasedSeries_H_SingleClass.class, PhasedTestManager.STD_PHASED_GROUP_SINGLE, true);
 
         myTestNG.run();
 

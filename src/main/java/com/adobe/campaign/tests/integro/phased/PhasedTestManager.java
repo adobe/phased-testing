@@ -747,7 +747,7 @@ public class PhasedTestManager {
      * @param in_storedData The data to be stored for the scenario step
      * @return The key used to store the value in the cache
      */
-    protected static String storeTestData(Class in_class, String in_phaseGroup, String in_storedData) {
+    protected static String storeTestData(Class in_class, String in_phaseGroup, boolean in_storedData) {
         ScenarioContextData l_scenarioContext = new ScenarioContextData();
         l_scenarioContext.passed =  Boolean.valueOf(in_storedData);
 
@@ -770,7 +770,7 @@ public class PhasedTestManager {
 
         final String lr_storedKey = generateStepKeyIdentity(in_class.getTypeName());
         ScenarioContextData l_scenarioContext = new ScenarioContextData();
-        //l_scenarioContext.
+
         scenarioContext.put(lr_storedKey, in_storedData);
         return lr_storedKey;
     }

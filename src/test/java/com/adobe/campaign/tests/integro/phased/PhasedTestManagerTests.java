@@ -213,7 +213,7 @@ public class PhasedTestManagerTests {
         String l_stepName = PhasedTestManager.produceInStep("Hello");
 
         String scenarioId = PhasedTestManager.storeTestData(PhasedSeries_F_Shuffle.class, "A",
-                Boolean.TRUE.toString());
+                true);
 
         File l_phasedTestFile = PhasedTestManager.exportPhaseData();
 
@@ -546,7 +546,7 @@ public class PhasedTestManagerTests {
     public void importingData() throws IOException {
         String l_stepId = PhasedTestManager.produceInStep("Hello");
         String l_scenarioId = PhasedTestManager.storeTestData(PhasedSeries_F_Shuffle.class, "A",
-                Boolean.TRUE.toString());
+                true);
 
         File l_phasedTestFile = PhasedTestManager.exportPhaseData();
         PhasedTestManager.clearCache();
@@ -3142,7 +3142,7 @@ public class PhasedTestManagerTests {
     @Test
     public void extractTestNameFromScenarioContext() {
         String l_scenario1 = PhasedTestManager.storeTestData(PhasedSeries_K_ShuffledClass_noproviders.class,
-                PhasedTestManager.STD_PHASED_GROUP_SINGLE, Boolean.TRUE.toString());
+                PhasedTestManager.STD_PHASED_GROUP_SINGLE, true);
 
         assertThat("We should get the correct class",
                 PhasedTestManager.fetchClassFromScenarioContext(l_scenario1),
@@ -3160,13 +3160,13 @@ public class PhasedTestManagerTests {
     @Test
     public void extractTestsFromCache() throws NoSuchMethodException, SecurityException {
         PhasedTestManager.storeTestData(PhasedSeries_K_ShuffledClass_noproviders.class,
-                PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2", Boolean.TRUE.toString());
+                PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2", true);
 
         PhasedTestManager.storeTestData(PhasedSeries_H_SingleClass.class,
-                PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1", Boolean.FALSE.toString());
+                PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1", false);
 
         PhasedTestManager.storeTestData(PhasedSeries_H_SingleClass.class,
-                PhasedTestManager.STD_PHASED_GROUP_SINGLE, Boolean.FALSE.toString());
+                PhasedTestManager.STD_PHASED_GROUP_SINGLE, false);
 
         PhasedTestManager.storeTestData(PhasedTestManagerTests.class.getMethod("testStorageMethod"),
                 PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_3", "A");
