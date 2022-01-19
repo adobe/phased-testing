@@ -24,6 +24,7 @@ import org.mockito.Mockito;
 import org.testng.*;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import org.testng.asserts.SoftAssert;
 import org.testng.internal.ConstructorOrMethod;
 import org.testng.xml.XmlClass;
 import org.testng.xml.XmlPackage;
@@ -841,9 +842,9 @@ public class TestPhased {
         PhasedTestManager.storeTestData(PhasedSeries_F_Shuffle.class,
                 PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0", true);
         PhasedTestManager.storeTestData(PhasedSeries_F_Shuffle.class,
-                PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1", true);
+                PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1", new PhasedTestManager.ScenarioContextData(true, 5l, PhasedTestManager.ScenarioContextData.FAILED_STEP_WHEN_PASSED));
         PhasedTestManager.storeTestData(PhasedSeries_F_Shuffle.class,
-                PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2", true);
+                PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2", new PhasedTestManager.ScenarioContextData(true, 3l, PhasedTestManager.ScenarioContextData.FAILED_STEP_WHEN_PASSED));
 
         //Add the test context
         assertThat("The context should still be correct", PhasedTestManager.getScenarioContext().size(),equalTo(3));
@@ -873,6 +874,16 @@ public class TestPhased {
 
         assertThat("The Report should also include the same value as the Failed",
                 context.getFailedTests().getAllResults().size(), is(equalTo(tla.getFailedTests().size())));
+
+        //Add assert for durations
+        SoftAssert softAssertion = new SoftAssert();
+        for (ITestResult lt_result : context.getPassedTests().getAllResults()) {
+            String lt_scenarioName = PhasedTestManager.fetchScenarioName(lt_result);
+
+            softAssertion.assertEquals(lt_result.getEndMillis() - lt_result.getStartMillis(),PhasedTestManager.getScenarioContext()
+                    .get(lt_scenarioName).duration, "We should have the total durations"+lt_scenarioName);
+        }
+        softAssertion.assertAll("The durations should include that of the producer");
 
         //STEP 1
         assertThat("We should have no executions for the phased group 0",

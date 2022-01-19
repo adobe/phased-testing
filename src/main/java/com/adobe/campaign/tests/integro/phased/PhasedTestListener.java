@@ -435,8 +435,13 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
 
                                     l_foundSkipped = true;
 
+                                    /*
                                     lt_currentSkip.setEndMillis(
                                             lt_currentSkip.getStartMillis() + lt_durationMillis);
+                                    */
+
+                                    lt_currentSkip.setEndMillis(
+                                            lt_currentSkip.getStartMillis() + PhasedTestManager.getScenarioContext().get(PhasedTestManager.fetchScenarioName(lt_currentSkip)).duration);
 
                                     renameMethodReport(lt_currentSkip);
                                 }
@@ -452,7 +457,12 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
 
                         if (PhasedTestManager.fetchScenarioName(lt_currentFail).equals(lt_phasedClass)) {
                             //Update duration
-                            lt_currentFail.setEndMillis(lt_currentFail.getStartMillis() + lt_durationMillis);
+                           // lt_currentFail.setEndMillis(lt_currentFail.getStartMillis() + lt_durationMillis);
+
+                            lt_currentFail.setEndMillis(
+                                    lt_currentFail.getStartMillis() + PhasedTestManager.getScenarioContext()
+                                            .get(PhasedTestManager.fetchScenarioName(lt_currentFail)).duration);
+
 
                             //Wrap the Exception
                             PhasedTestManager.generateStepFailure(lt_currentFail);
@@ -477,8 +487,15 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
                                 l_foundPasssed = true;
                                 renameMethodReport(lt_currentSuccess);
 
+                                /*
                                 lt_currentSuccess
                                         .setEndMillis(lt_currentSuccess.getStartMillis() + lt_durationMillis);
+                                */
+
+                                lt_currentSuccess.setEndMillis(
+                                        lt_currentSuccess.getStartMillis() + PhasedTestManager.getScenarioContext()
+                                                .get(PhasedTestManager.fetchScenarioName(lt_currentSuccess)).duration);
+
                             }
                         }
                     }

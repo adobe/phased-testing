@@ -1516,6 +1516,7 @@ public class PhasedTestManager {
     }
 
     protected static class ScenarioContextData {
+        public static final String FAILED_STEP_WHEN_PASSED = "NA";
         protected boolean passed;
         protected long duration;
         protected String failedStep;
@@ -1523,7 +1524,7 @@ public class PhasedTestManager {
         ScenarioContextData() {
             passed=true;
             duration=0;
-            failedStep="NA";
+            failedStep = FAILED_STEP_WHEN_PASSED;
         }
 
         /**
@@ -1532,6 +1533,16 @@ public class PhasedTestManager {
          */
         protected ScenarioContextData(String in_importString) {
             this.importFromString(in_importString);
+        }
+
+        /**
+         * Used in the case of simply adding a passed test step
+         * @param in_duration
+         */
+        protected ScenarioContextData(boolean in_passed, long in_duration, String in_failedStep) {
+            this.passed = in_passed;
+            this.duration = in_duration;
+            this.failedStep = in_failedStep;
         }
 
         /**
