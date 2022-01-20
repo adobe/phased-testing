@@ -3437,6 +3437,21 @@ public class PhasedTestManagerTests {
     }
 
     @Test
+    public void testScenarioContextData_import4_failed() {
+        PhasedTestManager.ScenarioContextData l_scenarioContextImported = new PhasedTestManager.ScenarioContextData();
+
+        l_scenarioContextImported.importFromString("false;2;; ");
+
+        assertThat("The passed should be correctly imported", !l_scenarioContextImported.passed);
+        assertThat("The duration should be correctly imported", l_scenarioContextImported.duration,
+                Matchers.equalTo(2l));
+        assertThat("The failedStep should be correctly imported", l_scenarioContextImported.failedStep,
+                Matchers.equalTo(PhasedTestManager.ScenarioContextData.FAILED_STEP_WHEN_PASSED));
+        assertThat("The phased in which the failure occurred should be the producer phase",
+                l_scenarioContextImported.failedInPhase, equalTo(Phases.NON_PHASED));
+    }
+
+    @Test
     public void testScenarioContextData_importNegative() {
         PhasedTestManager.ScenarioContextData l_scenarioContextImported = new PhasedTestManager.ScenarioContextData();
 
@@ -3448,6 +3463,13 @@ public class PhasedTestManagerTests {
     public void testScenarioContextData_importNegative2() {
         PhasedTestManager.ScenarioContextData l_scenarioContextImported = new PhasedTestManager.ScenarioContextData();
         assertThrows(IllegalArgumentException.class, () -> l_scenarioContextImported.importFromString("false;2;abc;NONEXISTANT"));
+
+    }
+
+    @Test
+    public void testScenarioContextData_importNegative3() {
+        PhasedTestManager.ScenarioContextData l_scenarioContextImported = new PhasedTestManager.ScenarioContextData();
+        assertThrows(IllegalArgumentException.class, () -> l_scenarioContextImported.importFromString("false"));
 
     }
 
