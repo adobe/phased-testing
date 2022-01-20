@@ -251,25 +251,26 @@ In this chapter we discuss the test reports. We currently have two types of repo
 ### Default Reports
 By default we only slightly modify how TestNG generates reports. As each step is a method, you will get one result per step. This will lead to a lot of results, but you will have the fill overview of the evolution of the tests.
 
-### Report By Phase Group
-To make the reports a bit less messy, we introduced a report where, we only keep one result per Phase Group. Technically, we keep the most pertinent result. The following use cases exist for a phase group.
+### Report By Phase Group and Scenario
+To make the reports a bit less messy, we introduced a report where, we only keep one result per Phase Group and Scenario. Technically, we keep the most pertinent result. The following use cases exist for a phase group.
 - If all steps succeed, we keep the first step as the end result.
 - If in the current phase we have a failure at step X, we only keep that step result. All following steps are discarded from the result. 
-- If the phase group had failed in the previous phase, we keep the first step result which is "skipped".
+- If the phase group had failed in the previous phase, we keep the first step result which is "skipped". When failing due to a failure in the PRODUCER Phase, the skip message will contain the step and the phase in which the failure occurred. 
 - Whenever an exception is encountered in a step, it is enriched with the step name and the phase in which it happened.
+- The duration we report will be the full duration of the scenario which includes the steps on both phases.
 
 Whenever activated, the default behavior is we just show the phase group name. This can, however be configured. We will describe this process in more detail in the chapter [on how we can configure the Merged Reports](#configuring-merged-reports). 
 
 To activate this report, you need to set the system property PHASED.TESTS.REPORT.BY.PHASE_GROUP to "true".
 
 #### Configuring Merged Reports
-By default we store the Phase Groups whenever a Phased Test is run. However we now have the possibility to override this. This is done by using the class `PhasedTeestManager.configureMergedReportName(Prefix Elements, Prefix Elements)`. This allows users to specify the Phased Test output.
+By default, we store the Phase Groups whenever a Phased Test is run. However we now have the possibility to override this. This is done by using the class `PhasedTeestManager.configureMergedReportName(Prefix Elements, Prefix Elements)`. This allows users to specify the Phased Test output.
 
 The following configuration items can be added to the constructed name:
 - **Phase** adds the phase name to the constructed method name
 - **Phase Group** adds the phase group to the constructed method name
 - **Scenario Name** adds the scenario name (the class) to the constructed method name
-- **Data Provider** add thhe data providers, separated by "_" to the name 
+- **Data Provider** add the data providers, separated by "_" to the name 
 
 ## Misc
 In this chapter we will deal with miscellaneous issues related to Phased Tests
@@ -281,7 +282,10 @@ A configuration check is done in the beginning. The phased test steps are checke
 
 ## Release Notes
 ### 7.0.9-SNAPSHOT
-- Implemented the new select tess to run based on the producer phase (#9)
+- Consumer results can now contain the results of the PRODUCER phase (#34) 
+- Storing duration and the phase in the scenario state (#36) 
+- Updated Log4J to 2.17.1 to resolve security issues (#38)
+- Implemented the new select tests to run based on the producer phase (#9)
 
 ### 7.0.8
 - Upgraded java version to Java 11
