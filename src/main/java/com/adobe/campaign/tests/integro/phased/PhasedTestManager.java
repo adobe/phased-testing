@@ -749,7 +749,7 @@ public class PhasedTestManager {
      */
     protected static String storeTestData(Class in_class, String in_phaseGroup, boolean in_storedData) {
         ScenarioContextData l_scenarioContext = new ScenarioContextData();
-        l_scenarioContext.passed =  Boolean.valueOf(in_storedData);
+        l_scenarioContext.passed =  in_storedData;
 
         return storeTestData(in_class, in_phaseGroup, l_scenarioContext);
 
