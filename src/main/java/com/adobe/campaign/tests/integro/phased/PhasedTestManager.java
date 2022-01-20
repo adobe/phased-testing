@@ -1520,11 +1520,13 @@ public class PhasedTestManager {
         protected boolean passed;
         protected long duration;
         protected String failedStep;
+        protected Phases failedInPhase;
 
         ScenarioContextData() {
             passed=true;
             duration=0;
             failedStep = FAILED_STEP_WHEN_PASSED;
+            failedInPhase = Phases.NON_PHASED;
         }
 
         /**
@@ -1536,13 +1538,30 @@ public class PhasedTestManager {
         }
 
         /**
-         * Used in the case of simply adding a passed test step
+         * Detailed constructor
+         * @param  in_passed
          * @param in_duration
+         * @param in_failedStep
+         * @param in_phase
          */
-        protected ScenarioContextData(boolean in_passed, long in_duration, String in_failedStep) {
+        protected ScenarioContextData(boolean in_passed, long in_duration, String in_failedStep, Phases in_phase) {
             this.passed = in_passed;
             this.duration = in_duration;
             this.failedStep = in_failedStep;
+            this.failedInPhase = in_phase;
+        }
+
+        /**
+         * Constructor, where the phase is fetched from the Phase state is taken from the context
+         * @param  in_passed
+         * @param in_duration
+         * @param in_failedStep
+         */
+        public ScenarioContextData(boolean in_passed, long in_duration, String in_failedStep) {
+            this.passed = in_passed;
+            this.duration = in_duration;
+            this.failedStep = in_failedStep;
+            this.failedInPhase = Phases.getCurrentPhase();
         }
 
         /**
@@ -1556,6 +1575,7 @@ public class PhasedTestManager {
             switch (in_testResult.getStatus()) {
             case ITestResult.FAILURE:
                 failedStep = ClassPathParser.fetchFullName(in_testResult);
+                failedInPhase = Phases.getCurrentPhase();
             case ITestResult.SKIP:
                 passed = false;
             }
@@ -1570,8 +1590,9 @@ public class PhasedTestManager {
          * @return A string representation of this class
          */
         public String exportToString() {
-            StringBuilder sb =  new StringBuilder(Boolean.toString(this.passed));
-            sb.append(";").append(this.duration).append(";").append(this.failedStep);
+            StringBuilder sb = new StringBuilder(Boolean.toString(this.passed));
+            sb.append(";").append(this.duration).append(";").append(this.failedStep).append(";")
+                    .append(this.failedInPhase.name());
             return sb.toString();
         }
 
@@ -1584,9 +1605,31 @@ public class PhasedTestManager {
          */
         public void importFromString(String in_importString) {
             String[] l_valueArray = in_importString.split(STD_SCENARIO_CONTEXT_SEPARATOR);
+
+            if (l_valueArray.length < 2) {
+                throw new IllegalArgumentException(
+                        "The imported string cannot be parsed as it does not contain the minimum 2 entries.");
+            }
+
             this.passed = Boolean.valueOf(l_valueArray[0]);
             this.duration = Long.valueOf(l_valueArray[1]);
-            this.failedStep = l_valueArray[2];
+
+            if (!this.passed) {
+                if (l_valueArray.length < 4) {
+                    throw new IllegalArgumentException(
+                            "The imported string cannot be parsed as it does not contain the minimum 4 of entries.");
+                }
+
+                this.failedStep = !l_valueArray[2].isBlank() ? l_valueArray[2] : FAILED_STEP_WHEN_PASSED;
+
+                try {
+                    this.failedInPhase = !l_valueArray[3].isBlank() ? Phases.valueOf(
+                            l_valueArray[3]) : Phases.NON_PHASED;
+                } catch (IllegalArgumentException exc) {
+                    throw new IllegalArgumentException(
+                            "The given import string " + in_importString + " does not allow us to deduce the Phase.");
+                }
+            }
 
         }
     }

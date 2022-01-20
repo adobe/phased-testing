@@ -32,7 +32,6 @@ import java.util.*;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertThrows;
 
 public class PhasedTestManagerTests {
@@ -236,7 +235,7 @@ public class PhasedTestManagerTests {
         assertThat("We should find our scenario", prop.containsKey(l_storedScenarioContext));
 
         assertThat("We should find our scenario", prop.get(l_storedScenarioContext),
-                Matchers.equalTo("true;0;NA"));
+                Matchers.equalTo("true;0;NA;NON_PHASED"));
 
     }
 
@@ -546,7 +545,7 @@ public class PhasedTestManagerTests {
     public void importingData() throws IOException {
         String l_stepId = PhasedTestManager.produceInStep("Hello");
         String l_scenarioId = PhasedTestManager.storeTestData(PhasedSeries_F_Shuffle.class, "A",
-                true);
+                new PhasedTestManager.ScenarioContextData(false,3,"abc",Phases.PRODUCER));
 
         File l_phasedTestFile = PhasedTestManager.exportPhaseData();
         PhasedTestManager.clearCache();
@@ -561,7 +560,7 @@ public class PhasedTestManagerTests {
         final String l_exporteedIdForScenario = PhasedTestManager.SCENARIO_CONTEXT_PREFIX + l_scenarioId;
         assertThat("We should find our scenario", l_phasedTestdata.containsKey(l_exporteedIdForScenario));
         assertThat("We should find our property", l_phasedTestdata.getProperty(l_exporteedIdForScenario),
-                equalTo("true;0;NA"));
+                equalTo("false;3;abc;PRODUCER"));
 
         //Checking that the phasedCache is imported correctly
         assertThat("phaseCache : We should find our property", PhasedTestManager.phasedCache.size(),
@@ -577,12 +576,12 @@ public class PhasedTestManagerTests {
         assertThat("scenarioConext: We should find our scenario",
                 PhasedTestManager.getScenarioContext().containsKey(l_scenarioId));
         assertThat("scenarioConext: We should find our property",
-                PhasedTestManager.getScenarioContext().get(l_scenarioId).passed);
+                !PhasedTestManager.getScenarioContext().get(l_scenarioId).passed);
 
-        assertThat("scenarioConext: We should find our property",
-                PhasedTestManager.getScenarioContext().get(l_scenarioId).failedStep, Matchers.equalTo("NA"));
+        assertThat("scenarioContext: We should find our property",
+                PhasedTestManager.getScenarioContext().get(l_scenarioId).failedStep, Matchers.equalTo("abc"));
 
-        assertThat("scenarioConext: We should not have stored the find our property",
+        assertThat("scenarioContext: We should not have stored the find our property",
                 !PhasedTestManager.getScenarioContext().containsKey(l_stepId));
 
     }
@@ -3338,12 +3337,17 @@ public class PhasedTestManagerTests {
         l_scenarioContext.failedStep = "abc";
 
         assertThat("The toString method should correctly export the data", l_scenarioContext.exportToString(),
-                Matchers.equalTo("false;2;abc"));
+                Matchers.equalTo("false;2;abc;NON_PHASED"));
+
+        l_scenarioContext.failedInPhase = Phases.CONSUMER;
+
+        assertThat("The toString method should correctly export the data", l_scenarioContext.exportToString(),
+                Matchers.equalTo("false;2;abc;CONSUMER"));
 
         //import
         PhasedTestManager.ScenarioContextData l_scenarioContextImported = new PhasedTestManager.ScenarioContextData();
 
-        l_scenarioContextImported.importFromString("false;2;abc");
+        l_scenarioContextImported.importFromString("false;2;abc;CONSUMER");
 
         assertThat("The passed should be correctly imported", l_scenarioContextImported.passed,
                 Matchers.equalTo(l_scenarioContext.passed));
@@ -3351,20 +3355,21 @@ public class PhasedTestManagerTests {
                 Matchers.equalTo(l_scenarioContext.duration));
         assertThat("The failedStep should be correctly imported", l_scenarioContextImported.failedStep,
                 Matchers.equalTo(l_scenarioContext.failedStep));
+
+        assertThat("The failedStep should be correctly imported", l_scenarioContextImported.failedInPhase,
+                Matchers.equalTo(l_scenarioContext.failedInPhase));
     }
 
     @Test
     public void testScenarioContextData_StringConstructor() {
-        PhasedTestManager.ScenarioContextData l_scenarioContext = new PhasedTestManager.ScenarioContextData();
-        l_scenarioContext.passed = false;
-        l_scenarioContext.duration = 2;
-        l_scenarioContext.failedStep = "abc";
+        PhasedTestManager.ScenarioContextData l_scenarioContext = new PhasedTestManager.ScenarioContextData(false,2,"abc",Phases.PRODUCER);
 
         assertThat("The toString method should correctly export the data", l_scenarioContext.exportToString(),
-                Matchers.equalTo("false;2;abc"));
+                Matchers.equalTo("false;2;abc;"+Phases.PRODUCER.name()));
 
         //import
-        PhasedTestManager.ScenarioContextData l_scenarioContextImported = new PhasedTestManager.ScenarioContextData("false;2;abc");
+        PhasedTestManager.ScenarioContextData l_scenarioContextImported = new PhasedTestManager.ScenarioContextData(
+                "false;2;abc;" + Phases.PRODUCER.name());
 
         assertThat("The passed should be correctly imported", l_scenarioContextImported.passed,
                 Matchers.equalTo(l_scenarioContext.passed));
@@ -3372,6 +3377,78 @@ public class PhasedTestManagerTests {
                 Matchers.equalTo(l_scenarioContext.duration));
         assertThat("The failedStep should be correctly imported", l_scenarioContextImported.failedStep,
                 Matchers.equalTo(l_scenarioContext.failedStep));
+        assertThat("The phased in which the failure occurred should be the producer phase",
+                l_scenarioContextImported.failedInPhase, equalTo(Phases.PRODUCER));
+    }
+
+    @Test
+    public void testScenarioContextData_import1_emptyFailedTest() {
+        PhasedTestManager.ScenarioContextData l_scenarioContextImported = new PhasedTestManager.ScenarioContextData();
+
+        l_scenarioContextImported.importFromString("true;2");
+
+        assertThat("The passed should be correctly imported", l_scenarioContextImported.passed);
+        assertThat("The duration should be correctly imported", l_scenarioContextImported.duration,
+                Matchers.equalTo(2l));
+        assertThat("The failedStep should be correctly imported", l_scenarioContextImported.failedStep,
+                Matchers.equalTo("NA"));
+        assertThat("The phased in which the failure occurred should be the producer phase",
+                l_scenarioContextImported.failedInPhase, equalTo(Phases.NON_PHASED));
+    }
+
+    @Test
+    public void testScenarioContextData_import2_passed() {
+        PhasedTestManager.ScenarioContextData l_scenarioContextImported = new PhasedTestManager.ScenarioContextData();
+
+        l_scenarioContextImported.importFromString("true;2;sd;");
+
+        assertThat("The passed should be correctly imported", l_scenarioContextImported.passed);
+        assertThat("The duration should be correctly imported", l_scenarioContextImported.duration,
+                Matchers.equalTo(2l));
+        assertThat("The failedStep should be correctly imported", l_scenarioContextImported.failedStep,
+                Matchers.equalTo("NA"));
+        assertThat("The phased in which the failure occurred should be the producer phase",
+                l_scenarioContextImported.failedInPhase, equalTo(Phases.NON_PHASED));
+
+        l_scenarioContextImported.importFromString("true;2");
+
+        assertThat("The passed should be correctly imported", l_scenarioContextImported.passed);
+        assertThat("The duration should be correctly imported", l_scenarioContextImported.duration,
+                Matchers.equalTo(2l));
+        assertThat("The failedStep should be correctly imported", l_scenarioContextImported.failedStep,
+                Matchers.equalTo("NA"));
+        assertThat("The phased in which the failure occurred should be the producer phase",
+                l_scenarioContextImported.failedInPhase, equalTo(Phases.NON_PHASED));
+    }
+
+    @Test
+    public void testScenarioContextData_import3_failed() {
+        PhasedTestManager.ScenarioContextData l_scenarioContextImported = new PhasedTestManager.ScenarioContextData();
+
+        l_scenarioContextImported.importFromString("false;2;sd; ");
+
+        assertThat("The passed should be correctly imported", !l_scenarioContextImported.passed);
+        assertThat("The duration should be correctly imported", l_scenarioContextImported.duration,
+                Matchers.equalTo(2l));
+        assertThat("The failedStep should be correctly imported", l_scenarioContextImported.failedStep,
+                Matchers.equalTo("sd"));
+        assertThat("The phased in which the failure occurred should be the producer phase",
+                l_scenarioContextImported.failedInPhase, equalTo(Phases.NON_PHASED));
+    }
+
+    @Test
+    public void testScenarioContextData_importNegative() {
+        PhasedTestManager.ScenarioContextData l_scenarioContextImported = new PhasedTestManager.ScenarioContextData();
+
+        assertThrows(IllegalArgumentException.class, () -> l_scenarioContextImported.importFromString("false;2;abc"));
+
+    }
+
+    @Test
+    public void testScenarioContextData_importNegative2() {
+        PhasedTestManager.ScenarioContextData l_scenarioContextImported = new PhasedTestManager.ScenarioContextData();
+        assertThrows(IllegalArgumentException.class, () -> l_scenarioContextImported.importFromString("false;2;abc;NONEXISTANT"));
+
     }
 
 }

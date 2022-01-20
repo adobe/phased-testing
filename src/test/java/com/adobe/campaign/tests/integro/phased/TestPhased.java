@@ -1825,7 +1825,7 @@ public class TestPhased {
         mySuite2.addListener("com.adobe.campaign.tests.integro.phased.PhasedTestListener");
 
         // Create an instance of XmlTest and assign a name for it.
-        XmlTest myTest2 = TestTools.attachTestToSuite(mySuite2, "Test Repetetive Phased Tests Consumer");
+        XmlTest myTest2 = TestTools.attachTestToSuite(mySuite2, "Test Repetitive Phased Tests Consumer");
 
         myTest2.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
