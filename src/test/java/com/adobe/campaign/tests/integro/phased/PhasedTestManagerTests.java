@@ -11,6 +11,12 @@
  */
 package com.adobe.campaign.tests.integro.phased;
 
+import com.adobe.campaign.tests.integro.phased.data.*;
+import com.adobe.campaign.tests.integro.phased.data.dp.*;
+import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
+import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
+import org.hamcrest.Matchers;
+import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.ITestNGMethod;
 import org.testng.ITestResult;
@@ -18,45 +24,15 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.testng.internal.ConstructorOrMethod;
-import com.adobe.campaign.tests.integro.phased.data.NormalSeries_A;
-import com.adobe.campaign.tests.integro.phased.data.PhasedDataBrokerTestImplementation;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_A;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_B_NoInActive;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_F_Shuffle;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClass;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClassWithError;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_SingleClass;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_K_ShuffledClass_noproviders;
-import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_DPDefinitionInexistant;
-import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_PROVIDER;
-import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledDP;
-import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledDPPrivate;
-import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledDPSimple;
-import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledDPSimplePrivate;
-import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
-import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
+
+import java.io.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.*;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.testng.Assert.assertThrows;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-
-import org.hamcrest.Matchers;
-import org.mockito.Mockito;
 
 public class PhasedTestManagerTests {
     @BeforeClass
@@ -204,7 +180,7 @@ public class PhasedTestManagerTests {
 
         assertThat(PhasedTestManager.phasedCache.size(), Matchers.greaterThan(0));
 
-        PhasedTestManager.getScenarioContext().put("A", "B");
+        PhasedTestManager.getScenarioContext().put("A", new PhasedTestManager.ScenarioContextData());
         assertThat(PhasedTestManager.getScenarioContext().size(), Matchers.greaterThan(0));
         PhasedTestManager.clearCache();
         assertThat(PhasedTestManager.phasedCache.size(), equalTo(0));
@@ -236,7 +212,7 @@ public class PhasedTestManagerTests {
         String l_stepName = PhasedTestManager.produceInStep("Hello");
 
         String scenarioId = PhasedTestManager.storeTestData(PhasedSeries_F_Shuffle.class, "A",
-                Boolean.TRUE.toString());
+                true);
 
         File l_phasedTestFile = PhasedTestManager.exportPhaseData();
 
@@ -258,8 +234,8 @@ public class PhasedTestManagerTests {
         final String l_storedScenarioName = l_storedScenarioContext;
         assertThat("We should find our scenario", prop.containsKey(l_storedScenarioContext));
 
-        assertThat("We should find our scenario", prop.get(l_storedScenarioName),
-                Matchers.equalTo(Boolean.TRUE.toString()));
+        assertThat("We should find our scenario", prop.get(l_storedScenarioContext),
+                Matchers.equalTo("true;0;NA;NON_PHASED"));
 
     }
 
@@ -378,7 +354,7 @@ public class PhasedTestManagerTests {
     }
 
     /**
-     * Testing that when the property ({@value PhasedTestManager#PRO} is set,
+     * Testing that when the property ({@value PhasedTestManager#STD_STORE_DIR } is set,
      * that path is used.
      *
      * Author : gandomi
@@ -569,7 +545,7 @@ public class PhasedTestManagerTests {
     public void importingData() throws IOException {
         String l_stepId = PhasedTestManager.produceInStep("Hello");
         String l_scenarioId = PhasedTestManager.storeTestData(PhasedSeries_F_Shuffle.class, "A",
-                Boolean.TRUE.toString());
+                new PhasedTestManager.ScenarioContextData(false,3,"abc",Phases.PRODUCER));
 
         File l_phasedTestFile = PhasedTestManager.exportPhaseData();
         PhasedTestManager.clearCache();
@@ -584,7 +560,7 @@ public class PhasedTestManagerTests {
         final String l_exporteedIdForScenario = PhasedTestManager.SCENARIO_CONTEXT_PREFIX + l_scenarioId;
         assertThat("We should find our scenario", l_phasedTestdata.containsKey(l_exporteedIdForScenario));
         assertThat("We should find our property", l_phasedTestdata.getProperty(l_exporteedIdForScenario),
-                equalTo(Boolean.TRUE.toString()));
+                equalTo("false;3;abc;PRODUCER"));
 
         //Checking that the phasedCache is imported correctly
         assertThat("phaseCache : We should find our property", PhasedTestManager.phasedCache.size(),
@@ -600,9 +576,12 @@ public class PhasedTestManagerTests {
         assertThat("scenarioConext: We should find our scenario",
                 PhasedTestManager.getScenarioContext().containsKey(l_scenarioId));
         assertThat("scenarioConext: We should find our property",
-                PhasedTestManager.getScenarioContext().getProperty(l_scenarioId),
-                equalTo(Boolean.TRUE.toString()));
-        assertThat("scenarioConext: We should not have stored the find our property",
+                !PhasedTestManager.getScenarioContext().get(l_scenarioId).passed);
+
+        assertThat("scenarioContext: We should find our property",
+                PhasedTestManager.getScenarioContext().get(l_scenarioId).failedStep, Matchers.equalTo("abc"));
+
+        assertThat("scenarioContext: We should not have stored the find our property",
                 !PhasedTestManager.getScenarioContext().containsKey(l_stepId));
 
     }
@@ -1281,7 +1260,7 @@ public class PhasedTestManagerTests {
      *
      */
     @Test
-    public void phaseScenrioStates_case1_intra_PASSED() throws NoSuchMethodException, SecurityException {
+    public void phaseScenarioStates_case1_intra_PASSED() throws NoSuchMethodException, SecurityException {
         //Define previous step
         final Method l_myTestBeforeWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step1",
                 String.class);
@@ -1306,7 +1285,7 @@ public class PhasedTestManagerTests {
                 PhasedTestManager.getScenarioContext().containsKey(l_scenarioName));
 
         assertThat("We should have the correct value",
-                PhasedTestManager.getScenarioContext().get(l_scenarioName), equalTo(Boolean.TRUE.toString()));
+                PhasedTestManager.getScenarioContext().get(l_scenarioName).passed);
 
         assertThat("While we are currently executing this test, we should continue",
                 PhasedTestManager.scenarioStateDecision(l_itr),
@@ -1402,7 +1381,7 @@ public class PhasedTestManagerTests {
      *
      */
     @Test
-    public void phaseScenrioStates_case2_intra_FAILED() throws NoSuchMethodException, SecurityException {
+    public void phaseScenarioStates_case2_intra_FAILED() throws NoSuchMethodException, SecurityException {
         //Define previous step
         final Method l_myTestBeforeWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step2",
                 String.class);
@@ -1421,13 +1400,6 @@ public class PhasedTestManagerTests {
 
         assertThat("The context should have been stored",
                 PhasedTestManager.getScenarioContext().containsKey(l_scenarioName));
-
-        assertThat("We should have the correct value", PhasedTestManager.getScenarioContext().get(l_scenarioName),
-                equalTo(ClassPathParser.fetchFullName(l_itr)));
-
-        assertThat("While we are currently executing this test, we should continue",
-                PhasedTestManager.scenarioStateDecision(l_itr),
-                equalTo(PhasedTestManager.ScenarioState.CONTINUE));
 
         //Define current step
         ITestResult l_itr2 = Mockito.mock(ITestResult.class);
@@ -1565,8 +1537,7 @@ public class PhasedTestManagerTests {
         String l_scenarioName = PhasedTestManager.fetchScenarioName(l_itr);
         assertThat("The context should have been stored",
                 PhasedTestManager.getScenarioContext().containsKey(l_scenarioName));
-        assertThat("We should havee the correct value", PhasedTestManager.getScenarioContext().get(l_scenarioName),
-                equalTo(Boolean.TRUE.toString()));
+        assertThat("We should havee the correct value", PhasedTestManager.getScenarioContext().get(l_scenarioName).passed);
 
         assertThat("We should be able to continue with the phase group",
                 PhasedTestManager.scenarioStateDecision(l_itr),
@@ -1922,9 +1893,8 @@ public class PhasedTestManagerTests {
         assertThat("The context should have been stored",
                 PhasedTestManager.getScenarioContext().containsKey(l_scenarioName));
 
-        assertThat("We should have the correct value",
-                PhasedTestManager.getScenarioContext().get(l_scenarioName),
-                equalTo(ClassPathParser.fetchFullName(l_itr)));
+        assertThat("We should have a failed value here",
+                !PhasedTestManager.getScenarioContext().get(l_scenarioName).passed);
 
         Phases.CONSUMER.activate();
 
@@ -2074,7 +2044,7 @@ public class PhasedTestManagerTests {
      * <tr><td>7</td><td>Consumer</td><td>&gt; 1</td><td>N/A</td><td>SKIP</td><td>SKIP</td></tr>
      * </table>
      * 
-     * This is case ???
+     * This is case 6 b
      *
      * Author : gandomi
      *
@@ -2091,7 +2061,7 @@ public class PhasedTestManagerTests {
         //This logging should be separate from the produce data Class + dataprovider
         //We should have a log
         //Do we only log failures
-        final Method l_myTestWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
+        final Method l_myTestWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step2",
                 String.class);
 
         ITestResult l_itr = Mockito.mock(ITestResult.class);
@@ -2107,9 +2077,8 @@ public class PhasedTestManagerTests {
         PhasedTestManager.scenarioStateStore(l_itr);
 
         String l_scenarioName = PhasedTestManager.fetchScenarioName(l_itr);
-        assertThat("We should have the correct value",
-                PhasedTestManager.getScenarioContext().get(l_scenarioName),
-                equalTo(ClassPathParser.fetchFullName(l_itr)));
+
+        assertThat("We should have the correct value failed", !PhasedTestManager.getScenarioContext().get(l_scenarioName).passed);
 
         final Method l_myTestWithOneArg2 = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
                 String.class);
@@ -2119,31 +2088,25 @@ public class PhasedTestManagerTests {
         ConstructorOrMethod l_com2 = Mockito.mock(ConstructorOrMethod.class);
 
         Mockito.when(l_itr2.getMethod()).thenReturn(l_itrMethod2);
-        Mockito.when(l_itr2.getStatus()).thenReturn(ITestResult.FAILURE);
+
         Mockito.when(l_itr2.getParameters()).thenReturn(new Object[] { "Q" });
         Mockito.when(l_itrMethod2.getConstructorOrMethod()).thenReturn(l_com2);
         Mockito.when(l_com2.getMethod()).thenReturn(l_myTestWithOneArg2);
 
         assertThat("We should not be able to continue with the phase group",
-                PhasedTestManager.scenarioStateDecision(l_itr2),equalTo(PhasedTestManager.ScenarioState.CONTINUE));
+                PhasedTestManager.scenarioStateDecision(l_itr2),equalTo(PhasedTestManager.ScenarioState.SKIP_PREVIOUS_FAILURE));
+
+        Mockito.when(l_itr2.getStatus()).thenReturn(ITestResult.FAILURE);
 
         PhasedTestManager.scenarioStateStore(l_itr2);
 
-        assertThat("The step that caused the failure should not change",
-                PhasedTestManager.getScenarioContext().get(l_scenarioName),
-                equalTo(ClassPathParser.fetchFullName(l_itr)));
-
-        assertThat("We should be able to continue with the phase group",
-                PhasedTestManager.scenarioStateDecision(l_itr),
-                equalTo(PhasedTestManager.ScenarioState.CONTINUE));
-
         String l_name = PhasedTestManager.fetchScenarioName(l_itr);
-        assertThat("We should have the correct value", PhasedTestManager.getScenarioContext().get(l_name),
-                equalTo(ClassPathParser.fetchFullName(l_itr)));
+        assertThat("We should have the correct value failed", !PhasedTestManager.getScenarioContext().get(l_name).passed);
+        assertThat("We should have the correct value for the failed step", PhasedTestManager.getScenarioContext().get(l_name).failedStep, equalTo(ClassPathParser.fetchFullName(l_itr2)));
 
     }
 
-    @Test
+    //@Test
     public void testStateIstKeptBetweenPhases_NegativeStaysNegativeUnlessSameTest()
             throws NoSuchMethodException, SecurityException {
         //On Test End we need to add context of test. The context is the state of the scenario
@@ -2168,7 +2131,7 @@ public class PhasedTestManagerTests {
         PhasedTestManager.scenarioStateStore(l_itr);
 
         assertThat(
-                "We should be able to continue with the phase group, iff we are reeexecuting the same test",
+                "We should be able to continue with the phase group, if we are re-executing the same test",
                 PhasedTestManager.scenarioStateDecision(l_itr),
                 equalTo(PhasedTestManager.ScenarioState.CONTINUE));
 
@@ -2227,7 +2190,7 @@ public class PhasedTestManagerTests {
 
         assertThat("We should  be able to continue with the phase group",
                 PhasedTestManager.scenarioStateDecision(l_itr2),
-                equalTo(PhasedTestManager.ScenarioState.CONTINUE));
+                equalTo(PhasedTestManager.ScenarioState.SKIP_PREVIOUS_FAILURE));
 
         final Method l_myTestWithOneArg3 = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
                 String.class);
@@ -3178,7 +3141,7 @@ public class PhasedTestManagerTests {
     @Test
     public void extractTestNameFromScenarioContext() {
         String l_scenario1 = PhasedTestManager.storeTestData(PhasedSeries_K_ShuffledClass_noproviders.class,
-                PhasedTestManager.STD_PHASED_GROUP_SINGLE, Boolean.TRUE.toString());
+                PhasedTestManager.STD_PHASED_GROUP_SINGLE, true);
 
         assertThat("We should get the correct class",
                 PhasedTestManager.fetchClassFromScenarioContext(l_scenario1),
@@ -3196,13 +3159,13 @@ public class PhasedTestManagerTests {
     @Test
     public void extractTestsFromCache() throws NoSuchMethodException, SecurityException {
         PhasedTestManager.storeTestData(PhasedSeries_K_ShuffledClass_noproviders.class,
-                PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2", Boolean.TRUE.toString());
+                PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2", true);
 
         PhasedTestManager.storeTestData(PhasedSeries_H_SingleClass.class,
-                PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1", Boolean.FALSE.toString());
+                PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1", false);
 
         PhasedTestManager.storeTestData(PhasedSeries_H_SingleClass.class,
-                PhasedTestManager.STD_PHASED_GROUP_SINGLE, Boolean.FALSE.toString());
+                PhasedTestManager.STD_PHASED_GROUP_SINGLE, false);
 
         PhasedTestManager.storeTestData(PhasedTestManagerTests.class.getMethod("testStorageMethod"),
                 PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_3", "A");
@@ -3218,4 +3181,296 @@ public class PhasedTestManagerTests {
                         PhasedSeries_H_SingleClass.class.getTypeName()));
 
     }
+
+    @Test
+    public void testScenarioContextData() {
+
+        PhasedTestManager.ScenarioContextData x = new PhasedTestManager.ScenarioContextData();
+        x.passed=true;
+        x.duration=2;
+        x.failedStep="abc";
+
+        assertThat("We should have the correct state", x.passed);
+        assertThat("We should have the correct duration", x.duration, Matchers.equalTo(2L));
+        assertThat("the failed step should be ccorrect", x.failedStep, Matchers.equalTo("abc"));
+    }
+
+    @Test
+    public void testDefaultScenarioContextData() {
+
+        PhasedTestManager.ScenarioContextData x = new PhasedTestManager.ScenarioContextData();
+
+        assertThat("We should by default be passed", x.passed);
+        assertThat("We should by default have the 0 duration", x.duration, Matchers.equalTo(0L));
+        assertThat("The default failed step should be correct", x.failedStep, Matchers.equalTo("NA"));
+    }
+
+    @Test
+    public void testScenarioContextData_synchronizeState() throws NoSuchMethodException {
+        PhasedTestManager.ScenarioContextData x = new PhasedTestManager.ScenarioContextData();
+        x.passed = true;
+        x.duration = 2;
+
+        //Define previous step
+        final Method l_myTestBeforeWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step1",
+                String.class);
+        ITestResult l_itr = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
+        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
+
+        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
+        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
+        Mockito.when(l_itr.getEndMillis()).thenReturn(14L);
+        Mockito.when(l_itr.getStartMillis()).thenReturn(1L);
+        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "0_1" });
+        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
+        Mockito.when(l_com.getMethod()).thenReturn(l_myTestBeforeWithOneArg);
+
+        x.synchronizeState(l_itr);
+
+        assertThat("We should be passed", x.passed);
+        assertThat("We should by default have the 0 duration", x.duration, Matchers.equalTo(15L));
+        assertThat("The failed step should not have changed failed step should be correct", x.failedStep,
+                Matchers.equalTo("NA"));
+
+    }
+
+    @Test
+    public void testScenarioContextData_synchronizeStateFAILURE() throws NoSuchMethodException {
+        PhasedTestManager.ScenarioContextData l_scenarioContext = new PhasedTestManager.ScenarioContextData();
+        l_scenarioContext.passed = true;
+        l_scenarioContext.duration = 2;
+
+        //Define previous step
+        final Method l_myTestBeforeWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step1",
+                String.class);
+        ITestResult l_itr = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
+        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
+
+        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
+        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.FAILURE);
+        Mockito.when(l_itr.getEndMillis()).thenReturn(14L);
+        Mockito.when(l_itr.getStartMillis()).thenReturn(1L);
+        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "0_1" });
+        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
+        Mockito.when(l_com.getMethod()).thenReturn(l_myTestBeforeWithOneArg);
+
+        l_scenarioContext.synchronizeState(l_itr);
+        String l_failedStep = ClassPathParser.fetchFullName(l_itr);
+
+        assertThat("We should be failed", !l_scenarioContext.passed);
+        assertThat("We should by default have the 0 duration", l_scenarioContext.duration, Matchers.equalTo(15L));
+        assertThat("The failed step should not have changed failed step should be correct",
+                l_scenarioContext.failedStep, Matchers.equalTo(l_failedStep));
+
+    }
+
+    @Test
+    public void testScenarioContextData_synchronizeStateSKIP() throws NoSuchMethodException {
+        PhasedTestManager.ScenarioContextData l_scenarioContext = new PhasedTestManager.ScenarioContextData();
+        l_scenarioContext.passed = false;
+        l_scenarioContext.duration = 2;
+
+        l_scenarioContext.failedStep="com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClassWithError.step1(0_1)";
+
+        //Define previous step
+        final Method l_myTestBeforeWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step2",
+                String.class);
+        ITestResult l_itr = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
+        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
+
+        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
+        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SKIP);
+        Mockito.when(l_itr.getEndMillis()).thenReturn(14L);
+        Mockito.when(l_itr.getStartMillis()).thenReturn(1L);
+        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "0_1" });
+        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
+        Mockito.when(l_com.getMethod()).thenReturn(l_myTestBeforeWithOneArg);
+
+        l_scenarioContext.synchronizeState(l_itr);
+        String l_failedStep = ClassPathParser.fetchFullName(l_itr);
+
+        assertThat("We should be failed", !l_scenarioContext.passed);
+        assertThat("We should by default have the 0 duration", l_scenarioContext.duration, Matchers.equalTo(15L));
+        assertThat("The failed step should not have changed failed step should be correct",
+                l_scenarioContext.failedStep, Matchers.equalTo(l_scenarioContext.failedStep));
+
+    }
+
+
+    @Test
+    public void testScenarioContextData_synchronizeStateSKIP_2() throws NoSuchMethodException {
+        PhasedTestManager.ScenarioContextData l_scenarioContext = new PhasedTestManager.ScenarioContextData();
+
+        //Define previous step
+        final Method l_myTestBeforeWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step2",
+                String.class);
+        ITestResult l_itr = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
+        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
+
+        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
+        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SKIP);
+        Mockito.when(l_itr.getEndMillis()).thenReturn(14L);
+        Mockito.when(l_itr.getStartMillis()).thenReturn(1L);
+        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "0_1" });
+        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
+        Mockito.when(l_com.getMethod()).thenReturn(l_myTestBeforeWithOneArg);
+
+        l_scenarioContext.synchronizeState(l_itr);
+        String l_failedStep = ClassPathParser.fetchFullName(l_itr);
+
+        assertThat("We should be failed", !l_scenarioContext.passed);
+        assertThat("We should by default have the 0 duration", l_scenarioContext.duration, Matchers.equalTo(13L));
+        assertThat("The failed step should not have changed failed step should be correct",
+                l_scenarioContext.failedStep, Matchers.equalTo(l_scenarioContext.failedStep));
+
+    }
+
+    @Test
+    public void testScenarioContextDataToString() {
+        PhasedTestManager.ScenarioContextData l_scenarioContext = new PhasedTestManager.ScenarioContextData();
+        l_scenarioContext.passed = false;
+        l_scenarioContext.duration = 2;
+        l_scenarioContext.failedStep = "abc";
+
+        assertThat("The toString method should correctly export the data", l_scenarioContext.exportToString(),
+                Matchers.equalTo("false;2;abc;NON_PHASED"));
+
+        l_scenarioContext.failedInPhase = Phases.CONSUMER;
+
+        assertThat("The toString method should correctly export the data", l_scenarioContext.exportToString(),
+                Matchers.equalTo("false;2;abc;CONSUMER"));
+
+        //import
+        PhasedTestManager.ScenarioContextData l_scenarioContextImported = new PhasedTestManager.ScenarioContextData();
+
+        l_scenarioContextImported.importFromString("false;2;abc;CONSUMER");
+
+        assertThat("The passed should be correctly imported", l_scenarioContextImported.passed,
+                Matchers.equalTo(l_scenarioContext.passed));
+        assertThat("The duration should be correctly imported", l_scenarioContextImported.duration,
+                Matchers.equalTo(l_scenarioContext.duration));
+        assertThat("The failedStep should be correctly imported", l_scenarioContextImported.failedStep,
+                Matchers.equalTo(l_scenarioContext.failedStep));
+
+        assertThat("The failedStep should be correctly imported", l_scenarioContextImported.failedInPhase,
+                Matchers.equalTo(l_scenarioContext.failedInPhase));
+    }
+
+    @Test
+    public void testScenarioContextData_StringConstructor() {
+        PhasedTestManager.ScenarioContextData l_scenarioContext = new PhasedTestManager.ScenarioContextData(false,2,"abc",Phases.PRODUCER);
+
+        assertThat("The toString method should correctly export the data", l_scenarioContext.exportToString(),
+                Matchers.equalTo("false;2;abc;"+Phases.PRODUCER.name()));
+
+        //import
+        PhasedTestManager.ScenarioContextData l_scenarioContextImported = new PhasedTestManager.ScenarioContextData(
+                "false;2;abc;" + Phases.PRODUCER.name());
+
+        assertThat("The passed should be correctly imported", l_scenarioContextImported.passed,
+                Matchers.equalTo(l_scenarioContext.passed));
+        assertThat("The duration should be correctly imported", l_scenarioContextImported.duration,
+                Matchers.equalTo(l_scenarioContext.duration));
+        assertThat("The failedStep should be correctly imported", l_scenarioContextImported.failedStep,
+                Matchers.equalTo(l_scenarioContext.failedStep));
+        assertThat("The phased in which the failure occurred should be the producer phase",
+                l_scenarioContextImported.failedInPhase, equalTo(Phases.PRODUCER));
+    }
+
+    @Test
+    public void testScenarioContextData_import1_emptyFailedTest() {
+        PhasedTestManager.ScenarioContextData l_scenarioContextImported = new PhasedTestManager.ScenarioContextData();
+
+        l_scenarioContextImported.importFromString("true;2");
+
+        assertThat("The passed should be correctly imported", l_scenarioContextImported.passed);
+        assertThat("The duration should be correctly imported", l_scenarioContextImported.duration,
+                Matchers.equalTo(2l));
+        assertThat("The failedStep should be correctly imported", l_scenarioContextImported.failedStep,
+                Matchers.equalTo("NA"));
+        assertThat("The phased in which the failure occurred should be the producer phase",
+                l_scenarioContextImported.failedInPhase, equalTo(Phases.NON_PHASED));
+    }
+
+    @Test
+    public void testScenarioContextData_import2_passed() {
+        PhasedTestManager.ScenarioContextData l_scenarioContextImported = new PhasedTestManager.ScenarioContextData();
+
+        l_scenarioContextImported.importFromString("true;2;sd;");
+
+        assertThat("The passed should be correctly imported", l_scenarioContextImported.passed);
+        assertThat("The duration should be correctly imported", l_scenarioContextImported.duration,
+                Matchers.equalTo(2l));
+        assertThat("The failedStep should be correctly imported", l_scenarioContextImported.failedStep,
+                Matchers.equalTo("NA"));
+        assertThat("The phased in which the failure occurred should be the producer phase",
+                l_scenarioContextImported.failedInPhase, equalTo(Phases.NON_PHASED));
+
+        l_scenarioContextImported.importFromString("true;2");
+
+        assertThat("The passed should be correctly imported", l_scenarioContextImported.passed);
+        assertThat("The duration should be correctly imported", l_scenarioContextImported.duration,
+                Matchers.equalTo(2l));
+        assertThat("The failedStep should be correctly imported", l_scenarioContextImported.failedStep,
+                Matchers.equalTo("NA"));
+        assertThat("The phased in which the failure occurred should be the producer phase",
+                l_scenarioContextImported.failedInPhase, equalTo(Phases.NON_PHASED));
+    }
+
+    @Test
+    public void testScenarioContextData_import3_failed() {
+        PhasedTestManager.ScenarioContextData l_scenarioContextImported = new PhasedTestManager.ScenarioContextData();
+
+        l_scenarioContextImported.importFromString("false;2;sd; ");
+
+        assertThat("The passed should be correctly imported", !l_scenarioContextImported.passed);
+        assertThat("The duration should be correctly imported", l_scenarioContextImported.duration,
+                Matchers.equalTo(2l));
+        assertThat("The failedStep should be correctly imported", l_scenarioContextImported.failedStep,
+                Matchers.equalTo("sd"));
+        assertThat("The phased in which the failure occurred should be the producer phase",
+                l_scenarioContextImported.failedInPhase, equalTo(Phases.NON_PHASED));
+    }
+
+    @Test
+    public void testScenarioContextData_import4_failed() {
+        PhasedTestManager.ScenarioContextData l_scenarioContextImported = new PhasedTestManager.ScenarioContextData();
+
+        l_scenarioContextImported.importFromString("false;2;; ");
+
+        assertThat("The passed should be correctly imported", !l_scenarioContextImported.passed);
+        assertThat("The duration should be correctly imported", l_scenarioContextImported.duration,
+                Matchers.equalTo(2l));
+        assertThat("The failedStep should be correctly imported", l_scenarioContextImported.failedStep,
+                Matchers.equalTo(PhasedTestManager.ScenarioContextData.FAILED_STEP_WHEN_PASSED));
+        assertThat("The phased in which the failure occurred should be the producer phase",
+                l_scenarioContextImported.failedInPhase, equalTo(Phases.NON_PHASED));
+    }
+
+    @Test
+    public void testScenarioContextData_importNegative() {
+        PhasedTestManager.ScenarioContextData l_scenarioContextImported = new PhasedTestManager.ScenarioContextData();
+
+        assertThrows(IllegalArgumentException.class, () -> l_scenarioContextImported.importFromString("false;2;abc"));
+
+    }
+
+    @Test
+    public void testScenarioContextData_importNegative2() {
+        PhasedTestManager.ScenarioContextData l_scenarioContextImported = new PhasedTestManager.ScenarioContextData();
+        assertThrows(IllegalArgumentException.class, () -> l_scenarioContextImported.importFromString("false;2;abc;NONEXISTANT"));
+
+    }
+
+    @Test
+    public void testScenarioContextData_importNegative3() {
+        PhasedTestManager.ScenarioContextData l_scenarioContextImported = new PhasedTestManager.ScenarioContextData();
+        assertThrows(IllegalArgumentException.class, () -> l_scenarioContextImported.importFromString("false"));
+
+    }
+
 }

@@ -165,9 +165,9 @@ public class TestPhased_BEFORE_AFTER {
         PhasedTestManager.storeTestData(l_myTest2, PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0", "AB");
         PhasedTestManager.storeTestData(l_myTest2, PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1", "AB");
         
-        PhasedTestManager.storeTestData(PhasedSeries_M_ShuffledClass_noproviders.class, PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0", "true");
-        PhasedTestManager.storeTestData(PhasedSeries_M_ShuffledClass_noproviders.class, PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1", "true");
-        PhasedTestManager.storeTestData(PhasedSeries_M_ShuffledClass_noproviders.class, PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2", "true");
+        PhasedTestManager.storeTestData(PhasedSeries_M_ShuffledClass_noproviders.class, PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0", true);
+        PhasedTestManager.storeTestData(PhasedSeries_M_ShuffledClass_noproviders.class, PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1", true);
+        PhasedTestManager.storeTestData(PhasedSeries_M_ShuffledClass_noproviders.class, PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2", true);
 
 
         myTestNG.run();
@@ -411,9 +411,9 @@ public class TestPhased_BEFORE_AFTER {
         PhasedTestManager.storeTestData(l_myTest2, PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0", "AB");
         PhasedTestManager.storeTestData(l_myTest2, PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1", "AB");
         
-        PhasedTestManager.storeTestData(PhasedSeries_M_ShuffledClass_noproviders.class, PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0", "true");
-        PhasedTestManager.storeTestData(PhasedSeries_M_ShuffledClass_noproviders.class, PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1", "true");
-        PhasedTestManager.storeTestData(PhasedSeries_M_ShuffledClass_noproviders.class, PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2", "true");
+        PhasedTestManager.storeTestData(PhasedSeries_M_ShuffledClass_noproviders.class, PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0", true);
+        PhasedTestManager.storeTestData(PhasedSeries_M_ShuffledClass_noproviders.class, PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1", true);
+        PhasedTestManager.storeTestData(PhasedSeries_M_ShuffledClass_noproviders.class, PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2", true);
 
         TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
         myTestNG.run();

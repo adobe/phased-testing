@@ -14,19 +14,27 @@ The most common usage is for validating :
 * Migrations
 * Time-Consuming external Data process
 
-## Installation
-This version runs with the TestNG runner. You can use this library by including it in your project.
- 
-### Maven
-The following dependency needs to be added to your pom file:
-
-```
- <dependency>
-    <groupId>com.adobe.campaign.tests.phased</groupId>
-    <artifactId>phased-testing-testng</artifactId>
-    <version>7.0.8</version>
-</dependency>
-```
+## Table of Contents
+- [Problem Statement](#problem-statement)
+- [Installation](#installation)
+    - [Maven](#maven)
+- [Phases](#phases)
+    - [Phase Modes](#phase-modes)
+- [Writing a Phased Test](#writing-a-phased-test)
+    - [Setting Execution Modes](#setting-execution-modes)
+    - [Before- and After-Phase Actions](#before--and-after-phase-actions)
+- [Running a Phased Test](#running-a-phased-test)
+    - [Run Time Properties](#run-time-properties)
+    - [Executing a CONSUMER phase based on the PRODUCED Data](#executing-a-consumer-phase-based-on-the-produced-data)
+- [Integrity between Steps and Scenarios](#integrity-between-steps-and-scenarios)
+    - [Phase Contexts - Managing the Scenario Step Executions](#phase-contexts---managing-the-scenario-step-executions)
+    - [Managing Phased Data](#managing-phased-data)
+- [Reporting](#reporting)
+    - [Default Reports](#default-reports)
+    - [Report By Phase Group and Scenario](#report-by-phase-group-and-scenario)
+- [Misc](#misc)
+    - [Data Providers](#data-providers)
+- [Release Notes](#release-notes)
  
 ## Problem Statement
 This library was originally created to help validate system changes such as upgrades and migrations. The general migration process is the following:
@@ -38,6 +46,20 @@ What we discovered was that a migration will affect users depending at what stag
 ![The Real Processes](diagrams/PhasedDiagrams-HL-Change-Scenarios.png)
 
 If we want to simulate all the use cases for a workflow of a user we will end up with too many duplicate code. This is why we came p with Phased Testing, which allows a scenario to cover all the possible steps in which a workflow can be interrupted.  
+
+## Installation
+This version runs with the TestNG runner. You can use this library by including it in your project.
+
+### Maven
+The following dependency needs to be added to your pom file:
+
+```
+ <dependency>
+    <groupId>com.adobe.campaign.tests.phased</groupId>
+    <artifactId>phased-testing-testng</artifactId>
+    <version>7.0.8</version>
+</dependency>
+```
 
 ## Phases
 We have three test phases:
@@ -124,10 +146,10 @@ public class ShuffledTest {
 
 ## Writing a Phased Test
 The Phased Testing is activated using two annotations:
-* **@PhasedTest** : Class level annotation. Allows you to controlling of how the test should be executed
+* **@PhasedTest** : Class level annotation. Allows you to control how the test should be executed
 * **@PhaseEvent** : Method level annotation. By setting it you tell the system at which step does the phase event happen. The tests will stop at that point.
 
-Moreover you need to :
+Moreover, you need to :
 * Make your methods accept at least one argument
 * The methods will be executed in alphabetical order. So prefixing the methods with their step number is a good practice. 
 
@@ -206,26 +228,27 @@ By default we deactivate retry analyzer for the phased tests. However if you rea
 #### PHASED.TESTS.REPORT.BY.PHASE_GROUP
 By default we do not modify reports. Each step in a scenario is reported as is. We have introduced a "Report By Phase Group" functionality, which is activated with this property.
 
-## Executing a CONSUMER phase based on the PRODUCED Data
+### Executing a CONSUMER phase based on the PRODUCED Data
 Usually when your test code is in the repository of the product being tested, you will be having a delta in tests between two versions **N** & **N+1**. In such cases you will want to only execute the tests that exist in both versions. 
 
 For this, as of version 7.0.9, we have introduced the functionality that allows you to automatically select the phased tests that were executed in a previous phase. This means that when activated in a CONSUMER Phase, the selection is made based on the tests that were executed in the PRODUCER Phase. This functionality is activated when you pass or include the test group `PHASED_PRODUCED_TESTS`.
 
-## Phase Contexts - Managing the Scenario Step Executions
-Although we try to keep the execution of a scenario like any other test scenario, we feel that it is useful to document how he state of a scenario works.
+## Integrity between Steps and Scenarios 
+### Phase Contexts - Managing the Scenario Step Executions
+Although we try to keep the execution of a scenario like any other test scenario, we feel that it is useful to document how the state of a scenario works.
 
-### On Failure
+#### On Failure
 Whenever a scenario step fails the following steps are marked as SKIPPED.
 
-### On Non-Execution of a Phase
+#### On Non-Execution of a Phase
 If a phase is not executed, the steps in the next phase are also SKIPPED.
 
-## Managing Phased Data
+### Managing Phased Data
 The way data is stored between two phases is in two ways:
 * Simple properties file (Default)
 * Phased Data Broker
 
-### Simple Properties file - Default
+#### Simple Properties file - Default
 At the end of the producer phase we store all the phase data in a properties file. By default it is stored under:
 <STD Output directory>/phased_tests/phaseData.properties
 
@@ -233,7 +256,7 @@ When going to the consumer state all you need to do is to make sure that the fil
 
 You can override the directory by setting the system property *PHASED.TESTS.STORAGE.PATH*.
 
-### Phased Data Broker
+#### Phased Data Broker
 In this edition we have introduced the concept of a Phased Data Broker. This allows you to define how you want your phase data to be stored. The PhasedData listener still stores a local copy, but it will in fact use a broker that you have defined. 
 
 For this you need to define a Class that implements the interface com.adobe.campaign.tests.integro.phasedPhasedDataBroker. 
@@ -251,25 +274,26 @@ In this chapter we discuss the test reports. We currently have two types of repo
 ### Default Reports
 By default we only slightly modify how TestNG generates reports. As each step is a method, you will get one result per step. This will lead to a lot of results, but you will have the fill overview of the evolution of the tests.
 
-### Report By Phase Group
-To make the reports a bit less messy, we introduced a report where, we only keep one result per Phase Group. Technically, we keep the most pertinent result. The following use cases exist for a phase group.
+### Report By Phase Group and Scenario
+To make the reports a bit less messy, we introduced a report where, we only keep one result per Phase Group and Scenario. Technically, we keep the most pertinent result. The following use cases exist for a phase group.
 - If all steps succeed, we keep the first step as the end result.
 - If in the current phase we have a failure at step X, we only keep that step result. All following steps are discarded from the result. 
-- If the phase group had failed in the previous phase, we keep the first step result which is "skipped".
+- If the phase group had failed in the previous phase, we keep the first step result which is "skipped". When failing due to a failure in the PRODUCER Phase, the skip message will contain the step and the phase in which the failure occurred. 
 - Whenever an exception is encountered in a step, it is enriched with the step name and the phase in which it happened.
+- The duration we report will be the full duration of the scenario which includes the steps on both phases.
 
 Whenever activated, the default behavior is we just show the phase group name. This can, however be configured. We will describe this process in more detail in the chapter [on how we can configure the Merged Reports](#configuring-merged-reports). 
 
 To activate this report, you need to set the system property PHASED.TESTS.REPORT.BY.PHASE_GROUP to "true".
 
 #### Configuring Merged Reports
-By default we store the Phase Groups whenever a Phased Test is run. However we now have the possibility to override this. This is done by using the class `PhasedTeestManager.configureMergedReportName(Prefix Elements, Prefix Elements)`. This allows users to specify the Phased Test output.
+By default, we store the Phase Groups whenever a Phased Test is run. However we now have the possibility to override this. This is done by using the class `PhasedTeestManager.configureMergedReportName(Prefix Elements, Prefix Elements)`. This allows users to specify the Phased Test output.
 
 The following configuration items can be added to the constructed name:
 - **Phase** adds the phase name to the constructed method name
 - **Phase Group** adds the phase group to the constructed method name
 - **Scenario Name** adds the scenario name (the class) to the constructed method name
-- **Data Provider** add thhe data providers, separated by "_" to the name 
+- **Data Provider** add the data providers, separated by "_" to the name 
 
 ## Misc
 In this chapter we will deal with miscellaneous issues related to Phased Tests
@@ -281,7 +305,10 @@ A configuration check is done in the beginning. The phased test steps are checke
 
 ## Release Notes
 ### 7.0.9-SNAPSHOT
-- Implemented the new select tess to run based on the producer phase (#9)
+- Consumer results can now contain the results of the PRODUCER phase (#34) 
+- Storing duration and the phase in the scenario state (#36) 
+- Updated Log4J to 2.17.1 to resolve security issues (#38)
+- Implemented the new select tests to run based on the producer phase (#9)
 
 ### 7.0.8
 - Upgraded java version to Java 11

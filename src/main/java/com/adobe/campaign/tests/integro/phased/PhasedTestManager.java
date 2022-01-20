@@ -33,6 +33,7 @@ public class PhasedTestManager {
     protected static final String STD_KEY_CLASS_SEPARATOR = "->";
 
     public static final String PHASED_TEST_LOG_PREFIX = "[Phased Testing] ";
+    public static final String STD_SCENARIO_CONTEXT_SEPARATOR = ";";
 
     protected static Logger log = LogManager.getLogger();
 
@@ -54,7 +55,7 @@ public class PhasedTestManager {
     protected static final String STD_PHASED_GROUP_PREFIX = "phased-shuffledGroup_";
     protected static final String STD_PHASED_GROUP_SINGLE = "phased-singleRun";
 
-    public static final String STD_MERGE_STEP_ERROR_PREFIX = "Phased Error: Failure in step ";
+    public static final String  STD_MERGE_STEP_ERROR_PREFIX = "Phased Error: Failure in step ";
 
     /**
      * The different states a step can assume in a scenario
@@ -67,7 +68,7 @@ public class PhasedTestManager {
     }
 
     protected static Properties phasedCache = new Properties();
-    private static final Properties scenarioContext = new Properties();
+    private static  Map<String, ScenarioContextData> scenarioContext = new HashMap<>();
 
     protected static Map<String, MethodMapping> methodMap = new HashMap<>();
 
@@ -125,7 +126,7 @@ public class PhasedTestManager {
     /**
      * @return the scenarioContext
      */
-    protected static Properties getScenarioContext() {
+    protected static Map<String, ScenarioContextData> getScenarioContext() {
         return scenarioContext;
     }
 
@@ -467,7 +468,7 @@ public class PhasedTestManager {
         log.info(PHASED_TEST_LOG_PREFIX + " Exporting Phased Testing data to " + in_file.getPath());
 
         Properties lt_transformedScenarios = new Properties();
-        scenarioContext.forEach((key, value) -> lt_transformedScenarios.put(attachContextFlag(key.toString()), value));
+        scenarioContext.forEach((key, value) -> lt_transformedScenarios.put(attachContextFlag(key.toString()), value.exportToString()));
 
         try (FileWriter fw = new FileWriter(in_file)) {
 
@@ -508,7 +509,6 @@ public class PhasedTestManager {
         } catch (IOException e) {
             log.error("Error when loading file " + in_phasedTestFile);
             throw new PhasedTestException("Error when loading file " + in_phasedTestFile.getPath() + ".", e);
-
         }
 
         //Import produced data into phase cache
@@ -518,7 +518,8 @@ public class PhasedTestManager {
         //Import scenario contexts into scenario context
         lr_importedProperties.stringPropertyNames().stream().filter(k -> k.startsWith(SCENARIO_CONTEXT_PREFIX)).forEach(
                 fk -> scenarioContext
-                        .put(fk.substring(SCENARIO_CONTEXT_PREFIX.length()), lr_importedProperties.get(fk)));
+                        .put(fk.substring(SCENARIO_CONTEXT_PREFIX.length()), new ScenarioContextData(
+                                (String) lr_importedProperties.get(fk))));
 
         return lr_importedProperties;
     }
@@ -746,13 +747,32 @@ public class PhasedTestManager {
      * @param in_storedData The data to be stored for the scenario step
      * @return The key used to store the value in the cache
      */
-    protected static String storeTestData(Class in_class, String in_phaseGroup, String in_storedData) {
+    protected static String storeTestData(Class in_class, String in_phaseGroup, boolean in_storedData) {
+        ScenarioContextData l_scenarioContext = new ScenarioContextData();
+        l_scenarioContext.passed =  in_storedData;
+
+        return storeTestData(in_class, in_phaseGroup, l_scenarioContext);
+
+    }
+
+    /**
+     * For testing purposes only. Used when we want to test the consumer
+     * <p>
+     * Author : gandomi
+     *
+     * @param in_class      A test method
+     * @param in_phaseGroup A phase group Id
+     * @param in_storedData The data to be stored for the scenario step
+     * @return The key used to store the value in the cache
+     */
+    protected static String storeTestData(Class in_class, String in_phaseGroup, ScenarioContextData in_storedData) {
         phaseContext.put(in_class.getTypeName(), in_phaseGroup);
 
         final String lr_storedKey = generateStepKeyIdentity(in_class.getTypeName());
+        ScenarioContextData l_scenarioContext = new ScenarioContextData();
+
         scenarioContext.put(lr_storedKey, in_storedData);
         return lr_storedKey;
-
     }
 
     /**
@@ -900,8 +920,7 @@ public class PhasedTestManager {
      * be the class including the phase test group. It allows us to know if the
      * test is allowed to continue.
      * <p>
-     * Once the context is logged as false for a test it re
-     * s false
+     * Once the context is logged as false for a test it remains false
      * <p>
      * Author : gandomi
      *
@@ -914,16 +933,12 @@ public class PhasedTestManager {
 
         if (scenarioContext.containsKey(l_scenarioName)) {
 
-            //If the phase context is true we check if the state for the scenario should change. Otherwise we interrupt the tests
-            if (scenarioContext.get(l_scenarioName).equals(Boolean.TRUE.toString()) || scenarioContext
-                    .get(l_scenarioName).equals(l_stepName)) {
-                scenarioContext.put(l_scenarioName,
-                        in_testResult.getStatus() == ITestResult.SUCCESS ? Boolean.TRUE.toString() : l_stepName);
-            }
+            scenarioContext.get(l_scenarioName).synchronizeState(in_testResult);
 
         } else {
-            scenarioContext.put(l_scenarioName,
-                    (in_testResult.getStatus() == ITestResult.SUCCESS) ? Boolean.TRUE.toString() : l_stepName);
+            ScenarioContextData l_scenarioContextData = new ScenarioContextData();
+            l_scenarioContextData.synchronizeState(in_testResult);
+            scenarioContext.put(l_scenarioName,l_scenarioContextData);
         }
 
     }
@@ -994,7 +1009,7 @@ public class PhasedTestManager {
      * <td>6</td>
      * <td>Consumer</td>
      * <td>&gt; 1</td>
-     * <td>FAIED/SKIPPED</td>
+     * <td>FAILED/SKIPPED</td>
      * <td>SKIP</td>
      * <td>FAILED</td>
      * </tr>
@@ -1020,14 +1035,14 @@ public class PhasedTestManager {
      */
     public static ScenarioState scenarioStateDecision(ITestResult in_testResult) {
         final String l_scenarioName = fetchScenarioName(in_testResult);
-        //Case      PHASE               STEP        
+        //Case      PHASE               STEP    Previous_Step       Expected_Result
         //Case 1    Producer/NonPhased  1           N/A             Continue    true    testStateIstKeptBetweenPhases_Continue
-        //Case 2   Producer/NonPhased  > 1     FAILED/Skipped  SKIP    false   
-        //Case 3   Producer/NonPhased  > 1     Passed  Continue    true    testStateIstKeptBetweenPhases_Continue
-        //Case 4    Consumer           1            N/A  Continue    true    testStateIstKeptBetweenPhases_Continue
-        //Case 5   Cosnumer    > 1     Passed  Continue    true    
-        //Case 6   Cosnumer    > 1     Failed/Skipped  SKIP    false   
-        //Case 7    Cosnumer           > 1          N/A  SKIP    false
+        //Case 2   Producer/NonPhased  > 1     FAILED/Skipped       SKIP    false
+        //Case 3   Producer/NonPhased  > 1     Passed               Continue    true    testStateIstKeptBetweenPhases_Continue
+        //Case 4    Consumer           1            N/A             Continue    true    testStateIstKeptBetweenPhases_Continue
+        //Case 5   Cosnumer            > 1     Passed               Continue    true
+        //Case 6   Cosnumer            > 1     Failed/Skipped       SKIP    false
+        //Case 7    Cosnumer           > 1          N/A             SKIP    false
 
         //#43 to change this to false
         //If scenario has not yet been executed in the current phase 
@@ -1035,13 +1050,8 @@ public class PhasedTestManager {
             //True only if we are executing end to end 0_X
             return hasStepsExecutedInProducer(in_testResult) ? ScenarioState.SKIP_NORESULT : ScenarioState.CONTINUE;
         }
-
-        if (getScenarioContext().get(l_scenarioName).equals(ClassPathParser.fetchFullName(in_testResult))) {
-            return ScenarioState.CONTINUE;
-        }
-
-        return getScenarioContext().get(l_scenarioName)
-                .equals(Boolean.TRUE.toString()) ? ScenarioState.CONTINUE : ScenarioState.SKIP_PREVIOUS_FAILURE;
+        return getScenarioContext().get(l_scenarioName).passed
+                ? ScenarioState.CONTINUE : ScenarioState.SKIP_PREVIOUS_FAILURE;
     }
 
     /**
@@ -1447,7 +1457,7 @@ public class PhasedTestManager {
      * <p>
      * Author : gandomi
      *
-     * @param in_testResult A test result object containing the necessary analysis daata
+     * @param in_testResult A test result object containing the necessary analysis data
      * @return The number of steps planned before a phase change. If we are
      * non-phased we return 0
      */
@@ -1480,7 +1490,7 @@ public class PhasedTestManager {
      */
     public static Set<String> fetchExecutedPhasedClasses() {
 
-        return getScenarioContext().stringPropertyNames().stream().map(PhasedTestManager::fetchClassFromScenarioContext)
+        return getScenarioContext().keySet().stream().map(PhasedTestManager::fetchClassFromScenarioContext)
                 .collect(Collectors.toSet());
     }
 
@@ -1503,5 +1513,124 @@ public class PhasedTestManager {
         }
 
         return in_scenario;
+    }
+
+    protected static class ScenarioContextData {
+        public static final String FAILED_STEP_WHEN_PASSED = "NA";
+        protected boolean passed;
+        protected long duration;
+        protected String failedStep;
+        protected Phases failedInPhase;
+
+        ScenarioContextData() {
+            passed=true;
+            duration=0;
+            failedStep = FAILED_STEP_WHEN_PASSED;
+            failedInPhase = Phases.NON_PHASED;
+        }
+
+        /**
+         * Used in the case of importing of contexts
+         * @param in_importString
+         */
+        protected ScenarioContextData(String in_importString) {
+            this.importFromString(in_importString);
+        }
+
+        /**
+         * Detailed constructor
+         * @param  in_passed
+         * @param in_duration
+         * @param in_failedStep
+         * @param in_phase
+         */
+        protected ScenarioContextData(boolean in_passed, long in_duration, String in_failedStep, Phases in_phase) {
+            this.passed = in_passed;
+            this.duration = in_duration;
+            this.failedStep = in_failedStep;
+            this.failedInPhase = in_phase;
+        }
+
+        /**
+         * Constructor, where the phase is fetched from the Phase state is taken from the context
+         * @param  in_passed
+         * @param in_duration
+         * @param in_failedStep
+         */
+        public ScenarioContextData(boolean in_passed, long in_duration, String in_failedStep) {
+            this.passed = in_passed;
+            this.duration = in_duration;
+            this.failedStep = in_failedStep;
+            this.failedInPhase = Phases.getCurrentPhase();
+        }
+
+        /**
+         * Given a TestResult object we will update the given scenarioContext
+         *
+         * Author : gandomi
+         *
+         * @param in_testResult
+         */
+        public void synchronizeState(ITestResult in_testResult) {
+            switch (in_testResult.getStatus()) {
+            case ITestResult.FAILURE:
+                failedStep = ClassPathParser.fetchFullName(in_testResult);
+                failedInPhase = Phases.getCurrentPhase();
+            case ITestResult.SKIP:
+                passed = false;
+            }
+            duration += (in_testResult.getEndMillis() - in_testResult.getStartMillis());
+        }
+
+        /**
+         * Exports the content of this class to a CSV (";" separated) string
+         *
+         * Author : gandomi
+         *
+         * @return A string representation of this class
+         */
+        public String exportToString() {
+            StringBuilder sb = new StringBuilder(Boolean.toString(this.passed));
+            sb.append(";").append(this.duration).append(";").append(this.failedStep).append(";")
+                    .append(this.failedInPhase.name());
+            return sb.toString();
+        }
+
+        /**
+         * Imports the values of a string.
+         *
+         * Author : gandomi
+         *
+         * @param in_importString A string that is used to populate the fields of this class.
+         */
+        public void importFromString(String in_importString) {
+            String[] l_valueArray = in_importString.split(STD_SCENARIO_CONTEXT_SEPARATOR);
+
+            if (l_valueArray.length < 2) {
+                throw new IllegalArgumentException(
+                        "The imported string cannot be parsed as it does not contain the minimum 2 entries.");
+            }
+
+            this.passed = Boolean.valueOf(l_valueArray[0]);
+            this.duration = Long.valueOf(l_valueArray[1]);
+
+            if (!this.passed) {
+                if (l_valueArray.length < 4) {
+                    throw new IllegalArgumentException(
+                            "The imported string cannot be parsed as it does not contain the minimum 4 of entries.");
+                }
+
+                this.failedStep = !l_valueArray[2].isBlank() ? l_valueArray[2] : FAILED_STEP_WHEN_PASSED;
+
+                try {
+                    this.failedInPhase = !l_valueArray[3].isBlank() ? Phases.valueOf(
+                            l_valueArray[3]) : Phases.NON_PHASED;
+                } catch (IllegalArgumentException exc) {
+                    throw new IllegalArgumentException(
+                            "The given import string " + in_importString + " does not allow us to deduce the Phase.");
+                }
+            }
+
+        }
     }
 }

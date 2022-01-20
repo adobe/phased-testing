@@ -67,6 +67,7 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
         }
 
         //Inject the phased tests executed in the previous phase
+        // This is activated when the test group "PHASED_PRODUCED_TESTS" group
         for (XmlTest lt_xmlTest : suites.get(0).getTests().stream()
                 .filter(t -> t.getIncludedGroups().contains(PhasedTestManager.STD_GROUP_SELECT_TESTS_BY_PRODUCER))
                 .collect(Collectors.toList())) {
@@ -173,6 +174,7 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
         //reset context
         if (PhasedTestManager.isPhasedTest(l_method)) {
 
+            //Disable retrying of phased tests
             if (System.getProperty(PhasedTestManager.PROP_DISABLE_RETRY, "true").equalsIgnoreCase("true")) {
                 log.info(PhasedTestManager.PHASED_TEST_LOG_PREFIX + "Disabling Retry for phased Tests.");
                 result.getMethod().setRetryAnalyzerClass(DisabledRetryAnalyzer.class);
@@ -183,20 +185,24 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
             PhasedTestManager.storePhasedContext(ClassPathParser.fetchFullName(l_method), l_dataProvider);
 
             switch (PhasedTestManager.scenarioStateDecision(result)) {
-                case SKIP_PREVIOUS_FAILURE : 
-                        final String skipMessageSKIPFAILURE = PhasedTestManager.PHASED_TEST_LOG_PREFIX
+            case SKIP_PREVIOUS_FAILURE:
+                final String skipMessageSKIPFAILURE = PhasedTestManager.PHASED_TEST_LOG_PREFIX
                         + "Skipping scenario step " + ClassPathParser.fetchFullName(result)
-                        + " due to failure in a previous steps.";
-                        log.info(skipMessageSKIPFAILURE);
-                        throw new SkipException(skipMessageSKIPFAILURE);
-                case SKIP_NORESULT : 
-                            final String skipMessageNoResult = PhasedTestManager.PHASED_TEST_LOG_PREFIX
-                            + "Skipping scenario step " + ClassPathParser.fetchFullName(result)
-                            + " because the previous steps have no been execued.";
-                        log.error(skipMessageNoResult);
-                        throw new SkipException(skipMessageNoResult);
-                default : 
-                    //Continue
+                        + " due to failure in step " + PhasedTestManager.getScenarioContext()
+                        .get(PhasedTestManager.fetchScenarioName(result)).failedStep + " in Phase "
+                        + PhasedTestManager.getScenarioContext()
+                        .get(PhasedTestManager.fetchScenarioName(result)).failedInPhase.name();
+
+                log.info(skipMessageSKIPFAILURE);
+                throw new SkipException(skipMessageSKIPFAILURE);
+            case SKIP_NORESULT:
+                final String skipMessageNoResult = PhasedTestManager.PHASED_TEST_LOG_PREFIX
+                        + "Skipping scenario step " + ClassPathParser.fetchFullName(result)
+                        + " because the previous steps have no been executed.";
+                log.error(skipMessageNoResult);
+                throw new SkipException(skipMessageNoResult);
+            default:
+                //Continue
             }
         }
     }
@@ -386,8 +392,7 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
                         .fetchDurationMillis(l_phasedScenarios.get(lt_phasedClass));
 
                 //When the phase test scenario was not a success
-                if (!PhasedTestManager.getScenarioContext().get(lt_phasedClass)
-                        .equals(Boolean.TRUE.toString())) {
+                if (!PhasedTestManager.getScenarioContext().get(lt_phasedClass).passed) {
 
                     //Delete all the passed steps : These steps are not remevant if we are merging the step results
                     Iterator<ITestResult> lt_passedTestIterator = context.getPassedTests().getAllResults()
@@ -434,8 +439,13 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
 
                                     l_foundSkipped = true;
 
+                                    /*
                                     lt_currentSkip.setEndMillis(
                                             lt_currentSkip.getStartMillis() + lt_durationMillis);
+                                    */
+
+                                    lt_currentSkip.setEndMillis(
+                                            lt_currentSkip.getStartMillis() + PhasedTestManager.getScenarioContext().get(PhasedTestManager.fetchScenarioName(lt_currentSkip)).duration);
 
                                     renameMethodReport(lt_currentSkip);
                                 }
@@ -451,7 +461,12 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
 
                         if (PhasedTestManager.fetchScenarioName(lt_currentFail).equals(lt_phasedClass)) {
                             //Update duration
-                            lt_currentFail.setEndMillis(lt_currentFail.getStartMillis() + lt_durationMillis);
+                           // lt_currentFail.setEndMillis(lt_currentFail.getStartMillis() + lt_durationMillis);
+
+                            lt_currentFail.setEndMillis(
+                                    lt_currentFail.getStartMillis() + PhasedTestManager.getScenarioContext()
+                                            .get(PhasedTestManager.fetchScenarioName(lt_currentFail)).duration);
+
 
                             //Wrap the Exception
                             PhasedTestManager.generateStepFailure(lt_currentFail);
@@ -476,8 +491,15 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
                                 l_foundPasssed = true;
                                 renameMethodReport(lt_currentSuccess);
 
+                                /*
                                 lt_currentSuccess
                                         .setEndMillis(lt_currentSuccess.getStartMillis() + lt_durationMillis);
+                                */
+
+                                lt_currentSuccess.setEndMillis(
+                                        lt_currentSuccess.getStartMillis() + PhasedTestManager.getScenarioContext()
+                                                .get(PhasedTestManager.fetchScenarioName(lt_currentSuccess)).duration);
+
                             }
                         }
                     }
