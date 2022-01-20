@@ -15,9 +15,9 @@ The most common usage is for validating :
 * Time-Consuming external Data process
 
 ## Table of Contents
-- [Installation](#installation)
-- [Maven](#maven)
 - [Problem Statement](#problem-statement)
+- [Installation](#installation)
+    - [Maven](#maven)
 - [Phases](#phases)
     - [Phase Modes](#phase-modes)
 - [Writing a Phased Test](#writing-a-phased-test)
@@ -35,20 +35,6 @@ The most common usage is for validating :
 - [Misc](#misc)
     - [Data Providers](#data-providers)
 - [Release Notes](#release-notes)
-
-## Installation
-This version runs with the TestNG runner. You can use this library by including it in your project.
- 
-### Maven
-The following dependency needs to be added to your pom file:
-
-```
- <dependency>
-    <groupId>com.adobe.campaign.tests.phased</groupId>
-    <artifactId>phased-testing-testng</artifactId>
-    <version>7.0.8</version>
-</dependency>
-```
  
 ## Problem Statement
 This library was originally created to help validate system changes such as upgrades and migrations. The general migration process is the following:
@@ -60,6 +46,20 @@ What we discovered was that a migration will affect users depending at what stag
 ![The Real Processes](diagrams/PhasedDiagrams-HL-Change-Scenarios.png)
 
 If we want to simulate all the use cases for a workflow of a user we will end up with too many duplicate code. This is why we came p with Phased Testing, which allows a scenario to cover all the possible steps in which a workflow can be interrupted.  
+
+## Installation
+This version runs with the TestNG runner. You can use this library by including it in your project.
+
+### Maven
+The following dependency needs to be added to your pom file:
+
+```
+ <dependency>
+    <groupId>com.adobe.campaign.tests.phased</groupId>
+    <artifactId>phased-testing-testng</artifactId>
+    <version>7.0.8</version>
+</dependency>
+```
 
 ## Phases
 We have three test phases:
