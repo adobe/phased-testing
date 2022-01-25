@@ -2031,6 +2031,62 @@ public class PhasedTestManagerTests {
 
     }
 
+
+    /**
+     * <table>
+     * <caption>Use Cases for Scenario States</caption>
+     * <tr><th>CASE</th><th>Phase</th><th>Current step</th><th>Previous Step Result</th><th>Expected result</th><th>MERGED RESULT</th><th>Comment</th></tr>
+     * <tr><td>1</td><td>Producer/NonPhased</td><td>1</td><td>N/A</td><td>Continue</td><td>PASSED</td><td></td></tr>
+     * <tr><td>2</td><td>Producer/NonPhased</td><td>&gt; 1</td><td>FAILED</td><td>SKIP</td><td>FAILED</td><td></td></tr>
+     * <tr><td>3</td><td>Producer/NonPhased</td><td>&gt; 1</td><td>PASSED</td><td>Continue</td><td>PASSED</td><td></td></tr>
+     * <tr><td>4</td><td>Consumer</td><td>1</td><td>N/A</td><td>Continue</td><td>PASSED</td><td></td></tr>
+     * <tr><td>5</td><td>Consumer</td><td>&gt; 1</td><td>PASSED</td><td>Continue</td><td>PASSED</td><td></td></tr>
+     * <tr><td>6</td><td>Consumer</td><td>&gt; 1</td><td>FAILED/SKIPPED</td><td>SKIP</td><td>FAILED</td><td></td></tr>
+     * <tr><td>7</td><td>Consumer</td><td>&gt; 1</td><td>N/A</td><td>SKIP</td><td>SKIP</td><td></td></tr>
+     * <tr><td>8</td><td>ANY</td><td>ANY</td><td>N/A</td><td>SKIP but not forced</td><td>SKIP</td><td>In this case the tests skip due to a config error</td></tr>
+     * </table>
+     *
+     * This is case 8
+     *
+     * Author : gandomi
+     *
+     * @throws NoSuchMethodException
+     * @throws SecurityException
+     *
+     */
+    @Test
+    public void phaseScenarioStates_case8_intra_SKIPPED_DueToConfigFailure()
+            throws NoSuchMethodException, SecurityException {
+        //On Test End we need to add context of test. The context is the state of the scenario
+
+        //If a test fails, the test state should be logged in the context
+        //This logging should be separate from the produce data Class + dataprovider
+        //We should have a log
+        //Do we only log failures
+        final Method l_myTestWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step2",
+                String.class);
+
+        ITestResult l_itr = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
+        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
+
+        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
+        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SKIP);
+        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "Q" });
+        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
+        Mockito.when(l_com.getMethod()).thenReturn(l_myTestWithOneArg);
+        Mockito.when(l_itr.getThrowable()).thenReturn(new AssertionError("Failed"));
+
+        PhasedTestManager.scenarioStateStore(l_itr);
+
+        String l_scenarioName = PhasedTestManager.fetchScenarioName(l_itr);
+
+        assertThat("We should have the correct value failed", !PhasedTestManager.getScenarioContext().get(l_scenarioName).passed);
+
+        assertThat("We should not be able to continue with the phase group",
+                PhasedTestManager.scenarioStateDecision(l_itr),equalTo(PhasedTestManager.ScenarioState.CONFIG_FAILURE));
+    }
+
     /**
      * <table>
      * <caption>Use Cases for Scenario Sates</caption>
@@ -3325,7 +3381,41 @@ public class PhasedTestManagerTests {
         assertThat("We should be failed", !l_scenarioContext.passed);
         assertThat("We should by default have the 0 duration", l_scenarioContext.duration, Matchers.equalTo(13L));
         assertThat("The failed step should not have changed failed step should be correct",
+                l_scenarioContext.failedStep, Matchers.equalTo(PhasedTestManager.ScenarioContextData.FAILED_STEP_WHEN_PASSED));
+
+    }
+
+    @Test
+    public void testScenarioContextData_synchronizeStateSKIP_dueToConfigMethod() throws NoSuchMethodException {
+        PhasedTestManager.ScenarioContextData l_scenarioContext = new PhasedTestManager.ScenarioContextData();
+
+        //Define previous step
+        final Method l_myTestBeforeWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step2",
+                String.class);
+        ITestResult l_itr = Mockito.mock(ITestResult.class);
+        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
+        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
+
+        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
+        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SKIP);
+        Mockito.when(l_itr.getThrowable()).thenReturn(new AssertionError("kjhsqdksj"));
+        Mockito.when(l_itr.getEndMillis()).thenReturn(14L);
+        Mockito.when(l_itr.getStartMillis()).thenReturn(1L);
+        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "0_1" });
+        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
+        Mockito.when(l_com.getMethod()).thenReturn(l_myTestBeforeWithOneArg);
+
+        l_scenarioContext.synchronizeState(l_itr);
+        String l_failedStep = ClassPathParser.fetchFullName(l_itr);
+
+        assertThat("We should be failed", !l_scenarioContext.passed);
+        assertThat("We should by default have the 0 duration", l_scenarioContext.duration, Matchers.equalTo(13L));
+
+
+        assertThat("The failed step should not have changed failed step should be correct",
                 l_scenarioContext.failedStep, Matchers.equalTo(l_scenarioContext.failedStep));
+
+
 
     }
 

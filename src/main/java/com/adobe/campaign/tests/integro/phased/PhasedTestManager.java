@@ -64,7 +64,7 @@ public class PhasedTestManager {
      * Author : gandomi
      */
     public enum ScenarioState {
-        CONTINUE, SKIP_NORESULT, SKIP_PREVIOUS_FAILURE
+        CONTINUE, SKIP_NORESULT, SKIP_PREVIOUS_FAILURE,CONFIG_FAILURE;
     }
 
     protected static Properties phasedCache = new Properties();
@@ -949,10 +949,9 @@ public class PhasedTestManager {
     }
 
     /**
-     * This method lets us know if we should continue with the scenario. If the
-     * context is not yet stored for the scenario, we should continue. In the
-     * case that the value for the scenario is equal to the current step name,
-     * we will continue.
+     * This method lets us know if we should continue with the scenario. If the context is not yet stored for the
+     * scenario, we should continue. In the case that the value for the scenario is equal to the current step name, we
+     * will continue.
      * <p>
      * There is one Exception. If the cause of the failure is the current test.
      *
@@ -1021,34 +1020,44 @@ public class PhasedTestManager {
      * <td>SKIP</td>
      * <td>SKIP</td>
      * </tr>
+     * <tr>
+     * <td>8</td>
+     * <td>Any</td>
+     * <td>Any</td>
+     * <td>N/A</td>
+     * <td>SKIP - not forced</td>
+     * <td>SKIP</td>
+     * </tr>
      * </table>
      * <p>
      * Author : gandomi
      *
      * @param in_testResult The test result
-     * @return A decision regarding the continuation of the scenario. We also
-     * provide the reasons as to why the skipping happens.
-     * ScenarioState.SKIP_NORESULT returns when we should skip due to
-     * non-execution of a previous step. SKIP_PREVIOUS_FAILURE is
-     * returned when we are supposed o skip because of a failure in a
-     * previous step
+     * @return A decision regarding the continuation of the scenario. We also provide the reasons as to why the skipping
+     * happens. ScenarioState.SKIP_NORESULT returns when we should skip due to non-execution of a previous step.
+     * SKIP_PREVIOUS_FAILURE is returned when we are supposed o skip because of a failure in a previous step
      */
     public static ScenarioState scenarioStateDecision(ITestResult in_testResult) {
         final String l_scenarioName = fetchScenarioName(in_testResult);
         //Case      PHASE               STEP    Previous_Step       Expected_Result
-        //Case 1    Producer/NonPhased  1           N/A             Continue    true    testStateIstKeptBetweenPhases_Continue
-        //Case 2   Producer/NonPhased  > 1     FAILED/Skipped       SKIP    false
-        //Case 3   Producer/NonPhased  > 1     Passed               Continue    true    testStateIstKeptBetweenPhases_Continue
-        //Case 4    Consumer           1            N/A             Continue    true    testStateIstKeptBetweenPhases_Continue
-        //Case 5   Cosnumer            > 1     Passed               Continue    true
-        //Case 6   Cosnumer            > 1     Failed/Skipped       SKIP    false
-        //Case 7    Cosnumer           > 1          N/A             SKIP    false
+        //Case 1    Producer/NonPhased  1       N/A                 Continue    true    testStateIstKeptBetweenPhases_Continue
+        //Case 2    Producer/NonPhased  > 1     FAILED/Skipped      SKIP                false
+        //Case 3    Producer/NonPhased  > 1     Passed              Continue            true    testStateIstKeptBetweenPhases_Continue
+        //Case 4    Consumer            1       N/A                 Continue            true    testStateIstKeptBetweenPhases_Continue
+        //Case 5    Cosnumer            > 1     Passed              Continue            true
+        //Case 6    Cosnumer            > 1     Failed/Skipped      SKIP                false
+        //Case 7    Cosnumer            > 1     N/A                 SKIP                false
+        //Case 8    ANY                 ANY     N/A                 SKIP (not forced)
 
         //#43 to change this to false
-        //If scenario has not yet been executed in the current phase 
+        //If scenario has not yet been executed in the current phase
         if (!getScenarioContext().containsKey(l_scenarioName)) {
             //True only if we are executing end to end 0_X
             return hasStepsExecutedInProducer(in_testResult) ? ScenarioState.SKIP_NORESULT : ScenarioState.CONTINUE;
+        }
+
+        if (in_testResult.getThrowable() instanceof Throwable) {
+            return ScenarioState.CONFIG_FAILURE;
         }
         return getScenarioContext().get(l_scenarioName).passed
                 ? ScenarioState.CONTINUE : ScenarioState.SKIP_PREVIOUS_FAILURE;

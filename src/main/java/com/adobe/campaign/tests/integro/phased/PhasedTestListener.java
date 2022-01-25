@@ -201,6 +201,7 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
                         + " because the previous steps have no been executed.";
                 log.error(skipMessageNoResult);
                 throw new SkipException(skipMessageNoResult);
+            case CONFIG_FAILURE: 
             default:
                 //Continue
             }
