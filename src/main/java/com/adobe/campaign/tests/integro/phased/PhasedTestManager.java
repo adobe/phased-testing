@@ -1310,15 +1310,15 @@ public class PhasedTestManager {
 
         //Fetch the data provider class and name
         Class<?> l_dataProviderClass = in_phasedTestClass.getAnnotation(Test.class).dataProviderClass();
-        String l_dataproviderName = in_phasedTestClass.getAnnotation(Test.class).dataProvider();
+        String l_dataProviderName = in_phasedTestClass.getAnnotation(Test.class).dataProvider();
 
         //No data provider set returning empty array
-        if (l_dataproviderName.isEmpty()) {
+        if (l_dataProviderName.isEmpty()) {
             return lr_defaultReturnValue;
         }
 
-        if (l_dataproviderName.equals(PhasedTestManager.STD_PHASED_GROUP_SINGLE)
-                || l_dataproviderName.startsWith(PhasedTestManager.STD_PHASED_GROUP_PREFIX)) {
+        if (l_dataProviderName.equals(PhasedTestManager.STD_PHASED_GROUP_SINGLE)
+                || l_dataProviderName.startsWith(PhasedTestManager.STD_PHASED_GROUP_PREFIX)) {
             return lr_defaultReturnValue;
         }
 
@@ -1334,7 +1334,7 @@ public class PhasedTestManager {
         //Fetch the dataprovider method
         Method m = Arrays.stream(l_dataProviderClass.getDeclaredMethods())
                 .filter(a -> a.isAnnotationPresent(DataProvider.class))
-                .filter(f -> f.getDeclaredAnnotation(DataProvider.class).name().equals(l_dataproviderName))
+                .filter(f -> f.getDeclaredAnnotation(DataProvider.class).name().equals(l_dataProviderName))
                 .findFirst().orElse(null);
 
         if (m != null) {
@@ -1343,7 +1343,7 @@ public class PhasedTestManager {
         } else {
             throw new PhasedTestConfigurationException(
                     "No method found which matched the data provider class " + l_dataProviderClass.getTypeName()
-                            + " or data provider name " + l_dataproviderName);
+                            + " or data provider name " + l_dataProviderName);
         }
 
         try {

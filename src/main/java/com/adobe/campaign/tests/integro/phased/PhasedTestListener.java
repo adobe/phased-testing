@@ -303,6 +303,7 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
                 + Phases.getCurrentPhase());
 
         //Creating a method map
+        //DOES THE FOR LOOP NEED TO GO THROUGH ALL METHODS?
         Map<Class, List<String>> l_classMethodMap = new HashMap<>();
         for (ITestNGMethod lt_testNGMethod : context.getSuite().getAllMethods()) {
             Method lt_method = lt_testNGMethod.getConstructorOrMethod().getMethod();
@@ -312,14 +313,14 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
                     .fetchDataProviderValues(lt_method.getDeclaringClass());
 
             //The +1 is because of the minimum number of arguments
-            final int lt_nrOfExpectedArgments = lt_currentDataProviders.length == 0 ? 1
+            final int lt_nrOfExpectedArguments = lt_currentDataProviders.length == 0 ? 1
                     : lt_currentDataProviders[0].length + 1;
 
             if (PhasedTestManager.isPhasedTest(lt_method)
-                    && (lt_nrOfExpectedArgments > lt_method.getParameterCount())) {
+                    && (lt_nrOfExpectedArguments > lt_method.getParameterCount())) {
                 throw new PhasedTestConfigurationException(
                         "The method " + ClassPathParser.fetchFullName(lt_method) + " needs to declare "
-                                + lt_nrOfExpectedArgments + " arguments. Instead it has only declared "
+                                + lt_nrOfExpectedArguments + " arguments. Instead it has only declared "
                                 + lt_method.getParameterCount() + "!");
             }
 
