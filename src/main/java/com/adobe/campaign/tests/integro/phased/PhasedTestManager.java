@@ -82,7 +82,7 @@ public class PhasedTestManager {
 
     protected static final String SCENARIO_CONTEXT_PREFIX = System.getProperty(PROP_SCENARIO_EXPORTED_PREFIX, "[TC]");
 
-    protected static class MergedReportData {
+    public static class MergedReportData {
 
         protected static LinkedHashSet<PhasedReportElements> prefix = new LinkedHashSet<>();
         protected static LinkedHashSet<PhasedReportElements> suffix = new LinkedHashSet<>();
