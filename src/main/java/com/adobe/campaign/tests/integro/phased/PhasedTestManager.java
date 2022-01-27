@@ -98,7 +98,7 @@ public class PhasedTestManager {
          * @param in_suffix A sorted set of report elements to be added as suffix to the
          *                  scenario name
          */
-        protected static void configureMergedReportName(LinkedHashSet<PhasedReportElements> in_prefix,
+        public static void configureMergedReportName(LinkedHashSet<PhasedReportElements> in_prefix,
                 LinkedHashSet<PhasedReportElements> in_suffix) {
             MergedReportData.prefix = in_prefix;
             MergedReportData.suffix = in_suffix;
