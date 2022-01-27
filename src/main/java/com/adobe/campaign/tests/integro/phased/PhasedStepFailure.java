@@ -22,4 +22,7 @@ public class PhasedStepFailure extends Throwable {
      */
     private static final long serialVersionUID = -2830092346021261368L;
 
+    public PhasedStepFailure(String skipMessageSKIPFAILURE) {
+        super(skipMessageSKIPFAILURE);
+    }
 }

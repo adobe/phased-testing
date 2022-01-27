@@ -305,6 +305,9 @@ A configuration check is done in the beginning. The phased test steps are checke
 
 ## Release Notes
 ### 7.0.9-SNAPSHOT
+- Upgraded to TestNG 7.5
+- Resolved case of Skip due to config issues, such as a failure in a BeforePhase method (#41)
+- We no longer throw SkipExceptions in the OnStartTest. Instead, we set the status to Skipped (#42) 
 - Consumer results can now contain the results of the PRODUCER phase (#34) 
 - Storing duration and the phase in the scenario state (#36) 
 - Updated Log4J to 2.17.1 to resolve security issues (#38)

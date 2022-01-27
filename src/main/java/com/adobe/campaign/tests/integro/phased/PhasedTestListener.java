@@ -185,24 +185,28 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
             PhasedTestManager.storePhasedContext(ClassPathParser.fetchFullName(l_method), l_dataProvider);
 
             switch (PhasedTestManager.scenarioStateDecision(result)) {
-            case SKIP_PREVIOUS_FAILURE:
-                final String skipMessageSKIPFAILURE = PhasedTestManager.PHASED_TEST_LOG_PREFIX
-                        + "Skipping scenario step " + ClassPathParser.fetchFullName(result)
-                        + " due to failure in step " + PhasedTestManager.getScenarioContext()
-                        .get(PhasedTestManager.fetchScenarioName(result)).failedStep + " in Phase "
-                        + PhasedTestManager.getScenarioContext()
-                        .get(PhasedTestManager.fetchScenarioName(result)).failedInPhase.name();
+                case SKIP_PREVIOUS_FAILURE:
+                    final String skipMessageSKIPFAILURE = PhasedTestManager.PHASED_TEST_LOG_PREFIX
+                            + "Skipping scenario step " + ClassPathParser.fetchFullName(result)
+                            + " due to failure in step " + PhasedTestManager.getScenarioContext()
+                            .get(PhasedTestManager.fetchScenarioName(result)).failedStep + " in Phase "
+                            + PhasedTestManager.getScenarioContext()
+                            .get(PhasedTestManager.fetchScenarioName(result)).failedInPhase.name();
 
-                log.info(skipMessageSKIPFAILURE);
-                throw new SkipException(skipMessageSKIPFAILURE);
-            case SKIP_NORESULT:
-                final String skipMessageNoResult = PhasedTestManager.PHASED_TEST_LOG_PREFIX
-                        + "Skipping scenario step " + ClassPathParser.fetchFullName(result)
-                        + " because the previous steps have no been executed.";
-                log.error(skipMessageNoResult);
-                throw new SkipException(skipMessageNoResult);
-            case CONFIG_FAILURE: 
-            default:
+                    log.info(skipMessageSKIPFAILURE);
+                    result.setStatus(ITestResult.SKIP);
+                    result.setThrowable(new PhasedStepFailure(skipMessageSKIPFAILURE));
+                    break;
+                case SKIP_NORESULT:
+                    final String skipMessageNoResult = PhasedTestManager.PHASED_TEST_LOG_PREFIX
+                            + "Skipping scenario step " + ClassPathParser.fetchFullName(result)
+                            + " because the previous steps have no been executed.";
+                    log.error(skipMessageNoResult);
+                    result.setStatus(ITestResult.SKIP);
+                    result.setThrowable(new PhasedStepFailure(skipMessageNoResult));
+                    break;
+                case CONFIG_FAILURE:
+                default:
                 //Continue
             }
         }
@@ -440,11 +444,6 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
                                             + " because when all results are skipped we keep only the first one..");
 
                                     l_foundSkipped = true;
-
-                                    /*
-                                    lt_currentSkip.setEndMillis(
-                                            lt_currentSkip.getStartMillis() + lt_durationMillis);
-                                    */
 
                                     lt_currentSkip.setEndMillis(
                                             lt_currentSkip.getStartMillis() + PhasedTestManager.getScenarioContext().get(PhasedTestManager.fetchScenarioName(lt_currentSkip)).duration);
