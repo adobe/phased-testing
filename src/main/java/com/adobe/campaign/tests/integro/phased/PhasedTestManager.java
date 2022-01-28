@@ -1629,10 +1629,10 @@ public class PhasedTestManager {
                             "The imported string cannot be parsed as it does not contain the minimum 4 of entries.");
                 }
 
-                this.failedStep = !l_valueArray[2].isBlank() ? l_valueArray[2] : FAILED_STEP_WHEN_PASSED;
+                this.failedStep = !l_valueArray[2].trim().isEmpty() ? l_valueArray[2] : FAILED_STEP_WHEN_PASSED;
 
                 try {
-                    this.failedInPhase = !l_valueArray[3].isBlank() ? Phases.valueOf(
+                    this.failedInPhase = !l_valueArray[3].trim().isEmpty() ? Phases.valueOf(
                             l_valueArray[3]) : Phases.NON_PHASED;
                 } catch (IllegalArgumentException exc) {
                     throw new IllegalArgumentException(
