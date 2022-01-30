@@ -949,86 +949,20 @@ public class PhasedTestManager {
     }
 
     /**
-     * This method lets us know if we should continue with the scenario. If the context is not yet stored for the
-     * scenario, we should continue. In the case that the value for the scenario is equal to the current step name, we
-     * will continue.
-     * <p>
-     * There is one Exception. If the cause of the failure is the current test.
-     *
      * <table>
      * <caption>Use Cases for Scenario States</caption>
-     * <tr>
-     * <th>CASE</th>
-     * <th>Phase</th>
-     * <th>Current step Nr</th>
-     * <th>Previous Step Result</th>
-     * <th>Expected result</th>
-     * <th>MERGED RESULT</th></tr>
-     * <tr>
-     * <td>1</td>
-     * <td>Producer/NonPhased</td>
-     * <td>1</td>
-     * <td>N/A</td>
-     * <td>Continue</td>
-     * <td>PASSED</td>
-     * </tr>
-     * <tr>
-     * <td>2</td>
-     * <td>Producer/NonPhased</td>
-     * <td>&gt; 1</td>
-     * <td>FAILED</td>
-     * <td>SKIP</td>
-     * <td>FAILED</td>
-     * </tr>
-     * <tr>
-     * <td>3</td>
-     * <td>Producer/NonPhased</td>
-     * <td>&gt; 1</td>
-     * <td>PASSED</td>
-     * <td>Continue</td>
-     * <td>PASSED</td>
-     * </tr>
-     * <tr>
-     * <td>4</td>
-     * <td>Consumer</td>
-     * <td>1</td>
-     * <td>N/A</td>
-     * <td>Continue</td>
-     * <td>PASSED</td>
-     * </tr>
-     * <tr>
-     * <td>5</td>
-     * <td>Consumer</td>
-     * <td>&gt; 1</td>
-     * <td>PASSED</td>
-     * <td>Continue</td>
-     * <td>PASSED</td>
-     * </tr>
-     * <tr>
-     * <td>6</td>
-     * <td>Consumer</td>
-     * <td>&gt; 1</td>
-     * <td>FAILED/SKIPPED</td>
-     * <td>SKIP</td>
-     * <td>FAILED</td>
-     * </tr>
-     * <tr>
-     * <td>7</td>
-     * <td>Consumer</td>
-     * <td>&gt; 1</td>
-     * <td>N/A</td>
-     * <td>SKIP</td>
-     * <td>SKIP</td>
-     * </tr>
-     * <tr>
-     * <td>8</td>
-     * <td>Any</td>
-     * <td>Any</td>
-     * <td>N/A</td>
-     * <td>SKIP - not forced</td>
-     * <td>SKIP</td>
-     * </tr>
+     * <tr><th>CASE</th><th>Phase</th><th>Current step</th><th>Previous Step Result</th><th>Expected result</th><th>MERGED RESULT</th><th>Comment</th></tr>
+     * <tr><td>1</td><td>Producer/NonPhased</td><td>1</td><td>N/A</td><td>Continue</td><td>PASSED</td><td></td></tr>
+     * <tr><td>2</td><td>Producer/NonPhased</td><td>&gt; 1</td><td>FAILED</td><td>SKIP</td><td>FAILED</td><td></td></tr>
+     * <tr><td>3</td><td>Producer/NonPhased</td><td>&gt; 1</td><td>PASSED</td><td>Continue</td><td>PASSED</td><td></td></tr>
+     * <tr><td>4</td><td>Consumer</td><td>1</td><td>N/A</td><td>Continue</td><td>PASSED</td><td></td></tr>
+     * <tr><td>5</td><td>Consumer</td><td>&gt; 1</td><td>PASSED</td><td>Continue</td><td>PASSED</td><td></td></tr>
+     * <tr><td>6</td><td>Consumer</td><td>&gt; 1</td><td>FAILED/SKIPPED</td><td>SKIP</td><td>FAILED</td><td></td></tr>
+     * <tr><td>7</td><td>Consumer</td><td>&gt; 1</td><td>N/A</td><td>SKIP</td><td>SKIP</td><td></td></tr>
+     * <tr><td>8</td><td>ANY</td><td>ANY</td><td>N/A</td><td>SKIP but not forced</td><td>SKIP</td><td>In this case the tests skip due to a config error</td></tr>
+     * <tr><td>9</td><td>ANY</td><td>ANY</td><td>N/A</td><td>Continue</td><td>Failure</td><td>his is the case of a retry</td></tr>
      * </table>
+     *
      * <p>
      * Author : gandomi
      *
@@ -1039,21 +973,28 @@ public class PhasedTestManager {
      */
     public static ScenarioState scenarioStateDecision(ITestResult in_testResult) {
         final String l_scenarioName = fetchScenarioName(in_testResult);
-        //Case      PHASE               STEP    Previous_Step       Expected_Result
-        //Case 1    Producer/NonPhased  1       N/A                 Continue    true    testStateIstKeptBetweenPhases_Continue
+        //Case      PHASE               STEP    Previous_Step       Expected_Result     Merged Result   Comment
+        //Case 1    Producer/NonPhased  1       N/A                 Continue            true            testStateIstKeptBetweenPhases_Continue
         //Case 2    Producer/NonPhased  > 1     FAILED/Skipped      SKIP                false
-        //Case 3    Producer/NonPhased  > 1     Passed              Continue            true    testStateIstKeptBetweenPhases_Continue
-        //Case 4    Consumer            1       N/A                 Continue            true    testStateIstKeptBetweenPhases_Continue
+        //Case 3    Producer/NonPhased  > 1     Passed              Continue            true            testStateIstKeptBetweenPhases_Continue
+        //Case 4    Consumer            1       N/A                 Continue            true            testStateIstKeptBetweenPhases_Continue
         //Case 5    Cosnumer            > 1     Passed              Continue            true
         //Case 6    Cosnumer            > 1     Failed/Skipped      SKIP                false
         //Case 7    Cosnumer            > 1     N/A                 SKIP                false
         //Case 8    ANY                 ANY     N/A                 SKIP (not forced)
+        //Case 9    ANY                 ANY     N/A                 Continue            false           In retry we do not change the state of the retry
 
         //#43 to change this to false
         //If scenario has not yet been executed in the current phase
         if (!getScenarioContext().containsKey(l_scenarioName)) {
             //True only if we are executing end to end 0_X
             return hasStepsExecutedInProducer(in_testResult) ? ScenarioState.SKIP_NORESULT : ScenarioState.CONTINUE;
+        }
+
+        //In the case of retry when activaed for the phased tests, we let testng manage it.
+        if (getScenarioContext().get(l_scenarioName).getCurrentStep()
+                .equals(ClassPathParser.fetchFullName(in_testResult))) {
+            return ScenarioState.CONTINUE;
         }
 
         if (in_testResult.getThrowable() instanceof Throwable) {
@@ -1075,13 +1016,13 @@ public class PhasedTestManager {
      */
     public static String fetchTestNameForReport(ITestResult in_testResult) {
 
-        final String l_stdItemeparator = "__";
+        final String l_stdItemSeparator = "__";
 
         //Adding the prefixes
         StringBuilder sb = new StringBuilder();
         for (PhasedReportElements lt_pre : MergedReportData.prefix) {
             sb.append(lt_pre.fetchElement(in_testResult));
-            sb.append(l_stdItemeparator);
+            sb.append(l_stdItemSeparator);
         }
 
         //Adding the required values : the phaseGroup
@@ -1092,7 +1033,7 @@ public class PhasedTestManager {
 
             final String lt_elmentValue = lt_pre.fetchElement(in_testResult);
             if (!lt_elmentValue.isEmpty()) {
-                sb.append(l_stdItemeparator);
+                sb.append(l_stdItemSeparator);
                 sb.append(lt_elmentValue);
             }
 
@@ -1525,17 +1466,20 @@ public class PhasedTestManager {
     }
 
     protected static class ScenarioContextData {
-        public static final String FAILED_STEP_WHEN_PASSED = "NA";
-        protected boolean passed;
-        protected long duration;
-        protected String failedStep;
-        protected Phases failedInPhase;
+        public static final String NOT_APPLICABLE_STEP_NAME = "NA";
+
+        private boolean passed;
+        private long duration;
+        private String failedStep;
+        private Phases failedInPhase;
+        private String currentStep;
 
         ScenarioContextData() {
             passed=true;
             duration=0;
-            failedStep = FAILED_STEP_WHEN_PASSED;
-            failedInPhase = Phases.NON_PHASED;
+            failedStep = NOT_APPLICABLE_STEP_NAME;
+            setFailedInPhase(Phases.NON_PHASED);
+            setCurrentStep(NOT_APPLICABLE_STEP_NAME);
         }
 
         /**
@@ -1543,6 +1487,7 @@ public class PhasedTestManager {
          * @param in_importString
          */
         protected ScenarioContextData(String in_importString) {
+            this();
             this.importFromString(in_importString);
         }
 
@@ -1552,12 +1497,15 @@ public class PhasedTestManager {
          * @param in_duration
          * @param in_failedStep
          * @param in_phase
+         * @param in_currentStep
          */
-        protected ScenarioContextData(boolean in_passed, long in_duration, String in_failedStep, Phases in_phase) {
+        protected ScenarioContextData(boolean in_passed, long in_duration, String in_failedStep, Phases in_phase,
+                String in_currentStep) {
             this.passed = in_passed;
             this.duration = in_duration;
             this.failedStep = in_failedStep;
-            this.failedInPhase = in_phase;
+            this.setFailedInPhase(in_phase);
+            this.setCurrentStep(in_currentStep);
         }
 
         /**
@@ -1567,10 +1515,43 @@ public class PhasedTestManager {
          * @param in_failedStep
          */
         public ScenarioContextData(boolean in_passed, long in_duration, String in_failedStep) {
+            this();
             this.passed = in_passed;
             this.duration = in_duration;
             this.failedStep = in_failedStep;
-            this.failedInPhase = Phases.getCurrentPhase();
+            this.setFailedInPhase(Phases.getCurrentPhase());
+        }
+
+        public boolean isPassed() {
+            return passed;
+        }
+
+        public void setPassed(boolean passed) {
+            this.passed = passed;
+        }
+
+        public long getDuration() {
+            return duration;
+        }
+
+        public void setDuration(long duration) {
+            this.duration = duration;
+        }
+
+        public String getFailedStep() {
+            return failedStep;
+        }
+
+        public void setFailedStep(String failedStep) {
+            this.failedStep = failedStep;
+        }
+
+        public Phases getFailedInPhase() {
+            return failedInPhase;
+        }
+
+        public void setFailedInPhase(Phases failedInPhase) {
+            this.failedInPhase = failedInPhase;
         }
 
         /**
@@ -1584,11 +1565,12 @@ public class PhasedTestManager {
             switch (in_testResult.getStatus()) {
             case ITestResult.FAILURE:
                 failedStep = ClassPathParser.fetchFullName(in_testResult);
-                failedInPhase = Phases.getCurrentPhase();
+                setFailedInPhase(Phases.getCurrentPhase());
             case ITestResult.SKIP:
                 passed = false;
             }
             duration += (in_testResult.getEndMillis() - in_testResult.getStartMillis());
+            setCurrentStep(ClassPathParser.fetchFullName(in_testResult));
         }
 
         /**
@@ -1601,7 +1583,7 @@ public class PhasedTestManager {
         public String exportToString() {
             StringBuilder sb = new StringBuilder(Boolean.toString(this.passed));
             sb.append(";").append(this.duration).append(";").append(this.failedStep).append(";")
-                    .append(this.failedInPhase.name());
+                    .append(this.getFailedInPhase().name());
             return sb.toString();
         }
 
@@ -1629,17 +1611,25 @@ public class PhasedTestManager {
                             "The imported string cannot be parsed as it does not contain the minimum 4 of entries.");
                 }
 
-                this.failedStep = !l_valueArray[2].trim().isEmpty() ? l_valueArray[2] : FAILED_STEP_WHEN_PASSED;
+                this.failedStep = !l_valueArray[2].trim().isEmpty() ? l_valueArray[2] : NOT_APPLICABLE_STEP_NAME;
 
                 try {
-                    this.failedInPhase = !l_valueArray[3].trim().isEmpty() ? Phases.valueOf(
-                            l_valueArray[3]) : Phases.NON_PHASED;
+                    this.setFailedInPhase(!l_valueArray[3].trim().isEmpty() ? Phases.valueOf(
+                            l_valueArray[3]) : Phases.NON_PHASED);
                 } catch (IllegalArgumentException exc) {
                     throw new IllegalArgumentException(
                             "The given import string " + in_importString + " does not allow us to deduce the Phase.");
                 }
             }
 
+        }
+
+        public String getCurrentStep() {
+            return currentStep;
+        }
+
+        public void setCurrentStep(String currentStep) {
+            this.currentStep = currentStep;
         }
     }
 }

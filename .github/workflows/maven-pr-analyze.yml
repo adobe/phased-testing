@@ -11,7 +11,7 @@
 #
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-name: Deploy-phased-testing-testng
+name: Analyze-phased-testing-testng
 
 # Run workflow on commits to default branch
 on: 
