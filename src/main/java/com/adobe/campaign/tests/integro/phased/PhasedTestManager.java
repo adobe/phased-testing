@@ -210,25 +210,6 @@ public class PhasedTestManager {
         return storePhasedCache(lr_storeKey, in_storeValue);
     }
 
-    /**
-     * Stores a value with the given key. We include the class as prefix. By
-     * default {@link #produceInStep(String)} should be preferred
-     * <p>
-     * Author : gandomi
-     *
-     * @param in_storageKey A string that is added to the generated key for identification of
-     *                      the stored data
-     * @param in_storeValue The value we want to store
-     * @return The key that was used in storing the value
-     * @deprecated This method has been renamed. Please use
-     * {@link #produce(String, String)} instead.
-     */
-    @Deprecated public static String produceWithKey(String in_storageKey, String in_storeValue) {
-        final String l_className = StackTraceManager.fetchCalledBy().getClassName();
-        final String l_fullId = generateStepKeyIdentity(StackTraceManager.fetchCalledByFullName(), l_className,
-                in_storageKey);
-        return storePhasedCache(l_fullId, in_storeValue);
-    }
 
     /**
      * Stores a value with the given key. We include the class as prefix.
@@ -246,6 +227,7 @@ public class PhasedTestManager {
                 in_storageKey);
         return storePhasedCache(l_fullId, in_storeValue);
     }
+
 
     /**
      * This method generates the identifier for a producer/consumer used for
@@ -371,26 +353,6 @@ public class PhasedTestManager {
         }
 
         return phasedCache.getProperty(in_consumableKey);
-    }
-
-    /**
-     * Given a step in the Phased Test it fetches the value committed for that
-     * test.
-     * <p>
-     * Author : gandomi
-     *
-     * @param in_storageKey A key that was used to store the value in this scenario
-     * @return The value that was stored
-     * @deprecated This method has been renamed. Please use
-     * {@link #consume(String)} instead
-     */
-    @Deprecated public static String consumeWithKey(String in_storageKey) {
-        final StackTraceElement l_fetchCalledBy = StackTraceManager.fetchCalledBy();
-
-        String l_realKey = generateStepKeyIdentity(StackTraceManager.fetchCalledByFullName(),
-                l_fetchCalledBy.getClassName(), in_storageKey);
-
-        return fetchStoredConsumable(l_realKey, l_fetchCalledBy.toString());
     }
 
     /**

@@ -17,23 +17,24 @@ The most common usage is for validating :
 ## Table of Contents
 - [Problem Statement](#problem-statement)
 - [Installation](#installation)
-    - [Maven](#maven)
+  - [Maven](#maven)
 - [Phases](#phases)
-    - [Phase Modes](#phase-modes)
+  - [Phase Modes](#phase-modes)
 - [Writing a Phased Test](#writing-a-phased-test)
-    - [Setting Execution Modes](#setting-execution-modes)
-    - [Before- and After-Phase Actions](#before--and-after-phase-actions)
+  - [Setting Execution Modes](#setting-execution-modes)
+  - [Before- and After-Phase Actions](#before--and-after-phase-actions)
+  - [Nested Design Pattern](#nested-design-pattern)
 - [Running a Phased Test](#running-a-phased-test)
-    - [Run Time Properties](#run-time-properties)
-    - [Executing a CONSUMER phase based on the PRODUCED Data](#executing-a-consumer-phase-based-on-the-produced-data)
+  - [Run Time Properties](#run-time-properties)
+  - [Executing a CONSUMER phase based on the PRODUCED Data](#executing-a-consumer-phase-based-on-the-produced-data)
 - [Integrity between Steps and Scenarios](#integrity-between-steps-and-scenarios)
-    - [Phase Contexts - Managing the Scenario Step Executions](#phase-contexts---managing-the-scenario-step-executions)
-    - [Managing Phased Data](#managing-phased-data)
+  - [Phase Contexts - Managing the Scenario Step Executions](#phase-contexts---managing-the-scenario-step-executions)
+  - [Managing Phased Data](#managing-phased-data)
 - [Reporting](#reporting)
-    - [Default Reports](#default-reports)
-    - [Report By Phase Group and Scenario](#report-by-phase-group-and-scenario)
+  - [Default Reports](#default-reports)
+  - [Report By Phase Group and Scenario](#report-by-phase-group-and-scenario)
 - [Misc](#misc)
-    - [Data Providers](#data-providers)
+  - [Data Providers](#data-providers)
 - [Release Notes](#release-notes)
  
 ## Problem Statement
@@ -354,6 +355,7 @@ A configuration check is done in the beginning. The phased test steps are checke
 - Implemented the new select tests to run based on the producer phase (#9)
 - Solved case when the users really wants to use retry. In this case we do not interrupt the retry mechanism.
 - Moved back to java 8. We now compile the artefacts in java 8. This is because our main users are not yet in higher java versions.
+- Removed the deprecated methods `PhasedTestManager.produceWithKey` and `PhasedTestManager.consumeWithKey`. 
 
 ### 7.0.8
 - Upgraded java version to Java 11

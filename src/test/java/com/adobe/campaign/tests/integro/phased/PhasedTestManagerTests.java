@@ -96,7 +96,7 @@ public class PhasedTestManagerTests {
         String l_myKeyPrefix = this.getClass().getTypeName() + PhasedTestManager.STD_KEY_CLASS_SEPARATOR;
 
         assertThat("We should have correctly constructed the key ",
-                PhasedTestManager.produceWithKey("A", "Hello"), equalTo(l_myKeyPrefix + "A"));
+                PhasedTestManager.produce("A", "Hello"), equalTo(l_myKeyPrefix + "A"));
 
         assertThat("We should have successfully stored the given value",
                 PhasedTestManager.phasedCache.containsKey(l_myKeyPrefix + "A"));
@@ -105,7 +105,7 @@ public class PhasedTestManagerTests {
                 PhasedTestManager.phasedCache.get(l_myKeyPrefix + "A"), equalTo("Hello"));
 
         assertThat("We should have successfully fetched the correct value",
-                PhasedTestManager.consumeWithKey("A"), equalTo("Hello"));
+                PhasedTestManager.consume("A"), equalTo("Hello"));
     }
 
     @Test
@@ -119,7 +119,7 @@ public class PhasedTestManagerTests {
                 + PhasedTestManager.STD_KEY_CLASS_SEPARATOR;
 
         assertThat("We should have correctly constructed the key ",
-                PhasedTestManager.produceWithKey("A", "Hello"), equalTo(l_myKeyPrefix + "A"));
+                PhasedTestManager.produce("A", "Hello"), equalTo(l_myKeyPrefix + "A"));
 
         assertThat("We should have successfully stored the given value",
                 PhasedTestManager.phasedCache.containsKey(l_myKeyPrefix + "A"));
@@ -128,7 +128,7 @@ public class PhasedTestManagerTests {
                 PhasedTestManager.phasedCache.get(l_myKeyPrefix + "A"), equalTo("Hello"));
 
         assertThat("We should have successfully fetched the correct value",
-                PhasedTestManager.consumeWithKey("A"), equalTo("Hello"));
+                PhasedTestManager.consume("A"), equalTo("Hello"));
     }
 
     @Test
@@ -156,8 +156,8 @@ public class PhasedTestManagerTests {
 
     @Test
     public void testProduceOnBehalphOf_RepetitiveProduce_Negative() {
-        PhasedTestManager.produceWithKey("A", "Bye");
-        assertThrows(PhasedTestException.class, () -> PhasedTestManager.produceWithKey("A", "Hello"));
+        PhasedTestManager.produce("A", "Bye");
+        assertThrows(PhasedTestException.class, () -> PhasedTestManager.produce("A", "Hello"));
     }
 
     @Test
@@ -167,12 +167,7 @@ public class PhasedTestManagerTests {
     }
 
     @Test
-    public void testconsumeByKey_NonExistingKey_Negative() {
-        assertThrows(PhasedTestException.class, () -> PhasedTestManager.consumeWithKey("A"));
-    }
-
-    @Test
-    public void testconsume_NonExistingKey_Negative() {
+    public void testConsume_NonExistingKey_Negative() {
         assertThrows(PhasedTestException.class, () -> PhasedTestManager.consume("A"));
     }
 
