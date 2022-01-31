@@ -1,7 +1,7 @@
 package com.adobe.campaign.tests.integro.phased;
 
 import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClass;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_RecipientClass;
+import com.adobe.campaign.tests.integro.phased.data.nested.PhasedSeries_J_RecipientClass;
 import com.adobe.campaign.tests.integro.phased.data.nested.PhasedSeries_N_NestedContainer;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 import com.adobe.campaign.tests.integro.phased.utils.TestTools;
@@ -65,7 +65,7 @@ public class NestedClassDesignTests {
         // Create an instance of XmlTest and assign a name for it.
         XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Nested Phased Tests Producer");
 
-        final Class<PhasedSeries_RecipientClass.PhasedSeries_J_ShuffledClassInAClass> l_testClass = PhasedSeries_RecipientClass.PhasedSeries_J_ShuffledClassInAClass.class;
+        final Class<PhasedSeries_J_RecipientClass.PhasedSeries_J_ShuffledClassInAClass> l_testClass = PhasedSeries_J_RecipientClass.PhasedSeries_J_ShuffledClassInAClass.class;
         myTest.setXmlClasses(
                 Arrays.asList(new XmlClass(l_testClass), new XmlClass(PhasedSeries_H_ShuffledClass.class)));
 
@@ -263,7 +263,6 @@ public class NestedClassDesignTests {
 
         assertThat("The Report should contain 2 tests marked as Failed",
                 context.getFailedTests().getAllResults().size(), is(equalTo(2)));
-
     }
 
 }

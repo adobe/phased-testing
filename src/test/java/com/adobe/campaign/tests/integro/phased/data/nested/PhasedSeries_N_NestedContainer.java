@@ -19,7 +19,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 
 public class PhasedSeries_N_NestedContainer {
-    @Test
+    @Test(groups = "positive")
     @PhasedTest(canShuffle = true)
     public class PhasedSeries_N_ShuffledClassWithError {
 
@@ -46,7 +46,7 @@ public class PhasedSeries_N_NestedContainer {
 
     }
 
-    @Test
+    @Test(groups = "negative")
     @PhasedTest(canShuffle = true)
     public class PhasedSeries_N_ShuffledClass {
 
