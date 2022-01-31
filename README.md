@@ -312,6 +312,8 @@ A configuration check is done in the beginning. The phased test steps are checke
 - Storing duration and the phase in the scenario state (#36) 
 - Updated Log4J to 2.17.1 to resolve security issues (#38)
 - Implemented the new select tests to run based on the producer phase (#9)
+- Solved case when the users really wants to use retry. In this case we do not interrupt the retry mechanism.
+- Moved back to java 8. We now compile the artefacts in java 8. This is because our main users are not yet in higher java versions.
 
 ### 7.0.8
 - Upgraded java version to Java 11
