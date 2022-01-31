@@ -11,13 +11,12 @@ import org.testng.TestNG;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.testng.xml.XmlClass;
+import org.testng.xml.XmlPackage;
 import org.testng.xml.XmlSuite;
 import org.testng.xml.XmlTest;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashSet;
+import java.util.*;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -215,6 +214,46 @@ public class NestedClassDesignTests {
         assertThat("The Report should contain 2 tests marked as Failed",
                 context.getFailedTests().getAllResults().size(), is(equalTo(2)));
 
+        // ******** CONSUMER ********
+        Phases.CONSUMER.activate();
+
+        TestNG myTestNG2 = TestTools.createTestNG();
+        TestListenerAdapter tla2 = TestTools.fetchTestResultsHandler(myTestNG2);
+
+        // Define suites
+        XmlSuite mySuite2 = TestTools.addSuitToTestNGTest(myTestNG2, "Automated Suite Phased Testing");
+
+        // Add listeners
+        mySuite2.addListener("com.adobe.campaign.tests.integro.phased.PhasedTestListener");
+
+        // Create an instance of XmlTest and assign a name for it.
+        XmlTest myTest2 = TestTools.attachTestToSuite(mySuite2, "Test Nested Phased Tests Consumer");
+
+        myTest2.setXmlClasses(Collections.singletonList(
+                new XmlClass(PhasedSeries_N_NestedContainer.class)));
+
+        myTestNG2.run();
+
+        //Global
+        assertThat("We should have 9 successful methods of phased Tests", tla2.getPassedTests().size(),
+                is(equalTo(7)));
+
+        assertThat("We should have 2 failed tests", tla2.getFailedTests().size(), equalTo(2));
+
+        assertThat("We should have 3 skipped tests", tla2.getSkippedTests().size(), equalTo(3));
+
+        //Merged
+        ITestContext context2 = tla2.getTestContexts().get(0);
+
+        assertThat("The Report should only have one Passed test",
+                context2.getPassedTests().getAllResults().size(), is(equalTo(3)));
+
+        assertThat("The Report should not contain Skipped tests",
+                context2.getSkippedTests().getAllResults().size(), is(equalTo(1)));
+
+        assertThat("The Report should contain 2 tests marked as Failed",
+                context2.getFailedTests().getAllResults().size(), is(equalTo(2)));
+
     }
 
     /**
@@ -264,5 +303,61 @@ public class NestedClassDesignTests {
         assertThat("The Report should contain 2 tests marked as Failed",
                 context.getFailedTests().getAllResults().size(), is(equalTo(2)));
     }
+
+    //Add test select by group
+    /**
+     * In this case we try to run a class with many children. And we only execute only one of them
+     */
+    @Test
+    public void testSHUFFLED_Nested_Negative_SelectionByGroup() {
+        TestNG myTestNG = TestTools.createTestNG();
+        TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
+
+        // Define suites
+        XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG, "Automated Suite Phased Testing - NESTED");
+
+        // Add listeners
+        mySuite.addListener("com.adobe.campaign.tests.integro.phased.PhasedTestListener");
+
+        // Create an instance of XmlTest and assign a name for it.
+        XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Nested Phased Tests Producer");
+
+        //Define packages
+        List<XmlPackage> l_packages = new ArrayList<>();
+        l_packages.add(new XmlPackage("com.adobe.campaign.tests.integro.phased.data.nested.*"));
+        myTest.setXmlPackages(l_packages);
+
+        myTest.addIncludedGroup("negative");
+
+        // Add package to test
+        Phases.PRODUCER.activate();
+        System.setProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS, "true");
+
+        myTestNG.run();
+
+        //Global
+        assertThat("We should have 3 successful methods of phased Tests", tla.getPassedTests().size(),
+                is(equalTo(3)));
+
+        assertThat("We should have 2 failed tests", tla.getFailedTests().size(), equalTo(2));
+
+        assertThat("We should have one skipped test", tla.getSkippedTests().size(), equalTo(1));
+
+        //Merged
+        ITestContext context = tla.getTestContexts().get(0);
+
+        assertThat("The Report should only have one Passed test",
+                context.getPassedTests().getAllResults().size(), is(equalTo(1)));
+
+        assertThat("The Report should not contain Skipped tests",
+                context.getSkippedTests().getAllResults().size(), is(equalTo(0)));
+
+        assertThat("The Report should contain 2 tests marked as Failed",
+                context.getFailedTests().getAllResults().size(), is(equalTo(2)));
+    }
+
+    //Add tests with beforePhase
+
+    //Add tests with beforePhase Negative
 
 }
