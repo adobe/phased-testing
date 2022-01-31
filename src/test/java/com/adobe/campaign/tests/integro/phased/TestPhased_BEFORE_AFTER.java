@@ -105,9 +105,9 @@ public class TestPhased_BEFORE_AFTER {
         assertThat("The before suite should have been invoked only once",
                 PhasedSeries_M_BeforePhase_BeforeSuite.beforeValue, equalTo(13));
         ITestContext l_context = tla.getTestContexts().get(0);
-        assertThat("We should have one passsed test", l_context.getPassedTests().size(), equalTo(3));
-        assertThat("We should have one passsed test", l_context.getSkippedTests().size(), equalTo(0));
-        assertThat("We should have one passsed test", l_context.getFailedTests().size(), equalTo(0));
+        assertThat("We should have 3 passed tests", l_context.getPassedTests().size(), equalTo(3));
+        assertThat("We should have no failed tests", l_context.getSkippedTests().size(), equalTo(0));
+        assertThat("We should have no skipped tests", l_context.getFailedTests().size(), equalTo(0));
         assertThat("We should have executed the before suite once",
                 l_context.getPassedConfigurations().size(), equalTo(2));
         assertThat("We should have executed the before suite once",
@@ -175,12 +175,12 @@ public class TestPhased_BEFORE_AFTER {
         assertThat("The before suite should have been invoked only once",
                 PhasedSeries_M_BeforePhase_BeforeSuite.beforeValue, equalTo(13));
         ITestContext l_context = tla.getTestContexts().get(0);
-        assertThat("We should have one passsed test", l_context.getPassedTests().size(), equalTo(3));
-        assertThat("We should have one passsed test", l_context.getSkippedTests().size(), equalTo(0));
-        assertThat("We should have one passsed test", l_context.getFailedTests().size(), equalTo(0));
-        assertThat("We should have executed the before suite thrice",
+        assertThat("We should have 3 passsed tests", l_context.getPassedTests().size(), equalTo(3));
+        assertThat("We should have no failed tests", l_context.getSkippedTests().size(), equalTo(0));
+        assertThat("We should have no skipped tests", l_context.getFailedTests().size(), equalTo(0));
+        assertThat("We should have executed the before suite twice",
                 l_context.getPassedConfigurations().size(), Matchers.greaterThanOrEqualTo(2));
-        assertThat("We should have executed the before suite once",
+        assertThat("We should no failed configurations",
                 l_context.getFailedConfigurations().size(), equalTo(0));
         assertThat("Our beforesuite should have been invoked once",
                 l_context.getPassedConfigurations().getAllResults().stream()
@@ -227,16 +227,16 @@ public class TestPhased_BEFORE_AFTER {
         assertThat("The before suite should have been invoked only once",
                 PhasedSeries_M_BeforePhase_BeforeSuite.beforeValue, equalTo(14));
         ITestContext l_context = tla.getTestContexts().get(0);
-        assertThat("We should have one passed test", l_context.getPassedTests().size(), equalTo(0));
-        assertThat("We should have one passed test", l_context.getSkippedTests().size(), equalTo(3));
-        assertThat("We should have one passed test", l_context.getFailedTests().size(), equalTo(0));
-        assertThat("We should have executed the before suite once",
+        assertThat("We should have no passed tests", l_context.getPassedTests().size(), equalTo(0));
+        assertThat("We should have 3 skipped tests", l_context.getSkippedTests().size(), equalTo(3));
+        assertThat("We should have no failed tests", l_context.getFailedTests().size(), equalTo(0));
+        assertThat("We should have executed the before phase once and it failed",
                 l_context.getPassedConfigurations().size(), equalTo(0));
-        assertThat("We should have executed the before suite once",
+        assertThat("We should have executed the before phase once and it failed",
                 l_context.getFailedConfigurations().size(), equalTo(1));
-        assertThat("We should have executed the before suite once",
+        assertThat("We should have one skipped before suite which was ignored",
                 l_context.getSkippedConfigurations().size(), equalTo(1));
-        assertThat("Our beforesuite sshould have been invoke one", l_context.getFailedConfigurations()
+        assertThat("Our beforesuite should have been invoke once", l_context.getFailedConfigurations()
                 .getAllResults().stream().allMatch(m -> m.getName().equals("beforePhasedSuite")));
 
     }

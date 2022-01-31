@@ -2,7 +2,9 @@ package com.adobe.campaign.tests.integro.phased;
 
 import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClass;
 import com.adobe.campaign.tests.integro.phased.data.nested.PhasedSeries_J_RecipientClass;
+import com.adobe.campaign.tests.integro.phased.data.nested.PhasedSeries_N_BeforePhase_BeforeSuite;
 import com.adobe.campaign.tests.integro.phased.data.nested.PhasedSeries_N_NestedContainer;
+import com.adobe.campaign.tests.integro.phased.data.nested.PhasedSeries_N_Simple_BeforeSuite;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 import com.adobe.campaign.tests.integro.phased.utils.TestTools;
 import org.testng.ITestContext;
@@ -46,10 +48,13 @@ public class NestedClassDesignTests {
         PhasedTestManager.MergedReportData.configureMergedReportName(new LinkedHashSet<>(),
                 new LinkedHashSet<>(
                         Arrays.asList(PhasedReportElements.DATA_PROVIDERS, PhasedReportElements.PHASE)));
+
+        PhasedSeries_N_BeforePhase_BeforeSuite.beforeValue = 0;
+        PhasedSeries_N_Simple_BeforeSuite.beforeValue = 0;
     }
 
     @Test
-    public void testSHUFFLED_Nested_HelloWorld() {
+    public void testNested_HelloWorld() {
         // ******** PRODUCER ********
         // Rampup
         TestNG myTestNG = TestTools.createTestNG();
@@ -171,7 +176,7 @@ public class NestedClassDesignTests {
      * In this case we try to run a class with many children
      */
     @Test
-    public void testSHUFFLED_Nested_HelloWorld_MultiNestedClasses() {
+    public void testNested_HelloWorld_MultiNestedClasses() {
         TestNG myTestNG = TestTools.createTestNG();
         TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
 
@@ -260,7 +265,7 @@ public class NestedClassDesignTests {
      * In this case we try to run a class with many children. And we only execute only one of them
      */
     @Test
-    public void testSHUFFLED_Nested_HelloWorld_Negative_MultiNestedClasses() {
+    public void testNested_HelloWorld_Negative_MultiNestedClasses() {
         TestNG myTestNG = TestTools.createTestNG();
         TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
 
@@ -309,7 +314,7 @@ public class NestedClassDesignTests {
      * In this case we try to run a class with many children. And we only execute only one of them
      */
     @Test
-    public void testSHUFFLED_Nested_Negative_SelectionByGroup() {
+    public void testNested_Negative_SelectionByGroup() {
         TestNG myTestNG = TestTools.createTestNG();
         TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
 
@@ -359,5 +364,46 @@ public class NestedClassDesignTests {
     //Add tests with beforePhase
 
     //Add tests with beforePhase Negative
+    @Test
+    public void testNested_AfterPhaseBeforeSuite_Negative() {
+        // Rampup
+        TestNG myTestNG = TestTools.createTestNG();
+        TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
+
+        // Define suites
+        XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG,
+                "Automated Suite Phased Testing - Nested -BeforePhase set on an AfterSuite - NEGATIVE");
+
+        // Add listeners
+        mySuite.addListener(PhasedTestListener.class.getTypeName());
+
+        // Create an instance of XmlTest and assign a name for it.
+        XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test config methods skipping beforePhase - Nested");
+
+        final Class<PhasedSeries_N_NestedContainer> l_testClass = PhasedSeries_N_NestedContainer.class;
+        myTest.setXmlClasses(Arrays.asList(new XmlClass(l_testClass),
+                new XmlClass(PhasedSeries_N_BeforePhase_BeforeSuite.class)));
+
+        PhasedTestManager.activateMergedReports();
+        PhasedSeries_N_BeforePhase_BeforeSuite.beforeValue = 1;
+        Phases.PRODUCER.activate();
+        myTestNG.run();
+
+        assertThat("The before suite should have been invoked only once",
+                PhasedSeries_N_BeforePhase_BeforeSuite.beforeValue, equalTo(14));
+        ITestContext l_context = tla.getTestContexts().get(0);
+        assertThat("We should have no passed tests", l_context.getPassedTests().size(), equalTo(0));
+        assertThat("All tests should be skipped", l_context.getSkippedTests().size(), equalTo(6));
+        assertThat("We should have no failed tests", l_context.getFailedTests().size(), equalTo(0));
+        assertThat("We should have executed the before suite once",
+                l_context.getPassedConfigurations().size(), equalTo(0));
+        assertThat("We should have failed the before phase once",
+                l_context.getFailedConfigurations().size(), equalTo(1));
+        assertThat("We should have no skipped configurations",
+                l_context.getSkippedConfigurations().size(), equalTo(0));
+        assertThat("Our beforesuite should have been invoke once", l_context.getFailedConfigurations()
+                .getAllResults().stream().allMatch(m -> m.getName().equals("beforePhasedSuite")));
+
+    }
 
 }
