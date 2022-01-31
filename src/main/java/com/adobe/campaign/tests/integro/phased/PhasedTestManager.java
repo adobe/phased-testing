@@ -87,6 +87,8 @@ public class PhasedTestManager {
         protected static LinkedHashSet<PhasedReportElements> prefix = new LinkedHashSet<>();
         protected static LinkedHashSet<PhasedReportElements> suffix = new LinkedHashSet<>();
 
+        MergedReportData() { }
+
         /**
          * Allows you to defined the generated name when phased steps are merged
          * for a scenario. If nothing is set we use the phase group.

@@ -33,6 +33,7 @@ import java.util.*;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.testng.Assert.assertThrows;
 
 public class PhasedTestManagerTests {
@@ -3268,6 +3269,17 @@ public class PhasedTestManagerTests {
         PhasedTestManager.ScenarioContextData l_scenarioContextImported = new PhasedTestManager.ScenarioContextData();
         assertThrows(IllegalArgumentException.class, () -> l_scenarioContextImported.importFromString("false"));
 
+    }
+
+    @Test
+    public void addTestForMergedReportData() {
+        assertThat(PhasedTestManager.MergedReportData.prefix,notNullValue());
+        assertThat(PhasedTestManager.MergedReportData.suffix,notNullValue());
+
+        new PhasedTestManager.MergedReportData();
+
+        assertThat(PhasedTestManager.MergedReportData.prefix,notNullValue());
+        assertThat(PhasedTestManager.MergedReportData.suffix,notNullValue());
     }
 
 }
