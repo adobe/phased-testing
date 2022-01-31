@@ -5,7 +5,7 @@
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=adobe_phased-testing&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=adobe_phased-testing)
 
 
-Phased testing is a concept where tests can be written in a way so that they can validated major system changes.
+Phased testing is a concept where tests can be written in a way so that they can validate major system changes.
 
 This library allows you to define tests in such a way, so that they can be interrupted at any point awaiting an event, and to carry on where they left off. More specifically based on your design he Phased tests will ensure that a scenario will work on an upgraded system no matter where it is interrupted.
 
@@ -57,7 +57,7 @@ The following dependency needs to be added to your pom file:
  <dependency>
     <groupId>com.adobe.campaign.tests.phased</groupId>
     <artifactId>phased-testing-testng</artifactId>
-    <version>7.0.8</version>
+    <version>7.0.9</version>
 </dependency>
 ```
 
@@ -89,19 +89,19 @@ The diagram above represents what will be executed by the following code:
 public class ShuffledTest {
 
     public void step1(String val) {
-        PhasedTestManager.produce("A");
+        PhasedTestManager.produce("step1Val","A");
     }
 
     public void step2(String val) {
-        String l_fetchedValue = PhasedTestManager.consume("step1");
-        PhasedTestManager.produce(l_fetchedValue + "B");
+        String l_fetchedValue = PhasedTestManager.consume("step1Val");
+        PhasedTestManager.produce("step2Val",l_fetchedValue + "B");
         
     }
     
     @PhaseEvent
 
     public void step3(String val) {
-        String l_fetchedValue = PhasedTestManager.consume("step2");
+        String l_fetchedValue = PhasedTestManager.consume("step2Val");
         assertEquals(l_fetchedValue, "AB");
     }
 }
@@ -109,14 +109,14 @@ public class ShuffledTest {
 
 #### Shuffled Execution Mode
 When in Shuffled mode, we execute all the possible ordered combinations of the steps. Example Given a test with three steps, in Producer State, we :
-1. Execute all of the three steps
+1. Execute all the three steps
 2. Execute the first two steps
 3. Execute the first step only
 
 When in Consumer state we :
 1. Execute the two last steps
 2. Execute the last step
-3. Execute all of the steps
+3. Execute all the steps
 
 ![The Shuffled Execution Mode](diagrams/PhasedDiagrams-Shuffle-H.png)
 
@@ -128,17 +128,17 @@ The diagram above represents what will be executed by the following code:
 public class ShuffledTest {
 
     public void step1(String val) {
-        PhasedTestManager.produce("A");
+        PhasedTestManager.produce("A1");
     }
 
     public void step2(String val) {
-        String l_fetchedValue = PhasedTestManager.consume("step1");
-        PhasedTestManager.produce(l_fetchedValue + "B");
+        String l_fetchedValue = PhasedTestManager.consume("A1");
+        PhasedTestManager.produce("B1",l_fetchedValue + "B");
         
     }
 
     public void step3(String val) {
-        String l_fetchedValue = PhasedTestManager.consume("step2");
+        String l_fetchedValue = PhasedTestManager.consume("B1");
         assertEquals(l_fetchedValue, "AB");
     }
 }
@@ -178,15 +178,55 @@ public void myBeforePhaseSuite() {
 }
 ```
 
-In the example above the method `myBeforePhaseSuite` will be invoked in the beginning of the suite. By default the BeforePhase method is invoked when we are in a Phase I.e. Producer or Consumer.
+In the example above the method `myBeforePhaseSuite` will be invoked in the beginning of the suite. By default, the BeforePhase method is invoked when we are in a Phase I.e. Producer or Consumer.
 
-You can configure this with the attribute `appliesToPhasesappliesToPhases` which accepts an array of `Phases`. In the example below we are activating AfterPhase for the Consumer phase only.
+You can configure this with the attribute `appliesToPhases`, which accepts an array of `Phases`. In the example below we are activating AfterPhase for the Consumer phase only.
 
  ```java
 @AfterPhase(appliesToPhases = {Phases.CONSUMER})
 @AfterSuite
 public void myAfterPhasedSuite() {
     //Perform actions
+}
+```
+
+### Nested Design Pattern
+As of version 7.0.9 of Phased Testing which is based on the 7.5 of TestNG, we can now define nested Phased tests. This allows you to regroup the phased tests under the same class. Thus, you will have Phased Tests that resemble method based tests.
+
+Example:
+```java
+public class PhasedTestSeries_NestedContainer {
+  @Test
+  @PhasedTest(canShuffle = true)
+  public class PhasedScenario1 {
+
+    public void step1(String val) {
+      PhasedTestManager.produce("myValX","A");
+    }
+
+    public void step2(String val) {
+      String l_fetchedValue = PhasedTestManager.consume("myValX");
+
+      assertEquals(l_fetchedValue, "A");
+    }
+  }
+
+  @Test
+  @PhasedTest(canShuffle = true)
+  public class PhasedScenario2 {
+
+    public void step1(String val) {
+      PhasedTestManager.produce("MyVal1","AB");
+    }
+    
+    public void step2(String val) {
+      String l_fetchedValue = PhasedTestManager.consume("MyVal1");
+
+      assertEquals(l_fetchedValue, "AB");
+    }
+
+  }
+
 }
 ```
 
@@ -220,13 +260,13 @@ This parameter allows you to tell the PhaseTestManager which DataBroker implemen
 This is the path in which the Phased Data is stored, and fetched. If not set, the path /phased_output/phased_tests/phaseData.properties will be used.
 
 #### PHASED.TESTS.OUTPUT.DIR
-By default Phased Test data is stored under the directory phased_output. You can override this by setting this system property. If not set, the default directory phased_output will be used.
+By default, Phased Test data is stored under the directory phased_output. You can override this by setting this system property. If not set, the default directory phased_output will be used.
 
 #### PHASED.TESTS.RETRY.DISABLED
-By default we deactivate retry analyzer for the phased tests. However if you really want to use your retry listener, we can stop the phase test listener from deactivating it.
+By default, we deactivate retry analyzer for the phased tests. However if you really want to use your retry listener, we can stop the phase test listener from deactivating it.
 
 #### PHASED.TESTS.REPORT.BY.PHASE_GROUP
-By default we do not modify reports. Each step in a scenario is reported as is. We have introduced a "Report By Phase Group" functionality, which is activated with this property.
+By default, we do not modify reports. Each step in a scenario is reported as is. We have introduced a "Report By Phase Group" functionality, which is activated with this property.
 
 ### Executing a CONSUMER phase based on the PRODUCED Data
 Usually when your test code is in the repository of the product being tested, you will be having a delta in tests between two versions **N** & **N+1**. In such cases you will want to only execute the tests that exist in both versions. 
@@ -287,7 +327,7 @@ Whenever activated, the default behavior is we just show the phase group name. T
 To activate this report, you need to set the system property PHASED.TESTS.REPORT.BY.PHASE_GROUP to "true".
 
 #### Configuring Merged Reports
-By default, we store the Phase Groups whenever a Phased Test is run. However we now have the possibility to override this. This is done by using the class `PhasedTeestManager.configureMergedReportName(Prefix Elements, Prefix Elements)`. This allows users to specify the Phased Test output.
+By default, we store the Phase Groups whenever a Phased Test is run. However, we now have the possibility to override this. This is done by using the class `PhasedTestManager.MergedReportData.configureMergedReportName(Prefix Elements, Prefix Elements)`. This allows users to specify the Phased Test output.
 
 The following configuration items can be added to the constructed name:
 - **Phase** adds the phase name to the constructed method name
