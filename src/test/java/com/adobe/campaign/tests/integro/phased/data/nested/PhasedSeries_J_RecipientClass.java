@@ -22,8 +22,7 @@ import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
 public class PhasedSeries_J_RecipientClass {
     
     
-    //@Test(groups = "nested", dataProvider = PhasedDataProvider.DEFAULT, dataProviderClass = PhasedDataProvider.class)
-    @Test( dataProvider = PhasedDataProvider.DEFAULT, dataProviderClass = PhasedDataProvider.class)
+    @Test
     @PhasedTest(canShuffle = true)
     public class PhasedSeries_J_ShuffledClassInAClass {
 

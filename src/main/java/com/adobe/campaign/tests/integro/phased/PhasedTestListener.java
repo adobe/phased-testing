@@ -255,7 +255,7 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
      *
      */
     protected void appendShuffleGroupToName(ITestResult result) {
-        String l_enrichedStepName = PhasedTestManager.fetchPhasedStepName(result);
+        String l_enrichedStepName = PhasedTestManager.  fetchPhasedStepName(result);
         try {
             Field method = TestResult.class.getDeclaredField("m_method");
             method.setAccessible(true);

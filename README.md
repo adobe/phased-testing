@@ -164,6 +164,18 @@ In order for a test scenario to be executed in shuffle mode you need to add the 
 
 Optionally if you consider that the scenario can never be run as non-phased, you need also include:  `@PhasedTest(canShuffle = false, executeInactive = false)`. When executeInactive is false, the Single Run scenario will only run when in Phases.
 
+### Local Execution
+Ideally you should set the default data provider on your tests. This allows you to execute the test locally without needing to force the Phased Test listener.
+
+```
+@Test( dataProvider = PhasedDataProvider.DEFAULT, dataProviderClass = PhasedDataProvider.class)
+@PhasedTest(canShuffle = true)
+public class MyPhasedTest {
+}
+```
+
+However, whenever the Phased Test Listener discovers a Phased Test, it will add the necessary data providers needed for running the test. But, ideally it is best to set the default providers in orrder to not lose the possibility of local execution.
+
 ### Before- and After-Phase Actions
 We have introduced the possibility of defining Before and After Phases. This means that you can state if a method can be invoked before or after the phased tests are executed.
 
@@ -197,7 +209,7 @@ As of version 7.0.9 of Phased Testing which is based on the 7.5 of TestNG, we ca
 Example:
 ```java
 public class PhasedTestSeries_NestedContainer {
-  @Test
+  @Test( dataProvider = PhasedDataProvider.DEFAULT, dataProviderClass = PhasedDataProvider.class)
   @PhasedTest(canShuffle = true)
   public class PhasedScenario1 {
 
@@ -212,7 +224,7 @@ public class PhasedTestSeries_NestedContainer {
     }
   }
 
-  @Test
+  @Test( dataProvider = PhasedDataProvider.DEFAULT, dataProviderClass = PhasedDataProvider.class)
   @PhasedTest(canShuffle = true)
   public class PhasedScenario2 {
 
