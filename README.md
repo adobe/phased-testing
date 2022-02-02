@@ -368,10 +368,10 @@ A configuration check is done in the beginning. The phased test steps are checke
 
 ### 7.0.5
 - You can now define Phase setup methods. `@BeforePhase` & `@AfterPhase` can be set on a normal TestNG Before and After method. The method will then be executed in before or after a phase starts. (#40) 
-- We now allow for user defined data providers in a phased test. For the data provider to be considered, i needs to be declared at class level and not at method level. (#26)
+- We now allow for user defined data providers in a phased test. For the data provider to be considered, it needs to be declared at class level and not at method level. (#26)
 - We can now configure the reports to include the data providers.
 - We now throw an error if the arguments of the phased steps do not correspond to expected number of parameters (phased + user defined) (#28 & #27 & #38)
-- Solved issue with tests continuing in consumer mode even if their steps had not been executed in the producer phase (#43)
+- Solved issue with tests continuing in consumer mode even if their steps had not been executed in the producer phase
 
 ### 7.0.4
 - Introduced the Report by Phase Group Functionality (#5)

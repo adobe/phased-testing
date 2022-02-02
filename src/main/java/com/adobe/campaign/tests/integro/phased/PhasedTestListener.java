@@ -36,6 +36,9 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
 
     @Override
     public void alter(List<XmlSuite> suites) {
+        log.debug(PhasedTestManager.PHASED_TEST_LOG_PREFIX + "in alter - current Execution State is : "
+                + Phases.getCurrentPhase());
+
         // *** Import DataBroker ***
         String l_phasedDataBrokerClass = null;
         if (System.getProperties().containsKey(PhasedTestManager.PROP_PHASED_TEST_DATABROKER)) {
@@ -200,7 +203,7 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
                 case SKIP_NORESULT:
                     final String skipMessageNoResult = PhasedTestManager.PHASED_TEST_LOG_PREFIX
                             + "Skipping scenario step " + ClassPathParser.fetchFullName(result)
-                            + " because the previous steps have no been executed.";
+                            + " because the previous steps have not been executed.";
                     log.error(skipMessageNoResult);
                     result.setStatus(ITestResult.SKIP);
                     result.setThrowable(new PhasedStepFailure(skipMessageNoResult));
