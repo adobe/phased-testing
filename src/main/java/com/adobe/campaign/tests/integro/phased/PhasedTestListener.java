@@ -203,7 +203,7 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
                 case SKIP_NORESULT:
                     final String skipMessageNoResult = PhasedTestManager.PHASED_TEST_LOG_PREFIX
                             + "Skipping scenario step " + ClassPathParser.fetchFullName(result)
-                            + " because the previous steps have not been executed.";
+                            + " because the previous steps have not been executed in the previous phase.";
                     log.error(skipMessageNoResult);
                     result.setStatus(ITestResult.SKIP);
                     result.setThrowable(new PhasedStepFailure(skipMessageNoResult));
