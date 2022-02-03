@@ -1410,7 +1410,7 @@ public class PhasedTestManager {
 
     /**
      * Given a scenario we extract the class covering it. If the given class is
-     * not a phased execution, we do not transform the scring.
+     * not a phased execution, we do not transform the string.
      * <p>
      * Author : gandomi
      *
@@ -1448,7 +1448,7 @@ public class PhasedTestManager {
 
         /**
          * Used in the case of importing of contexts
-         * @param in_importString
+         * @param in_importString A csv sring separated by ";"
          */
         protected ScenarioContextData(String in_importString) {
             this();
@@ -1457,11 +1457,11 @@ public class PhasedTestManager {
 
         /**
          * Detailed constructor
-         * @param  in_passed
-         * @param in_duration
-         * @param in_failedStep
-         * @param in_phase
-         * @param in_currentStep
+         * @param in_passed If the scenario is passed
+         * @param in_duration Duration of the scenario
+         * @param in_failedStep The step which caused the failure.
+         * @param in_phase The Phase in which the error happened
+         * @param in_currentStep The current step in which we are
          */
         protected ScenarioContextData(boolean in_passed, long in_duration, String in_failedStep, Phases in_phase,
                 String in_currentStep) {
@@ -1473,10 +1473,10 @@ public class PhasedTestManager {
         }
 
         /**
-         * Constructor, where the phase is fetched from the Phase state is taken from the context
-         * @param  in_passed
-         * @param in_duration
-         * @param in_failedStep
+         * Constructor, where we pass the failed step, and the phase is deduced.
+         * @param in_passed If the scenario is passed
+         * @param in_duration Duration of the scenario
+         * @param in_failedStep The step which caused the failure.
          */
         public ScenarioContextData(boolean in_passed, long in_duration, String in_failedStep) {
             this();
@@ -1523,7 +1523,7 @@ public class PhasedTestManager {
          *
          * Author : gandomi
          *
-         * @param in_testResult
+         * @param in_testResult A test result object
          */
         public void synchronizeState(ITestResult in_testResult) {
             switch (in_testResult.getStatus()) {
@@ -1532,6 +1532,8 @@ public class PhasedTestManager {
                 setFailedInPhase(Phases.getCurrentPhase());
             case ITestResult.SKIP:
                 passed = false;
+            default:
+                break;
             }
             duration += (in_testResult.getEndMillis() - in_testResult.getStartMillis());
             setCurrentStep(ClassPathParser.fetchFullName(in_testResult));
