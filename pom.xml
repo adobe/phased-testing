@@ -82,6 +82,7 @@
                             <header>${license.dir}/license.txt</header>
                             <excludes>
                                 <exclude>**/README</exclude>
+                                <exclude>sonar-project.properties</exclude>
                                 <exclude>phased_output/**</exclude>
                                 <exclude>ac_test_output/**</exclude>
                             </excludes>
