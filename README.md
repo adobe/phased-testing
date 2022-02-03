@@ -356,6 +356,15 @@ We now allow for a user to also include data providers in connection to Phased T
 
 A configuration check is done in the beginning. The phased test steps are checked and their arguments are compared to the number of data providers + the injected data provider for phased tests. If the number of arguments does not correspond to the total number of data providers, a `PhasedTestConfigurationException` is thrown right at the beginning.
 
+## Known Issues and Limitations
+In this chapter we will share the functionalities that yet need to be implemented or fixed in the Phased Testing system. In most cases these issues are items which have not yet been tested, and we yet do not know or have not specified how they should work when we are in a phased execution. 
+
+### Parallel Testing
+For now, we do not know how parallel execution will work with phased tests. So ideally it is best to be avoided in this context. 
+
+### Retry Mechanisms
+For now, we have not come around to deciding how retry should work in the case of phased tests. By default, we deactivate them on the phased tests unless the user specifically chooses to activate them by setting the system property `PHASED.TESTS.RETRY.DISABLED` to false. 
+
 ## Release Notes
 ### 7.0.9-SNAPSHOT
 - Upgraded to TestNG 7.5
