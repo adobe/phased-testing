@@ -55,7 +55,7 @@ public class PhasedTestManager {
     protected static final String STD_PHASED_GROUP_PREFIX = "phased-shuffledGroup_";
     protected static final String STD_PHASED_GROUP_SINGLE = "phased-singleRun";
 
-    public static final String  STD_MERGE_STEP_ERROR_PREFIX = "Phased Error: Failure in step ";
+    public static final String STD_MERGE_STEP_ERROR_PREFIX = "Phased Error: Failure in step ";
 
     /**
      * The different states a step can assume in a scenario
@@ -64,11 +64,11 @@ public class PhasedTestManager {
      * Author : gandomi
      */
     public enum ScenarioState {
-        CONTINUE, SKIP_NORESULT, SKIP_PREVIOUS_FAILURE,CONFIG_FAILURE;
+        CONTINUE, SKIP_NORESULT, SKIP_PREVIOUS_FAILURE, CONFIG_FAILURE
     }
 
     protected static Properties phasedCache = new Properties();
-    private static  Map<String, ScenarioContextData> scenarioContext = new HashMap<>();
+    private static Map<String, ScenarioContextData> scenarioContext = new HashMap<>();
 
     protected static Map<String, MethodMapping> methodMap = new HashMap<>();
 
@@ -87,18 +87,17 @@ public class PhasedTestManager {
         protected static LinkedHashSet<PhasedReportElements> prefix = new LinkedHashSet<>();
         protected static LinkedHashSet<PhasedReportElements> suffix = new LinkedHashSet<>();
 
-        MergedReportData() { }
+        MergedReportData() {
+        }
 
         /**
-         * Allows you to defined the generated name when phased steps are merged
-         * for a scenario. If nothing is set we use the phase group.
+         * Allows you to defined the generated name when phased steps are merged for a scenario. If nothing is set we
+         * use the phase group.
          * <p>
          * Author : gandomi
          *
-         * @param in_prefix A sorted set of report elements to be added as prefix to the
-         *                  scenario name
-         * @param in_suffix A sorted set of report elements to be added as suffix to the
-         *                  scenario name
+         * @param in_prefix A sorted set of report elements to be added as prefix to the scenario name
+         * @param in_suffix A sorted set of report elements to be added as suffix to the scenario name
          */
         public static void configureMergedReportName(LinkedHashSet<PhasedReportElements> in_prefix,
                 LinkedHashSet<PhasedReportElements> in_suffix) {
@@ -147,17 +146,16 @@ public class PhasedTestManager {
     }
 
     /**
-     * Initiaizes the databroker given the full class path of the implementation
-     * of the interface {@code PhasedDataBroker}
+     * Initiaizes the databroker given the full class path of the implementation of the interface {@code
+     * PhasedDataBroker}
      * <p>
      * Author : gandomi
      *
      * @param in_classPath The classpath for the implementation of the data broker
-     * @throws PhasedTestConfigurationException Whenever there is a problem instantiating the Phased DataBroker
-     *                                          class
+     * @throws PhasedTestConfigurationException Whenever there is a problem instantiating the Phased DataBroker class
      */
     public static void setDataBroker(String in_classPath) throws PhasedTestConfigurationException {
-        log.info(PHASED_TEST_LOG_PREFIX + "Setting Data broker with classpath " + in_classPath);
+        log.info("{} Setting Data broker with classpath {}", PHASED_TEST_LOG_PREFIX, in_classPath);
         Class<?> l_dataBrokerImplementation;
         Object l_dataBroker;
         try {
@@ -188,8 +186,8 @@ public class PhasedTestManager {
     }
 
     /**
-     * This method stores a phased test data in the cache. It will be stored
-     * with the keys: "class, method, instance" and a value
+     * This method stores a phased test data in the cache. It will be stored with the keys: "class, method, instance"
+     * and a value
      * <p>
      * Author : gandomi
      *
@@ -201,23 +199,19 @@ public class PhasedTestManager {
         StringBuilder sb = new StringBuilder(l_methodFullName);
 
         if (phaseContext.containsKey(l_methodFullName)) {
-            sb.append("(");
-            sb.append(phaseContext.get(l_methodFullName));
-            sb.append(")");
+            sb.append("(").append(phaseContext.get(l_methodFullName)).append(")");
         }
 
         final String lr_storeKey = sb.toString();
         return storePhasedCache(lr_storeKey, in_storeValue);
     }
 
-
     /**
      * Stores a value with the given key. We include the class as prefix.
      * <p>
      * Author : gandomi
      *
-     * @param in_storageKey A string that is added to the generated key for identification of
-     *                      the stored data
+     * @param in_storageKey A string that is added to the generated key for identification of the stored data
      * @param in_storeValue The value we want to store
      * @return The key that was used in storing the value
      */
@@ -228,10 +222,8 @@ public class PhasedTestManager {
         return storePhasedCache(l_fullId, in_storeValue);
     }
 
-
     /**
-     * This method generates the identifier for a producer/consumer used for
-     * storing in the cache
+     * This method generates the identifier for a producer/consumer used for storing in the cache
      * <p>
      * Author : gandomi
      *
@@ -250,8 +242,7 @@ public class PhasedTestManager {
      * Author : gandomi
      *
      * @param in_idInPhaseContext The id of the step in the context
-     * @param in_idPrefixToStore  The prefix of the full name for storing values. Usually the class
-     *                            full name
+     * @param in_idPrefixToStore  The prefix of the full name for storing values. Usually the class full name
      * @param in_storageKey       An additional identifier for storing the data
      * @return The identity of the storage key as stored in the cache
      */
@@ -304,15 +295,14 @@ public class PhasedTestManager {
     }
 
     /**
-     * Given a step in the Phased Test it fetches the value committed for that
-     * test. It will fetch a Phased Test data with the method/test that called
-     * this method. This method is to be used if you have produced your Phased
-     * Data using {@link #produceInStep(String)}
+     * Given a step in the Phased Test it fetches the value committed for that test. It will fetch a Phased Test data
+     * with the method/test that called this method. This method is to be used if you have produced your Phased Data
+     * using {@link #produceInStep(String)}
      * <p>
      * Author : gandomi
      *
-     * @param in_stepName The step name aka method name (not class name nor arguments) that
-     *                    stored a value in the current scenario
+     * @param in_stepName The step name aka method name (not class name nor arguments) that stored a value in the
+     *                    current scenario
      * @return The value store by the method
      */
     public static String consumeFromStep(String in_stepName) {
@@ -342,8 +332,7 @@ public class PhasedTestManager {
      *
      * @param in_consumableKey The key identifier for the consumable
      * @param in_calledByTest  The string representation of the test accessing the consumable
-     * @return The value for the given consumable. If not found a
-     * PhasedTestException is thrown
+     * @return The value for the given consumable. If not found a PhasedTestException is thrown
      */
     public static String fetchStoredConsumable(final String in_consumableKey, String in_calledByTest) {
         if (!phasedCache.containsKey(in_consumableKey)) {
@@ -356,8 +345,7 @@ public class PhasedTestManager {
     }
 
     /**
-     * Given a step in the Phased Test it fetches the value committed for that
-     * test.
+     * Given a step in the Phased Test it fetches the value committed for that test.
      * <p>
      * Author : gandomi
      *
@@ -429,10 +417,11 @@ public class PhasedTestManager {
      */
     protected static File exportContext(File in_file) {
 
-        log.info(PHASED_TEST_LOG_PREFIX + " Exporting Phased Testing data to " + in_file.getPath());
+        log.info("{} Exporting Phased Testing data to {}", PHASED_TEST_LOG_PREFIX, in_file.getPath());
 
         Properties lt_transformedScenarios = new Properties();
-        scenarioContext.forEach((key, value) -> lt_transformedScenarios.put(attachContextFlag(key.toString()), value.exportToString()));
+        scenarioContext.forEach(
+                (key, value) -> lt_transformedScenarios.put(attachContextFlag(key), value.exportToString()));
 
         try (FileWriter fw = new FileWriter(in_file)) {
 
@@ -440,13 +429,13 @@ public class PhasedTestManager {
             lt_transformedScenarios.store(fw, null);
 
         } catch (IOException e) {
-            log.error("Error when creating file " + in_file);
-            throw new PhasedTestException("Error when creating file " + in_file + ".", e);
+            log.error("Error when creating file {}", in_file.getPath(), e);
+            throw new PhasedTestException("Error when creating file " + in_file.getPath() + ".", e);
         }
         //Store in DataBroker
         if (dataBroker != null) {
-            log.info(PHASED_TEST_LOG_PREFIX
-                    + " Exporting Phased Testing to location specified by provided PhasedDataBroker.");
+            log.info("{} Exporting Phased Testing to location specified by provided PhasedDataBroker.",
+                    PHASED_TEST_LOG_PREFIX);
             dataBroker.store(in_file);
         }
 
@@ -454,24 +443,22 @@ public class PhasedTestManager {
     }
 
     /**
-     * Imports a file and stored the properties in the phased cache and in the
-     * scenario context.
+     * Imports a file and stored the properties in the phased cache and in the scenario context.
      * <p>
      * Author : gandomi
      *
      * @param in_phasedTestFile A file that contains the phase cache data from a previous phase
-     * @return A Properties object with the phase cache data from the previous
-     * phase
+     * @return A Properties object with the phase cache data from the previous phase
      */
     protected static Properties importContext(File in_phasedTestFile) {
-        log.info(PHASED_TEST_LOG_PREFIX + "Importing phase cache.");
+        log.info("{} Importing phase cache.", PHASED_TEST_LOG_PREFIX);
         Properties lr_importedProperties = new Properties();
         try (InputStream input = new FileInputStream(in_phasedTestFile)) {
 
             // load a properties file
             lr_importedProperties.load(input);
         } catch (IOException e) {
-            log.error("Error when loading file " + in_phasedTestFile);
+            log.error("Error when loading file {}", in_phasedTestFile.getPath());
             throw new PhasedTestException("Error when loading file " + in_phasedTestFile.getPath() + ".", e);
         }
 
@@ -489,16 +476,15 @@ public class PhasedTestManager {
     }
 
     /**
-     * Loads the Phased Test data from the standard location which is by default
-     * {@value #DEFAULT_CACHE_DIR}/{@value #STD_STORE_DIR}/{@value #STD_STORE_FILE}
+     * Loads the Phased Test data from the standard location which is by default {@value #DEFAULT_CACHE_DIR}/{@value
+     * #STD_STORE_DIR}/{@value #STD_STORE_FILE}
      * <p>
      * Author : gandomi
      *
-     * @return A Properties object with the phase cache data from the previous
-     * phase
+     * @return A Properties object with the phase cache data from the previous phase
      */
     protected static Properties importPhaseData() {
-        File l_importCacheFile = null;
+        File l_importCacheFile;
 
         if (dataBroker == null) {
 
@@ -507,11 +493,11 @@ public class PhasedTestManager {
 
             } else {
                 l_importCacheFile = new File(GeneralTestUtils.fetchCacheDirectory(STD_STORE_DIR), STD_STORE_FILE);
-                log.warn(PHASED_TEST_LOG_PREFIX + " The system property " + PROP_PHASED_DATA_PATH
-                        + " not set. Fetching Phased Test data from " + l_importCacheFile.getPath());
+                log.warn("{} The system property {} not set. Fetching Phased Test data from {}.",
+                        PHASED_TEST_LOG_PREFIX, PROP_PHASED_DATA_PATH, l_importCacheFile.getPath());
             }
         } else {
-            log.info(PHASED_TEST_LOG_PREFIX + "Fetching cache through DataBroker");
+            log.info("{} Fetching cache through DataBroker.", PHASED_TEST_LOG_PREFIX);
             l_importCacheFile = dataBroker.fetch(STD_STORE_FILE);
         }
         return importContext(l_importCacheFile);
@@ -524,8 +510,7 @@ public class PhasedTestManager {
      * Author : gandomi
      *
      * @param in_method The step/method for which we want to fond out the data provider
-     * @return A two-dimensional array of all the data providers attached to the
-     * current step/method
+     * @return A two-dimensional array of all the data providers attached to the current step/method
      */
     public static Object[][] fetchProvidersShuffled(Method in_method) {
         String l_methodFullName = ClassPathParser.fetchFullName(in_method);
@@ -533,16 +518,13 @@ public class PhasedTestManager {
     }
 
     /**
-     * Returns the provider for shuffling tests. In general the values are
-     * Shuffle group prefix + Nr of steps before the Phase Event and the number
-     * of steps after the event.
+     * Returns the provider for shuffling tests. In general the values are Shuffle group prefix + Nr of steps before the
+     * Phase Event and the number of steps after the event.
      * <p>
      * Author : gandomi
      *
-     * @param in_methodFullName The full name of the method used for identifying it in the phase
-     *                          context
-     * @return A two-dimensional array of all the data providers attached to the
-     * current step/method
+     * @param in_methodFullName The full name of the method used for identifying it in the phase context
+     * @return A two-dimensional array of all the data providers attached to the current step/method
      */
     public static Object[][] fetchProvidersShuffled(String in_methodFullName) {
 
@@ -550,18 +532,15 @@ public class PhasedTestManager {
     }
 
     /**
-     * Returns the provider for shuffling tests. In general the values are
-     * Shuffle group prefix + Nr of steps before the Phase Event and the number
-     * of steps after the event.
+     * Returns the provider for shuffling tests. In general the values are Shuffle group prefix + Nr of steps before the
+     * Phase Event and the number of steps after the event.
      * <p>
      * Author : gandomi
      *
-     * @param in_methodFullName The full name of the method used for identifying it in the phase
-     *                          context
-     * @param in_phasedState    The phase state for which we should retrieve the parameters. The
-     *                          parameters will be different based on the phase.
-     * @return A two-dimensional array of all the data providers attached to the
-     * current step/method
+     * @param in_methodFullName The full name of the method used for identifying it in the phase context
+     * @param in_phasedState    The phase state for which we should retrieve the parameters. The parameters will be
+     *                          different based on the phase.
+     * @return A two-dimensional array of all the data providers attached to the current step/method
      */
     public static Object[][] fetchProvidersShuffled(String in_methodFullName, Phases in_phasedState) {
 
@@ -576,7 +555,6 @@ public class PhasedTestManager {
             int lt_nrAfterPhase = l_methodMapping.totalClassMethods - lt_nrBeforePhase;
 
             StringBuilder lt_sb = new StringBuilder(STD_PHASED_GROUP_PREFIX);
-
             lt_sb.append(lt_nrBeforePhase);
             lt_sb.append("_");
             lt_sb.append(lt_nrAfterPhase);
@@ -590,7 +568,7 @@ public class PhasedTestManager {
         //Merge
         Object[][] lr_dataProviders = dataProvidersCrossJoin(l_objectArrayPhased, l_userDefinedDataProviders);
 
-        log.debug(PhasedTestManager.PHASED_TEST_LOG_PREFIX + "returning provider for method " + in_methodFullName);
+        log.debug("{} Returning provider for method {}", PhasedTestManager.PHASED_TEST_LOG_PREFIX, in_methodFullName);
         return lr_dataProviders;
     }
 
@@ -600,11 +578,10 @@ public class PhasedTestManager {
      * Author : gandomi
      *
      * @param in_method The method/step for which we want to get the data providers for
-     * @return An array containing the data providers for the method. Otherwise
-     * an empty array
+     * @return An array containing the data providers for the method. Otherwise an empty array
      */
     public static Object[] fetchProvidersSingle(Method in_method) {
-        log.debug("Returning provider for method " + ClassPathParser.fetchFullName(in_method));
+        log.debug("Returning provider for method {}", ClassPathParser.fetchFullName(in_method));
 
         if (Phases.PRODUCER.isSelected() && isExecutedInProducerMode(in_method)) {
 
@@ -629,8 +606,7 @@ public class PhasedTestManager {
      * Author : gandomi
      *
      * @param in_classMethodMap A map of a class and it is methods (A scenario and its steps)
-     * @return A map letting us know that for a the given method how often it
-     * will be executed in the current phase
+     * @return A map letting us know that for a the given method how often it will be executed in the current phase
      */
     public static Map<String, MethodMapping> generatePhasedProviders(Map<Class, List<String>> in_classMethodMap) {
 
@@ -639,15 +615,13 @@ public class PhasedTestManager {
     }
 
     /**
-     * This method calculates how often a scenario should be run, given the
-     * steps/methods it has.
+     * This method calculates how often a scenario should be run, given the steps/methods it has.
      * <p>
      * Author : gandomi
      *
      * @param in_classMethodMap A map of a class and it is methods (A scenario and its steps)
      * @param in_phaseState     The phase in which we are
-     * @return A map letting us know that for a the given method how often it
-     * will be executed in the current phase
+     * @return A map letting us know that for a the given method how often it will be executed in the current phase
      */
     public static Map<String, MethodMapping> generatePhasedProviders(Map<Class, List<String>> in_classMethodMap,
             Phases in_phaseState) {
@@ -682,7 +656,6 @@ public class PhasedTestManager {
      */
     public static void storePhasedContext(String in_methodFullName, String in_phasedGroupId) {
         phaseContext.put(in_methodFullName, in_phasedGroupId);
-
     }
 
     /**
@@ -713,7 +686,7 @@ public class PhasedTestManager {
      */
     protected static String storeTestData(Class in_class, String in_phaseGroup, boolean in_storedData) {
         ScenarioContextData l_scenarioContext = new ScenarioContextData();
-        l_scenarioContext.passed =  in_storedData;
+        l_scenarioContext.passed = in_storedData;
 
         return storeTestData(in_class, in_phaseGroup, l_scenarioContext);
 
@@ -733,16 +706,14 @@ public class PhasedTestManager {
         phaseContext.put(in_class.getTypeName(), in_phaseGroup);
 
         final String lr_storedKey = generateStepKeyIdentity(in_class.getTypeName());
-        ScenarioContextData l_scenarioContext = new ScenarioContextData();
 
         scenarioContext.put(lr_storedKey, in_storedData);
         return lr_storedKey;
     }
 
     /**
-     * Basically lets us know if we execute the given method in producer mode.
-     * We look at the attribute value phaseEnd. This method is specifically for
-     * the Single Mode.
+     * Basically lets us know if we execute the given method in producer mode. We look at the attribute value phaseEnd.
+     * This method is specifically for the Single Mode.
      * <p>
      * Author : gandomi
      *
@@ -779,8 +750,7 @@ public class PhasedTestManager {
      * <p>
      * Author : gandomi
      *
-     * @param in_method The method/step which we want to know if it is the last step in
-     *                  the current phase
+     * @param in_method The method/step which we want to know if it is the last step in the current phase
      * @return True if the test is before or in the phase End.
      */
     protected static boolean isPhaseLimit(Method in_method) {
@@ -789,9 +759,8 @@ public class PhasedTestManager {
     }
 
     /**
-     * This method tells us if the method is a valid phased test. This is done
-     * by seeing if the annotation PhasedStep is on the method, and if the
-     * annotation PhasedTest is on the class
+     * This method tells us if the method is a valid phased test. This is done by seeing if the annotation PhasedStep is
+     * on the method, and if the annotation PhasedTest is on the class
      * <p>
      * Author : gandomi
      *
@@ -810,25 +779,23 @@ public class PhasedTestManager {
      * @param in_class Any class that contains tests
      * @return True if the class is a phased test scenario
      */
-    @SuppressWarnings("unchecked") public static boolean isPhasedTest(Class in_class) {
+    @SuppressWarnings("unchecked")
+    public static boolean isPhasedTest(Class in_class) {
         return in_class.isAnnotationPresent(PhasedTest.class);
     }
 
     /**
-     * This method lets us know if the steps in a PhasedTest are to be executed
-     * consequently in two phases
+     * This method lets us know if the steps in a PhasedTest are to be executed consequently in two phases
      *
      * @param in_method Any test method
-     * @return True if the test step/method is part of a SingleRun Phase Test
-     * scenario
+     * @return True if the test step/method is part of a SingleRun Phase Test scenario
      */
     protected static boolean isPhasedTestSingleMode(Method in_method) {
         return isPhasedTest(in_method) && !isPhasedTestShuffledMode(in_method);
     }
 
     /**
-     * This method lets us know if the steps in a PhasedTest are to be executed
-     * consequently in two phases
+     * This method lets us know if the steps in a PhasedTest are to be executed consequently in two phases
      *
      * @param in_class Any class that contains tests
      * @return True if the test class is a SingleRun Phase Test scenario
@@ -838,26 +805,22 @@ public class PhasedTestManager {
     }
 
     /**
-     * This method lets us know if the steps in a PhasedTest are to be executed
-     * in a shuffled manner. For a test with 3 steps the test will be executed 6
-     * times in total
+     * This method lets us know if the steps in a PhasedTest are to be executed in a shuffled manner. For a test with 3
+     * steps the test will be executed 6 times in total
      *
      * @param in_method A test method
-     * @return True if the given test method/step is part of a Shuffled Phased
-     * Test scenario
+     * @return True if the given test method/step is part of a Shuffled Phased Test scenario
      */
     protected static boolean isPhasedTestShuffledMode(Method in_method) {
         return isPhasedTest(in_method) && isPhasedTestShuffledMode(in_method.getDeclaringClass());
     }
 
     /**
-     * This method lets us know if the steps in a PhasedTest are to be executed
-     * in a Shuffled manner. For a test with 3 steps the test will be executed 6
-     * times in total
+     * This method lets us know if the steps in a PhasedTest are to be executed in a Shuffled manner. For a test with 3
+     * steps the test will be executed 6 times in total
      *
      * @param in_class A test class/scenario
-     * @return True if the given test scenario is a Shuffled Phased Test
-     * scenario
+     * @return True if the given test scenario is a Shuffled Phased Test scenario
      */
     protected static boolean isPhasedTestShuffledMode(Class in_class) {
         return isPhasedTest(in_class) && ((PhasedTest) in_class.getAnnotation(PhasedTest.class)).canShuffle() && Phases
@@ -865,8 +828,8 @@ public class PhasedTestManager {
     }
 
     /**
-     * This method provides an ID for the scenario given the ITestNGResult. This
-     * is assembled using the Classname + the PhaseGroup
+     * This method provides an ID for the scenario given the ITestNGResult. This is assembled using the Classname + the
+     * PhaseGroup
      * <p>
      * Author : gandomi
      *
@@ -880,9 +843,8 @@ public class PhasedTestManager {
     }
 
     /**
-     * This method logs the stage result of the Phased Test Group. The key will
-     * be the class including the phase test group. It allows us to know if the
-     * test is allowed to continue.
+     * This method logs the stage result of the Phased Test Group. The key will be the class including the phase test
+     * group. It allows us to know if the test is allowed to continue.
      * <p>
      * Once the context is logged as false for a test it remains false
      * <p>
@@ -893,18 +855,14 @@ public class PhasedTestManager {
     public static void scenarioStateStore(ITestResult in_testResult) {
 
         final String l_scenarioName = fetchScenarioName(in_testResult);
-        final String l_stepName = ClassPathParser.fetchFullName(in_testResult);
 
         if (scenarioContext.containsKey(l_scenarioName)) {
-
             scenarioContext.get(l_scenarioName).synchronizeState(in_testResult);
-
         } else {
             ScenarioContextData l_scenarioContextData = new ScenarioContextData();
             l_scenarioContextData.synchronizeState(in_testResult);
-            scenarioContext.put(l_scenarioName,l_scenarioContextData);
+            scenarioContext.put(l_scenarioName, l_scenarioContextData);
         }
-
     }
 
     private static String attachContextFlag(String in_scenarioName) {
@@ -961,7 +919,7 @@ public class PhasedTestManager {
             return ScenarioState.CONTINUE;
         }
 
-        if (in_testResult.getThrowable() instanceof Throwable) {
+        if (in_testResult.getThrowable() != null) {
             return ScenarioState.CONFIG_FAILURE;
         }
         return getScenarioContext().get(l_scenarioName).passed
@@ -969,14 +927,13 @@ public class PhasedTestManager {
     }
 
     /**
-     * Creates a standard report name. I.e. it provides a name as how the test
-     * scenario and phased group should be represented.
+     * Creates a standard report name. I.e. it provides a name as how the test scenario and phased group should be
+     * represented.
      * <p>
      * Author : gandomi
      *
      * @param in_testResult A TestRessult object
-     * @return A string prefixed with the scenario name and suffixed with the
-     * phaseGroup
+     * @return A string prefixed with the scenario name and suffixed with the phaseGroup
      */
     public static String fetchTestNameForReport(ITestResult in_testResult) {
 
@@ -995,10 +952,10 @@ public class PhasedTestManager {
         //Adding the suffixes
         for (PhasedReportElements lt_pre : MergedReportData.suffix) {
 
-            final String lt_elmentValue = lt_pre.fetchElement(in_testResult);
-            if (!lt_elmentValue.isEmpty()) {
+            final String lt_elementValue = lt_pre.fetchElement(in_testResult);
+            if (!lt_elementValue.isEmpty()) {
                 sb.append(l_stdItemSeparator);
-                sb.append(lt_elmentValue);
+                sb.append(lt_elementValue);
             }
 
         }
@@ -1007,15 +964,12 @@ public class PhasedTestManager {
     }
 
     /**
-     * This method calculates the duration in milliseconds for a phased test
-     * scenario. Given a List of ITestNGResult related to that scenario, it
-     * makes a sum of the start and end milliseconds of its steps.
+     * This method calculates the duration in milliseconds for a phased test scenario. Given a List of ITestNGResult
+     * related to that scenario, it makes a sum of the start and end milliseconds of its steps.
      * <p>
-     * Throws an {@link IllegalArgumentException} when the given List is null or
-     * empty.
+     * Throws an {@link IllegalArgumentException} when the given List is null or empty.
      * <p>
-     * Throws an {@link IllegalArgumentException} when the given List is not
-     * from the same Phase group or scenario
+     * Throws an {@link IllegalArgumentException} when the given List is not from the same Phase group or scenario
      * <p>
      * Author : gandomi
      *
@@ -1041,8 +995,7 @@ public class PhasedTestManager {
     }
 
     /**
-     * This method creates a step name by prefixing the step name with the phase
-     * group
+     * This method creates a step name by prefixing the step name with the phase group
      * <p>
      * Author : gandomi
      *
@@ -1064,11 +1017,10 @@ public class PhasedTestManager {
     }
 
     /**
-     * This method is used in the context of merged reports. We use this to
-     * enrich the exception message when merging reports.
+     * This method is used in the context of merged reports. We use this to enrich the exception message when merging
+     * reports.
      * <p>
-     * An {@link IllegalArgumentException} is thrown if the given
-     * in_failedTestResult is not failed.
+     * An {@link IllegalArgumentException} is thrown if the given in_failedTestResult is not failed.
      * <p>
      * Author : gandomi
      *
@@ -1096,45 +1048,32 @@ public class PhasedTestManager {
     }
 
     /**
-     * Given two data provider arrays, this method performs a scalar join of the
-     * data providers. For two objects :
+     * Given two data provider arrays, this method performs a scalar join of the data providers. For two objects :
      * <p>
      * Dataprovider1:
      * <table>
      * <caption>DataProvider1</caption>
-     * <tr>
-     * <td>A</td>
-     * </tr>
+     * <tr><td>A</td></tr>
      * </table>
      * <p>
      * Dataprovider2:
      * <table>
      * <caption>DataProvider2</caption>
-     * <tr>
-     * <td>X</td>
-     * </tr>
-     * <tr>
-     * <td>Y</td>
-     * </tr>
+     * <tr><td>X</td></tr>
+     * <tr><td>Y</td></tr>
      * </table>
      * <p>
      * We will get:
      * <table>
      * <caption>CrossJoined DataProviders</caption>
-     * <tr>
-     * <td>A</td>
-     * <td>X</td>
-     * </tr>
-     * <tr>
-     * <td>A</td>
-     * <td>Y</td>
-     * </tr>
+     * <tr><td>A</td><td>X</td></tr>
+     * <tr><td>A</td><td>Y</td></tr>
      * </table>
      * <p>
      * Author : gandomi
      *
      * @param in_providerSeriesLeft  The data provider data which is used on the left side of the join
-     * @param in_providerSeriesRight The data provider data which is used on the left right of the join
+     * @param in_providerSeriesRight The data provider data which is used on the right side of the join
      * @return A merged array that contains elements of both arrays
      */
     public static Object[][] dataProvidersCrossJoin(Object[][] in_providerSeriesLeft,
@@ -1149,18 +1088,18 @@ public class PhasedTestManager {
         int l_totalNrOfColumns = in_providerSeriesLeft[0].length + in_providerSeriesRight[0].length;
 
         //initialize return object
-        Object[][] lr_dataprovider = new Object[l_totalNrOfLines][l_totalNrOfColumns];
+        Object[][] lr_dataProvider = new Object[l_totalNrOfLines][l_totalNrOfColumns];
 
         //fill return object
         int line = 0;
         for (Object[] lineLeft : in_providerSeriesLeft) {
             for (Object[] lineRight : in_providerSeriesRight) {
-                System.arraycopy(lineLeft, 0, lr_dataprovider[line], 0, lineLeft.length);
-                System.arraycopy(lineRight, 0, lr_dataprovider[line], lineLeft.length, lineRight.length);
+                System.arraycopy(lineLeft, 0, lr_dataProvider[line], 0, lineLeft.length);
+                System.arraycopy(lineRight, 0, lr_dataProvider[line], lineLeft.length, lineRight.length);
                 line++;
             }
         }
-        return lr_dataprovider;
+        return lr_dataProvider;
     }
 
     /**
@@ -1209,15 +1148,16 @@ public class PhasedTestManager {
      * Author : gandomi
      *
      * @param in_phasedTestClass A Phased Test class
-     * @return The data providers attached to the class. An empty array is
-     * returned if there is no data provider defined at a class level
+     * @return The data providers attached to the class. An empty array is returned if there is no data provider defined
+     * at a class level
      */
     protected static Object[][] fetchDataProviderValues(Class<?> in_phasedTestClass) {
 
         final Object[][] lr_defaultReturnValue = new Object[0][0];
         if (!in_phasedTestClass.isAnnotationPresent(Test.class)) {
-            log.warn(PhasedTestManager.PHASED_TEST_LOG_PREFIX
-                    + "The given phased test class does not have the Test annotation on it. Data Providers for Phased Tests can only be considered at that level.");
+            log.warn(
+                    "{} The given phased test class does not have the Test annotation on it. Data Providers for Phased Tests can only be considered at that level.",
+                    PhasedTestManager.PHASED_TEST_LOG_PREFIX);
 
             return lr_defaultReturnValue;
         }
@@ -1245,15 +1185,15 @@ public class PhasedTestManager {
             l_dataProviderClass = in_phasedTestClass;
         }
 
-        //Fetch the dataprovider method
-        Method m = Arrays.stream(l_dataProviderClass.getDeclaredMethods())
+        //Fetch the data provider method
+        Method l_dataProviderMethod = Arrays.stream(l_dataProviderClass.getDeclaredMethods())
                 .filter(a -> a.isAnnotationPresent(DataProvider.class))
                 .filter(f -> f.getDeclaredAnnotation(DataProvider.class).name().equals(l_dataProviderName))
                 .findFirst().orElse(null);
 
-        if (m != null) {
+        if (l_dataProviderMethod != null) {
             //In case of private data providers
-            m.setAccessible(true);
+            l_dataProviderMethod.setAccessible(true);
         } else {
             throw new PhasedTestConfigurationException(
                     "No method found which matched the data provider class " + l_dataProviderClass.getTypeName()
@@ -1261,11 +1201,11 @@ public class PhasedTestManager {
         }
 
         try {
-            return (Object[][]) m.invoke(l_dataProviderClass.newInstance(), new Object[0]);
+            return (Object[][]) l_dataProviderMethod.invoke(l_dataProviderClass.newInstance(), new Object[0]);
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException
                 | InstantiationException e) {
-            log.error(PhasedTestManager.PHASED_TEST_LOG_PREFIX
-                    + "Problem when fetching the user defined data providers.");
+            log.error("{} Problem when fetching the user defined data providers.",
+                    PhasedTestManager.PHASED_TEST_LOG_PREFIX);
             throw new PhasedTestConfigurationException("Unable to call thee data provider method", e);
         }
     }
@@ -1336,14 +1276,14 @@ public class PhasedTestManager {
     }
 
     /**
-     * Given a phased test method and and its phase group, lets you know if it
-     * has ssteps executed in the producer phase
+     * Given a phased test method and and its phase group, lets you know if it has ssteps executed in the producer
+     * phase
      * <p>
      * Author : gandomi
      *
      * @param in_testResult A TestNG Test result
-     * @return true if we are in consumer, and we are not a 0_X phase group that
-     * is executed end to end in the consumer phase
+     * @return true if we are in consumer, and we are not a 0_X phase group that is executed end to end in the consumer
+     * phase
      */
     public static boolean hasStepsExecutedInProducer(ITestResult in_testResult) {
         return hasStepsExecutedInProducer(in_testResult, Phases.getCurrentPhase());
@@ -1351,29 +1291,27 @@ public class PhasedTestManager {
     }
 
     /**
-     * Given a phased test method and and its phase group, lets you know if it
-     * has ssteps executed in the producer phase
+     * Given a phased test method and and its phase group, lets you know if it has ssteps executed in the producer
+     * phase
      * <p>
      * Author : gandomi
      *
      * @param in_testResult A TestNG Test result
      * @param in_phase      The phase in which we are currently.
-     * @return true if we are in consumer, and we are not a 0_X phase group that
-     * is executed end to end in the consumer phase
+     * @return true if we are in consumer, and we are not a 0_X phase group that is executed end to end in the consumer
+     * phase
      */
     public static boolean hasStepsExecutedInProducer(ITestResult in_testResult, Phases in_phase) {
         return (in_phase.equals(Phases.CONSUMER) && (fetchNrOfStepsBeforePhaseChange(in_testResult) > 0));
     }
 
     /**
-     * Given a string representing the phase group, returns the number of steps
-     * planned before a phase change
+     * Given a string representing the phase group, returns the number of steps planned before a phase change
      * <p>
      * Author : gandomi
      *
      * @param in_testResult A test result object containing the necessary analysis data
-     * @return The number of steps planned before a phase change. If we are
-     * non-phased we return 0
+     * @return The number of steps planned before a phase change. If we are non-phased we return 0
      */
     public static Integer fetchNrOfStepsBeforePhaseChange(ITestResult in_testResult) {
 
@@ -1395,8 +1333,8 @@ public class PhasedTestManager {
     }
 
     /**
-     * Extracts all the tests that have been executed before the current phase.
-     * This will later be used to create the test list to be executed
+     * Extracts all the tests that have been executed before the current phase. This will later be used to create the
+     * test list to be executed
      * <p>
      * Author : gandomi
      *
@@ -1409,8 +1347,8 @@ public class PhasedTestManager {
     }
 
     /**
-     * Given a scenario we extract the class covering it. If the given class is
-     * not a phased execution, we do not transform the string.
+     * Given a scenario we extract the class covering it. If the given class is not a phased execution, we do not
+     * transform the string.
      * <p>
      * Author : gandomi
      *
@@ -1439,8 +1377,8 @@ public class PhasedTestManager {
         private String currentStep;
 
         ScenarioContextData() {
-            passed=true;
-            duration=0;
+            passed = true;
+            duration = 0;
             failedStep = NOT_APPLICABLE_STEP_NAME;
             setFailedInPhase(Phases.NON_PHASED);
             setCurrentStep(NOT_APPLICABLE_STEP_NAME);
@@ -1448,6 +1386,7 @@ public class PhasedTestManager {
 
         /**
          * Used in the case of importing of contexts
+         *
          * @param in_importString A csv sring separated by ";"
          */
         protected ScenarioContextData(String in_importString) {
@@ -1457,10 +1396,11 @@ public class PhasedTestManager {
 
         /**
          * Detailed constructor
-         * @param in_passed If the scenario is passed
-         * @param in_duration Duration of the scenario
-         * @param in_failedStep The step which caused the failure.
-         * @param in_phase The Phase in which the error happened
+         *
+         * @param in_passed      If the scenario is passed
+         * @param in_duration    Duration of the scenario
+         * @param in_failedStep  The step which caused the failure.
+         * @param in_phase       The Phase in which the error happened
          * @param in_currentStep The current step in which we are
          */
         protected ScenarioContextData(boolean in_passed, long in_duration, String in_failedStep, Phases in_phase,
@@ -1474,8 +1414,9 @@ public class PhasedTestManager {
 
         /**
          * Constructor, where we pass the failed step, and the phase is deduced.
-         * @param in_passed If the scenario is passed
-         * @param in_duration Duration of the scenario
+         *
+         * @param in_passed     If the scenario is passed
+         * @param in_duration   Duration of the scenario
          * @param in_failedStep The step which caused the failure.
          */
         public ScenarioContextData(boolean in_passed, long in_duration, String in_failedStep) {
@@ -1520,7 +1461,7 @@ public class PhasedTestManager {
 
         /**
          * Given a TestResult object we will update the given scenarioContext
-         *
+         * <p>
          * Author : gandomi
          *
          * @param in_testResult A test result object
@@ -1541,7 +1482,7 @@ public class PhasedTestManager {
 
         /**
          * Exports the content of this class to a CSV (";" separated) string
-         *
+         * <p>
          * Author : gandomi
          *
          * @return A string representation of this class
@@ -1555,7 +1496,7 @@ public class PhasedTestManager {
 
         /**
          * Imports the values of a string.
-         *
+         * <p>
          * Author : gandomi
          *
          * @param in_importString A string that is used to populate the fields of this class.
