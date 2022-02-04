@@ -405,7 +405,7 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
                 //When the phase test scenario was not a success
                 if (!PhasedTestManager.getScenarioContext().get(lt_phasedClass).isPassed()) {
 
-                    //Delete all the passed steps : These steps are not remevant if we are merging the step results
+                    //Delete all the passed steps : These steps are not relevant if we are merging the step results
                     Iterator<ITestResult> lt_passedTestIterator = context.getPassedTests().getAllResults()
                             .iterator();
 

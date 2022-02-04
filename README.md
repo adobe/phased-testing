@@ -22,6 +22,7 @@ The most common usage is for validating :
   - [Phase Modes](#phase-modes)
 - [Writing a Phased Test](#writing-a-phased-test)
   - [Setting Execution Modes](#setting-execution-modes)
+  - [Local Execution](#local-execution)
   - [Before- and After-Phase Actions](#before--and-after-phase-actions)
   - [Nested Design Pattern](#nested-design-pattern)
 - [Running a Phased Test](#running-a-phased-test)
@@ -35,6 +36,9 @@ The most common usage is for validating :
   - [Report By Phase Group and Scenario](#report-by-phase-group-and-scenario)
 - [Misc](#misc)
   - [Data Providers](#data-providers)
+- [Known Issues and Limitations](#known-issues-and-limitations)
+  - [Parallel Testing](#parallel-testing)
+  - [Retry Mechanisms](#retry-mechanisms)
 - [Release Notes](#release-notes)
  
 ## Problem Statement
@@ -177,7 +181,9 @@ public class MyPhasedTest {
 However, whenever the Phased Test Listener discovers a Phased Test, it will add the necessary data providers needed for running the test. But, ideally it is best to set the default providers in orrder to not lose the possibility of local execution.
 
 ### Before- and After-Phase Actions
-We have introduced the possibility of defining Before and After Phases. This means that you can state if a method can be invoked before or after the phased tests are executed.
+We have introduced the possibility of defining Before and After Phases. This means that you can state if a method can be invoked before or after the phased tests are executed. These methods are only activated when we are in a Phase, and will not run when executed when we execute the scenarios in Non-Phased mode. 
+
+However, Before/After Phase methods are like any other Before/After method as, when invoked, they will affect all underlying tests, even if they are not Phased Tests.
 
 To activate this functionality you add the annotations `@BeforePhase` & `@AfterPhase` to a TestNG configuration method such as: **@BeforeSuite, @AfterSuite, @BeforeGroups, @AfterGroups, @BeforeTest and @AfterTest**.
 
@@ -194,6 +200,7 @@ public void myBeforePhaseSuite() {
 In the example above the method `myBeforePhaseSuite` will be invoked in the beginning of the suite. By default, the BeforePhase method is invoked when we are in a Phase I.e. Producer or Consumer.
 
 You can configure this with the attribute `appliesToPhases`, which accepts an array of `Phases`. In the example below we are activating AfterPhase for the Consumer phase only.
+
 
  ```java
 @AfterPhase(appliesToPhases = {Phases.CONSUMER})

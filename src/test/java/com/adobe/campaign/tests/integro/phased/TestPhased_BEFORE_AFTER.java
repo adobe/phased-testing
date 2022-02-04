@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.stream.Collectors;
 
+import com.adobe.campaign.tests.integro.phased.data.befaft.*;
 import org.hamcrest.Matchers;
 import org.testng.ITestContext;
 import org.testng.TestListenerAdapter;
@@ -32,14 +33,6 @@ import org.testng.xml.XmlSuite;
 import org.testng.xml.XmlTest;
 
 import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_SingleClass;
-import com.adobe.campaign.tests.integro.phased.data.befaft.PhasedSeries_M_AfterPhase_onBeforeSuite;
-import com.adobe.campaign.tests.integro.phased.data.befaft.PhasedSeries_M_BeforePhase_AfterSuite;
-import com.adobe.campaign.tests.integro.phased.data.befaft.PhasedSeries_M_BeforePhase_BeforeSuite;
-import com.adobe.campaign.tests.integro.phased.data.befaft.PhasedSeries_M_BeforePhase_BeforeSuite_CONSUMER;
-import com.adobe.campaign.tests.integro.phased.data.befaft.PhasedSeries_M_BeforePhase_onAfterSuite;
-import com.adobe.campaign.tests.integro.phased.data.befaft.PhasedSeries_M_ShuffledClass_changesAter;
-import com.adobe.campaign.tests.integro.phased.data.befaft.PhasedSeries_M_ShuffledClass_noproviders;
-import com.adobe.campaign.tests.integro.phased.data.befaft.PhasedSeries_M_Simple_BeforeSuite;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 import com.adobe.campaign.tests.integro.phased.utils.TestTools;
 
@@ -593,6 +586,57 @@ public class TestPhased_BEFORE_AFTER {
         assertThat("Reset must have worked", PhasedSeries_M_BeforePhase_BeforeSuite.beforeValue, equalTo(0));
 
         assertThrows(PhasedTestConfigurationException.class, () -> myTestNG.run());
+    }
+
+
+    @Test
+    public void testBEFORE_PHASE_onNonPhasedTest_failBeforePhase() {
+        // Rampup
+        TestNG myTestNG = TestTools.createTestNG();
+        TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
+
+        // Define suites
+        XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG,
+                "Automated Suite Phased Testing invocation - Failure at BeforePhase");
+
+        // Add listeners
+        mySuite.addListener(PhasedTestListener.class.getTypeName());
+
+        // Create an instance of XmlTest and assign a name for it.
+        XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test config methods");
+
+        final Class<PhasedSeries_M_SimpleClass> l_testClass = PhasedSeries_M_SimpleClass.class;
+        myTest.setXmlClasses(Arrays.asList(new XmlClass(l_testClass),
+                new XmlClass(PhasedSeries_M_BeforePhase_BeforeSuite.class)));
+
+        PhasedTestManager.activateMergedReports();
+
+        PhasedSeries_M_BeforePhase_BeforeSuite.beforeValue = 1;
+
+        Phases.PRODUCER.activate();
+
+        myTestNG.run();
+
+        assertThat("The before suite should not have been invoked",
+                PhasedSeries_M_BeforePhase_BeforeSuite.beforeValue, equalTo(14));
+
+        assertThat("No normal tests should have been executed successfully", tla.getPassedTests().size(), equalTo(0));
+        assertThat("No normal tests should have been fail", tla.getFailedTests().size(), equalTo(0));
+        assertThat("Two normal tests should have been skipped", tla.getSkippedTests().size(), equalTo(2));
+
+        ITestContext l_context = tla.getTestContexts().get(0);
+        assertThat("We should have no passed tests", l_context.getPassedTests().size(), equalTo(0));
+        assertThat("We should have two skipped tests", l_context.getSkippedTests().size(), equalTo(2));
+        assertThat("We should have no failed tests", l_context.getFailedTests().size(), equalTo(0));
+
+        assertThat("We should have executed the before phase once and it failed",
+                l_context.getPassedConfigurations().size(), equalTo(0));
+
+        assertThat("We should have executed the before phase once and it failed",
+                l_context.getFailedConfigurations().size(), equalTo(1));
+        assertThat("We should have no skipped before suites",
+                l_context.getSkippedConfigurations().size(), equalTo(0));
+
     }
 
 }
