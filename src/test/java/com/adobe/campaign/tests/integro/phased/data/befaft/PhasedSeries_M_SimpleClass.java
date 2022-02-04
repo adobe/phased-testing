@@ -9,20 +9,25 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package com.adobe.campaign.tests.integro.phased;
+package com.adobe.campaign.tests.integro.phased.data.befaft;
 
-public class PhasedStepFailure extends Throwable {
+import com.adobe.campaign.tests.integro.phased.PhasedTest;
+import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
+import org.testng.annotations.Test;
 
-    public PhasedStepFailure(String string, Throwable t) {
-        super(string, t);
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
+
+public class PhasedSeries_M_SimpleClass {
+
+    @Test
+    public void myTest1() {
+        System.out.println("myTest ");
     }
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = -2830092346021261368L;
-
-    public PhasedStepFailure(String skipMessageSKIPFAILURE) {
-        super(skipMessageSKIPFAILURE);
+    @Test
+    public void myTest12() {
+        System.out.println("myTest 2");
+        assertTrue(false);
     }
 }

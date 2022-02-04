@@ -12,7 +12,7 @@
 package com.adobe.campaign.tests.integro.phased;
 
 import com.adobe.campaign.tests.integro.phased.data.*;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_RecipientClass.PhasedSeries_J_ShuffledClassInAClass;
+import com.adobe.campaign.tests.integro.phased.data.nested.PhasedSeries_J_RecipientClass.PhasedSeries_J_ShuffledClassInAClass;
 import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledDP;
 import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledDPSimple;
 import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledNoArgs;
@@ -842,9 +842,9 @@ public class TestPhased {
         PhasedTestManager.storeTestData(PhasedSeries_F_Shuffle.class,
                 PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0", true);
         PhasedTestManager.storeTestData(PhasedSeries_F_Shuffle.class,
-                PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1", new PhasedTestManager.ScenarioContextData(true, 5l, PhasedTestManager.ScenarioContextData.FAILED_STEP_WHEN_PASSED));
+                PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1", new PhasedTestManager.ScenarioContextData(true, 5l, PhasedTestManager.ScenarioContextData.NOT_APPLICABLE_STEP_NAME));
         PhasedTestManager.storeTestData(PhasedSeries_F_Shuffle.class,
-                PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2", new PhasedTestManager.ScenarioContextData(true, 3l, PhasedTestManager.ScenarioContextData.FAILED_STEP_WHEN_PASSED));
+                PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2", new PhasedTestManager.ScenarioContextData(true, 3l, PhasedTestManager.ScenarioContextData.NOT_APPLICABLE_STEP_NAME));
 
         //Add the test context
         assertThat("The context should still be correct", PhasedTestManager.getScenarioContext().size(),equalTo(3));
@@ -880,8 +880,9 @@ public class TestPhased {
         for (ITestResult lt_result : context.getPassedTests().getAllResults()) {
             String lt_scenarioName = PhasedTestManager.fetchScenarioName(lt_result);
 
-            softAssertion.assertEquals(lt_result.getEndMillis() - lt_result.getStartMillis(),PhasedTestManager.getScenarioContext()
-                    .get(lt_scenarioName).duration, "We should have the total durations"+lt_scenarioName);
+            softAssertion.assertEquals(lt_result.getEndMillis() - lt_result.getStartMillis(),
+                    PhasedTestManager.getScenarioContext()
+                            .get(lt_scenarioName).getDuration(), "We should have the total durations"+lt_scenarioName);
         }
         softAssertion.assertAll("The durations should include that of the producer");
 
