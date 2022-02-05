@@ -17,6 +17,8 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -108,11 +110,12 @@ public class GeneralTestUtils {
      *
      * Author : gandomi
      *
-     * @param in_fileToDelete A file that we want to delee.
+     * @param in_fileToDelete
+     *        A file that we want to delee.
      *
      */
     protected static void deleteFile(File in_fileToDelete) {
-        if (in_fileToDelete.exists() ) {
+        if (in_fileToDelete.exists()) {
             log.debug("Deleting cache File");
             if (!in_fileToDelete.delete()) {
                 throw new IllegalStateException("Unable to delete file " + in_fileToDelete.getPath());
@@ -175,6 +178,22 @@ public class GeneralTestUtils {
         }
 
         return lr_fileContent.toString();
+    }
+
+    /**
+     * This method fetches the lines with actual data of a given file. In this
+     * case we also filter the commented out lines
+     * 
+     * Author : gandomi
+     *
+     * @param in_resourceFile
+     *        A file object
+     * @return A list where each entry is a an uncommented line in the file
+     *
+     */
+    public static List<String> fetchFileContentDataLines(File in_resourceFile) {
+
+        return fetchFileContentLines(in_resourceFile).stream().filter(l -> !l.startsWith("#")).collect(Collectors.toList());
     }
 
 }

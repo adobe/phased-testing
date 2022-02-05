@@ -19,7 +19,7 @@ import com.adobe.campaign.tests.integro.phased.PhaseEvent;
 import com.adobe.campaign.tests.integro.phased.PhasedTest;
 import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
 
-@Test(groups = { "UPGRADE" }, description = "This is an archetypical test for the phased tests")
+@Test(groups = { "UPGRADE", "PROPERTIES_SELECT" }, description = "This is an archetypical test for the phased tests")
 @PhasedTest(canShuffle = false)
 public class PhasedSeries_H_SingleClass {
 

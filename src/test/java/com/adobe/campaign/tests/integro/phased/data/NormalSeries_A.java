@@ -15,7 +15,7 @@ import org.testng.annotations.Test;
 
 public class NormalSeries_A {
     
-    @Test
+    @Test(groups="PROPERTIES_TEST2")
     public void firstTest() {
         
     }
