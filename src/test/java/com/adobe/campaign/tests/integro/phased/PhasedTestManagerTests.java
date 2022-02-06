@@ -2760,7 +2760,7 @@ public class PhasedTestManagerTests {
     }
 
     @Test
-    public void testSystemProperties() {
+    public void testSystemPropertiesForMergeResults() {
         Assert.assertFalse(
                 new Boolean(System.getProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS, "FALSE")));
 
