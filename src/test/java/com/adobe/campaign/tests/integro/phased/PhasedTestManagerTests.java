@@ -2761,18 +2761,29 @@ public class PhasedTestManagerTests {
 
     @Test
     public void testSystemPropertiesForMergeResults() {
-        Assert.assertFalse(
-                new Boolean(System.getProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS, "FALSE")));
+        assertThat("By default we do not have We should now be in merge report results",
+                !PhasedTestManager.isMergedReportsActivated());
 
         System.setProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS, "true");
 
+        PhasedTestManager.applyMergeReportChoice();
+
+        assertThat("We should now be in merge report results", PhasedTestManager.isMergedReportsActivated());
         Assert.assertTrue(
-                new Boolean(System.getProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS, "FALSE")));
+                Boolean.getBoolean(PhasedTestManager.PROP_MERGE_STEP_RESULTS));
 
         System.setProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS, "FALSE");
 
         Assert.assertFalse(
-                new Boolean(System.getProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS, "FALSE")));
+                Boolean.getBoolean(PhasedTestManager.PROP_MERGE_STEP_RESULTS));
+
+        assertThat("We should still not have de-activated the  merge report results",
+                PhasedTestManager.isMergedReportsActivated());
+
+        PhasedTestManager.applyMergeReportChoice();
+
+        assertThat("We should now have deactivated the merge report results",
+                !PhasedTestManager.isMergedReportsActivated());
     }
 
     @Test

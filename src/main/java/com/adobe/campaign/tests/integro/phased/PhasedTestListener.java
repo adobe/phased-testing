@@ -102,7 +102,7 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
 
                 log.info("PhasedTestListener : in Before Phase transform");
 
-                //If annotation is not set on the correct TestNG Configuration annotation then throw and excception
+                //If annotation is not set on the correct TestNG Configuration annotation then throw and exception
                 List<Class<?>> l_beforeConfigs = Arrays.asList(BeforeSuite.class, BeforeTest.class,
                         BeforeGroups.class, BeforeClass.class);
 
@@ -119,7 +119,7 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
 
                 log.info("PhasedTestListener : in After Phase transform");
 
-                //If annotation is not set on the correct TestNG Configuration annotation then throw and excception
+                //If annotation is not set on the correct TestNG Configuration annotation then throw and exception
                 List<Class<?>> l_afterConfigs = Arrays.asList(AfterSuite.class, AfterTest.class,
                         AfterGroups.class, AfterClass.class);
 
@@ -143,14 +143,14 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
      *
      * @param in_testMethod
      *        a Test Method
-     * @param in_expctedAnnotations
+     * @param in_expectedAnnotations
      *        A list of classes, defining which annotations should be attached
      *        to the given method
      *
      */
-    protected void checkAnnotationCompatibility(Method in_testMethod, List<Class<?>> in_expctedAnnotations) {
+    protected void checkAnnotationCompatibility(Method in_testMethod, List<Class<?>> in_expectedAnnotations) {
         if (Arrays.stream(in_testMethod.getDeclaredAnnotations())
-                .noneMatch(t -> in_expctedAnnotations.contains(t.annotationType()))) {
+                .noneMatch(t -> in_expectedAnnotations.contains(t.annotationType()))) {
 
             Iterator<Annotation> l_declaredAnnotationIterator = Arrays
                     .asList(in_testMethod.getDeclaredAnnotations()).iterator();
@@ -365,16 +365,7 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
             PhasedTestManager.exportPhaseData();
         }
 
-        //Activating merge results if the value is set in the system properties
-        if (System.getProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS, "NOTSET")
-                .equalsIgnoreCase("true")) {
-            PhasedTestManager.activateMergedReports();
-        }
-
-        if (System.getProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS, "NOTSET")
-                .equalsIgnoreCase("false")) {
-            PhasedTestManager.deactivateMergedReports();
-        }
+        PhasedTestManager.applyMergeReportChoice();
 
         if (PhasedTestManager.isMergedReportsActivated()) {
 
@@ -519,16 +510,16 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
      * Author : gandomi
      *
      * @param in_phasedScenarios
-     *        A map of sccenarios that should be updated
+     *        A map of scenarios that should be updated
      * @param in_testResult
-     *        The candidae test result that should be used for updating the map
+     *        The candidate test result that should be used for updating the map
      *
      */
     protected void updatePhasedScenarios(Map<String, List<ITestResult>> in_phasedScenarios,
             ITestResult in_testResult) {
         String lt_scName = PhasedTestManager.fetchScenarioName(in_testResult);
 
-        //Inilialize id map does not have the given entry
+        //Initialize id map does not have the given entry
         if (!in_phasedScenarios.containsKey(lt_scName)) {
             in_phasedScenarios.put(lt_scName, new ArrayList<ITestResult>());
         }
