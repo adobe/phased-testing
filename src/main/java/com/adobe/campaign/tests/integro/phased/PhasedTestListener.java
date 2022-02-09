@@ -11,7 +11,21 @@
  */
 package com.adobe.campaign.tests.integro.phased;
 
+import com.adobe.campaign.tests.integro.phased.internal.PhaseProcessorFactory;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.testng.*;
@@ -22,13 +36,6 @@ import org.testng.internal.annotations.DisabledRetryAnalyzer;
 import org.testng.xml.XmlClass;
 import org.testng.xml.XmlSuite;
 import org.testng.xml.XmlTest;
-
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.*;
-import java.util.stream.Collectors;
 
 public class PhasedTestListener implements ITestListener, IAnnotationTransformer, IAlterSuiteListener {
 
@@ -85,88 +92,16 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
             l_newXMLTests.addAll(lt_xmlTest.getXmlClasses());
             lt_xmlTest.setXmlClasses(new ArrayList<>(l_newXMLTests));
         }
-
-        //Do we keep this?
-        IAlterSuiteListener.super.alter(suites);
-
     }
 
     @Override
     public void transform(IConfigurationAnnotation annotation, Class testClass, Constructor testConstructor,
             Method testMethod) {
-
-        if (testMethod != null) {
-
-            //Checking if the Before- and AfterPhase method should be executed.
-            if (testMethod.isAnnotationPresent(BeforePhase.class)) {
-
-                log.info("PhasedTestListener : in Before Phase transform");
-
-                //If annotation is not set on the correct TestNG Configuration annotation then throw and excception
-                List<Class<?>> l_beforeConfigs = Arrays.asList(BeforeSuite.class, BeforeTest.class,
-                        BeforeGroups.class, BeforeClass.class);
-
-                checkAnnotationCompatibility(testMethod, l_beforeConfigs);
-
-                if (Arrays.stream(testMethod.getAnnotation(BeforePhase.class).appliesToPhases())
-                        .noneMatch(t -> t.equals(Phases.getCurrentPhase()))) {
-                    log.info("Omitting BeforePhase method {}", ClassPathParser.fetchFullName(testMethod));
-                    annotation.setEnabled(false);
-                }
-            }
-
-            if (testMethod.isAnnotationPresent(AfterPhase.class)) {
-
-                log.info("PhasedTestListener : in After Phase transform");
-
-                //If annotation is not set on the correct TestNG Configuration annotation then throw and excception
-                List<Class<?>> l_afterConfigs = Arrays.asList(AfterSuite.class, AfterTest.class,
-                        AfterGroups.class, AfterClass.class);
-
-                checkAnnotationCompatibility(testMethod, l_afterConfigs);
-
-                if (Arrays.stream(testMethod.getAnnotation(AfterPhase.class).appliesToPhases())
-                        .noneMatch(t -> t.equals(Phases.getCurrentPhase()))) {
-                    log.info("Omitting AfterPhase method {}", ClassPathParser.fetchFullName(testMethod));
-
-                    annotation.setEnabled(false);
-                }
-            }
-        }
-    }
-
-    /**
-     * Given a list of expected annotations, this method sees if the given
-     * method contains any of these them
-     * 
-     * Author : gandomi
-     *
-     * @param in_testMethod
-     *        a Test Method
-     * @param in_expctedAnnotations
-     *        A list of classes, defining which annotations should be attached
-     *        to the given method
-     *
-     */
-    protected void checkAnnotationCompatibility(Method in_testMethod, List<Class<?>> in_expctedAnnotations) {
-        if (Arrays.stream(in_testMethod.getDeclaredAnnotations())
-                .noneMatch(t -> in_expctedAnnotations.contains(t.annotationType()))) {
-
-            Iterator<Annotation> l_declaredAnnotationIterator = Arrays
-                    .asList(in_testMethod.getDeclaredAnnotations()).iterator();
-            StringBuilder lt_listOfAnnotations = new StringBuilder();
-
-            //Prepare message
-            while (l_declaredAnnotationIterator.hasNext()) {
-                lt_listOfAnnotations.append(l_declaredAnnotationIterator.next().annotationType().getName());
-                lt_listOfAnnotations.append(l_declaredAnnotationIterator.hasNext() ? ", " : "");
-            }
-
-            throw new PhasedTestConfigurationException(
-                    "You have declared a @BeforePhase or @AfterPhase annotation with an incompatible TestNG Configuration Anntoation. The method "
-                            + ClassPathParser.fetchFullName(in_testMethod)
-                            + " has the following annotations: " + lt_listOfAnnotations.toString());
-        }
+        Optional.ofNullable(testMethod)
+                .ifPresent(tm -> {
+                    boolean result = PhaseProcessorFactory.getProcessor(tm).canProcessPhase();
+                    annotation.setEnabled(result);
+                });
     }
 
     // @Override
