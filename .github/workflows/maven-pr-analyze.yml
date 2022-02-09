@@ -48,13 +48,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
       # Import GPG key from env variable into keychain
-      #- name: Import GPG key
-      #  env:
-      #    GPG_SECRET_KEYS: ${{ secrets.GPG_SECRET_KEYS }}
-      #    GPG_OWNERTRUST: ${{ secrets.GPG_OWNERTRUST }}
-      #  run: |
-      #    echo $GPG_SECRET_KEYS | base64 --decode | gpg --import --no-tty --batch --yes
-      #    echo $GPG_OWNERTRUST | base64 --decode | gpg --import-ownertrust --no-tty --batch --yes
+      - name: Import GPG key
+        env:
+          GPG_SECRET_KEYS: ${{ secrets.GPG_SECRET_KEYS }}
+          GPG_OWNERTRUST: ${{ secrets.GPG_OWNERTRUST }}
+        run: |
+          echo $GPG_SECRET_KEYS | base64 --decode | gpg --import --no-tty --batch --yes
+          echo $GPG_OWNERTRUST | base64 --decode | gpg --import-ownertrust --no-tty --batch --yes
       - name: Build and analyze using sonar
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
