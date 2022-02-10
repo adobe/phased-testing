@@ -27,7 +27,6 @@ import org.testng.asserts.SoftAssert;
 import org.testng.internal.ConstructorOrMethod;
 
 import java.io.*;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 
@@ -184,19 +183,10 @@ public class PhasedTestManagerTests {
         assertThat(PhasedTestManager.getScenarioContext().size(), Matchers.equalTo(0));
     }
 
-    @Test
+    @Test(expectedExceptions = PhasedTestException.class)
     public void duplicateExceptionWhenStoring() {
         PhasedTestManager.produceInStep("Hello");
-
-        try {
-            PhasedTestManager.produceInStep("Bye");
-        } catch (Exception e) {
-            assertThat("The exception should be an instance of PhasedTestStorageException",
-                    e instanceof PhasedTestException);
-            return;
-        }
-
-        assertThat("We should not reach this line of code", false);
+        PhasedTestManager.produceInStep("Bye");
     }
 
     @Test
@@ -205,7 +195,7 @@ public class PhasedTestManagerTests {
     }
 
     @Test
-    public void exportingData() throws FileNotFoundException, IOException {
+    public void exportingData() throws IOException {
         String l_stepName = PhasedTestManager.produceInStep("Hello");
 
         String scenarioId = PhasedTestManager.storeTestData(PhasedSeries_F_Shuffle.class, "A",
@@ -214,7 +204,7 @@ public class PhasedTestManagerTests {
         File l_phasedTestFile = PhasedTestManager.exportPhaseData();
 
         assertThat("The file should exist", l_phasedTestFile.exists());
-        assertThat("The file should exist", l_phasedTestFile.length(), Matchers.greaterThan(0l));
+        assertThat("The file should exist", l_phasedTestFile.length(), Matchers.greaterThan(0L));
         Properties prop = new Properties();
 
         try (InputStream input = new FileInputStream(l_phasedTestFile)) {
@@ -228,7 +218,6 @@ public class PhasedTestManagerTests {
         assertThat("We should find our property", prop.getProperty(l_stepName), equalTo("Hello"));
 
         final String l_storedScenarioContext = PhasedTestManager.SCENARIO_CONTEXT_PREFIX + scenarioId;
-        final String l_storedScenarioName = l_storedScenarioContext;
         assertThat("We should find our scenario", prop.containsKey(l_storedScenarioContext));
 
         assertThat("We should find our scenario", prop.get(l_storedScenarioContext),
@@ -237,7 +226,7 @@ public class PhasedTestManagerTests {
     }
 
     @Test
-    public void exportingDataTwice() throws FileNotFoundException, IOException {
+    public void exportingDataTwice() throws IOException {
 
         final String thisMethodFullName = "com.adobe.campaign.tests.integro.phased.PhasedTestManagerTests.exportingDataTwice";
 
@@ -246,7 +235,7 @@ public class PhasedTestManagerTests {
         File l_phasedTestFile = PhasedTestManager.exportPhaseData();
 
         assertThat("The file should exist", l_phasedTestFile.exists());
-        assertThat("The file should exist", l_phasedTestFile.length(), Matchers.greaterThan(0l));
+        assertThat("The file should exist", l_phasedTestFile.length(), Matchers.greaterThan(0L));
         Properties prop = new Properties();
 
         try (InputStream input = new FileInputStream(l_phasedTestFile)) {
@@ -264,7 +253,7 @@ public class PhasedTestManagerTests {
         File l_phasedTestFile2 = PhasedTestManager.exportPhaseData();
 
         assertThat("The file should exist", l_phasedTestFile2.exists());
-        assertThat("The file should exist", l_phasedTestFile2.length(), Matchers.greaterThan(0l));
+        assertThat("The file should exist", l_phasedTestFile2.length(), Matchers.greaterThan(0L));
         Properties prop2 = new Properties();
 
         try (InputStream input = new FileInputStream(l_phasedTestFile2)) {
@@ -287,12 +276,9 @@ public class PhasedTestManagerTests {
      *
      * Author : gandomi
      *
-     * @throws FileNotFoundException
-     * @throws IOException
-     *
      */
     @Test
-    public void exportingData_UsingSystemValues() throws FileNotFoundException, IOException {
+    public void exportingData_UsingSystemValues() throws IOException {
         PhasedTestManager.produceInStep("Hello");
 
         File l_newFile = GeneralTestUtils
@@ -304,7 +290,7 @@ public class PhasedTestManagerTests {
         File l_phasedTestFile = PhasedTestManager.exportPhaseData();
 
         assertThat("The file should exist", l_phasedTestFile.exists());
-        assertThat("The file should exist", l_phasedTestFile.length(), Matchers.greaterThan(0l));
+        assertThat("The file should exist", l_phasedTestFile.length(), Matchers.greaterThan(0L));
         assertThat("The exported file should be the same is the one we sent", l_phasedTestFile.getPath(),
                 Matchers.equalTo(l_newFile.getPath()));
 
@@ -332,12 +318,10 @@ public class PhasedTestManagerTests {
      *
      * Author : gandomi
      *
-     * @throws FileNotFoundException
-     * @throws IOException
      *
      */
     @Test
-    public void testingTheFetchExportFile() throws FileNotFoundException, IOException {
+    public void testingTheFetchExportFile() {
 
         File l_newFile = GeneralTestUtils.createEmptyCacheFile(
                 GeneralTestUtils.createCacheDirectory("testingTheFetchExportFile"), "newFile.properties");
@@ -356,12 +340,10 @@ public class PhasedTestManagerTests {
      *
      * Author : gandomi
      *
-     * @throws FileNotFoundException
-     * @throws IOException
      *
      */
     @Test
-    public void testingTheFetchExportFileNoPropertySet() throws FileNotFoundException, IOException {
+    public void testingTheFetchExportFileNoPropertySet() {
         File l_parentPath = GeneralTestUtils.fetchCacheDirectory(PhasedTestManager.STD_STORE_DIR);
 
         assertThat("The directories should be the same", PhasedTestManager.fetchExportFile().getParent(),
@@ -394,7 +376,7 @@ public class PhasedTestManagerTests {
     }
 
     @Test
-    public void exportingData_dataBroker() throws FileNotFoundException, IOException {
+    public void exportingData_dataBroker() {
         PhasedTestManager.produceInStep("Hello");
 
         File l_phasedTestFile = PhasedTestManager.exportPhaseData();
@@ -418,12 +400,10 @@ public class PhasedTestManagerTests {
      *
      * Author : gandomi
      *
-     * @throws FileNotFoundException
-     * @throws IOException
      *
      */
     @Test
-    public void exportingData_dataBrokerPhasedTestManager() throws FileNotFoundException, IOException {
+    public void exportingData_dataBrokerPhasedTestManager() {
 
         assertThat("At first the data broker should be null", PhasedTestManager.getDataBroker(),
                 Matchers.nullValue());
@@ -462,13 +442,6 @@ public class PhasedTestManagerTests {
      * Tsting the initializing of the databroker
      *
      * Author : gandomi
-     *
-     * @throws FileNotFoundException
-     * @throws IOException
-     * @throws PhasedTestConfigurationException
-     * @throws IllegalAccessException
-     * @throws InstantiationException
-     * @throws ClassNotFoundException
      *
      */
     @Test
@@ -510,8 +483,7 @@ public class PhasedTestManagerTests {
 
     @Test
     public void dataBrokerPhasedTestManagerInitializing_negativeNotInstanceOfDataBroker()
-            throws FileNotFoundException, IOException, ClassNotFoundException, InstantiationException,
-            IllegalAccessException, PhasedTestConfigurationException {
+            throws PhasedTestConfigurationException {
 
         assertThat("At first the data broker should be null", PhasedTestManager.getDataBroker(),
                 Matchers.nullValue());
@@ -525,8 +497,7 @@ public class PhasedTestManagerTests {
 
     @Test
     public void dataBrokerPhasedTestManagerInitializing_negativeNotAClass()
-            throws FileNotFoundException, IOException, ClassNotFoundException, InstantiationException,
-            IllegalAccessException, PhasedTestConfigurationException {
+            throws PhasedTestConfigurationException {
 
         assertThat("At first the data broker should be null", PhasedTestManager.getDataBroker(),
                 Matchers.nullValue());
@@ -539,7 +510,7 @@ public class PhasedTestManagerTests {
     }
 
     @Test
-    public void importingData() throws IOException {
+    public void importingData() {
         String l_stepId = PhasedTestManager.produceInStep("Hello");
         String l_scenarioId = PhasedTestManager.storeTestData(PhasedSeries_F_Shuffle.class, "A",
                 new PhasedTestManager.ScenarioContextData(false,3,"abc",Phases.PRODUCER,"zdf" ));
@@ -588,7 +559,7 @@ public class PhasedTestManagerTests {
     }
 
     @Test
-    public void importingData_NegativeBadFile() throws IOException {
+    public void importingData_NegativeBadFile() {
         File l_phasedTestFile = new File("skjdfhqskdj", "kjhkjhkjh");
         assertThat("The file should not exist", !l_phasedTestFile.exists());
         PhasedTestManager.clearCache();
@@ -597,7 +568,7 @@ public class PhasedTestManagerTests {
     }
 
     @Test
-    public void importingDataSTD() throws FileNotFoundException, IOException {
+    public void importingDataSTD() {
         PhasedTestManager.produceInStep("Hello");
         PhasedTestManager.exportPhaseData();
         PhasedTestManager.clearCache();
@@ -615,7 +586,7 @@ public class PhasedTestManagerTests {
     }
 
     @Test
-    public void importingDataSTD_UsingSystemValues() throws FileNotFoundException, IOException {
+    public void importingDataSTD_UsingSystemValues() {
         PhasedTestManager.produceInStep("Hello");
         File l_phasedTestData = PhasedTestManager.exportPhaseData();
 
@@ -750,7 +721,7 @@ public class PhasedTestManagerTests {
     }
 
     @Test
-    public void testCreateDataProviderData_modeConsumer() throws NoSuchMethodException, SecurityException {
+    public void testCreateDataProviderData_modeConsumer() throws SecurityException {
         Map<Class<?>, List<String>> l_myMap = new HashMap<>();
 
         final Class<PhasedSeries_F_Shuffle> l_myClass = PhasedSeries_F_Shuffle.class;
@@ -792,10 +763,6 @@ public class PhasedTestManagerTests {
 
     @Test
     public void testPhasedManagerContext() {
-        Map<Class, List<String>> l_myMap = new HashMap<Class, List<String>>();
-
-        l_myMap.put(this.getClass(), Arrays.asList("a", "b", "c", "testPhasedManagerContext"));
-
         final String l_phasedGroupId = "phasedGroupShuffled_4";
         PhasedTestManager.storePhasedContext(
                 "com.adobe.campaign.tests.integro.phased.PhasedTestManagerTests.testPhasedManagerContext",
@@ -996,9 +963,6 @@ public class PhasedTestManagerTests {
      *
      * Author : gandomi
      *
-     * @throws NoSuchMethodException
-     * @throws SecurityException
-     *
      */
     @Test
     public void testIsInCascadeMode() throws NoSuchMethodException, SecurityException {
@@ -1014,9 +978,6 @@ public class PhasedTestManagerTests {
      * happen
      *
      * Author : gandomi
-     *
-     * @throws NoSuchMethodException
-     * @throws SecurityException
      *
      */
     @Test
@@ -1136,15 +1097,6 @@ public class PhasedTestManagerTests {
     }
 
     @Test
-    public void testSB() {
-        String x = "com.adobe.campaign.tests.integro.phased.data.PhasedSeries_E_FullMonty.step1";
-
-        StringBuilder sb = new StringBuilder(x);
-
-        assertThat(x, equalTo(sb.toString()));
-    }
-
-    @Test
     public void testIsPhaseLimit() throws NoSuchMethodException, SecurityException {
 
         final Method l_myMethod = PhasedSeries_A.class.getMethod("step3", String.class);
@@ -1154,9 +1106,7 @@ public class PhasedTestManagerTests {
 
     /*******
      * Keeping test context between phases
-     * 
-     * @throws SecurityException
-     * @throws NoSuchMethodException
+     *
      ******/
     @Test
     public void testFetchScenarioID() throws NoSuchMethodException, SecurityException {
@@ -1201,9 +1151,6 @@ public class PhasedTestManagerTests {
      * This is case 1
      *
      * Author : gandomi
-     *
-     * @throws NoSuchMethodException
-     * @throws SecurityException
      *
      */
     @Test
@@ -1268,9 +1215,6 @@ public class PhasedTestManagerTests {
      * This is case 2
      *
      * Author : gandomi
-     *
-     * @throws NoSuchMethodException
-     * @throws SecurityException
      *
      */
     @Test
@@ -1340,9 +1284,6 @@ public class PhasedTestManagerTests {
      * This is case 3
      * 
      * Author : gandomi
-     *
-     * @throws NoSuchMethodException
-     * @throws SecurityException
      *
      */
     @Test
@@ -1424,9 +1365,6 @@ public class PhasedTestManagerTests {
      *
      * Author : gandomi
      *
-     * @throws NoSuchMethodException
-     * @throws SecurityException
-     *
      */
     @Test
     public void phaseScenarioStates_case4_extra_NoneExecuted()
@@ -1471,9 +1409,6 @@ public class PhasedTestManagerTests {
      * This is case 5
      * 
      * Author : gandomi
-     *
-     * @throws NoSuchMethodException
-     * @throws SecurityException
      *
      */
     @Test
@@ -1537,9 +1472,6 @@ public class PhasedTestManagerTests {
      * This is case 6
      * 
      * Author : gandomi
-     *
-     * @throws NoSuchMethodException
-     * @throws SecurityException
      *
      */
     @Test
@@ -1612,9 +1544,6 @@ public class PhasedTestManagerTests {
      * 
      * Author : gandomi
      *
-     * @throws NoSuchMethodException
-     * @throws SecurityException
-     *
      */
     @Test
     public void phaseScenarioStates_case7_extra_NoneExecuted()
@@ -1671,9 +1600,6 @@ public class PhasedTestManagerTests {
      * This is case 8
      *
      * Author : gandomi
-     *
-     * @throws NoSuchMethodException
-     * @throws SecurityException
      *
      */
     @Test
@@ -1741,9 +1667,6 @@ public class PhasedTestManagerTests {
      * This is case 6 b
      *
      * Author : gandomi
-     *
-     * @throws NoSuchMethodException
-     * @throws SecurityException
      *
      */
     @Test
@@ -1822,9 +1745,6 @@ public class PhasedTestManagerTests {
      *
      * Author : gandomi
      *
-     * @throws NoSuchMethodException
-     * @throws SecurityException
-     *
      */
     @Test
     public void phaseScenarioStates_case9_intra_SKIPPED() throws NoSuchMethodException, SecurityException {
@@ -1866,7 +1786,7 @@ public class PhasedTestManagerTests {
 
     }
 
-    //@Test
+    @Test(enabled = false)
     public void testStateIstKeptBetweenPhases_NegativeStaysNegativeUnlessSameTest()
             throws NoSuchMethodException, SecurityException {
         //On Test End we need to add context of test. The context is the state of the scenario
@@ -1966,7 +1886,7 @@ public class PhasedTestManagerTests {
     }
 
     @Test
-    public void testStandardReportName_default() throws NoSuchMethodException, SecurityException {
+    public void testStandardReportName_default() throws SecurityException {
 
         assertThat(PhasedSeries_H_ShuffledClassWithError.class.getSimpleName(),
                 equalTo("PhasedSeries_H_ShuffledClassWithError"));
@@ -1999,7 +1919,7 @@ public class PhasedTestManagerTests {
                 PhasedTestManager.MergedReportData.suffix.isEmpty());
 
         PhasedTestManager.MergedReportData.configureMergedReportName(
-                new LinkedHashSet<>(Arrays.asList(PhasedReportElements.SCENARIO_NAME)), new LinkedHashSet<>(
+                new LinkedHashSet<>(Collections.singletonList(PhasedReportElements.SCENARIO_NAME)), new LinkedHashSet<>(
                         Arrays.asList(PhasedReportElements.PHASE, PhasedReportElements.PHASE_GROUP)));
 
         assertThat("The prefix should have been set", PhasedTestManager.MergedReportData.prefix,
@@ -2018,7 +1938,7 @@ public class PhasedTestManagerTests {
 
     @Test
     public void testPhasedReportElements_StandardReportName_ScenarioName()
-            throws NoSuchMethodException, SecurityException {
+            throws SecurityException {
 
         ITestResult l_itr = Mockito.mock(ITestResult.class);
         ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
@@ -2037,7 +1957,7 @@ public class PhasedTestManagerTests {
 
     @Test
     public void testPhasedReportElements_StandardReportName_Phase()
-            throws NoSuchMethodException, SecurityException {
+            throws SecurityException {
 
         ITestResult l_itr = Mockito.mock(ITestResult.class);
         ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
@@ -2055,7 +1975,7 @@ public class PhasedTestManagerTests {
 
     @Test
     public void testPhasedReportElements_StandardReportName_PhaseGROUP()
-            throws NoSuchMethodException, SecurityException {
+            throws SecurityException {
 
         ITestResult l_itr = Mockito.mock(ITestResult.class);
         ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
@@ -2073,7 +1993,7 @@ public class PhasedTestManagerTests {
 
     @Test
     public void testPhasedReportElements_StandardReportName_DataProviders()
-            throws NoSuchMethodException, SecurityException {
+            throws SecurityException {
 
         ITestResult l_itr = Mockito.mock(ITestResult.class);
         ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
@@ -2090,11 +2010,11 @@ public class PhasedTestManagerTests {
     }
 
     @Test
-    public void testStandardReportName_configured() throws NoSuchMethodException, SecurityException {
+    public void testStandardReportName_configured() throws SecurityException {
 
         PhasedTestManager.MergedReportData.configureMergedReportName(
-                new LinkedHashSet<>(Arrays.asList(PhasedReportElements.SCENARIO_NAME)),
-                new LinkedHashSet<>(Arrays.asList(PhasedReportElements.PHASE)));
+                new LinkedHashSet<>(Collections.singletonList(PhasedReportElements.SCENARIO_NAME)),
+                new LinkedHashSet<>(Collections.singletonList(PhasedReportElements.PHASE)));
 
         assertThat(PhasedSeries_H_ShuffledClassWithError.class.getSimpleName(),
                 equalTo("PhasedSeries_H_ShuffledClassWithError"));
@@ -2117,15 +2037,15 @@ public class PhasedTestManagerTests {
 
         assertThat("We should be able to continue with the phase group",
                 PhasedTestManager.fetchTestNameForReport(l_itr),
-                equalTo("phasedSeries_H_ShuffledClassWithError__Q__" + Phases.CONSUMER.toString()));
+                equalTo("phasedSeries_H_ShuffledClassWithError__Q__" + Phases.CONSUMER));
 
     }
 
     @Test
-    public void testStandardReportName_configured2() throws NoSuchMethodException, SecurityException {
+    public void testStandardReportName_configured2() throws SecurityException {
 
         PhasedTestManager.MergedReportData.configureMergedReportName(
-                new LinkedHashSet<>(Arrays.asList(PhasedReportElements.SCENARIO_NAME)), new LinkedHashSet<>(
+                new LinkedHashSet<>(Collections.singletonList(PhasedReportElements.SCENARIO_NAME)), new LinkedHashSet<>(
                         Arrays.asList(PhasedReportElements.DATA_PROVIDERS, PhasedReportElements.PHASE)));
 
         assertThat(PhasedSeries_H_ShuffledClassWithError.class.getSimpleName(),
@@ -2149,11 +2069,11 @@ public class PhasedTestManagerTests {
     }
 
     @Test
-    public void testStandardReportName_DP_configured() throws NoSuchMethodException, SecurityException {
+    public void testStandardReportName_DP_configured() throws SecurityException {
 
         PhasedTestManager.MergedReportData.configureMergedReportName(
-                new LinkedHashSet<>(Arrays.asList(PhasedReportElements.SCENARIO_NAME)),
-                new LinkedHashSet<>(Arrays.asList(PhasedReportElements.PHASE)));
+                new LinkedHashSet<>(Collections.singletonList(PhasedReportElements.SCENARIO_NAME)),
+                new LinkedHashSet<>(Collections.singletonList(PhasedReportElements.PHASE)));
 
         assertThat(PhasedSeries_H_ShuffledClassWithError.class.getSimpleName(),
                 equalTo("PhasedSeries_H_ShuffledClassWithError"));
@@ -2176,7 +2096,7 @@ public class PhasedTestManagerTests {
 
         assertThat("We should be able to continue with the phase group",
                 PhasedTestManager.fetchTestNameForReport(l_itr),
-                equalTo("phasedSeries_H_ShuffledClassWithError__Q__" + Phases.CONSUMER.toString()));
+                equalTo("phasedSeries_H_ShuffledClassWithError__Q__" + Phases.CONSUMER));
     }
 
     /**
@@ -2208,7 +2128,7 @@ public class PhasedTestManagerTests {
         List<ITestResult> l_resultList = Arrays.asList(l_itr2, l_itr1);
 
         assertThat("We should find the correst start millisecond",
-                PhasedTestManager.fetchDurationMillis(l_resultList), equalTo(6l));
+                PhasedTestManager.fetchDurationMillis(l_resultList), equalTo(6L));
 
     }
 
@@ -2225,7 +2145,7 @@ public class PhasedTestManagerTests {
         assertThrows(IllegalArgumentException.class, () -> PhasedTestManager.fetchDurationMillis(null));
 
         //Empty
-        List<ITestResult> l_resultList = Arrays.asList();
+        List<ITestResult> l_resultList = Collections.emptyList();
 
         assertThrows(IllegalArgumentException.class,
                 () -> PhasedTestManager.fetchDurationMillis(l_resultList));
@@ -2293,7 +2213,7 @@ public class PhasedTestManagerTests {
 
     @Test
     public void testStepName()
-            throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
+            throws SecurityException, IllegalArgumentException {
 
         ITestResult l_itr1 = Mockito.mock(ITestResult.class);
 
@@ -2306,7 +2226,7 @@ public class PhasedTestManagerTests {
 
     @Test
     public void testStepName_DP()
-            throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
+            throws SecurityException, IllegalArgumentException {
 
         ITestResult l_itr1 = Mockito.mock(ITestResult.class);
 
@@ -2318,8 +2238,8 @@ public class PhasedTestManagerTests {
     }
 
     @Test
-    public void testStepName_Negative() throws NoSuchFieldException, SecurityException,
-            IllegalArgumentException, IllegalAccessException, NoSuchMethodException {
+    public void testStepName_Negative() throws SecurityException,
+            IllegalArgumentException, NoSuchMethodException {
 
         final Method l_myTestWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
                 String.class);
@@ -2582,8 +2502,7 @@ public class PhasedTestManagerTests {
 
     /**************** Fetching Data providers *******************/
     @Test
-    public void testFetchingDataProvidersInDPClass() throws IllegalAccessException, IllegalArgumentException,
-            InvocationTargetException, InstantiationException {
+    public void testFetchingDataProvidersInDPClass() throws IllegalArgumentException {
         Class<PhasedSeries_L_ShuffledDP> l_classLevelDP = PhasedSeries_L_ShuffledDP.class;
 
         Object[][] result = PhasedTestManager.fetchDataProviderValues(l_classLevelDP);
@@ -2596,8 +2515,8 @@ public class PhasedTestManagerTests {
     }
 
     @Test
-    public void testFetchingDataProvidersInDPClass_Negative_Private() throws IllegalAccessException,
-            IllegalArgumentException, InvocationTargetException, InstantiationException {
+    public void testFetchingDataProvidersInDPClass_Negative_Private() throws
+        IllegalArgumentException {
         Class<PhasedSeries_L_ShuffledDPPrivate> l_classLevelDP = PhasedSeries_L_ShuffledDPPrivate.class;
 
         Object[][] result = PhasedTestManager.fetchDataProviderValues(l_classLevelDP);
@@ -2610,8 +2529,8 @@ public class PhasedTestManagerTests {
     }
 
     @Test
-    public void testFetchingDataProvidersInTestClass() throws IllegalAccessException,
-            IllegalArgumentException, InvocationTargetException, InstantiationException {
+    public void testFetchingDataProvidersInTestClass() throws
+        IllegalArgumentException {
         Class<PhasedSeries_L_ShuffledDPSimple> l_class = PhasedSeries_L_ShuffledDPSimple.class;
 
         Object[][] result = PhasedTestManager.fetchDataProviderValues(l_class);
@@ -2623,8 +2542,8 @@ public class PhasedTestManagerTests {
     }
 
     @Test
-    public void testFetchingDataProvidersInTestClass_NegativePrivat() throws IllegalAccessException,
-            IllegalArgumentException, InvocationTargetException, InstantiationException {
+    public void testFetchingDataProvidersInTestClass_NegativePrivat() throws
+        IllegalArgumentException {
         Class<PhasedSeries_L_ShuffledDPSimplePrivate> l_class = PhasedSeries_L_ShuffledDPSimplePrivate.class;
 
         Object[][] result = PhasedTestManager.fetchDataProviderValues(l_class);
@@ -2706,7 +2625,7 @@ public class PhasedTestManagerTests {
                 PhasedTestManager.concatenateParameterArray(new Object[0]), equalTo(""));
 
         assertThat("The id should be a concatenation of the parameters",
-                PhasedTestManager.concatenateParameterArray(new Object[] { "A", new Integer(5) }),
+                PhasedTestManager.concatenateParameterArray(new Object[] { "A", 5}),
                 equalTo("A__5"));
 
     }
@@ -3193,7 +3112,7 @@ public class PhasedTestManagerTests {
 
         assertThat("The passed should be correctly imported", l_scenarioContextImported.isPassed());
         assertThat("The duration should be correctly imported", l_scenarioContextImported.getDuration(),
-                Matchers.equalTo(2l));
+                Matchers.equalTo(2L));
         assertThat("The failedStep should be correctly imported", l_scenarioContextImported.getFailedStep(),
                 Matchers.equalTo("NA"));
         assertThat("The phased in which the failure occurred should be the producer phase",
@@ -3208,7 +3127,7 @@ public class PhasedTestManagerTests {
 
         assertThat("The passed should be correctly imported", l_scenarioContextImported.isPassed());
         assertThat("The duration should be correctly imported", l_scenarioContextImported.getDuration(),
-                Matchers.equalTo(2l));
+                Matchers.equalTo(2L));
         assertThat("The failedStep should be correctly imported", l_scenarioContextImported.getFailedStep(),
                 Matchers.equalTo("NA"));
         assertThat("The phased in which the failure occurred should be the producer phase",
@@ -3218,7 +3137,7 @@ public class PhasedTestManagerTests {
 
         assertThat("The passed should be correctly imported", l_scenarioContextImported.isPassed());
         assertThat("The duration should be correctly imported", l_scenarioContextImported.getDuration(),
-                Matchers.equalTo(2l));
+                Matchers.equalTo(2L));
         assertThat("The failedStep should be correctly imported", l_scenarioContextImported.getFailedStep(),
                 Matchers.equalTo("NA"));
         assertThat("The phased in which the failure occurred should be the producer phase",
@@ -3233,7 +3152,7 @@ public class PhasedTestManagerTests {
 
         assertThat("The passed should be correctly imported", !l_scenarioContextImported.isPassed());
         assertThat("The duration should be correctly imported", l_scenarioContextImported.getDuration(),
-                Matchers.equalTo(2l));
+                Matchers.equalTo(2L));
         assertThat("The failedStep should be correctly imported", l_scenarioContextImported.getFailedStep(),
                 Matchers.equalTo("sd"));
         assertThat("The phased in which the failure occurred should be the producer phase",
@@ -3248,7 +3167,7 @@ public class PhasedTestManagerTests {
 
         assertThat("The passed should be correctly imported", !l_scenarioContextImported.isPassed());
         assertThat("The duration should be correctly imported", l_scenarioContextImported.getDuration(),
-                Matchers.equalTo(2l));
+                Matchers.equalTo(2L));
         assertThat("The failedStep should be correctly imported", l_scenarioContextImported.getFailedStep(),
                 Matchers.equalTo(PhasedTestManager.ScenarioContextData.NOT_APPLICABLE_STEP_NAME));
         assertThat("The phased in which the failure occurred should be the producer phase",
