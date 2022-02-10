@@ -842,9 +842,11 @@ public class TestPhased {
         PhasedTestManager.storeTestData(PhasedSeries_F_Shuffle.class,
                 PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0", true);
         PhasedTestManager.storeTestData(PhasedSeries_F_Shuffle.class,
-                PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1", new PhasedTestManager.ScenarioContextData(true, 5l, PhasedTestManager.ScenarioContextData.NOT_APPLICABLE_STEP_NAME));
+                PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1", new PhasedTestManager.ScenarioContextData(true,
+                5L, PhasedTestManager.ScenarioContextData.NOT_APPLICABLE_STEP_NAME));
         PhasedTestManager.storeTestData(PhasedSeries_F_Shuffle.class,
-                PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2", new PhasedTestManager.ScenarioContextData(true, 3l, PhasedTestManager.ScenarioContextData.NOT_APPLICABLE_STEP_NAME));
+                PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2", new PhasedTestManager.ScenarioContextData(true,
+                3L, PhasedTestManager.ScenarioContextData.NOT_APPLICABLE_STEP_NAME));
 
         //Add the test context
         assertThat("The context should still be correct", PhasedTestManager.getScenarioContext().size(),equalTo(3));

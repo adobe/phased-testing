@@ -90,7 +90,7 @@ public class PhasesTests {
     public void testPhasesFetchWithEvents() {
         Phases[] l_phasesWithEvents = Phases.fetchPhasesWithEvents();
         
-        assertThat("All phases should have a splitting event", Arrays.asList(l_phasesWithEvents).stream().allMatch(p -> p.hasSplittingEvent));
+        assertThat("All phases should have a splitting event", Arrays.stream(l_phasesWithEvents).allMatch(p -> p.hasSplittingEvent));
 
     }
 

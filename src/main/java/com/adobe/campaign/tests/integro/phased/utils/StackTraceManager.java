@@ -12,13 +12,17 @@
 package com.adobe.campaign.tests.integro.phased.utils;
 
 /**
- * Manages accesss to the stack trace
+ * Manages access to the stack trace
  *
  *
  * Author : gandomi
  *
  */
-public class StackTraceManager {
+public final class StackTraceManager {
+
+    private StackTraceManager() {
+        //Utility class. Defeat instantiation
+    }
 
     /**
      * This method fetches the method that called the current method. Example :
@@ -58,13 +62,8 @@ public class StackTraceManager {
      */
     public static String fetchCalledByFullName() {
         StackTraceElement l_calledElement = Thread.currentThread().getStackTrace()[3];
-        StringBuilder sb = new StringBuilder(l_calledElement.getClassName());
-
-        sb.append('.');
-        sb.append(l_calledElement.getMethodName());
-
-        final String l_methodFullName = sb.toString();
-        return l_methodFullName;
+        return l_calledElement.getClassName() + '.'
+            + l_calledElement.getMethodName();
     }
 
 }

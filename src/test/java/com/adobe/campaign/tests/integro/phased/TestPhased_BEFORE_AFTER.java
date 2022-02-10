@@ -19,7 +19,6 @@ import java.io.File;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
-import java.util.stream.Collectors;
 
 import com.adobe.campaign.tests.integro.phased.data.befaft.*;
 import org.hamcrest.Matchers;
@@ -32,7 +31,6 @@ import org.testng.xml.XmlClass;
 import org.testng.xml.XmlSuite;
 import org.testng.xml.XmlTest;
 
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_SingleClass;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 import com.adobe.campaign.tests.integro.phased.utils.TestTools;
 
@@ -106,14 +104,12 @@ public class TestPhased_BEFORE_AFTER {
         assertThat("We should have executed the before suite once",
                 l_context.getFailedConfigurations().size(), equalTo(0));
         assertThat("Our beforesuite should have been invoked once",
-                l_context.getPassedConfigurations().getAllResults().stream()
-                        .filter(m -> m.getName().equals("beforePhasedSuite")).collect(Collectors.toList())
-                        .size(),
+            (int) l_context.getPassedConfigurations().getAllResults().stream()
+                .filter(m -> m.getName().equals("beforePhasedSuite")).count(),
                 equalTo(1));
         assertThat("Our beforesuite should have been invoked once",
-                l_context.getPassedConfigurations().getAllResults().stream()
-                        .filter(m -> m.getName().equals("simpleBeforeSuite")).collect(Collectors.toList())
-                        .size(),
+            (int) l_context.getPassedConfigurations().getAllResults().stream()
+                .filter(m -> m.getName().equals("simpleBeforeSuite")).count(),
                 equalTo(1));
 
     }
@@ -176,14 +172,12 @@ public class TestPhased_BEFORE_AFTER {
         assertThat("We should no failed configurations",
                 l_context.getFailedConfigurations().size(), equalTo(0));
         assertThat("Our beforesuite should have been invoked once",
-                l_context.getPassedConfigurations().getAllResults().stream()
-                        .filter(m -> m.getName().equals("beforePhasedSuite")).collect(Collectors.toList())
-                        .size(),
+            (int) l_context.getPassedConfigurations().getAllResults().stream()
+                .filter(m -> m.getName().equals("beforePhasedSuite")).count(),
                 equalTo(1));
         assertThat("Our beforesuite should have been invoked once",
-                l_context.getPassedConfigurations().getAllResults().stream()
-                        .filter(m -> m.getName().equals("simpleBeforeSuite")).collect(Collectors.toList())
-                        .size(),
+            (int) l_context.getPassedConfigurations().getAllResults().stream()
+                .filter(m -> m.getName().equals("simpleBeforeSuite")).count(),
                 equalTo(1));
 
     }
@@ -283,14 +277,12 @@ public class TestPhased_BEFORE_AFTER {
         assertThat("We should have no failed configurations", l_context.getFailedConfigurations().size(),
                 equalTo(0));
         assertThat("Our Phased beforesuite should not have been invoked",
-                l_context.getPassedConfigurations().getAllResults().stream()
-                        .filter(m -> m.getName().equals("beforePhasedSuite")).collect(Collectors.toList())
-                        .size(),
+            (int) l_context.getPassedConfigurations().getAllResults().stream()
+                .filter(m -> m.getName().equals("beforePhasedSuite")).count(),
                 equalTo(0));
         assertThat("Our beforesuite should have been invoked once",
-                l_context.getPassedConfigurations().getAllResults().stream()
-                        .filter(m -> m.getName().equals("simpleBeforeSuite")).collect(Collectors.toList())
-                        .size(),
+            (int) l_context.getPassedConfigurations().getAllResults().stream()
+                .filter(m -> m.getName().equals("simpleBeforeSuite")).count(),
                 equalTo(1));
 
     }
@@ -300,9 +292,6 @@ public class TestPhased_BEFORE_AFTER {
      * PRODUCER. In this case the BeforePhase will NOT be invoked
      *
      * Author : gandomi
-     *
-     * @throws NoSuchMethodException
-     * @throws SecurityException
      *
      */
     @Test
@@ -346,14 +335,12 @@ public class TestPhased_BEFORE_AFTER {
                 l_context.getFailedConfigurations().size(), equalTo(0));
 
         assertThat("Our before suite should have not been invoked",
-                l_context.getPassedConfigurations().getAllResults().stream()
-                        .filter(m -> m.getName().equals("beforePhasedSuiteConsumer"))
-                        .collect(Collectors.toList()).size(),
+            (int) l_context.getPassedConfigurations().getAllResults().stream()
+                .filter(m -> m.getName().equals("beforePhasedSuiteConsumer")).count(),
                 equalTo(0));
         assertThat("Our beforesuite should have been invoked once",
-                l_context.getPassedConfigurations().getAllResults().stream()
-                        .filter(m -> m.getName().equals("simpleBeforeSuite")).collect(Collectors.toList())
-                        .size(),
+            (int) l_context.getPassedConfigurations().getAllResults().stream()
+                .filter(m -> m.getName().equals("simpleBeforeSuite")).count(),
                 equalTo(1));
 
     }
@@ -363,9 +350,6 @@ public class TestPhased_BEFORE_AFTER {
      * COSUMER. In this case the BeforePhase will be invoked
      *
      * Author : gandomi
-     *
-     * @throws NoSuchMethodException
-     * @throws SecurityException
      *
      */
     @Test
@@ -425,9 +409,8 @@ public class TestPhased_BEFORE_AFTER {
                 l_context.getFailedConfigurations().size(), equalTo(0));
 
         assertThat("Our before suite should have not been invoked",
-                l_context.getPassedConfigurations().getAllResults().stream()
-                        .filter(m -> m.getName().equals("beforePhasedSuiteConsumer"))
-                        .collect(Collectors.toList()).size(),
+            (int) l_context.getPassedConfigurations().getAllResults().stream()
+                .filter(m -> m.getName().equals("beforePhasedSuiteConsumer")).count(),
                 equalTo(1));
 
     }
@@ -469,9 +452,8 @@ public class TestPhased_BEFORE_AFTER {
         assertThat("We should have executed the before suite once",
                 l_context.getFailedConfigurations().size(), equalTo(0));
         assertThat("Our beforesuite should have been invoked once",
-                l_context.getPassedConfigurations().getAllResults().stream()
-                        .filter(m -> m.getName().equals("afterPhasedSuite")).collect(Collectors.toList())
-                        .size(),
+            (int) l_context.getPassedConfigurations().getAllResults().stream()
+                .filter(m -> m.getName().equals("afterPhasedSuite")).count(),
                 equalTo(1));
 
     }
@@ -524,14 +506,12 @@ public class TestPhased_BEFORE_AFTER {
         assertThat("We should have no failed configurations", l_context.getFailedConfigurations().size(),
                 equalTo(0));
         assertThat("Our Phased beforesuite should not have been invoked",
-                l_context.getPassedConfigurations().getAllResults().stream()
-                        .filter(m -> m.getName().equals("beforePhasedSuite")).collect(Collectors.toList())
-                        .size(),
+            (int) l_context.getPassedConfigurations().getAllResults().stream()
+                .filter(m -> m.getName().equals("beforePhasedSuite")).count(),
                 equalTo(0));
         assertThat("Our beforesuite should have been invoked once",
-                l_context.getPassedConfigurations().getAllResults().stream()
-                        .filter(m -> m.getName().equals("afterPhasedSuite")).collect(Collectors.toList())
-                        .size(),
+            (int) l_context.getPassedConfigurations().getAllResults().stream()
+                .filter(m -> m.getName().equals("afterPhasedSuite")).count(),
                 equalTo(0));
 
     }
@@ -559,7 +539,7 @@ public class TestPhased_BEFORE_AFTER {
 
         assertThat("Reset must have worked", PhasedSeries_M_BeforePhase_BeforeSuite.beforeValue, equalTo(0));
 
-        assertThrows(PhasedTestConfigurationException.class, () -> myTestNG.run());
+        assertThrows(PhasedTestConfigurationException.class, myTestNG::run);
     }
 
     @Test
@@ -585,7 +565,7 @@ public class TestPhased_BEFORE_AFTER {
 
         assertThat("Reset must have worked", PhasedSeries_M_BeforePhase_BeforeSuite.beforeValue, equalTo(0));
 
-        assertThrows(PhasedTestConfigurationException.class, () -> myTestNG.run());
+        assertThrows(PhasedTestConfigurationException.class, myTestNG::run);
     }
 
 
