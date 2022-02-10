@@ -1368,6 +1368,22 @@ public class PhasedTestManager {
         return in_scenario;
     }
 
+    /**
+     * Applies the choice the user made regarding merge reports
+     */
+    protected static void applyMergeReportChoice() {
+        //Activating merge results if the value is set in the system properties
+        if (System.getProperty(PROP_MERGE_STEP_RESULTS, "NOTSET")
+                .equalsIgnoreCase("true")) {
+            activateMergedReports();
+        }
+
+        if (System.getProperty(PROP_MERGE_STEP_RESULTS, "NOTSET")
+                .equalsIgnoreCase("false")) {
+            deactivateMergedReports();
+        }
+    }
+
     protected static class ScenarioContextData {
         public static final String NOT_APPLICABLE_STEP_NAME = "NA";
 

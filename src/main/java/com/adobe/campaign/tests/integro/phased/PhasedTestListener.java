@@ -307,16 +307,7 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
             PhasedTestManager.exportPhaseData();
         }
 
-        //Activating merge results if the value is set in the system properties
-        if (System.getProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS, "NOTSET")
-                .equalsIgnoreCase("true")) {
-            PhasedTestManager.activateMergedReports();
-        }
-
-        if (System.getProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS, "NOTSET")
-                .equalsIgnoreCase("false")) {
-            PhasedTestManager.deactivateMergedReports();
-        }
+        PhasedTestManager.applyMergeReportChoice();
 
         boolean isInactive = !PhasedTestManager.isMergedReportsActivated();
         if (isInactive) {
