@@ -18,7 +18,7 @@ public enum Phases {
 
     boolean hasSplittingEvent;
 
-    Phases(boolean in_isInPhase) {
+    private Phases(boolean in_isInPhase) {
         hasSplittingEvent = in_isInPhase;
     }
 
@@ -32,6 +32,7 @@ public enum Phases {
      *
      */
     public static Phases getCurrentPhase() {
+
         return fetchCorrespondingPhase(System.getProperty(PhasedTestManager.PROP_SELECTED_PHASE));
     }
 
@@ -65,6 +66,7 @@ public enum Phases {
      *
      */
     public boolean isSelected() {
+
         return this.equals(getCurrentPhase());
     }
 
@@ -77,6 +79,7 @@ public enum Phases {
      *
      */
     public boolean hasSplittingEvent() {
+
         return this.hasSplittingEvent;
     }
 
@@ -87,12 +90,13 @@ public enum Phases {
      *
      *
      */
-    void activate() {
+    protected void activate() {
         if (this.hasSplittingEvent) {
             System.setProperty(PhasedTestManager.PROP_SELECTED_PHASE, this.name());
         } else {
             System.clearProperty(PhasedTestManager.PROP_SELECTED_PHASE);
         }
+
     }
 
     /**
@@ -104,9 +108,8 @@ public enum Phases {
      *
      */
     public static Phases[] fetchPhasesWithEvents() {
-        return Arrays.stream(Phases.values())
-            .filter(p -> p.hasSplittingEvent)
-            .toArray(Phases[]::new);
+
+        return Arrays.stream(Phases.values()).filter(p -> p.hasSplittingEvent).toArray(Phases[]::new);
     }
 
 }

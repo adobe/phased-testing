@@ -12,10 +12,11 @@
 package com.adobe.campaign.tests.integro.phased.utils;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
 import org.testng.ITestListener;
+import org.testng.ITestNGListener;
 import org.testng.TestListenerAdapter;
 import org.testng.TestNG;
 import org.testng.xml.XmlMethodSelector;
@@ -34,11 +35,7 @@ import org.testng.xml.XmlTest;
  * @author gandomi
  *
  */
-public final class TestTools {
-
-	private TestTools() {
-		//Utility class. defeat instantiation
-	}
+public class TestTools {
 
 
 	/**
@@ -49,14 +46,8 @@ public final class TestTools {
 	public static TestNG createTestNG() {
 		TestNG myTestNG = new TestNG();
 		TestListenerAdapter tla = new TestListenerAdapter();
-		myTestNG.addListener(tla);
+		myTestNG.addListener((ITestNGListener) tla);
 		return myTestNG;
-	}
-
-	public static TestNG createTestNG(Class<?> ...testClasses) {
-		TestNG testng = createTestNG();
-		testng.setTestClasses(testClasses);
-		return testng;
 	}
 
 	/**
@@ -69,7 +60,7 @@ public final class TestTools {
 	public static XmlSuite addSuitToTestNGTest(TestNG in_testNGTestInstance, String in_suiteName) {
 		XmlSuite mySuite = new XmlSuite();
 		mySuite.setName(in_suiteName);
-		List<XmlSuite> mySuites = new ArrayList<>();
+		List<XmlSuite> mySuites = new ArrayList<XmlSuite>();
 		mySuites.add(mySuite);
 		// Set the list of Suites to the testNG object you created earlier.
 		in_testNGTestInstance.setXmlSuites(mySuites);
@@ -84,7 +75,7 @@ public final class TestTools {
 	public static void attachFilterOutPluginToSuite(XmlSuite in_testngSuite) {
 		XmlMethodSelector mySelector = new XmlMethodSelector();
 		mySelector.setClassName("com.adobe.campaign.tests.integro.core.FilterOut");
-		in_testngSuite.setMethodSelectors(Collections.singletonList(mySelector));
+		in_testngSuite.setMethodSelectors(Arrays.asList(mySelector));
 	}
 
 	/**
@@ -109,12 +100,12 @@ public final class TestTools {
 	 * @return a TestListenerAdapter that listens on the test results
 	 */
 	public static TestListenerAdapter fetchTestResultsHandler(TestNG myTestNG) {
-		List<ITestListener> testListenerAdapters = myTestNG.getTestListeners();
+		List<ITestListener> testLisenerAdapaters = myTestNG.getTestListeners();
 	
-		if (testListenerAdapters.size() != 1)
+		if (testLisenerAdapaters.size() != 1)
 			throw new IllegalStateException("We did not expect to have more than one adapter");
 	
-		return (TestListenerAdapter) testListenerAdapters.get(0);
+		return (TestListenerAdapter) testLisenerAdapaters.get(0);
 	}
 
 }
