@@ -9,18 +9,35 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package com.adobe.campaign.tests.integro.phased;
+package com.adobe.campaign.tests.integro.phased.samples;
 
-class MethodMapping  {
-    
-    Class<?> declaredClass;
-    int nrOfProviders;
-    int totalClassMethods;
-    
-    MethodMapping(Class<?> in_declaredClass, int in_nrOfProviders, int in_nrOfStepsInTest) {
-        nrOfProviders=in_nrOfProviders;
-        totalClassMethods=in_nrOfStepsInTest;
-        declaredClass=in_declaredClass;
-    }
+import java.lang.reflect.Method;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+
+public class PhasedReportElementsSample {
+
+  @Test
+  public void sampleMethodScenarioName() {}
+
+  @Test
+  public void sampleMethodPhase() {
+  }
+
+  @Test
+  public void sampleMethodPhaseGroupNoParams() {}
+
+  @Test
+  public void sampleMethodPhaseGroupWithParams(Method method) {}
+
+  @Test(dataProvider = "dp")
+  public void sampleMethodDataProviders(int i, int j) {}
+
+  @DataProvider(name = "dp")
+  public Object[][] getData() {
+    return new Object[][] {
+        {10, 20}
+    };
+  }
 
 }

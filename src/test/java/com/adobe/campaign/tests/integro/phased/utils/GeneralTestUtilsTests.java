@@ -35,8 +35,6 @@ import com.adobe.campaign.tests.integro.phased.PhasedTestException;
 import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
 import com.adobe.campaign.tests.integro.phased.PhasedTestManagerTests;
 import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_SingleClass;
-import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
-import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 
 public class GeneralTestUtilsTests {
     private static final String TEST_CACHE_DIR = "testCache";
@@ -269,7 +267,7 @@ public class GeneralTestUtilsTests {
     }
 
     @Test
-    public void testStorageMethodWithMultiArgs() throws NoSuchMethodException, SecurityException {
+    public void testStorageMethodWithMultiArgs() throws SecurityException {
 
         final Object[] l_parameterValues = new Object[] { "Q", "Z" };
 
@@ -279,10 +277,9 @@ public class GeneralTestUtilsTests {
     }
 
     @Test
-    public void testStorageMethodWithMultiArgsNotJustStrings()
-            throws NoSuchMethodException, SecurityException {
+    public void testStorageMethodWithMultiArgsNotJustStrings() throws SecurityException {
 
-        final Object[] l_parameterValues = new Object[] { "Q", new Integer("3") };
+        final Object[] l_parameterValues = new Object[] { "Q", Integer.valueOf("3")};
         assertThat("We should have the correct full name",
                 ClassPathParser.fetchParameterValues(l_parameterValues), equalTo("(Q,3)"));
 
