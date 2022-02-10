@@ -13,11 +13,12 @@ package com.adobe.campaign.tests.integro.phased;
 
 class MethodMapping  {
     
-    Class<?> declaredClass;
+    Class declaredClass;
     int nrOfProviders;
     int totalClassMethods;
     
-    MethodMapping(Class<?> in_declaredClass, int in_nrOfProviders, int in_nrOfStepsInTest) {
+    protected MethodMapping(Class in_declaredClass, int in_nrOfProviders, int in_nrOfStepsInTest) {
+        
         nrOfProviders=in_nrOfProviders;
         totalClassMethods=in_nrOfStepsInTest;
         declaredClass=in_declaredClass;

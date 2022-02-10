@@ -12,10 +12,11 @@
 package com.adobe.campaign.tests.integro.phased.utils;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.Collections;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
@@ -30,13 +31,9 @@ import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
  * Author : gandomi
  *
  */
-public final class GeneralTestUtils {
+public class GeneralTestUtils {
 
-    private static final Logger log = LogManager.getLogger();
-
-    private GeneralTestUtils() {
-        //Utility class. Defeat instantiation
-    }
+    protected static Logger log = LogManager.getLogger();
 
     /**
      * Creates a cache directory under the standard output directory, which is
@@ -117,7 +114,7 @@ public final class GeneralTestUtils {
      *        A file that we want to delee.
      *
      */
-    static void deleteFile(File in_fileToDelete) {
+    protected static void deleteFile(File in_fileToDelete) {
         if (in_fileToDelete.exists()) {
             log.debug("Deleting cache File");
             if (!in_fileToDelete.delete()) {
@@ -137,12 +134,19 @@ public final class GeneralTestUtils {
      *
      */
     public static List<String> fetchFileContentLines(File in_resourceFile) {
-        try {
-            return Files.readAllLines(in_resourceFile.toPath());
-        } catch (IOException e) {
+        List<String> lr_listOfFlaggedTests = new ArrayList<>();
+
+        //Parse file as one entry per line
+        try (Scanner s = new Scanner(new FileInputStream(in_resourceFile))) {
+
+            while (s.hasNextLine()) {
+                lr_listOfFlaggedTests.add(s.nextLine());
+            }
+        } catch (FileNotFoundException e) {
             log.error(e.getMessage());
-            return Collections.emptyList();
         }
+
+        return lr_listOfFlaggedTests;
     }
 
     /**
@@ -160,7 +164,20 @@ public final class GeneralTestUtils {
             throw new IllegalArgumentException(
                     "The given file " + in_resourceFile.getPath() + " does not exist.");
         }
-        return String.join("", fetchFileContentLines(in_resourceFile));
+
+        StringBuilder lr_fileContent = new StringBuilder();
+
+        //Parse file as one entry per line
+        try (Scanner s = new Scanner(new FileInputStream(in_resourceFile))) {
+
+            while (s.hasNextLine()) {
+                lr_fileContent.append(s.nextLine());
+            }
+        } catch (FileNotFoundException e) {
+            log.error(e.getMessage());
+        }
+
+        return lr_fileContent.toString();
     }
 
     /**
@@ -175,9 +192,8 @@ public final class GeneralTestUtils {
      *
      */
     public static List<String> fetchFileContentDataLines(File in_resourceFile) {
-        return fetchFileContentLines(in_resourceFile).stream()
-            .filter(l -> !l.startsWith("#"))
-            .collect(Collectors.toList());
+
+        return fetchFileContentLines(in_resourceFile).stream().filter(l -> !l.startsWith("#")).collect(Collectors.toList());
     }
 
 }
