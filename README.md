@@ -373,7 +373,9 @@ For now, we do not know how parallel execution will work with phased tests. So i
 For now, we have not come around to deciding how retry should work in the case of phased tests. By default, we deactivate them on the phased tests unless the user specifically chooses to activate them by setting the system property `PHASED.TESTS.RETRY.DISABLED` to false. 
 
 ## Release Notes
-### 7.0.9-SNAPSHOT
+### 7.0.10-SNAPSHOT when released
+- Refactoring : cleaning up cyclomatic complexity in the code (#49) 
+### 7.0.9
 - Upgraded to TestNG 7.5
 - Resolved case of Skip due to config issues, such as a failure in a BeforePhase method (#41)
 - We no longer throw SkipExceptions in the OnStartTest. Instead, we set the status to Skipped (#42) 

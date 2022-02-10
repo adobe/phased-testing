@@ -14,6 +14,7 @@ package com.adobe.campaign.tests.integro.phased;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 import com.adobe.campaign.tests.integro.phased.utils.StackTraceManager;
+import java.util.Map.Entry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.testng.ITestResult;
@@ -608,7 +609,7 @@ public class PhasedTestManager {
      * @param in_classMethodMap A map of a class and it is methods (A scenario and its steps)
      * @return A map letting us know that for a the given method how often it will be executed in the current phase
      */
-    public static Map<String, MethodMapping> generatePhasedProviders(Map<Class, List<String>> in_classMethodMap) {
+    public static Map<String, MethodMapping> generatePhasedProviders(Map<Class<?>, List<String>> in_classMethodMap) {
 
         return generatePhasedProviders(in_classMethodMap, Phases.getCurrentPhase());
 
@@ -623,22 +624,22 @@ public class PhasedTestManager {
      * @param in_phaseState     The phase in which we are
      * @return A map letting us know that for a the given method how often it will be executed in the current phase
      */
-    public static Map<String, MethodMapping> generatePhasedProviders(Map<Class, List<String>> in_classMethodMap,
+    public static Map<String, MethodMapping> generatePhasedProviders(Map<Class<?>, List<String>> in_classMethodMap,
             Phases in_phaseState) {
         methodMap = new HashMap<>();
 
-        for (Class lt_class : in_classMethodMap.keySet()) {
+        for (Entry<Class<?>, List<String>> entry : in_classMethodMap.entrySet()) {
 
-            List<String> lt_methodList = in_classMethodMap.get(lt_class);
+            List<String> lt_methodList = entry.getValue();
 
             if (in_phaseState.equals(Phases.CONSUMER)) {
                 Collections.reverse(lt_methodList);
             }
 
-            for (int i = 0; i < in_classMethodMap.get(lt_class).size(); i++) {
+            for (int i = 0; i < entry.getValue().size(); i++) {
                 methodMap.put(lt_methodList.get(i),
-                        new MethodMapping(lt_class, in_classMethodMap.get(lt_class).size() - i,
-                                in_classMethodMap.get(lt_class).size()));
+                        new MethodMapping(entry.getKey(), entry.getValue().size() - i,
+                                entry.getValue().size()));
 
             }
         }

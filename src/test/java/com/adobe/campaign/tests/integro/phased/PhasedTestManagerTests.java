@@ -642,7 +642,7 @@ public class PhasedTestManagerTests {
     public void testCreateDataProviderData() {
         Phases.PRODUCER.activate();
 
-        Map<Class, List<String>> l_myMap = new HashMap<Class, List<String>>();
+        Map<Class<?>, List<String>> l_myMap = new HashMap<>();
 
         l_myMap.put(PhasedSeries_F_Shuffle.class, Arrays.asList("a", "b", "c"));
 
@@ -687,7 +687,7 @@ public class PhasedTestManagerTests {
     public void testCreateDataProviderData_withOwnDataProvider() {
         Phases.PRODUCER.activate();
 
-        Map<Class, List<String>> l_myMap = new HashMap<Class, List<String>>();
+        Map<Class<?>, List<String>> l_myMap = new HashMap<>();
 
         l_myMap.put(PhasedSeries_L_ShuffledDP.class, Arrays.asList("a", "b", "c"));
 
@@ -751,7 +751,7 @@ public class PhasedTestManagerTests {
 
     @Test
     public void testCreateDataProviderData_modeConsumer() throws NoSuchMethodException, SecurityException {
-        Map<Class, List<String>> l_myMap = new HashMap<Class, List<String>>();
+        Map<Class<?>, List<String>> l_myMap = new HashMap<>();
 
         final Class<PhasedSeries_F_Shuffle> l_myClass = PhasedSeries_F_Shuffle.class;
         l_myMap.put(l_myClass, Arrays.asList("a", "b", "c"));
