@@ -81,7 +81,7 @@ public final class PhasedTestManager {
 
     private static PhasedDataBroker dataBroker = null;
 
-    static Boolean mergedReportsActivated = Boolean.FALSE;
+    static Boolean mergedReportsActivated = Boolean.TRUE;
 
     static Boolean selectTestsByProducerMode = Boolean.FALSE;
 
