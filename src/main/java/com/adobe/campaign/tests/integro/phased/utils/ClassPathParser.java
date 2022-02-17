@@ -13,12 +13,15 @@ package com.adobe.campaign.tests.integro.phased.utils;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.List;
 import java.util.stream.Collectors;
 
 import org.testng.ITestResult;
 
-public class ClassPathParser {
+public final class ClassPathParser {
+
+    private ClassPathParser() {
+        //Utility class. Defeat instantiation
+    }
 
     /**
      * This method constructs a full name from the given method.
@@ -45,12 +48,8 @@ public class ClassPathParser {
      *
      */
     public static String fetchFullName(ITestResult in_testNGResult) {
-        StringBuilder sb = new StringBuilder(
-                fetchFullName(in_testNGResult.getMethod().getConstructorOrMethod().getMethod()));
-
-        sb.append(fetchParameterValues(in_testNGResult));
-
-        return sb.toString();
+        return fetchFullName(in_testNGResult.getMethod().getConstructorOrMethod().getMethod())
+            + fetchParameterValues(in_testNGResult);
     }
 
     /**
@@ -80,16 +79,14 @@ public class ClassPathParser {
      *
      */
     public static String fetchParameterValues(Object[] in_parameterValues) {
-        StringBuilder lr_sbArg = new StringBuilder();
-        if (in_parameterValues.length > 0) {
-            lr_sbArg.append('(');
-            List<String> l_parameterList = Arrays.asList(in_parameterValues).stream().map(t -> t.toString())
-                    .collect(Collectors.toList());
-
-            lr_sbArg.append(String.join(",", l_parameterList));
-            lr_sbArg.append(')');
+        if (in_parameterValues == null || in_parameterValues.length == 0) {
+            return "";
         }
-        return lr_sbArg.toString();
+        return "(" +
+            Arrays.stream(in_parameterValues)
+                .map(Object::toString)
+                .collect(Collectors.joining(","))
+            + ")";
     }
 
 }

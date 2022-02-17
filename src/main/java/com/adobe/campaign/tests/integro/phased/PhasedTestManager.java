@@ -28,15 +28,19 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class PhasedTestManager {
+public final class PhasedTestManager {
 
-    protected static final String STD_GROUP_SELECT_TESTS_BY_PRODUCER = "PHASED_PRODUCED_TESTS";
-    protected static final String STD_KEY_CLASS_SEPARATOR = "->";
+    private PhasedTestManager() {
+        //Utility class. Defeat instantiation.
+    }
+
+    static final String STD_GROUP_SELECT_TESTS_BY_PRODUCER = "PHASED_PRODUCED_TESTS";
+    static final String STD_KEY_CLASS_SEPARATOR = "->";
 
     public static final String PHASED_TEST_LOG_PREFIX = "[Phased Testing] ";
     public static final String STD_SCENARIO_CONTEXT_SEPARATOR = ";";
 
-    protected static Logger log = LogManager.getLogger();
+    private static final Logger log = LogManager.getLogger();
 
     public static final String PROP_PHASED_DATA_PATH = "PHASED.TESTS.STORAGE.PATH";
     public static final String PROP_OUTPUT_DIR = "PHASED.TESTS.OUTPUT.DIR";
@@ -53,8 +57,8 @@ public class PhasedTestManager {
     public static final String STD_STORE_FILE = "phaseData.properties";
 
     //Values for the DataProvider used in both Shuffled and Single run phases
-    protected static final String STD_PHASED_GROUP_PREFIX = "phased-shuffledGroup_";
-    protected static final String STD_PHASED_GROUP_SINGLE = "phased-singleRun";
+    static final String STD_PHASED_GROUP_PREFIX = "phased-shuffledGroup_";
+    static final String STD_PHASED_GROUP_SINGLE = "phased-singleRun";
 
     public static final String STD_MERGE_STEP_ERROR_PREFIX = "Phased Error: Failure in step ";
 
@@ -68,20 +72,20 @@ public class PhasedTestManager {
         CONTINUE, SKIP_NORESULT, SKIP_PREVIOUS_FAILURE, CONFIG_FAILURE
     }
 
-    protected static Properties phasedCache = new Properties();
-    private static Map<String, ScenarioContextData> scenarioContext = new HashMap<>();
+    static Properties phasedCache = new Properties();
+    private static final Map<String, ScenarioContextData> scenarioContext = new HashMap<>();
 
-    protected static Map<String, MethodMapping> methodMap = new HashMap<>();
+    static Map<String, MethodMapping> methodMap = new HashMap<>();
 
-    protected static Properties phaseContext = new Properties();
+    static Properties phaseContext = new Properties();
 
     private static PhasedDataBroker dataBroker = null;
 
-    protected static Boolean mergedReportsActivated = Boolean.FALSE;
+    static Boolean mergedReportsActivated = Boolean.FALSE;
 
-    protected static Boolean selectTestsByProducerMode = Boolean.FALSE;
+    static Boolean selectTestsByProducerMode = Boolean.FALSE;
 
-    protected static final String SCENARIO_CONTEXT_PREFIX = System.getProperty(PROP_SCENARIO_EXPORTED_PREFIX, "[TC]");
+    static final String SCENARIO_CONTEXT_PREFIX = System.getProperty(PROP_SCENARIO_EXPORTED_PREFIX, "[TC]");
 
     public static class MergedReportData {
 
@@ -128,14 +132,14 @@ public class PhasedTestManager {
     /**
      * @return the scenarioContext
      */
-    protected static Map<String, ScenarioContextData> getScenarioContext() {
+    static Map<String, ScenarioContextData> getScenarioContext() {
         return scenarioContext;
     }
 
     /**
      * @return the dataBroker
      */
-    protected static PhasedDataBroker getDataBroker() {
+    static PhasedDataBroker getDataBroker() {
         return dataBroker;
     }
 
@@ -161,6 +165,9 @@ public class PhasedTestManager {
         Object l_dataBroker;
         try {
             l_dataBrokerImplementation = Class.forName(in_classPath);
+            if (!PhasedDataBroker.class.isAssignableFrom(l_dataBrokerImplementation)) {
+                throw new PhasedTestConfigurationException("The given class was not an instance of PhasedDataBroker");
+            }
 
             l_dataBroker = l_dataBrokerImplementation.newInstance();
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
@@ -232,7 +239,7 @@ public class PhasedTestManager {
      * @param in_storageKey       An additional identifier for storing the data
      * @return The identity of the storage key as stored in the cache
      */
-    protected static String generateStepKeyIdentity(final String in_idInPhaseContext, String in_storageKey) {
+    static String generateStepKeyIdentity(final String in_idInPhaseContext, String in_storageKey) {
 
         return generateStepKeyIdentity(in_idInPhaseContext, in_idInPhaseContext, in_storageKey);
     }
@@ -247,7 +254,7 @@ public class PhasedTestManager {
      * @param in_storageKey       An additional identifier for storing the data
      * @return The identity of the storage key as stored in the cache
      */
-    protected static String generateStepKeyIdentity(final String in_idInPhaseContext, final String in_idPrefixToStore,
+    static String generateStepKeyIdentity(final String in_idInPhaseContext, final String in_idPrefixToStore,
             String in_storageKey) {
         StringBuilder sb = new StringBuilder(in_idPrefixToStore);
 
@@ -273,7 +280,7 @@ public class PhasedTestManager {
      * @param in_idInPhaseContext The id of the step in the context
      * @return The identity of the storage key as stored in the cache
      */
-    protected static String generateStepKeyIdentity(String in_idInPhaseContext) {
+    static String generateStepKeyIdentity(String in_idInPhaseContext) {
         return generateStepKeyIdentity(in_idInPhaseContext, null);
     }
 
@@ -367,7 +374,7 @@ public class PhasedTestManager {
      * <p>
      * Author : gandomi
      */
-    protected static void clearCache() {
+    static synchronized void clearCache() {
         phasedCache.clear();
 
         methodMap = new HashMap<>();
@@ -416,7 +423,7 @@ public class PhasedTestManager {
      * @param in_file that will contain the phase cache and scenario contexts
      * @return The file used for storing the Phase Context.
      */
-    protected static File exportContext(File in_file) {
+    static File exportContext(File in_file) {
 
         log.info("{} Exporting Phased Testing data to {}", PHASED_TEST_LOG_PREFIX, in_file.getPath());
 
@@ -451,7 +458,7 @@ public class PhasedTestManager {
      * @param in_phasedTestFile A file that contains the phase cache data from a previous phase
      * @return A Properties object with the phase cache data from the previous phase
      */
-    protected static Properties importContext(File in_phasedTestFile) {
+    static Properties importContext(File in_phasedTestFile) {
         log.info("{} Importing phase cache.", PHASED_TEST_LOG_PREFIX);
         Properties lr_importedProperties = new Properties();
         try (InputStream input = new FileInputStream(in_phasedTestFile)) {
@@ -484,7 +491,7 @@ public class PhasedTestManager {
      *
      * @return A Properties object with the phase cache data from the previous phase
      */
-    protected static Properties importPhaseData() {
+    static Properties importPhaseData() {
         File l_importCacheFile;
 
         if (dataBroker == null) {
@@ -555,12 +562,9 @@ public class PhasedTestManager {
 
             int lt_nrAfterPhase = l_methodMapping.totalClassMethods - lt_nrBeforePhase;
 
-            StringBuilder lt_sb = new StringBuilder(STD_PHASED_GROUP_PREFIX);
-            lt_sb.append(lt_nrBeforePhase);
-            lt_sb.append("_");
-            lt_sb.append(lt_nrAfterPhase);
-
-            l_objectArrayPhased[rows][0] = lt_sb.toString();
+            l_objectArrayPhased[rows][0] = STD_PHASED_GROUP_PREFIX + lt_nrBeforePhase
+                + "_"
+                + lt_nrAfterPhase;
         }
 
         //Fetch class level data providers
@@ -669,7 +673,7 @@ public class PhasedTestManager {
      * @param in_storedData The data to be stored for the scenario step
      * @return The key used to store the value in the cache
      */
-    protected static String storeTestData(Method in_testMethod, String in_phaseGroup, String in_storedData) {
+    static String storeTestData(Method in_testMethod, String in_phaseGroup, String in_storedData) {
         phaseContext.put(ClassPathParser.fetchFullName(in_testMethod), in_phaseGroup);
         return storePhasedCache(generateStepKeyIdentity(ClassPathParser.fetchFullName(in_testMethod)), in_storedData);
 
@@ -685,7 +689,7 @@ public class PhasedTestManager {
      * @param in_storedData The data to be stored for the scenario step
      * @return The key used to store the value in the cache
      */
-    protected static String storeTestData(Class in_class, String in_phaseGroup, boolean in_storedData) {
+    static String storeTestData(Class<?> in_class, String in_phaseGroup, boolean in_storedData) {
         ScenarioContextData l_scenarioContext = new ScenarioContextData();
         l_scenarioContext.passed = in_storedData;
 
@@ -703,7 +707,7 @@ public class PhasedTestManager {
      * @param in_storedData The data to be stored for the scenario step
      * @return The key used to store the value in the cache
      */
-    protected static String storeTestData(Class in_class, String in_phaseGroup, ScenarioContextData in_storedData) {
+    static String storeTestData(Class<?> in_class, String in_phaseGroup, ScenarioContextData in_storedData) {
         phaseContext.put(in_class.getTypeName(), in_phaseGroup);
 
         final String lr_storedKey = generateStepKeyIdentity(in_class.getTypeName());
@@ -723,25 +727,26 @@ public class PhasedTestManager {
      */
     public static boolean isExecutedInProducerMode(Method in_method) {
 
-        if (PhasedTestManager.isPhasedTestSingleMode(in_method)) {
-            final Class<?> l_declaringClass = in_method.getDeclaringClass();
-            List<Method> l_myMethods = Arrays.stream(l_declaringClass.getMethods())
-                    .filter(PhasedTestManager::isPhasedTest).collect(Collectors.toList());
+        boolean proceed = PhasedTestManager.isPhasedTestSingleMode(in_method);
+        if (!proceed) {
+            return false;
+        }
 
-            Comparator<Method> compareMethodByName = (Method m1, Method m2) -> m1.getName().compareTo(m2.getName());
+        final Class<?> l_declaringClass = in_method.getDeclaringClass();
+        List<Method> l_myMethods = Arrays.stream(l_declaringClass.getMethods())
+            .filter(PhasedTestManager::isPhasedTest)
+            .sorted(Comparator.comparing(Method::getName))
+            .collect(Collectors.toList());
 
-            Collections.sort(l_myMethods, compareMethodByName);
-
-            for (Method lt_declaredMethod : l_myMethods) {
-                if (PhasedTestManager.isPhaseLimit(lt_declaredMethod)) {
-                    return false;
-                }
-
-                if (lt_declaredMethod.equals(in_method)) {
-                    return true;
-                }
-
+        for (Method lt_declaredMethod : l_myMethods) {
+            if (PhasedTestManager.isPhaseLimit(lt_declaredMethod)) {
+                return false;
             }
+
+            if (lt_declaredMethod.equals(in_method)) {
+                return true;
+            }
+
         }
         return false;
     }
@@ -754,7 +759,7 @@ public class PhasedTestManager {
      * @param in_method The method/step which we want to know if it is the last step in the current phase
      * @return True if the test is before or in the phase End.
      */
-    protected static boolean isPhaseLimit(Method in_method) {
+    static boolean isPhaseLimit(Method in_method) {
 
         return in_method.isAnnotationPresent(PhaseEvent.class);
     }
@@ -780,8 +785,7 @@ public class PhasedTestManager {
      * @param in_class Any class that contains tests
      * @return True if the class is a phased test scenario
      */
-    @SuppressWarnings("unchecked")
-    public static boolean isPhasedTest(Class in_class) {
+    public static boolean isPhasedTest(Class<?> in_class) {
         return in_class.isAnnotationPresent(PhasedTest.class);
     }
 
@@ -791,7 +795,7 @@ public class PhasedTestManager {
      * @param in_method Any test method
      * @return True if the test step/method is part of a SingleRun Phase Test scenario
      */
-    protected static boolean isPhasedTestSingleMode(Method in_method) {
+    static boolean isPhasedTestSingleMode(Method in_method) {
         return isPhasedTest(in_method) && !isPhasedTestShuffledMode(in_method);
     }
 
@@ -801,7 +805,7 @@ public class PhasedTestManager {
      * @param in_class Any class that contains tests
      * @return True if the test class is a SingleRun Phase Test scenario
      */
-    protected static boolean isPhasedTestSingleMode(Class in_class) {
+    static boolean isPhasedTestSingleMode(Class<?> in_class) {
         return isPhasedTest(in_class) && !isPhasedTestShuffledMode(in_class);
     }
 
@@ -812,7 +816,7 @@ public class PhasedTestManager {
      * @param in_method A test method
      * @return True if the given test method/step is part of a Shuffled Phased Test scenario
      */
-    protected static boolean isPhasedTestShuffledMode(Method in_method) {
+    static boolean isPhasedTestShuffledMode(Method in_method) {
         return isPhasedTest(in_method) && isPhasedTestShuffledMode(in_method.getDeclaringClass());
     }
 
@@ -823,8 +827,8 @@ public class PhasedTestManager {
      * @param in_class A test class/scenario
      * @return True if the given test scenario is a Shuffled Phased Test scenario
      */
-    protected static boolean isPhasedTestShuffledMode(Class in_class) {
-        return isPhasedTest(in_class) && ((PhasedTest) in_class.getAnnotation(PhasedTest.class)).canShuffle() && Phases
+    static boolean isPhasedTestShuffledMode(Class<?> in_class) {
+        return isPhasedTest(in_class) && in_class.getAnnotation(PhasedTest.class).canShuffle() && Phases
                 .getCurrentPhase().hasSplittingEvent();
     }
 
@@ -838,9 +842,8 @@ public class PhasedTestManager {
      * @return The identity of the scenario
      */
     public static String fetchScenarioName(ITestResult in_testNGResult) {
-        StringBuilder sb = new StringBuilder(
-                in_testNGResult.getMethod().getConstructorOrMethod().getMethod().getDeclaringClass().getTypeName());
-        return sb.append(ClassPathParser.fetchParameterValues(in_testNGResult)).toString();
+        return in_testNGResult.getMethod().getConstructorOrMethod().getMethod().getDeclaringClass()
+            .getTypeName() + ClassPathParser.fetchParameterValues(in_testNGResult);
     }
 
     /**
@@ -867,8 +870,7 @@ public class PhasedTestManager {
     }
 
     private static String attachContextFlag(String in_scenarioName) {
-        StringBuilder sb = new StringBuilder(SCENARIO_CONTEXT_PREFIX);
-        return sb.append(in_scenarioName).toString();
+        return SCENARIO_CONTEXT_PREFIX + in_scenarioName;
     }
 
     /**
@@ -977,7 +979,7 @@ public class PhasedTestManager {
      * @param in_resultList A List of ITestNGResults related to a given scenario
      * @return A long value representing the duration in milliseconds
      */
-    protected static long fetchDurationMillis(List<ITestResult> in_resultList) {
+    static long fetchDurationMillis(List<ITestResult> in_resultList) {
         if (in_resultList == null || in_resultList.isEmpty()) {
             throw new IllegalArgumentException("The given result list of TestNGResults is either null or empty");
         }
@@ -1003,18 +1005,14 @@ public class PhasedTestManager {
      * @param result The TestNGResult object
      * @return A string representation of the test name
      */
-    protected static String fetchPhasedStepName(ITestResult result) {
+    static String fetchPhasedStepName(ITestResult result) {
         if (result.getParameters().length == 0) {
             throw new IllegalArgumentException(
                     "No parameters found. The given test result for test " + ClassPathParser.fetchFullName(result)
                             + " does not seem to have been part of a Phased Test");
         }
 
-        StringBuilder sb = new StringBuilder(concatenateParameterArray(result.getParameters()));
-
-        sb.append('_');
-        sb.append(result.getName());
-        return sb.toString();
+        return concatenateParameterArray(result.getParameters()) + '_' + result.getName();
     }
 
     /**
@@ -1152,7 +1150,7 @@ public class PhasedTestManager {
      * @return The data providers attached to the class. An empty array is returned if there is no data provider defined
      * at a class level
      */
-    protected static Object[][] fetchDataProviderValues(Class<?> in_phasedTestClass) {
+    static Object[][] fetchDataProviderValues(Class<?> in_phasedTestClass) {
 
         final Object[][] lr_defaultReturnValue = new Object[0][0];
         if (!in_phasedTestClass.isAnnotationPresent(Test.class)) {
@@ -1187,19 +1185,18 @@ public class PhasedTestManager {
         }
 
         //Fetch the data provider method
+        final Class<?> clazzName = l_dataProviderClass;
         Method l_dataProviderMethod = Arrays.stream(l_dataProviderClass.getDeclaredMethods())
                 .filter(a -> a.isAnnotationPresent(DataProvider.class))
                 .filter(f -> f.getDeclaredAnnotation(DataProvider.class).name().equals(l_dataProviderName))
-                .findFirst().orElse(null);
-
-        if (l_dataProviderMethod != null) {
-            //In case of private data providers
-            l_dataProviderMethod.setAccessible(true);
-        } else {
+                .findFirst()
+            .<PhasedTestConfigurationException>orElseThrow(() -> {
             throw new PhasedTestConfigurationException(
-                    "No method found which matched the data provider class " + l_dataProviderClass.getTypeName()
+                    "No method found which matched the data provider class " + clazzName.getTypeName()
                             + " or data provider name " + l_dataProviderName);
-        }
+            });
+
+        l_dataProviderMethod.setAccessible(true);
 
         try {
             return (Object[][]) l_dataProviderMethod.invoke(l_dataProviderClass.newInstance(), new Object[0]);
@@ -1219,7 +1216,7 @@ public class PhasedTestManager {
      * @param in_values an array of objects that can be transformed to a string
      * @return a concatenation of the values. Otherwise empty String
      */
-    protected static String concatenateParameterArray(Object[] in_values) {
+    static String concatenateParameterArray(Object[] in_values) {
         StringBuilder sb = new StringBuilder();
 
         for (int i = 0; i < in_values.length; i++) {
@@ -1371,7 +1368,7 @@ public class PhasedTestManager {
     /**
      * Applies the choice the user made regarding merge reports
      */
-    protected static void applyMergeReportChoice() {
+    static void applyMergeReportChoice() {
         //Activating merge results if the value is set in the system properties
         if (System.getProperty(PROP_MERGE_STEP_RESULTS, "NOTSET")
                 .equalsIgnoreCase("true")) {
@@ -1505,10 +1502,8 @@ public class PhasedTestManager {
          * @return A string representation of this class
          */
         public String exportToString() {
-            StringBuilder sb = new StringBuilder(Boolean.toString(this.passed));
-            sb.append(";").append(this.duration).append(";").append(this.failedStep).append(";")
-                    .append(this.getFailedInPhase().name());
-            return sb.toString();
+            return this.passed + ";" + this.duration + ";" + this.failedStep + ";"
+                    + this.getFailedInPhase().name();
         }
 
         /**
@@ -1526,24 +1521,28 @@ public class PhasedTestManager {
                         "The imported string cannot be parsed as it does not contain the minimum 2 entries.");
             }
 
-            this.passed = Boolean.valueOf(l_valueArray[0]);
-            this.duration = Long.valueOf(l_valueArray[1]);
+            this.passed = Boolean.parseBoolean(l_valueArray[0]);
+            this.duration = Long.parseLong(l_valueArray[1]);
 
-            if (!this.passed) {
-                if (l_valueArray.length < 4) {
-                    throw new IllegalArgumentException(
-                            "The imported string cannot be parsed as it does not contain the minimum 4 of entries.");
-                }
+            if (this.passed) {
+                return;
+            }
 
-                this.failedStep = !l_valueArray[2].trim().isEmpty() ? l_valueArray[2] : NOT_APPLICABLE_STEP_NAME;
+            if (l_valueArray.length < 4) {
+                throw new IllegalArgumentException(
+                    "The imported string cannot be parsed as it does not contain the minimum 4 of entries.");
+            }
 
-                try {
-                    this.setFailedInPhase(!l_valueArray[3].trim().isEmpty() ? Phases.valueOf(
-                            l_valueArray[3]) : Phases.NON_PHASED);
-                } catch (IllegalArgumentException exc) {
-                    throw new IllegalArgumentException(
-                            "The given import string " + in_importString + " does not allow us to deduce the Phase.");
-                }
+            this.failedStep =
+                !l_valueArray[2].trim().isEmpty() ? l_valueArray[2] : NOT_APPLICABLE_STEP_NAME;
+
+            try {
+                this.setFailedInPhase(!l_valueArray[3].trim().isEmpty() ? Phases.valueOf(
+                    l_valueArray[3]) : Phases.NON_PHASED);
+            } catch (IllegalArgumentException exc) {
+                throw new IllegalArgumentException(
+                    "The given import string " + in_importString
+                        + " does not allow us to deduce the Phase.");
             }
 
         }
