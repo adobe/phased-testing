@@ -328,11 +328,8 @@ The Phased Data Broker can then be attached to the test in three ways (in descen
 
 ## Reporting
 In this chapter we discuss the test reports. We currently have two types of reports:
-- Default Reports
-- Report By Phase Group
-
-### Default Reports
-By default we only slightly modify how TestNG generates reports. As each step is a method, you will get one result per step. This will lead to a lot of results, but you will have the fill overview of the evolution of the tests.
+- Default Reports - Report By Phase Group and Scenario
+- Raw Reports
 
 ### Report By Phase Group and Scenario
 To make the reports a bit less messy, we introduced a report where, we only keep one result per Phase Group and Scenario. Technically, we keep the most pertinent result. The following use cases exist for a phase group.
@@ -342,9 +339,9 @@ To make the reports a bit less messy, we introduced a report where, we only keep
 - Whenever an exception is encountered in a step, it is enriched with the step name and the phase in which it happened.
 - The duration we report will be the full duration of the scenario which includes the steps on both phases.
 
-Whenever activated, the default behavior is we just show the phase group name. This can, however be configured. We will describe this process in more detail in the chapter [on how we can configure the Merged Reports](#configuring-merged-reports). 
+The default behavior is we just show the phase group name. This can, however be configured. We will describe this process in more detail in the chapter [on how we can configure the Merged Reports](#configuring-merged-reports).
 
-To activate this report, you need to set the system property PHASED.TESTS.REPORT.BY.PHASE_GROUP to "true".
+As of version 7.0.10 this report mode is the default report mode.
 
 #### Configuring Merged Reports
 By default, we store the Phase Groups whenever a Phased Test is run. However, we now have the possibility to override this. This is done by using the class `PhasedTestManager.MergedReportData.configureMergedReportName(Prefix Elements, Prefix Elements)`. This allows users to specify the Phased Test output.
@@ -354,6 +351,11 @@ The following configuration items can be added to the constructed name:
 - **Phase Group** adds the phase group to the constructed method name
 - **Scenario Name** adds the scenario name (the class) to the constructed method name
 - **Data Provider** add the data providers, separated by "_" to the name 
+
+### Raw Reports
+We sometimes need to have an un polished report for debugging reasons. Therefore, we have introduced a raw report mode.By default, we only slightly modify how TestNG generates reports. As each step is a method, you will get one result per step. This will lead to a lot of results, but you will have the full overview of the evolution of the tests.
+
+To activate this report, you need to set the system property PHASED.TESTS.REPORT.BY.PHASE_GROUP to "false".
 
 ## Misc
 In this chapter we will deal with miscellaneous issues related to Phased Tests
@@ -374,7 +376,8 @@ For now, we have not come around to deciding how retry should work in the case o
 
 ## Release Notes
 ### 7.0.10-SNAPSHOT when released
-- Refactoring : cleaning up cyclomatic complexity in the code (#49) 
+- Reports are now merged by default (#56)
+- Refactoring : cleaning up cyclomatic complexity in the code (#49)
 ### 7.0.9
 - Upgraded to TestNG 7.5
 - Resolved case of Skip due to config issues, such as a failure in a BeforePhase method (#41)
