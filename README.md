@@ -7,7 +7,7 @@
 
 Phased testing is a concept where tests can be written in a way so that they can validate major system changes.
 
-This library allows you to define tests in such a way, so that they can be interrupted at any point awaiting an event, and to carry on where they left off. More specifically based on your design he Phased tests will ensure that a scenario will work on an upgraded system no matter where it is interrupted.
+This library allows you to define tests in such a way, so that they can be interrupted at any point awaiting an event, and to carry on where they left off. More specifically based on your design the Phased tests will ensure that a scenario will work on an upgraded system no matter where it is interrupted.
 
 The most common usage is for validating :
 * Upgrades
