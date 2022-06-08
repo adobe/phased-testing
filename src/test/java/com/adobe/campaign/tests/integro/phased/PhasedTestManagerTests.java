@@ -12,6 +12,7 @@
 package com.adobe.campaign.tests.integro.phased;
 
 import com.adobe.campaign.tests.integro.phased.data.*;
+import com.adobe.campaign.tests.integro.phased.data.befaft.PhasedSeries_M_SimpleClass;
 import com.adobe.campaign.tests.integro.phased.data.dp.*;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
@@ -2512,6 +2513,15 @@ public class PhasedTestManagerTests {
                 equalTo(PhasedSeries_L_PROVIDER.PROVIDER_A));
         assertThat("We should have the correct values in the lines", result[1][0],
                 equalTo(PhasedSeries_L_PROVIDER.PROVIDER_B));
+    }
+
+    @Test
+    public void testFetchingDataProvidersInDPClass_NegativeNotPhasedTest() throws IllegalArgumentException {
+        Class<PhasedSeries_M_SimpleClass> l_classLevelDP = PhasedSeries_M_SimpleClass.class;
+
+        Object[][] result = PhasedTestManager.fetchDataProviderValues(l_classLevelDP);
+
+        assertThat("We should have no entries", result.length, equalTo(0));
     }
 
     @Test
