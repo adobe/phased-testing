@@ -13,27 +13,11 @@ package com.adobe.campaign.tests.integro.phased;
 
 import com.adobe.campaign.tests.integro.phased.internal.PhaseProcessorFactory;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.BiPredicate;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.testng.*;
-import org.testng.annotations.*;
+import org.testng.annotations.IConfigurationAnnotation;
+import org.testng.annotations.ITestAnnotation;
 import org.testng.internal.BaseTestMethod;
 import org.testng.internal.TestResult;
 import org.testng.internal.annotations.DisabledRetryAnalyzer;
@@ -41,13 +25,23 @@ import org.testng.xml.XmlClass;
 import org.testng.xml.XmlSuite;
 import org.testng.xml.XmlTest;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.function.BiPredicate;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 public class PhasedTestListener implements ITestListener, IAnnotationTransformer, IAlterSuiteListener {
 
     protected static Logger log = LogManager.getLogger();
     private static final BiPredicate<ITestResult, String> SCENARIO_NAME_MATCHER = (itr, clazzName) ->
-        PhasedTestManager.fetchScenarioName(itr).equals(clazzName);
+            PhasedTestManager.fetchScenarioName(itr).equals(clazzName);
     private static final Function<ITestResult, Method> METHOD_EXTRACTOR = itr ->
-        itr.getMethod().getConstructorOrMethod().getMethod();
+            itr.getMethod().getConstructorOrMethod().getMethod();
 
     @Override
     public void alter(List<XmlSuite> suites) {
@@ -122,7 +116,7 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
 
             //Disable retrying of phased tests
             if (System.getProperty(PhasedTestManager.PROP_DISABLE_RETRY, "true").equalsIgnoreCase("true")) {
-                log.info("{} Disabling Retry for phased Tests.",PhasedTestManager.PHASED_TEST_LOG_PREFIX);
+                log.info("{} Disabling Retry for phased Tests.", PhasedTestManager.PHASED_TEST_LOG_PREFIX);
                 result.getMethod().setRetryAnalyzerClass(DisabledRetryAnalyzer.class);
             }
 
@@ -131,28 +125,28 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
             PhasedTestManager.storePhasedContext(ClassPathParser.fetchFullName(l_method), l_dataProvider);
 
             switch (PhasedTestManager.scenarioStateDecision(result)) {
-                case SKIP_PREVIOUS_FAILURE:
-                    final String skipMessageSKIPFAILURE = PhasedTestManager.PHASED_TEST_LOG_PREFIX
-                            + "Skipping scenario step " + ClassPathParser.fetchFullName(result)
-                            + " due to failure in step " + PhasedTestManager.getScenarioContext()
-                            .get(PhasedTestManager.fetchScenarioName(result)).getFailedStep() + " in Phase "
-                            + PhasedTestManager.getScenarioContext()
-                            .get(PhasedTestManager.fetchScenarioName(result)).getFailedInPhase().name();
+            case SKIP_PREVIOUS_FAILURE:
+                final String skipMessageSKIPFAILURE = PhasedTestManager.PHASED_TEST_LOG_PREFIX
+                        + "Skipping scenario step " + ClassPathParser.fetchFullName(result)
+                        + " due to failure in step " + PhasedTestManager.getScenarioContext()
+                        .get(PhasedTestManager.fetchScenarioName(result)).getFailedStep() + " in Phase "
+                        + PhasedTestManager.getScenarioContext()
+                        .get(PhasedTestManager.fetchScenarioName(result)).getFailedInPhase().name();
 
-                    log.info(skipMessageSKIPFAILURE);
-                    result.setStatus(ITestResult.SKIP);
-                    result.setThrowable(new PhasedStepFailure(skipMessageSKIPFAILURE));
-                    break;
-                case SKIP_NORESULT:
-                    final String skipMessageNoResult = PhasedTestManager.PHASED_TEST_LOG_PREFIX
-                            + "Skipping scenario step " + ClassPathParser.fetchFullName(result)
-                            + " because the previous steps have not been executed in the previous phase.";
-                    log.error(skipMessageNoResult);
-                    result.setStatus(ITestResult.SKIP);
-                    result.setThrowable(new PhasedStepFailure(skipMessageNoResult));
-                    break;
-                case CONFIG_FAILURE:
-                default:
+                log.info(skipMessageSKIPFAILURE);
+                result.setStatus(ITestResult.SKIP);
+                result.setThrowable(new PhasedStepFailure(skipMessageSKIPFAILURE));
+                break;
+            case SKIP_NORESULT:
+                final String skipMessageNoResult = PhasedTestManager.PHASED_TEST_LOG_PREFIX
+                        + "Skipping scenario step " + ClassPathParser.fetchFullName(result)
+                        + " because the previous steps have not been executed in the previous phase.";
+                log.error(skipMessageNoResult);
+                result.setStatus(ITestResult.SKIP);
+                result.setThrowable(new PhasedStepFailure(skipMessageNoResult));
+                break;
+            case CONFIG_FAILURE:
+            default:
                 //Continue
             }
         }
@@ -167,11 +161,10 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
 
     /**
      * Renames the test result with a new name
-     * 
+     * <p>
      * Author : gandomi
      *
-     * @param in_testResult
-     *        A TestNG Result Object
+     * @param in_testResult A TestNG Result Object
      */
     protected void renameMethodReport(ITestResult in_testResult) {
         String l_newName = PhasedTestManager.fetchTestNameForReport(in_testResult);
@@ -183,7 +176,7 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
             methodName.setAccessible(true);
             methodName.set(in_testResult.getMethod(), l_newName);
         } catch (IllegalAccessException | NoSuchFieldException e) {
-            log.error("Error while changing the phased step name {}.",in_testResult.getName(), e);
+            log.error("Error while changing the phased step name {}.", in_testResult.getName(), e);
             throw new PhasedTestException(
                     "Error while changing the phased step name " + in_testResult.getName() + ".", e);
         }
@@ -191,15 +184,13 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
 
     /**
      * This method appends the shuffle group name to the method name
-     *
+     * <p>
      * Author : gandomi
      *
-     * @param result
-     *        The TestNG result context
-     *
+     * @param result The TestNG result context
      */
     protected void appendShuffleGroupToName(ITestResult result) {
-        String l_enrichedStepName = PhasedTestManager.  fetchPhasedStepName(result);
+        String l_enrichedStepName = PhasedTestManager.fetchPhasedStepName(result);
         try {
             Field method = TestResult.class.getDeclaredField("m_method");
             method.setAccessible(true);
@@ -208,7 +199,7 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
             methodName.setAccessible(true);
             methodName.set(result.getMethod(), l_enrichedStepName);
         } catch (IllegalAccessException | NoSuchFieldException e) {
-            log.error("Error while changing the phased step name {}.",result.getName(), e);
+            log.error("Error while changing the phased step name {}.", result.getName(), e);
             throw new PhasedTestException(
                     "Error while changing the phased step name " + result.getName() + ".", e);
         }
@@ -221,14 +212,11 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
     }
 
     /**
-     * This method groups all the post test actions, that are common in all
-     * cases
-     *
+     * This method groups all the post test actions, that are common in all cases
+     * <p>
      * Author : gandomi
      *
-     * @param result
-     *        The TestNG result context
-     *
+     * @param result The TestNG result context
      */
     protected void standardPostTestActions(ITestResult result) {
         if (PhasedTestManager.isPhasedTest(result.getMethod().getConstructorOrMethod().getMethod())) {
@@ -257,8 +245,10 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
         //Creating a method map
         //DOES THE FOR LOOP NEED TO GO THROUGH ALL METHODS?
         Map<Class<?>, List<String>> l_classMethodMap = new HashMap<>();
-        for (ITestNGMethod lt_testNGMethod : context.getSuite().getAllMethods()) {
-            Method lt_method = lt_testNGMethod.getConstructorOrMethod().getMethod();
+        for (Method lt_method : context.getSuite().getAllMethods().stream()
+                .map(tngR -> tngR.getConstructorOrMethod().getMethod()).filter(f -> PhasedTestManager.isPhasedTest(f))
+                .collect(Collectors.toList())) {
+            //Method lt_method = lt_testNGMethod.getConstructorOrMethod().getMethod();
 
             //Check if the number of method arguments are correct
             final Object[][] lt_currentDataProviders = PhasedTestManager
@@ -268,8 +258,7 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
             final int lt_nrOfExpectedArguments = lt_currentDataProviders.length == 0 ? 1
                     : lt_currentDataProviders[0].length + 1;
 
-            if (PhasedTestManager.isPhasedTest(lt_method)
-                    && (lt_nrOfExpectedArguments > lt_method.getParameterCount())) {
+            if  (lt_nrOfExpectedArguments > lt_method.getParameterCount()) {
                 StringBuilder l_errorMsg = new StringBuilder("The method ");
                 l_errorMsg.append(ClassPathParser.fetchFullName(lt_method)).append(" needs to declare ")
                         .append(lt_nrOfExpectedArguments).append(" arguments. Instead it has only declared ")
@@ -303,7 +292,7 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
 
         //Once the tests have finished in producer mode we, need to export the data
         if (Phases.PRODUCER.isSelected()) {
-            log.info("{} At the end. Exporting data", PhasedTestManager.PHASED_TEST_LOG_PREFIX );
+            log.info("{} At the end. Exporting data", PhasedTestManager.PHASED_TEST_LOG_PREFIX);
             PhasedTestManager.exportPhaseData();
         }
 
@@ -319,18 +308,18 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
 
         //Fetch classes That are phased test classes
         Map<String, List<ITestResult>> l_phasedScenarios =
-            mergedStreamOfAllResults(context)
-                .filter(t -> PhasedTestManager.isPhasedTest(METHOD_EXTRACTOR.apply(t)))
-                .collect(Collectors.groupingBy(PhasedTestManager::fetchScenarioName,
-                    Collectors.toList()));
+                mergedStreamOfAllResults(context)
+                        .filter(t -> PhasedTestManager.isPhasedTest(METHOD_EXTRACTOR.apply(t)))
+                        .collect(Collectors.groupingBy(PhasedTestManager::fetchScenarioName,
+                                Collectors.toList()));
 
         for (Entry<String, List<ITestResult>> each : l_phasedScenarios.entrySet()) {
             log.info(PhasedTestManager.PHASED_TEST_LOG_PREFIX + "Reducing Report for " + each);
 
             //When the phase test scenario was not a success
-            if (PhasedTestManager.getScenarioContext().get(each.getKey()).isPassed())
+            if (PhasedTestManager.getScenarioContext().get(each.getKey()).isPassed()) {
                 handlePassedPhases(context, each.getKey());
-            else {
+            } else {
                 handleFailedPhases(context, each);
             }
         }
@@ -357,17 +346,18 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
             renameMethodReport(lt_currentSuccess);
 
             lt_currentSuccess.setEndMillis(
-                lt_currentSuccess.getStartMillis()
-                    + PhasedTestManager.getScenarioContext()
-                    .get(PhasedTestManager.fetchScenarioName(lt_currentSuccess))
-                    .getDuration());
+                    lt_currentSuccess.getStartMillis()
+                            + PhasedTestManager.getScenarioContext()
+                            .get(PhasedTestManager.fetchScenarioName(lt_currentSuccess))
+                            .getDuration());
         }
     }
+
     private void handleFailedPhases(ITestContext context, Entry<String, List<ITestResult>> entry) {
         //Delete all the passed steps : These steps are not relevant if we are merging the step results
 
         context.getPassedTests().getAllResults().removeIf(
-            lt_currentSuccess -> SCENARIO_NAME_MATCHER.test(lt_currentSuccess, entry.getKey()));
+                lt_currentSuccess -> SCENARIO_NAME_MATCHER.test(lt_currentSuccess, entry.getKey()));
 
         //Removing Skipped Tests
         //Keep 1 IFF all tests were skipped
@@ -392,8 +382,8 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
 
             if (!l_allSkipped) {
                 log.debug("{} Removing {} because there are un-skipped values.",
-                    PhasedTestManager.PHASED_TEST_LOG_PREFIX,
-                    ClassPathParser.fetchFullName(lt_currentSkip));
+                        PhasedTestManager.PHASED_TEST_LOG_PREFIX,
+                        ClassPathParser.fetchFullName(lt_currentSkip));
                 lt_skippedTestIterator.remove();
                 continue;
             }
@@ -402,17 +392,17 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
                 continue;
             }
             log.debug(
-                "{} Keeping {} because when all results are skipped we keep only the first one..",
-                PhasedTestManager.PHASED_TEST_LOG_PREFIX,
-                ClassPathParser.fetchFullName(lt_currentSkip));
+                    "{} Keeping {} because when all results are skipped we keep only the first one..",
+                    PhasedTestManager.PHASED_TEST_LOG_PREFIX,
+                    ClassPathParser.fetchFullName(lt_currentSkip));
 
             l_foundSkipped = true;
 
             lt_currentSkip.setEndMillis(
-                lt_currentSkip.getStartMillis()
-                    + PhasedTestManager.getScenarioContext()
-                    .get(PhasedTestManager.fetchScenarioName(lt_currentSkip))
-                    .getDuration());
+                    lt_currentSkip.getStartMillis()
+                            + PhasedTestManager.getScenarioContext()
+                            .get(PhasedTestManager.fetchScenarioName(lt_currentSkip))
+                            .getDuration());
 
             renameMethodReport(lt_currentSkip);
         }
@@ -425,10 +415,10 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
             }
             //Update duration
             lt_currentFail.setEndMillis(
-                lt_currentFail.getStartMillis()
-                    + PhasedTestManager.getScenarioContext()
-                    .get(PhasedTestManager.fetchScenarioName(lt_currentFail))
-                    .getDuration());
+                    lt_currentFail.getStartMillis()
+                            + PhasedTestManager.getScenarioContext()
+                            .get(PhasedTestManager.fetchScenarioName(lt_currentFail))
+                            .getDuration());
 
             //Wrap the Exception
             PhasedTestManager.generateStepFailure(lt_currentFail);
@@ -445,7 +435,8 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
         if (testClass != null) {
 
             //inject the
-            if (PhasedTestManager.isTestsSelectedByProducerMode() && PhasedTestManager.fetchExecutedPhasedClasses().contains(testClass.getTypeName())) {
+            if (PhasedTestManager.isTestsSelectedByProducerMode() && PhasedTestManager.fetchExecutedPhasedClasses()
+                    .contains(testClass.getTypeName())) {
 
                 //Create new group array
                 Set<String> l_newArrayString = new HashSet<>(Arrays.asList(annotation.getGroups()));
@@ -483,10 +474,10 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
 
     private static Stream<ITestResult> mergedStreamOfAllResults(ITestContext context) {
         return Stream.concat(context.getFailedTests().getAllResults().stream(),
-            Stream.concat(
-                context.getSkippedTests().getAllResults().stream(),
-                context.getPassedTests().getAllResults().stream()
-            )
+                Stream.concat(
+                        context.getSkippedTests().getAllResults().stream(),
+                        context.getPassedTests().getAllResults().stream()
+                )
         );
     }
 

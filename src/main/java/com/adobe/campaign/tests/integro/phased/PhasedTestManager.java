@@ -1153,10 +1153,11 @@ public final class PhasedTestManager {
     static Object[][] fetchDataProviderValues(Class<?> in_phasedTestClass) {
 
         final Object[][] lr_defaultReturnValue = new Object[0][0];
+
         if (!in_phasedTestClass.isAnnotationPresent(Test.class)) {
             log.warn(
-                    "{} The given phased test class does not have the Test annotation on it. Data Providers for Phased Tests can only be considered at that level.",
-                    PhasedTestManager.PHASED_TEST_LOG_PREFIX);
+                    "{} The given phased test class {} does not have the Test annotation on it. Data Providers for Phased Tests can only be considered at that level.",
+                    PhasedTestManager.PHASED_TEST_LOG_PREFIX, in_phasedTestClass.getTypeName());
 
             return lr_defaultReturnValue;
         }
