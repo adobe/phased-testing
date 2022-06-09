@@ -375,6 +375,7 @@ For now, we do not know how parallel execution will work with phased tests. So i
 For now, we have not come around to deciding how retry should work in the case of phased tests. By default, we deactivate them on the phased tests unless the user specifically chooses to activate them by setting the system property `PHASED.TESTS.RETRY.DISABLED` to false. 
 
 ## Release Notes
+
 ### 7.0.10
 - Reports are now merged by default (#56)
 - Refactoring : cleaning up cyclomatic complexity in the code (#49).
