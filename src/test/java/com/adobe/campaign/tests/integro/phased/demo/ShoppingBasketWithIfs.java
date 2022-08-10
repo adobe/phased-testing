@@ -12,24 +12,42 @@
 package com.adobe.campaign.tests.integro.phased.demo;
 
 import com.adobe.campaign.tests.integro.phased.PhasedTest;
+import com.adobe.campaign.tests.integro.phased.Phases;
 import org.testng.annotations.Test;
 
-    @Test
-    @PhasedTest(canShuffle = true)
-    public class ShoppingBasket {
+    public class ShoppingBasketWithIfs {
     
-        public void step1_searchForProduct(String val) {
-          //searchForProduct()
+        //The normal test (0_3 and 3_0)
+        @Test
+        public void standardTest() {
+            //searchForProduct()
+            //addToShoppingBasket()
+            //payForProduct()
         }
     
-        public void step2_addToShoppingBasket(String val) {
-            //addToShoppingBasket()   
+        @Test
+        public void ShoppingBasket1_2() {
+            if (Phases.PRODUCER.isSelected()) {
+                //searchForProduct()
+            } else {
+                //addToShoppingBasket()
+                //payForProduct()
+            }
         }
     
-        public void step3_payForProduct(String val) {
-          //payForProduct()
+        @Test
+        public void ShoppingBasket2_1() {
+            if (Phases.PRODUCER.isSelected()) {
+                //searchForProduct()
+                //addToShoppingBasket()
+            } else {
+                //payForProduct()
+            }
         }
     }
+
+    
+
 
 
 

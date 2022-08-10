@@ -11,28 +11,17 @@
  */
 package com.adobe.campaign.tests.integro.phased.demo;
 
-import com.adobe.campaign.tests.integro.phased.PhasedTest;
-import org.testng.annotations.Test;
+public class BasketManager {
 
-    @Test
-    @PhasedTest(canShuffle = true)
-    public class ShoppingBasket {
-    
-        public void step1_searchForProduct(String val) {
-          //searchForProduct()
-        }
-    
-        public void step2_addToShoppingBasket(String val) {
-            //addToShoppingBasket()   
-        }
-    
-        public void step3_payForProduct(String val) {
-          //payForProduct()
-        }
+    public static String createNewBasket() {
+        return "1";
+        // TODO Auto-generated method stub
+        
     }
 
+    public static Basket fetchBasket(String basketId) {
+        // TODO Auto-generated method stub
+        return new Basket();
+    }
 
-
-
-
-
+}
