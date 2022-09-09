@@ -332,7 +332,17 @@ In this chapter we discuss the test reports. We currently have two types of repo
 - Raw Reports
 
 ### Report By Phase Group and Scenario
-To make the reports a bit less messy, we introduced a report where, we only keep one result per Phase Group and Scenario. Technically, we keep the most pertinent result. The following use cases exist for a phase group.
+To make the reports a bit less messy, we introduced a report where, we only keep one result per Phase Group and Scenario. Technically, we keep the most pertinent result. 
+
+These are the end results of a phased scenario and its Phase Group:
+PRODUCER Phase Passed | CONSUMER Phase Passed | End Result
+--------------------- | --------------------- | ----------
+TRUE | TRUE | PASSED
+FALSE | TRUE | SKIPPED
+TRUE | FALSE | FAILED
+
+
+The following use cases exist for a phase group.
 - If all steps succeed, we keep the first step as the end result.
 - If in the current phase we have a failure at step X, we only keep that step result. All following steps are discarded from the result. 
 - If the phase group had failed in the previous phase, we keep the first step result which is "skipped". When failing due to a failure in the PRODUCER Phase, the skip message will contain the step and the phase in which the failure occurred. 
