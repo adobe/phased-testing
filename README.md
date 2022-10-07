@@ -216,7 +216,7 @@ As of version 7.0.9 of Phased Testing which is based on the 7.5 of TestNG, we ca
 Example:
 ```java
 public class PhasedTestSeries_NestedContainer {
-  @Test( dataProvider = PhasedDataProvider.DEFAULT, dataProviderClass = PhasedDataProvider.class)
+  @Test
   @PhasedTest(canShuffle = true)
   public class PhasedScenario1 {
 
@@ -231,7 +231,7 @@ public class PhasedTestSeries_NestedContainer {
     }
   }
 
-  @Test( dataProvider = PhasedDataProvider.DEFAULT, dataProviderClass = PhasedDataProvider.class)
+  @Test
   @PhasedTest(canShuffle = true)
   public class PhasedScenario2 {
 
