@@ -11,6 +11,7 @@
  */
 package com.adobe.campaign.tests.integro.phased;
 
+import com.adobe.campaign.tests.integro.phased.data.events.NI_Event1;
 import com.adobe.campaign.tests.integro.phased.internal.PhaseProcessorFactory;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
 import org.apache.logging.log4j.LogManager;
@@ -149,6 +150,20 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
             default:
                 //Continue
             }
+
+            Thread t1 = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    NI_Event1 myEvent = new NI_Event1();
+                    myEvent.execute();
+
+                }
+            });
+            t1.start();
+
+            log.info(t1.getState());
+
+
         }
     }
 
