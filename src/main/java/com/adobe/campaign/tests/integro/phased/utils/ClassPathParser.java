@@ -11,6 +11,7 @@
  */
 package com.adobe.campaign.tests.integro.phased.utils;
 
+import java.io.File;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -87,6 +88,22 @@ public final class ClassPathParser {
                 .map(Object::toString)
                 .collect(Collectors.joining(","))
             + ")";
+    }
+
+    /**
+     * This method returns the file path of the given class
+     *
+     * @param className
+     * @return
+     *
+     */
+    public static File fetchClassFile(String className) {
+        if (className == null || className.isEmpty()) {
+            return null;
+        }
+        final String l_rootPath = (new File("")).getAbsolutePath() + "/src/test/java";
+        final String l_filePath = l_rootPath + "/" + className.replace('.', '/') + ".java";
+        return new File(l_filePath);
     }
 
 }
