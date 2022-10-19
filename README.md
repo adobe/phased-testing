@@ -156,7 +156,9 @@ The Phased Testing is activated using two annotations:
 
 Moreover, you need to :
 * Make your methods accept at least one argument
-* The methods will be executed in alphabetical order. So prefixing the methods with their step number is a good practice. 
+* Due to the TestNG standards, the methods will be executed, by default in an alphabetical order. So prefixing the methods with their step number is a good practice. 
+
+Note : As of version 7.0.11, we now have the possibility to let the framework pick the order for us.
 
 ### Setting Execution Modes
 
@@ -266,6 +268,7 @@ We have the following system properties:
 * PHASED.TESTS.OUTPUT.DIR
 * PHASED.TESTS.RETRY.DISABLED
 * PHASED.TESTS.REPORT.BY.PHASE_GROUP
+* PHASED.TESTS.CODE.LOCATION
 
 #### PHASED.TESTS.PHASE
 We have three phased states:
@@ -385,6 +388,11 @@ For now, we do not know how parallel execution will work with phased tests. So i
 For now, we have not come around to deciding how retry should work in the case of phased tests. By default, we deactivate them on the phased tests unless the user specifically chooses to activate them by setting the system property `PHASED.TESTS.RETRY.DISABLED` to false. 
 
 ## Release Notes
+### 7.0.11-SNAPSHOT
+* Implementation of order detection. We now have three options:
+** We continue as before, where we select the order alphabetically.
+** We allow the system to pick the order based on the line numbers. (#5)
+** We allow the system to simply pick a calculated order based on what the steps produce and consume (#101)
 
 ### 7.0.10
 - Reports are now merged by default (#56)
