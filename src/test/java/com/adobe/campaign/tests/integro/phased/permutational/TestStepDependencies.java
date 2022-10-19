@@ -11,8 +11,6 @@
  */
 package com.adobe.campaign.tests.integro.phased.permutational;
 
-import com.adobe.campaign.tests.integro.phased.internal.ScenarioStepDependencies;
-import com.adobe.campaign.tests.integro.phased.internal.StepDependencies;
 import org.hamcrest.Matchers;
 import org.testng.annotations.Test;
 

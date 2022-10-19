@@ -11,12 +11,14 @@
  */
 package com.adobe.campaign.tests.integro.phased.utils;
 
+import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
 import com.adobe.campaign.tests.integro.phased.PhasedTestManagerTests;
 import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_SingleClass;
-import com.adobe.campaign.tests.integro.phased.samples.PhasedReportElementsSample;
 import org.mockito.Mockito;
 import org.testng.ITestNGMethod;
 import org.testng.ITestResult;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.testng.internal.ConstructorOrMethod;
 
@@ -27,6 +29,13 @@ import static org.hamcrest.Matchers.*;
 import static org.hamcrest.Matchers.nullValue;
 
 public class ClassPathParserTests {
+
+    @BeforeMethod
+    @AfterMethod
+    private void reset() {
+        System.clearProperty("PHASED.TESTS.CODE.ROOT");
+        PhasedTestManager.PHASED_TEST_SOURCE_LOCATION="/src/test/java";
+    }
     @Test
     public void testStorageMethodWithoutArgs() throws NoSuchMethodException, SecurityException {
 
@@ -87,7 +96,7 @@ public class ClassPathParserTests {
     /**
      * This test tests that we correctly fetch the class file by name of a class
      *
-     * Author : vinaysha
+     * Author : vinaysha, baubakg
      *
      * @throws SecurityException
      *
@@ -97,16 +106,37 @@ public class ClassPathParserTests {
 
         //Fetch File for Class
         assertThat("We should have correctly found the file that is not null",
-                ClassPathParser.fetchClassFile(PhasedReportElementsSample.class.getTypeName()),
+                ClassPathParser.fetchClassFile(PhasedSeries_H_SingleClass.class.getTypeName()),
                 notNullValue());
 
         assertThat("We should have correctly found the file that exists",
-                ClassPathParser.fetchClassFile(PhasedReportElementsSample.class.getTypeName()).exists());
+                ClassPathParser.fetchClassFile(PhasedSeries_H_SingleClass.class.getTypeName()).exists());
 
         assertThat("We should get null if file name is empty",
                 ClassPathParser.fetchClassFile(""), nullValue());
 
         assertThat("We should get null if file name is null",
-                ClassPathParser.fetchClassFile(null), nullValue());
+                ClassPathParser.fetchClassFile((String) null), nullValue());
+
+        //Fetch File for Class
+        assertThat("We should have correctly found the file that is not null",
+                ClassPathParser.fetchClassFile(PhasedSeries_H_SingleClass.class),
+                notNullValue());
+
+    }
+
+    @Test
+    public void testFetchClassFileConfigured() throws SecurityException {
+        PhasedTestManager.PHASED_TEST_SOURCE_LOCATION="/src/test/java/com";
+        //Fetch File for Class
+        assertThat("We should have correctly found the file that is not null",
+                ClassPathParser.fetchClassFile("adobe.campaign.tests.integro.phased.data.PhasedSeries_H_SingleClass"),
+                notNullValue());
+
+        assertThat("We should have correctly found the file that exists",
+                ClassPathParser.fetchClassFile("adobe.campaign.tests.integro.phased.data.PhasedSeries_H_SingleClass").exists());
+
+
+
     }
 }
