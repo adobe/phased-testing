@@ -12,6 +12,9 @@
 package com.adobe.campaign.tests.integro.phased;
 
 import com.adobe.campaign.tests.integro.phased.internal.PhaseProcessorFactory;
+import com.adobe.campaign.tests.integro.phased.permutational.ScenarioStepDependencies;
+import com.adobe.campaign.tests.integro.phased.permutational.ScenarioStepDependencyFactory;
+import com.adobe.campaign.tests.integro.phased.permutational.StepDependencies;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -25,6 +28,7 @@ import org.testng.xml.XmlClass;
 import org.testng.xml.XmlSuite;
 import org.testng.xml.XmlTest;
 
+import java.io.FileNotFoundException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -35,7 +39,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class PhasedTestListener implements ITestListener, IAnnotationTransformer, IAlterSuiteListener {
+public class PhasedTestListener implements ITestListener, IAnnotationTransformer, IAlterSuiteListener, IMethodInterceptor {
 
     protected static Logger log = LogManager.getLogger();
     private static final BiPredicate<ITestResult, String> SCENARIO_NAME_MATCHER = (itr, clazzName) ->
@@ -431,7 +435,6 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
     @Override
     public void transform(ITestAnnotation annotation, Class testClass, Constructor testConstructor,
             Method testMethod) {
-
         if (testClass != null) {
 
             //inject the
@@ -481,4 +484,42 @@ public class PhasedTestListener implements ITestListener, IAnnotationTransformer
         );
     }
 
+    @Override
+    public List<IMethodInstance> intercept(List<IMethodInstance> list, ITestContext iTestContext) {
+        log.debug("In IMethodInterceptor : intercept");
+
+        if (!System.getProperties().containsKey("PHASED.TESTS.DETECT.ORDER")) {
+            return list;
+        }
+
+        //Create a map of phased classes
+        Set<Class> l_phasedClasses = list.stream().map(f -> f.getMethod().getConstructorOrMethod().getMethod().getDeclaringClass()).filter(c -> PhasedTestManager.isPhasedTest(c)).collect(
+                Collectors.toSet());
+
+        List<ScenarioStepDependencies> l_scenarioDependencies = l_phasedClasses.stream().map(ScenarioStepDependencyFactory::listMethodCalls).collect(Collectors.toList());
+
+        List<String> l_dependencyClasses = l_scenarioDependencies.stream().map(ScenarioStepDependencies::getScenarioName).collect(
+                Collectors.toList());
+
+        List<IMethodInstance> lr_nonPhasedMethods = list.stream().filter(m -> !l_dependencyClasses.contains(m.getMethod().getConstructorOrMethod().getDeclaringClass().getTypeName())).collect(
+                Collectors.toList());
+
+        List<IMethodInstance> l_phasedDependencyMethods = list.stream().filter(m -> l_dependencyClasses.contains(m.getMethod().getConstructorOrMethod().getDeclaringClass().getTypeName())).collect(
+                Collectors.toList());
+
+        for (ScenarioStepDependencies lt_sd : l_scenarioDependencies) {
+            for (StepDependencies lt_methodName : lt_sd.fetchExecutionOrderList()) {
+                lr_nonPhasedMethods.add(l_phasedDependencyMethods.stream().filter(m -> m.getMethod().getConstructorOrMethod().getName().equals(lt_methodName.getStepName())).findFirst().get());
+            }
+        }
+
+
+
+
+        //for each class create the dependency list and order
+        //For each class and ordered method fetch method and add it to return list.
+
+
+        return lr_nonPhasedMethods;
+    }
 }

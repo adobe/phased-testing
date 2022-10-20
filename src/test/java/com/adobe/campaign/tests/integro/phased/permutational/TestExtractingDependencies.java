@@ -11,14 +11,26 @@
  */
 package com.adobe.campaign.tests.integro.phased.permutational;
 
-import com.adobe.campaign.tests.integro.phased.data.permutational.MultipleProducerConsumer;
-import com.adobe.campaign.tests.integro.phased.data.permutational.NegativeEmptyTest;
-import com.adobe.campaign.tests.integro.phased.data.permutational.SimpleProducerConsumer;
-import com.adobe.campaign.tests.integro.phased.data.permutational.SimpleProducerConsumerStaticImport;
+import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClassWithError;
+import com.adobe.campaign.tests.integro.phased.data.permutational.*;
+import org.mockito.Mockito;
+import org.testng.*;
 import org.testng.annotations.Test;
+import org.testng.internal.BaseTestMethod;
+import org.testng.internal.ConstructorOrMethod;
+import org.testng.internal.MethodInstance;
+import org.testng.internal.TestNGMethod;
+import org.testng.xml.XmlClass;
+import org.testng.xml.XmlInclude;
+import org.testng.xml.XmlTest;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -133,6 +145,30 @@ public class TestExtractingDependencies {
                 equalTo(0));
 
     }
+
+
+    @Test
+    public void testExtractingClasses() throws NoSuchMethodException {
+        final Method l_firstMethod = SimplePermutationTest.class.getMethod("zzzz",
+                String.class);
+        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
+        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
+
+        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
+        Mockito.when(l_com.getMethod()).thenReturn(l_firstMethod);
+
+        final Method l_secondMethod2 = SimplePermutationTest.class.getMethod("yyyyy",
+                String.class);
+        ITestNGMethod l_itrMethod2 = Mockito.mock(ITestNGMethod.class);
+        ConstructorOrMethod l_com2 = Mockito.mock(ConstructorOrMethod.class);
+
+        Mockito.when(l_itrMethod2.getConstructorOrMethod()).thenReturn(l_com2);
+        Mockito.when(l_com2.getMethod()).thenReturn(l_secondMethod2);
+
+        //IMethodInstance imi = new MethodInstance();
+
+    }
+
 
 }
 

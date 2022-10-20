@@ -30,11 +30,16 @@ public class ScenarioStepDependencyFactory {
      * @return
      * @throws FileNotFoundException
      */
-    public static ScenarioStepDependencies listMethodCalls(Class in_class) throws FileNotFoundException {
-        File file = ClassPathParser.fetchClassFile(in_class.getName());
+    public static ScenarioStepDependencies listMethodCalls(Class in_class) {
+        File file = ClassPathParser.fetchClassFile(in_class);
 
         ScenarioStepDependencies lr_dependencies = new ScenarioStepDependencies(in_class.getTypeName());
-        FileInputStream in = new FileInputStream(file);
+        FileInputStream in = null;
+        try {
+            in = new FileInputStream(file);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
 
         new VoidVisitorAdapter<Object>() {
             String lt_currentMethod = "not set";

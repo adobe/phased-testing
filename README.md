@@ -269,6 +269,7 @@ We have the following system properties:
 * PHASED.TESTS.RETRY.DISABLED
 * PHASED.TESTS.REPORT.BY.PHASE_GROUP
 * PHASED.TESTS.CODE.ROOT
+* PHASED.TESTS.DETECT.ORDER
 
 #### PHASED.TESTS.PHASE
 We have three phased states:

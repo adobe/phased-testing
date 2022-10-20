@@ -117,7 +117,7 @@ public class TestStepDependencies {
 
 
         @Test
-    public void testOrderSack() {
+    public void testOrderStack() {
         ScenarioStepDependencies dependencies = new ScenarioStepDependencies("a.b.c.D");
 
         dependencies.putProduce("step1", "a1");
@@ -135,7 +135,7 @@ public class TestStepDependencies {
     }
 
     @Test
-    public void testOrderSackLevel2() {
+    public void testOrderStackLevel2() {
 
         ScenarioStepDependencies dependencies = new ScenarioStepDependencies("a.b.c.D");
 
@@ -152,7 +152,7 @@ public class TestStepDependencies {
 
     //Planned for #101
     @Test(enabled = false)
-    public void testOrderSackLevel3() {
+    public void testOrderStackLevel3() {
 
         ScenarioStepDependencies dependencies = new ScenarioStepDependencies("a.b.c.D");
 
