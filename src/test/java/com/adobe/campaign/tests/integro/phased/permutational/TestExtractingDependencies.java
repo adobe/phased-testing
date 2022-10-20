@@ -12,6 +12,7 @@
 package com.adobe.campaign.tests.integro.phased.permutational;
 
 import com.adobe.campaign.tests.integro.phased.data.permutational.MultipleProducerConsumer;
+import com.adobe.campaign.tests.integro.phased.data.permutational.NegativeEmptyTest;
 import com.adobe.campaign.tests.integro.phased.data.permutational.SimpleProducerConsumer;
 import com.adobe.campaign.tests.integro.phased.data.permutational.SimpleProducerConsumerStaticImport;
 import org.testng.annotations.Test;
@@ -117,6 +118,20 @@ public class TestExtractingDependencies {
 
         assertThat("The pointer of bbbbb should be after that of ccccc", dependencies.getStep("bbbbb").getStepPointer(),
                 greaterThan(dependencies.getStep("ccccc").getStepPointer()));
+    }
+
+
+    @Test
+    public void testFetchExtracting_NegativeNoProduceOrConsume()
+            throws NoSuchMethodException, SecurityException, IOException {
+
+        Class<NegativeEmptyTest> l_testClass = NegativeEmptyTest.class;
+
+        ScenarioStepDependencies dependencies = ScenarioStepDependencyFactory.listMethodCalls(l_testClass);
+
+        assertThat("We should now have two steps defined here", dependencies.getStepDependencies().keySet().size(),
+                equalTo(0));
+
     }
 
 }
