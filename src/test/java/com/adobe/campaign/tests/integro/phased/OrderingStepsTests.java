@@ -1,5 +1,6 @@
 package com.adobe.campaign.tests.integro.phased;
 
+import com.adobe.campaign.tests.integro.phased.data.permutational.DebugSimplePermutationTest;
 import com.adobe.campaign.tests.integro.phased.data.permutational.SimplePermutationTest;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 import com.adobe.campaign.tests.integro.phased.utils.TestTools;
@@ -108,8 +109,9 @@ public class OrderingStepsTests {
 
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testPhasedProducer() {
+        System.setProperty("PHASED.TESTS.DETECT.ORDER","true");
         //Activate Merge
         PhasedTestManager.activateMergedReports();
 
@@ -128,6 +130,7 @@ public class OrderingStepsTests {
         XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Phased : ordering tests");
 
         final Class<SimplePermutationTest> l_testClass = SimplePermutationTest.class;
+        //final Class<DebugSimplePermutationTest> l_testClass = DebugSimplePermutationTest.class;
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
         // Add package to test
@@ -135,9 +138,9 @@ public class OrderingStepsTests {
 
         myTestNG.run();
 
-        assertThat("We should have 3 successful method of phased Tests",
+        assertThat("We should have 6 successful method of phased Tests",
                 (int) tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
-                is(equalTo(3)));
+                is(equalTo(6)));
 
         //Global
         assertThat("We should have no failed tests", tla.getFailedTests().size(), equalTo(0));

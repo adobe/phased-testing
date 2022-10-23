@@ -618,7 +618,8 @@ public class PhasedTestManagerTests {
 
         l_myMap.put(PhasedSeries_F_Shuffle.class, Arrays.asList("a", "b", "c"));
 
-        Map<String, MethodMapping> l_result = PhasedTestManager.generatePhasedProviders(l_myMap);
+        Map<String, MethodMapping> l_result = PhasedTestManager.generatePhasedProviders(l_myMap,
+                Phases.getCurrentPhase());
 
         assertThat("we need to have the expected key", l_result.containsKey("a"));
         assertThat("The first method should have three entries", l_result.get("a").nrOfProviders, equalTo(3));
@@ -663,7 +664,76 @@ public class PhasedTestManagerTests {
 
         l_myMap.put(PhasedSeries_L_ShuffledDP.class, Arrays.asList("a", "b", "c"));
 
-        Map<String, MethodMapping> l_result = PhasedTestManager.generatePhasedProviders(l_myMap);
+        Map<String, MethodMapping> l_result = PhasedTestManager.generatePhasedProviders(l_myMap,
+                Phases.getCurrentPhase());
+
+        assertThat("we need to have the expected key", l_result.containsKey("a"));
+        assertThat("The first method should have three entries", l_result.get("a").nrOfProviders, equalTo(3));
+
+        assertThat("The first method should have two entries", l_result.get("b").nrOfProviders, equalTo(2));
+
+        assertThat("The first method should have one entry", l_result.get("c").nrOfProviders, equalTo(1));
+
+        assertThat("We should have the same amount of total sizes", l_result.get("a").totalClassMethods,
+                equalTo(l_result.get("b").totalClassMethods));
+        assertThat("We should have the same amount of total sizes", l_result.get("a").totalClassMethods,
+                equalTo(l_result.get("c").totalClassMethods));
+
+        Object[][] l_providerA = PhasedTestManager.fetchProvidersShuffled("a");
+
+        assertThat(l_providerA.length, equalTo(6));
+        assertThat(l_providerA[0].length, equalTo(2));
+
+        assertThat(l_providerA[0][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0"));
+        assertThat(l_providerA[0][1], equalTo(PhasedSeries_L_PROVIDER.PROVIDER_A));
+        assertThat(l_providerA[1][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0"));
+        assertThat(l_providerA[1][1], equalTo(PhasedSeries_L_PROVIDER.PROVIDER_B));
+        assertThat(l_providerA[2][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1"));
+        assertThat(l_providerA[2][1], equalTo(PhasedSeries_L_PROVIDER.PROVIDER_A));
+        assertThat(l_providerA[3][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1"));
+        assertThat(l_providerA[3][1], equalTo(PhasedSeries_L_PROVIDER.PROVIDER_B));
+        assertThat(l_providerA[4][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2"));
+        assertThat(l_providerA[4][1], equalTo(PhasedSeries_L_PROVIDER.PROVIDER_A));
+        assertThat(l_providerA[5][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2"));
+        assertThat(l_providerA[5][1], equalTo(PhasedSeries_L_PROVIDER.PROVIDER_B));
+
+        Object[][] l_providerB = PhasedTestManager.fetchProvidersShuffled("b");
+
+        assertThat(l_providerB.length, equalTo(4));
+        assertThat(l_providerB[0].length, equalTo(2));
+
+        assertThat(l_providerB[0][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0"));
+        assertThat(l_providerB[0][1], equalTo(PhasedSeries_L_PROVIDER.PROVIDER_A));
+        assertThat(l_providerB[1][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0"));
+        assertThat(l_providerB[1][1], equalTo(PhasedSeries_L_PROVIDER.PROVIDER_B));
+        assertThat(l_providerB[2][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1"));
+        assertThat(l_providerB[2][1], equalTo(PhasedSeries_L_PROVIDER.PROVIDER_A));
+        assertThat(l_providerB[3][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1"));
+        assertThat(l_providerB[3][1], equalTo(PhasedSeries_L_PROVIDER.PROVIDER_B));
+
+        Object[][] l_providerC = PhasedTestManager.fetchProvidersShuffled("c");
+
+        assertThat(l_providerC.length, equalTo(2));
+        assertThat(l_providerC[0].length, equalTo(2));
+
+        assertThat(l_providerC[0][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0"));
+        assertThat(l_providerC[0][1], equalTo(PhasedSeries_L_PROVIDER.PROVIDER_A));
+        assertThat(l_providerC[1][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0"));
+        assertThat(l_providerC[1][1], equalTo(PhasedSeries_L_PROVIDER.PROVIDER_B));
+
+    }
+
+
+    @Test
+    public void testCreateDataProviderData_withOwnDataProviderOrdered() {
+        Phases.PRODUCER.activate();
+
+        Map<Class<?>, List<String>> l_myMap = new HashMap<>();
+
+        l_myMap.put(PhasedSeries_L_ShuffledDP.class, Arrays.asList("a", "b", "c"));
+
+        Map<String, MethodMapping> l_result = PhasedTestManager.generatePhasedProviders(l_myMap,
+                Phases.getCurrentPhase());
 
         assertThat("we need to have the expected key", l_result.containsKey("a"));
         assertThat("The first method should have three entries", l_result.get("a").nrOfProviders, equalTo(3));
