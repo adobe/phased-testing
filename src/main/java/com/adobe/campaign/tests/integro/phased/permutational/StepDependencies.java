@@ -16,7 +16,10 @@ import java.util.Set;
 
 public class StepDependencies {
 
-    private int stepPointer;
+    protected static final int DEFAULT_LINE_LOCATION = -113;
+    private int stepLine = DEFAULT_LINE_LOCATION;
+
+
 
     public enum Relations{DEPENDS_ON, INDEPENDANT, DEPENDED_ON_BY, INTERDEPENDANT};
     private Set<String> produceSet;
@@ -28,6 +31,11 @@ public class StepDependencies {
         stepName = in_stepName;
         produceSet = new HashSet<>();
         consumeSet = new HashSet<>();
+    }
+
+    public StepDependencies(String in_stepName, int in_stepLine) {
+        this(in_stepName);
+        stepLine =in_stepLine;
     }
 
     public Set<String> getConsumeSet() {
@@ -42,31 +50,38 @@ public class StepDependencies {
         return stepName;
     }
 
-    public int getStepPointer() {
-        return stepPointer;
+    public int getStepLine() {
+        return stepLine;
     }
 
-    public void setStepPointer(int stepPointer) {
-        this.stepPointer = stepPointer;
+    public void setStepLine(int stepLine) {
+        this.stepLine = stepLine;
     }
 
 
     /**
      * Stores the given key in the set of produced resources
      *
-     * @param in_key
+     * @param in_key The key being produced
      */
     public void produce(String in_key) {
-        produceSet.add(in_key);
+        produceConsume(produceSet,in_key);
     }
 
     /**
      * Stores the given key in the set of consumed resources
      *
-     * @param in_key
+     * @param in_key The key being consumed
      */
     public void consume(String in_key) {
-        consumeSet.add(in_key);
+        produceConsume(consumeSet,in_key);
+    }
+
+    private void produceConsume(Set<String> in_produceConsume, String in_key) {
+        if (!in_produceConsume.contains(in_key)) {
+            in_produceConsume.add(in_key);
+            stepLine++;
+        }
     }
 
     /**

@@ -17,13 +17,16 @@ import org.testng.annotations.Test;
 
 @PhasedTest(canShuffle = true)
 @Test
-public class NegativeEmptyTest {
+public class MixingEmptyAndProduceTests {
+    public void ccccc(Object param) {
 
+
+    }
     public void bbbbb(Object param) {
-        
+        PhasedTestManager.produce("keyA","v");
     }
 
     public void aaaaa(Object param) {
-
+        PhasedTestManager.consume("keyA");
     }
 }

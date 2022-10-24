@@ -46,7 +46,7 @@ public class ScenarioStepDependencies {
      * @param in_key   The key that is produced
      */
     public void putProduce(String stepName, String in_key) {
-        initializeIfNeeded(stepName);
+        initializeStep(stepName);
 
         stepDependencies.get(stepName).produce(in_key);
     }
@@ -59,10 +59,10 @@ public class ScenarioStepDependencies {
      * @param in_lineNr The line number of the occurence
      */
     public void putProduce(String stepName, String in_key, int in_lineNr) {
-        initializeIfNeeded(stepName);
+        initializeStep(stepName);
 
         stepDependencies.get(stepName).produce(in_key);
-        stepDependencies.get(stepName).setStepPointer(in_lineNr);
+        stepDependencies.get(stepName).setStepLine(in_lineNr);
     }
 
     /**
@@ -70,9 +70,10 @@ public class ScenarioStepDependencies {
      *
      * @param stepName
      */
-    private void initializeIfNeeded(String stepName) {
+    private void initializeStep(String stepName) {
+        int l_lastStep = this.fetchLastStepPosition();
         if (!stepDependencies.containsKey(stepName)) {
-            stepDependencies.put(stepName, new StepDependencies(stepName));
+            stepDependencies.put(stepName, new StepDependencies(stepName, l_lastStep+1));
         }
     }
 
@@ -83,7 +84,7 @@ public class ScenarioStepDependencies {
      * @param in_key   The key that is consumed
      */
     public void putConsume(String stepName, String in_key) {
-        initializeIfNeeded(stepName);
+        initializeStep(stepName);
 
         stepDependencies.get(stepName).consume(in_key);
     }
@@ -96,10 +97,10 @@ public class ScenarioStepDependencies {
      * @param in_lineNr The line number of the occurence
      */
     public void putConsume(String stepName, String in_key, int in_lineNr) {
-        initializeIfNeeded(stepName);
+        initializeStep(stepName);
 
         stepDependencies.get(stepName).consume(in_key);
-        stepDependencies.get(stepName).setStepPointer(in_lineNr);
+        stepDependencies.get(stepName).setStepLine(in_lineNr);
     }
 
     /**
@@ -113,7 +114,7 @@ public class ScenarioStepDependencies {
         List<StepDependencies> lr_orderedSteps = new ArrayList<>();
         lr_orderedSteps.addAll(stepDependencies.values());
 
-        lr_orderedSteps.sort(Comparator.comparing(StepDependencies::getStepPointer));
+        lr_orderedSteps.sort(Comparator.comparing(StepDependencies::getStepLine));
 
         return lr_orderedSteps;
     }
@@ -142,8 +143,30 @@ public class ScenarioStepDependencies {
      * @param in_stepName The name of the step
      */
     public void addStep(String in_stepName) {
-        this.stepDependencies.put(in_stepName, new StepDependencies(in_stepName));
+        initializeStep(in_stepName);
+        //this.stepDependencies.put(in_stepName, new StepDependencies(in_stepName));
     }
 
+    /**
+     * Returns the step with the largest line number
+     * @return the step with the largest line number. Null if empty
+     */
+    public StepDependencies fetchLastStep() {
+        if (getStepDependencies().isEmpty()) {
+            return null;
+        }
+        return Collections.max(getStepDependencies().values(),
+                Comparator.comparing(StepDependencies::getStepLine));
+    }
 
+    /**
+     * Returns the location of the last step in the file.
+     * @return the line number of the last step
+     */
+    public int fetchLastStepPosition() {
+        if (getStepDependencies().isEmpty()) {
+            return StepDependencies.DEFAULT_LINE_LOCATION;
+        }
+        return fetchLastStep().getStepLine();
+    }
 }

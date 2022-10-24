@@ -11,19 +11,16 @@
  */
 package com.adobe.campaign.tests.integro.phased.data.permutational;
 
-import com.adobe.campaign.tests.integro.phased.PhasedTest;
 import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
-import org.testng.annotations.Test;
 
-@PhasedTest(canShuffle = true)
-@Test
-public class NegativeEmptyTest {
+public class SimpleProducerConsumerNestedContainer {
+    public class SimpleProducerConsumerNested {
+        public void bbbbb(Object param) {
+            PhasedTestManager.produce("bbbbkey", "bbbbValue");
+        }
 
-    public void bbbbb(Object param) {
-        
-    }
-
-    public void aaaaa(Object param) {
-
+        public void aaaa(Object param) {
+            PhasedTestManager.consume("bbbbkey");
+        }
     }
 }

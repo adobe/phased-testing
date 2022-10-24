@@ -62,6 +62,8 @@ public class ScenarioStepDependencyFactory {
             @Override
             public void visit(MethodDeclaration n, Object arg) {
                 lt_currentMethod = n.getName().asString();
+                lr_dependencies.getStepDependencies().put(lt_currentMethod, new StepDependencies(lt_currentMethod));
+                lr_dependencies.getStepDependencies().get(lt_currentMethod).setStepLine(n.getBegin().get().line);
                 super.visit(n, arg);
 
             }

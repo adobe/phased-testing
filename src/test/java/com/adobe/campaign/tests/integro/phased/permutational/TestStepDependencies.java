@@ -32,25 +32,34 @@ public class TestStepDependencies {
     @Test
     public void testStepDependencies() {
         StepDependencies sd = new StepDependencies("walther");
-        assertThat("line location is by default 0", sd.getStepPointer(), equalTo(0));
+        assertThat("line location is by default 0", sd.getStepLine(), equalTo(StepDependencies.DEFAULT_LINE_LOCATION));
         assertThat("We should now have a step with the name Walther", sd.getStepName(), equalTo("walther"));
         assertThat("We should have a produces set", sd.getProduceSet(), instanceOf(Set.class));
         assertThat("We should have a produces set", sd.getConsumeSet(), instanceOf(Set.class));
 
         assertThat("At this stage, we should now have no entries for produce", sd.getProduceSet().size(), equalTo(0));
         sd.produce("a");
+        assertThat("The default line location should be used here", sd.getStepLine(),equalTo(StepDependencies.DEFAULT_LINE_LOCATION+1));
 
         assertThat("We should now have an entry for produce", sd.getProduceSet().size(), equalTo(1));
         sd.produce("a");
+        assertThat("The default line location should be used here", sd.getStepLine(),equalTo(StepDependencies.DEFAULT_LINE_LOCATION+1));
+
         assertThat("We should still have one entry for produce", sd.getProduceSet().size(), equalTo(1));
         sd.produce("b");
+        assertThat("The default line location should be used here", sd.getStepLine(),equalTo(StepDependencies.DEFAULT_LINE_LOCATION+2));
+
         assertThat("We should have have two entries for produce", sd.getProduceSet().size(), equalTo(2));
         sd.produce("c");
         assertThat("We should have the correct values", sd.getProduceSet(), Matchers.containsInAnyOrder("a", "b", "c"));
+        assertThat("The default line location should be used here", sd.getStepLine(),equalTo(StepDependencies.DEFAULT_LINE_LOCATION+3));
+
 
         assertThat("At this stage, we should now have no entries for consume", sd.getConsumeSet().size(), equalTo(0));
         sd.consume("z");
         assertThat("We should now have an entry for produce", sd.getConsumeSet().size(), equalTo(1));
+        assertThat("The default line location should be used here", sd.getStepLine(),equalTo(StepDependencies.DEFAULT_LINE_LOCATION+4));
+
         sd.consume("f");
         assertThat("We should have two entrie for produce", sd.getConsumeSet().size(), equalTo(2));
 
@@ -63,8 +72,11 @@ public class TestStepDependencies {
         ScenarioStepDependencies dependencies = new ScenarioStepDependencies("a.b.c.D");
 
         dependencies.putProduce("step1", "a1");
+        assertThat("The line numbers should reflect the entries",dependencies.getStep("step1").getStepLine(),equalTo(StepDependencies.DEFAULT_LINE_LOCATION+2));
 
         dependencies.putProduce("step2", "a2");
+        assertThat("The line numbers should reflect the entries",dependencies.getStep("step2").getStepLine(),equalTo(StepDependencies.DEFAULT_LINE_LOCATION+4));
+
 
         assertThat("We should have two step dependencies registered for our scenario",
                 dependencies.getStepDependencies().size(), equalTo(2));
@@ -107,12 +119,12 @@ public class TestStepDependencies {
         dependencies.putProduce("step1", "a1");
 
         assertThat("we should have correctly set the line number",
-                dependencies.getStep("step1").getStepPointer(), equalTo(0));
+                dependencies.getStep("step1").getStepLine(), equalTo(StepDependencies.DEFAULT_LINE_LOCATION+2));
 
         dependencies.putProduce("step1", "a2", 5);
 
         assertThat("we should have correctly set the line number",
-                dependencies.getStep("step1").getStepPointer(), equalTo(5));
+                dependencies.getStep("step1").getStepLine(), equalTo(5));
     }
 
 
@@ -121,17 +133,14 @@ public class TestStepDependencies {
         ScenarioStepDependencies dependencies = new ScenarioStepDependencies("a.b.c.D");
 
         dependencies.putProduce("step1", "a1");
-        dependencies.getStep("step1").setStepPointer(1);
+        dependencies.getStep("step1").setStepLine(1);
 
         dependencies.putConsume("step2", "a1");
-        dependencies.getStep("step2").setStepPointer(3);
+        dependencies.getStep("step2").setStepLine(3);
 
         List<StepDependencies> executionList = dependencies.fetchExecutionOrderList();
 
         assertThat("We should have two entries one per step", executionList.size(), equalTo(2));
-       // assertThat("The first entry should be step 1", executionList.get(0).size(), equalTo(1));
-       // assertThat("The first entry should be step 1", executionList.get(0).containsKey("a.b.c.D.step1"),
-       //         equalTo(dependencies.stepDependencies.get("step1")));
     }
 
     @Test
@@ -145,9 +154,76 @@ public class TestStepDependencies {
         List<StepDependencies> executionList = dependencies.fetchExecutionOrderList();
 
         assertThat("We should have two entries one per step", executionList.size(), equalTo(2));
-       // assertThat("The first entry should be step 1", executionList.get(0).size(), equalTo(1));
-       // assertThat("The first entry should be step 1", executionList.get(0).containsKey("a.b.c.D.step1"),
-       //         equalTo(dependencies.stepDependencies.get("step1")));
+
+    }
+
+    @Test
+    public void testfetchLastStep() {
+
+        ScenarioStepDependencies dependencies = new ScenarioStepDependencies("a.b.c.D");
+        dependencies.addStep("z");
+        dependencies.getStep("z").setStepLine(5);
+        dependencies.addStep("y");
+        dependencies.getStep("y").setStepLine(7);
+        dependencies.addStep("x");
+        dependencies.getStep("x").setStepLine(6);
+
+        assertThat("The method that fetches the largest lineNr should be correct", dependencies.fetchLastStep(),
+                equalTo(dependencies.getStep("y")));
+        assertThat("The method that fetches the largest lineNr should be correct", dependencies.fetchLastStep(),
+                equalTo(dependencies.getStep("y")));
+        assertThat("We should correctly calculate the last step location", dependencies.fetchLastStepPosition(),
+                equalTo(dependencies.fetchLastStep().getStepLine()));
+    }
+
+    @Test
+    public void testfetchLastStepNegative() {
+
+        ScenarioStepDependencies dependencies = new ScenarioStepDependencies("a.b.c.D");
+
+        assertThat("The method that fetches the largest lineNr should be correct", dependencies.fetchLastStep(),
+                nullValue());
+
+        assertThat("We should correctly calculate the last step location", dependencies.fetchLastStepPosition(),
+                equalTo(StepDependencies.DEFAULT_LINE_LOCATION));
+    }
+
+        @Test
+    public void testOrderStackLevelMixing() {
+
+        ScenarioStepDependencies dependencies = new ScenarioStepDependencies("a.b.c.D");
+        dependencies.addStep("z");
+        dependencies.getStep("z").setStepLine(5);
+        dependencies.addStep("y");
+        dependencies.getStep("y").setStepLine(7);
+        dependencies.addStep("x");
+        dependencies.getStep("x").setStepLine(6);
+
+        List<StepDependencies> executionList = dependencies.fetchExecutionOrderList();
+
+        assertThat("We should have two entries one per step", executionList.size(), equalTo(3));
+        // assertThat("The first entry should be step 1", executionList.get(0).size(), equalTo(1));
+        assertThat("The first entry should be step z", executionList.get(0).getStepName(), equalTo("z"));
+        assertThat("The second entry should be step y", executionList.get(1).getStepName(), equalTo("x"));
+        assertThat("The third entry should be step x", executionList.get(2).getStepName(), equalTo("y"));
+    }
+
+    @Test
+    public void testOrderStackLevelMixing_whenNotStepKeepOrder() {
+
+        ScenarioStepDependencies dependencies = new ScenarioStepDependencies("a.b.c.D");
+        dependencies.addStep("z");
+
+        dependencies.addStep("y");
+        dependencies.addStep("x");
+
+        List<StepDependencies> executionList = dependencies.fetchExecutionOrderList();
+
+        assertThat("We should have two entries one per step", executionList.size(), equalTo(3));
+        // assertThat("The first entry should be step 1", executionList.get(0).size(), equalTo(1));
+        assertThat("The first entry should be step z", executionList.get(0).getStepName(), equalTo("z"));
+        assertThat("The second entry should be step y", executionList.get(1).getStepName(), equalTo("y"));
+        assertThat("The third entry should be step x", executionList.get(2).getStepName(), equalTo("x"));
     }
 
     //Planned for #101

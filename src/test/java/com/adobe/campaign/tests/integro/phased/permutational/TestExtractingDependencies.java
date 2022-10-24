@@ -11,26 +11,15 @@
  */
 package com.adobe.campaign.tests.integro.phased.permutational;
 
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClassWithError;
 import com.adobe.campaign.tests.integro.phased.data.permutational.*;
 import org.mockito.Mockito;
-import org.testng.*;
+import org.testng.ITestNGMethod;
 import org.testng.annotations.Test;
-import org.testng.internal.BaseTestMethod;
 import org.testng.internal.ConstructorOrMethod;
-import org.testng.internal.MethodInstance;
-import org.testng.internal.TestNGMethod;
-import org.testng.xml.XmlClass;
-import org.testng.xml.XmlInclude;
-import org.testng.xml.XmlTest;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -63,8 +52,8 @@ public class TestExtractingDependencies {
         assertThat("we should set the correct consume", dependencies.getStep("aaaa").getConsumeSet(),
                 hasItems("bbbbkey"));
 
-        assertThat("The pointer of aaaa should be after that of bbbbb", dependencies.getStep("aaaa").getStepPointer(),
-                greaterThan(dependencies.getStep("bbbbb").getStepPointer()));
+        assertThat("The pointer of aaaa should be after that of bbbbb", dependencies.getStep("aaaa").getStepLine(),
+                greaterThan(dependencies.getStep("bbbbb").getStepLine()));
     }
 
     @Test
@@ -95,8 +84,8 @@ public class TestExtractingDependencies {
         assertThat("we should set the correct consume", dependencies.getStep("aaaa").getConsumeSet(),
                 hasItems("bbbbkey"));
 
-        assertThat("The pointer of aaaa should be after that of bbbbb", dependencies.getStep("aaaa").getStepPointer(),
-                greaterThan(dependencies.getStep("bbbbb").getStepPointer()));
+        assertThat("The pointer of aaaa should be after that of bbbbb", dependencies.getStep("aaaa").getStepLine(),
+                greaterThan(dependencies.getStep("bbbbb").getStepLine()));
     }
 
     @Test
@@ -125,16 +114,16 @@ public class TestExtractingDependencies {
         assertThat("we should set the correct consume", dependencies.getStep("aaaaa").getConsumeSet(),
                 hasItems("keyA","keyB"));
 
-        assertThat("The pointer of aaaaa should be after that of bbbbb", dependencies.getStep("aaaaa").getStepPointer(),
-                greaterThan(dependencies.getStep("bbbbb").getStepPointer()));
+        assertThat("The pointer of aaaaa should be after that of bbbbb", dependencies.getStep("aaaaa").getStepLine(),
+                greaterThan(dependencies.getStep("bbbbb").getStepLine()));
 
-        assertThat("The pointer of bbbbb should be after that of ccccc", dependencies.getStep("bbbbb").getStepPointer(),
-                greaterThan(dependencies.getStep("ccccc").getStepPointer()));
+        assertThat("The pointer of bbbbb should be after that of ccccc", dependencies.getStep("bbbbb").getStepLine(),
+                greaterThan(dependencies.getStep("ccccc").getStepLine()));
     }
 
 
     @Test
-    public void testFetchExtracting_NegativeNoProduceOrConsume()
+    public void testFetchExtracting_noProduceOrConsume()
             throws NoSuchMethodException, SecurityException, IOException {
 
         Class<NegativeEmptyTest> l_testClass = NegativeEmptyTest.class;
@@ -142,8 +131,41 @@ public class TestExtractingDependencies {
         ScenarioStepDependencies dependencies = ScenarioStepDependencyFactory.listMethodCalls(l_testClass);
 
         assertThat("We should now have two steps defined here", dependencies.getStepDependencies().keySet().size(),
-                equalTo(0));
+                equalTo(2));
 
+    }
+
+
+    @Test
+    public void testFetchMixingEmptyAndProduceAndConsume()
+            throws NoSuchMethodException, SecurityException, IOException {
+
+        Class<MixingEmptyAndProduceTests> l_testClass = MixingEmptyAndProduceTests.class;
+
+        ScenarioStepDependencies dependencies = ScenarioStepDependencyFactory.listMethodCalls(l_testClass);
+
+        assertThat("We should now have two steps defined here", dependencies.getStepDependencies().keySet().size(),
+                equalTo(3));
+
+        assertThat("We should have fetched the correct methods", dependencies.getStepDependencies().keySet(),
+                containsInAnyOrder("bbbbb", "aaaaa", "ccccc"));
+
+        assertThat("we should set the correct consume", dependencies.getStep("ccccc").getConsumeSet(), hasSize(0));
+        assertThat("we should set the correct consume", dependencies.getStep("ccccc").getProduceSet(), hasSize(0));
+
+        assertThat("we should set the correct consume", dependencies.getStep("bbbbb").getConsumeSet(), hasSize(0));
+        assertThat("we should set the correct consume", dependencies.getStep("bbbbb").getProduceSet(),
+                hasItems("keyA"));
+
+        assertThat("we should set the correct consume", dependencies.getStep("aaaaa").getProduceSet(), hasSize(0));
+        assertThat("we should set the correct consume", dependencies.getStep("aaaaa").getConsumeSet(),
+                hasItems("keyA"));
+
+        assertThat("The pointer of aaaaa should be after that of bbbbb", dependencies.getStep("aaaaa").getStepLine(),
+                greaterThan(dependencies.getStep("bbbbb").getStepLine()));
+
+        assertThat("The pointer of bbbbb should be after that of ccccc", dependencies.getStep("bbbbb").getStepLine(),
+                greaterThan(dependencies.getStep("ccccc").getStepLine()));
     }
 
 
@@ -167,6 +189,36 @@ public class TestExtractingDependencies {
 
         //IMethodInstance imi = new MethodInstance();
 
+    }
+
+    @Test
+    public void testFetchExtractingProduceConsumeNested()
+            throws NoSuchMethodException, SecurityException, IOException {
+
+        Class<SimpleProducerConsumerNestedContainer.SimpleProducerConsumerNested> l_testClass = SimpleProducerConsumerNestedContainer.SimpleProducerConsumerNested.class;
+
+        ScenarioStepDependencies dependencies = ScenarioStepDependencyFactory.listMethodCalls(l_testClass);
+
+        assertThat("Our object should have a map od StpDependencies", dependencies.getStepDependencies(),
+                instanceOf(Map.class));
+        assertThat("Our object should be linked to the analyzed class", dependencies.getScenarioName(),
+                equalTo(SimpleProducerConsumer.class.getTypeName()));
+        assertThat("We should now have two steps defined here", dependencies.getStepDependencies().keySet().size(),
+                equalTo(2));
+
+        assertThat("We should have fetched the correct methods", dependencies.getStepDependencies().keySet(),
+                containsInAnyOrder("bbbbb", "aaaa"));
+
+        assertThat("we should set the correct consume", dependencies.getStep("bbbbb").getConsumeSet(), hasSize(0));
+        assertThat("we should set the correct consume", dependencies.getStep("bbbbb").getProduceSet(),
+                hasItems("bbbbkey"));
+
+        assertThat("we should set the correct consume", dependencies.getStep("aaaa").getProduceSet(), hasSize(0));
+        assertThat("we should set the correct consume", dependencies.getStep("aaaa").getConsumeSet(),
+                hasItems("bbbbkey"));
+
+        assertThat("The pointer of aaaa should be after that of bbbbb", dependencies.getStep("aaaa").getStepLine(),
+                greaterThan(dependencies.getStep("bbbbb").getStepLine()));
     }
 
 
