@@ -11,9 +11,15 @@
  */
 package com.adobe.campaign.tests.integro.phased.permutational;
 
+import com.adobe.campaign.tests.integro.phased.PhasedTestConfigurationException;
+import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
 import com.adobe.campaign.tests.integro.phased.data.permutational.*;
 import org.mockito.Mockito;
+import org.testng.Assert;
 import org.testng.ITestNGMethod;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 import org.testng.internal.ConstructorOrMethod;
 
@@ -26,6 +32,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
 public class TestExtractingDependencies {
+    @BeforeMethod
+    @AfterMethod
+    public void prepareEnvironment() {
+        PhasedTestManager.PHASED_TEST_SOURCE_LOCATION = "/src/test/java";
+    }
 
     @Test
     public void testFetchExtractingProduceConsume()
@@ -113,7 +124,7 @@ public class TestExtractingDependencies {
 
         assertThat("we should set the correct consume", dependencies.getStep("aaaaa").getProduceSet(), hasSize(0));
         assertThat("we should set the correct consume", dependencies.getStep("aaaaa").getConsumeSet(),
-                hasItems("keyA","keyB"));
+                hasItems("keyA", "keyB"));
 
         assertThat("The pointer of aaaaa should be after that of bbbbb", dependencies.getStep("aaaaa").getStepLine(),
                 greaterThan(dependencies.getStep("bbbbb").getStepLine()));
@@ -121,7 +132,6 @@ public class TestExtractingDependencies {
         assertThat("The pointer of bbbbb should be after that of ccccc", dependencies.getStep("bbbbb").getStepLine(),
                 greaterThan(dependencies.getStep("ccccc").getStepLine()));
     }
-
 
     @Test
     public void testFetchExtracting_noProduceOrConsume()
@@ -135,7 +145,6 @@ public class TestExtractingDependencies {
                 equalTo(2));
 
     }
-
 
     @Test
     public void testFetchMixingEmptyAndProduceAndConsume()
@@ -168,7 +177,6 @@ public class TestExtractingDependencies {
         assertThat("The pointer of bbbbb should be after that of ccccc", dependencies.getStep("bbbbb").getStepLine(),
                 greaterThan(dependencies.getStep("ccccc").getStepLine()));
     }
-
 
     @Test
     public void testExtractingClasses() throws NoSuchMethodException {
@@ -242,8 +250,10 @@ public class TestExtractingDependencies {
         assertThat("We should have fetched the correct methods", dependencies.getStepDependencies().keySet(),
                 containsInAnyOrder("runMeBefore", "bbbbb", "aaaa"));
 
-        assertThat("we should set the correct consume for our config method", dependencies.getStep("runMeBefore").getConsumeSet(), hasSize(0));
-        assertThat("we should set the correct consume got our config method", dependencies.getStep("runMeBefore").getProduceSet(), hasSize(0));
+        assertThat("we should set the correct consume for our config method",
+                dependencies.getStep("runMeBefore").getConsumeSet(), hasSize(0));
+        assertThat("we should set the correct consume got our config method",
+                dependencies.getStep("runMeBefore").getProduceSet(), hasSize(0));
         assertThat("This test should be a config method", dependencies.getStep("runMeBefore").isConfigMethod());
 
         assertThat("we should set the correct consume", dependencies.getStep("bbbbb").getConsumeSet(), hasSize(0));
@@ -259,8 +269,20 @@ public class TestExtractingDependencies {
         assertThat("The pointer of aaaa should be after that of bbbbb", dependencies.getStep("aaaa").getStepLine(),
                 greaterThan(dependencies.getStep("bbbbb").getStepLine()));
 
-        assertThat("The ordered set should include only tests", dependencies.fetchExecutionOrderList().stream().map(f -> f.getStepName()).collect(
-                Collectors.toList()), contains("bbbbb","aaaa"));
+        assertThat("The ordered set should include only tests",
+                dependencies.fetchExecutionOrderList().stream().map(f -> f.getStepName()).collect(
+                        Collectors.toList()), contains("bbbbb", "aaaa"));
+    }
+
+    @Test
+    public void testListMethodCalls_negativeFileNotFound()
+            throws NoSuchMethodException, SecurityException, IOException {
+
+        Class<ProducerConsumerWithBeforeClass> l_testClass = ProducerConsumerWithBeforeClass.class;
+        PhasedTestManager.PHASED_TEST_SOURCE_LOCATION = "/nonExistingDirectory";
+
+        Assert.assertThrows(PhasedTestConfigurationException.class,
+                () -> ScenarioStepDependencyFactory.listMethodCalls(l_testClass));
     }
 
 }

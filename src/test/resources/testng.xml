@@ -19,6 +19,7 @@
             <package name="com.adobe.campaign.tests.integro.phased" />
             <package name="com.adobe.campaign.tests.integro.phased.internal" />
             <package name="com.adobe.campaign.tests.integro.phased.utils" />
+            <package name="com.adobe.campaign.tests.integro.phased.permutational" />
         </packages>
     </test>
 </suite> <!-- Default suite -->

@@ -485,10 +485,9 @@ public class PhasedTestListener
                 l_classMethodMap.get(lt_method.getDeclaringClass())
                         .add(ClassPathParser.fetchFullName(lt_method));
             }
-
         }
 
-
+        //If the property PHASED.TESTS.DETECT.ORDER not set, we follow the standard TestNG order
         if (!System.getProperties().containsKey("PHASED.TESTS.DETECT.ORDER")) {
             if (Phases.getCurrentPhase().hasSplittingEvent()) {
                 log.info("{} Generating Phased Providers", PhasedTestManager.PHASED_TEST_LOG_PREFIX);

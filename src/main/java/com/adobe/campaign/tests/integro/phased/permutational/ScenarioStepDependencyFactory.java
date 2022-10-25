@@ -11,6 +11,8 @@
  */
 package com.adobe.campaign.tests.integro.phased.permutational;
 
+import com.adobe.campaign.tests.integro.phased.PhasedTestConfigurationException;
+import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.body.MethodDeclaration;
@@ -41,11 +43,11 @@ public class ScenarioStepDependencyFactory {
         File file = ClassPathParser.fetchClassFile(in_class);
 
         ScenarioStepDependencies lr_dependencies = new ScenarioStepDependencies(in_class.getTypeName());
-        FileInputStream in = null;
+        FileInputStream fis = null;
         try {
-            in = new FileInputStream(file);
+            fis = new FileInputStream(file);
         } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
+            throw new PhasedTestConfigurationException("The class "+in_class.getTypeName()+" could not be found in the given directory "+ PhasedTestManager.PHASED_TEST_SOURCE_LOCATION+ "you can configure this by setting the execution property PHASED.TESTS.CODE.ROOT", e);
         }
 
         new VoidVisitorAdapter<Object>() {
@@ -63,7 +65,6 @@ public class ScenarioStepDependencyFactory {
                     lr_dependencies.putConsume(lt_currentMethod, n.getArgument(0).toString().replaceAll("\"", ""),
                             n.getBegin().get().line);
                 }
-
             }
 
             @Override
@@ -81,7 +82,7 @@ public class ScenarioStepDependencyFactory {
                 super.visit(n, arg);
 
             }
-        }.visit(StaticJavaParser.parse(in), null);
+        }.visit(StaticJavaParser.parse(fis), null);
 
         return lr_dependencies;
     }
