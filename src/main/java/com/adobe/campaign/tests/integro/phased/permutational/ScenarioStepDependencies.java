@@ -12,6 +12,7 @@
 package com.adobe.campaign.tests.integro.phased.permutational;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class ScenarioStepDependencies {
     private Map<String, StepDependencies> stepDependencies;
@@ -104,14 +105,14 @@ public class ScenarioStepDependencies {
     }
 
     /**
-     * Returns a list of step dependencies ordered by line numbers
+     * Returns a list of step dependencies ordered by line numbers. In this method we only consder the tests
      *
      * @return A list of dependencies sorted by their line numbers
      */
     public List<StepDependencies> fetchExecutionOrderList() {
 
         List<StepDependencies> lr_orderedSteps = new ArrayList<>();
-        lr_orderedSteps.addAll(stepDependencies.values());
+        lr_orderedSteps.addAll(stepDependencies.values().stream().filter(f -> !f.isConfigMethod()).collect(Collectors.toSet()));
 
         lr_orderedSteps.sort(Comparator.comparing(StepDependencies::getStepLine));
 

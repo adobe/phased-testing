@@ -20,6 +20,7 @@ import org.testng.internal.ConstructorOrMethod;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -257,6 +258,9 @@ public class TestExtractingDependencies {
 
         assertThat("The pointer of aaaa should be after that of bbbbb", dependencies.getStep("aaaa").getStepLine(),
                 greaterThan(dependencies.getStep("bbbbb").getStepLine()));
+
+        assertThat("The ordered set should include only tests", dependencies.fetchExecutionOrderList().stream().map(f -> f.getStepName()).collect(
+                Collectors.toList()), contains("bbbbb","aaaa"));
     }
 
 }
