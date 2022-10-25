@@ -16,12 +16,19 @@ import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
+import org.testng.annotations.*;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.List;
 
 public class ScenarioStepDependencyFactory {
+
+    private static final List<Class> CONFIG_CLASSES = Arrays.asList(BeforeClass.class, BeforeMethod.class, BeforeSuite.class, BeforeGroups.class,
+            BeforeTest.class, AfterClass.class,AfterMethod.class,AfterSuite.class, AfterGroups.class, AfterTest.class);
 
     /**
      * From a class, this method returns the methods, and what they produce / consume
@@ -62,13 +69,19 @@ public class ScenarioStepDependencyFactory {
             @Override
             public void visit(MethodDeclaration n, Object arg) {
                 lt_currentMethod = n.getName().asString();
+
+                Method lt_meMethod = Arrays.stream(in_class.getMethods()).filter(f -> f.getName().equals(lt_currentMethod)).findFirst().get();
+
                 lr_dependencies.getStepDependencies().put(lt_currentMethod, new StepDependencies(lt_currentMethod));
-                lr_dependencies.getStepDependencies().get(lt_currentMethod).setStepLine(n.getBegin().get().line);
+                lr_dependencies.getStep(lt_currentMethod).setStepLine(n.getBegin().get().line);
+                if (Arrays.stream(lt_meMethod.getDeclaredAnnotations()).anyMatch( a -> CONFIG_CLASSES.contains(a.annotationType()))) {
+                    lr_dependencies.getStep(lt_currentMethod).setConfigMethod(true);
+                }
+
                 super.visit(n, arg);
 
             }
         }.visit(StaticJavaParser.parse(in), null);
-        //System.out.println(); // empty line
 
         return lr_dependencies;
     }

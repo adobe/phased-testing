@@ -103,6 +103,10 @@ public final class ClassPathParser {
             return null;
         }
 
+        if (className.contains("$")) {
+            className = className.substring(0,className.lastIndexOf('$'));
+        }
+
         final String l_rootPath = (new File("")).getAbsolutePath() + PhasedTestManager.PHASED_TEST_SOURCE_LOCATION;
         final String l_filePath = l_rootPath + "/" + className.replace('.', '/') + ".java";
         return new File(l_filePath);
@@ -114,6 +118,7 @@ public final class ClassPathParser {
      * @return The file representing the java class
      */
     public static File fetchClassFile(Class in_class) {
-        return fetchClassFile(in_class.getTypeName());
+        return (in_class.getDeclaringClass() == null) ? fetchClassFile(in_class.getTypeName()) : fetchClassFile(
+                in_class.getDeclaringClass().getTypeName());
     }
 }

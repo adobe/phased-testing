@@ -17,6 +17,7 @@ import java.util.Set;
 public class StepDependencies {
 
     protected static final int DEFAULT_LINE_LOCATION = -113;
+    private boolean configMethod = false;
     private int stepLine = DEFAULT_LINE_LOCATION;
 
 
@@ -35,7 +36,7 @@ public class StepDependencies {
 
     public StepDependencies(String in_stepName, int in_stepLine) {
         this(in_stepName);
-        stepLine =in_stepLine;
+        setStepLine(in_stepLine);
     }
 
     public Set<String> getConsumeSet() {
@@ -58,6 +59,13 @@ public class StepDependencies {
         this.stepLine = stepLine;
     }
 
+    public boolean isConfigMethod() {
+        return configMethod;
+    }
+
+    public void setConfigMethod(boolean configMethod) {
+        this.configMethod = configMethod;
+    }
 
     /**
      * Stores the given key in the set of produced resources
@@ -80,7 +88,7 @@ public class StepDependencies {
     private void produceConsume(Set<String> in_produceConsume, String in_key) {
         if (!in_produceConsume.contains(in_key)) {
             in_produceConsume.add(in_key);
-            stepLine++;
+            setStepLine(getStepLine() + 1);
         }
     }
 

@@ -14,6 +14,7 @@ package com.adobe.campaign.tests.integro.phased.utils;
 import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
 import com.adobe.campaign.tests.integro.phased.PhasedTestManagerTests;
 import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_SingleClass;
+import com.adobe.campaign.tests.integro.phased.data.permutational.SimpleProducerConsumerNestedContainer;
 import org.mockito.Mockito;
 import org.testng.ITestNGMethod;
 import org.testng.ITestResult;
@@ -122,6 +123,46 @@ public class ClassPathParserTests {
         assertThat("We should have correctly found the file that is not null",
                 ClassPathParser.fetchClassFile(PhasedSeries_H_SingleClass.class),
                 notNullValue());
+
+    }
+
+    @Test
+    public void testFetchNestedClassFile() throws SecurityException {
+
+        //Fetch File for Class
+        Class<SimpleProducerConsumerNestedContainer.SimpleProducerConsumerNested> l_testClass = SimpleProducerConsumerNestedContainer.SimpleProducerConsumerNested.class;
+        assertThat("We should have correctly found the file that is not null",
+                ClassPathParser.fetchClassFile(l_testClass),
+                notNullValue());
+
+        assertThat("We should have correctly found the file that exists",
+                ClassPathParser.fetchClassFile(l_testClass).exists());
+
+        assertThat("We should get null if file name is empty",
+                ClassPathParser.fetchClassFile(""), nullValue());
+
+        assertThat("We should get null if file name is null",
+                ClassPathParser.fetchClassFile((String) null), nullValue());
+
+    }
+
+    @Test
+    public void testFetchNestedClassFilePassingString() throws SecurityException {
+
+        //Fetch File for Class
+        Class<SimpleProducerConsumerNestedContainer.SimpleProducerConsumerNested> l_testClass = SimpleProducerConsumerNestedContainer.SimpleProducerConsumerNested.class;
+        assertThat("We should have correctly found the file that is not null",
+                ClassPathParser.fetchClassFile(l_testClass.getTypeName()),
+                notNullValue());
+
+        assertThat("We should have correctly found the file that exists",
+                ClassPathParser.fetchClassFile(l_testClass.getTypeName()).exists());
+
+        assertThat("We should get null if file name is empty",
+                ClassPathParser.fetchClassFile(""), nullValue());
+
+        assertThat("We should get null if file name is null",
+                ClassPathParser.fetchClassFile((String) null), nullValue());
 
     }
 

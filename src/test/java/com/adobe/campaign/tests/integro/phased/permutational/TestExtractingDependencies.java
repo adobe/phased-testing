@@ -201,8 +201,10 @@ public class TestExtractingDependencies {
 
         assertThat("Our object should have a map od StpDependencies", dependencies.getStepDependencies(),
                 instanceOf(Map.class));
+
         assertThat("Our object should be linked to the analyzed class", dependencies.getScenarioName(),
-                equalTo(SimpleProducerConsumer.class.getTypeName()));
+                equalTo(SimpleProducerConsumerNestedContainer.SimpleProducerConsumerNested.class.getTypeName()));
+
         assertThat("We should now have two steps defined here", dependencies.getStepDependencies().keySet().size(),
                 equalTo(2));
 
@@ -221,6 +223,41 @@ public class TestExtractingDependencies {
                 greaterThan(dependencies.getStep("bbbbb").getStepLine()));
     }
 
+    @Test
+    public void testFetchExtractingProduceConsumeWithBeforeMethod()
+            throws NoSuchMethodException, SecurityException, IOException {
+
+        Class<ProducerConsumerWithBeforeClass> l_testClass = ProducerConsumerWithBeforeClass.class;
+
+        ScenarioStepDependencies dependencies = ScenarioStepDependencyFactory.listMethodCalls(l_testClass);
+
+        assertThat("Our object should have a map of StepDependencies", dependencies.getStepDependencies(),
+                instanceOf(Map.class));
+        assertThat("Our object should be linked to the analyzed class", dependencies.getScenarioName(),
+                equalTo(l_testClass.getTypeName()));
+        assertThat("We should now have two steps defined here", dependencies.getStepDependencies().keySet().size(),
+                equalTo(3));
+
+        assertThat("We should have fetched the correct methods", dependencies.getStepDependencies().keySet(),
+                containsInAnyOrder("runMeBefore", "bbbbb", "aaaa"));
+
+        assertThat("we should set the correct consume for our config method", dependencies.getStep("runMeBefore").getConsumeSet(), hasSize(0));
+        assertThat("we should set the correct consume got our config method", dependencies.getStep("runMeBefore").getProduceSet(), hasSize(0));
+        assertThat("This test should be a config method", dependencies.getStep("runMeBefore").isConfigMethod());
+
+        assertThat("we should set the correct consume", dependencies.getStep("bbbbb").getConsumeSet(), hasSize(0));
+        assertThat("we should set the correct consume", dependencies.getStep("bbbbb").getProduceSet(),
+                hasItems("bbbbkey"));
+        assertThat("This test should be a test", !dependencies.getStep("bbbbb").isConfigMethod());
+
+        assertThat("we should set the correct consume", dependencies.getStep("aaaa").getProduceSet(), hasSize(0));
+        assertThat("we should set the correct consume", dependencies.getStep("aaaa").getConsumeSet(),
+                hasItems("bbbbkey"));
+        assertThat("This test should be a test", !dependencies.getStep("aaaa").isConfigMethod());
+
+        assertThat("The pointer of aaaa should be after that of bbbbb", dependencies.getStep("aaaa").getStepLine(),
+                greaterThan(dependencies.getStep("bbbbb").getStepLine()));
+    }
 
 }
 

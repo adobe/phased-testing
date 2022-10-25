@@ -36,6 +36,7 @@ public class TestStepDependencies {
         assertThat("We should now have a step with the name Walther", sd.getStepName(), equalTo("walther"));
         assertThat("We should have a produces set", sd.getProduceSet(), instanceOf(Set.class));
         assertThat("We should have a produces set", sd.getConsumeSet(), instanceOf(Set.class));
+        assertThat("We should by default be storing a test", !sd.isConfigMethod());
 
         assertThat("At this stage, we should now have no entries for produce", sd.getProduceSet().size(), equalTo(0));
         sd.produce("a");

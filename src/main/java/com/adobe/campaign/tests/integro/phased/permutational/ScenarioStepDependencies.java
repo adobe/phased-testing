@@ -110,7 +110,6 @@ public class ScenarioStepDependencies {
      */
     public List<StepDependencies> fetchExecutionOrderList() {
 
-
         List<StepDependencies> lr_orderedSteps = new ArrayList<>();
         lr_orderedSteps.addAll(stepDependencies.values());
 
