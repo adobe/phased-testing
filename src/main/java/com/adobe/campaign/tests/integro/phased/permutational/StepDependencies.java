@@ -94,15 +94,15 @@ public class StepDependencies {
 
     /**
      * This method checks the relationship between two steps. We have the following use cases:
-     * <p/>
+     * <p>
      * <ul>
-     *     <li><bold>DEPENDED_ON_BY</bold>: when the given step depends on our current step.</li>
-     *     <li><bold>DEPENDS_ON</bold>: when the given step depends on our current step.</li>
-     *     <li><bold>INDEPENDANT</bold>: when there is no dependency between this step and the provided one.</li>
-     *     <li><bold>CIRCULAR</bold>: When the two steps are inter-dependant.</li>
+     *     <li><span class="strong">DEPENDED_ON_BY</span>: when the given step depends on our current step.</li>
+     *     <li><span class="strong">DEPENDS_ON</span>: when the given step depends on our current step.</li>
+     *     <li><span class="strong">INDEPENDANT</span>: when there is no dependency between this step and the provided one.</li>
+     *     <li><span class="strong">CIRCULAR</span>: When the two steps are inter-dependant.</li>
      * </ul>
-     * @param in_step
-     * @return
+     * @param in_step The step with which we should compare our step
+     * @return The relationship of type ${{@link Relations}}
      */
     public Relations fetchRelation(StepDependencies in_step) {
         boolean l_producesMyConsumes = in_step.getProduceSet().stream().anyMatch(f -> this.getConsumeSet().contains(f));

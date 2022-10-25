@@ -36,8 +36,7 @@ public class ScenarioStepDependencyFactory {
      * From a class, this method returns the methods, and what they produce / consume
      *
      * @param in_class The scenario containing the steps and dependencies
-     * @return
-     * @throws FileNotFoundException
+     * @return A ScenarioStepDependencies object containing all the produce and consumed data.
      */
     public static ScenarioStepDependencies listMethodCalls(Class in_class) {
         File file = ClassPathParser.fetchClassFile(in_class);
