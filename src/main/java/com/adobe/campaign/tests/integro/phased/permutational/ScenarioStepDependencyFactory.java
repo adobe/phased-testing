@@ -101,7 +101,11 @@ public class ScenarioStepDependencyFactory {
 
     //if the code contains a line number we return it otherwise we calculate where the next line would be
     private static int fetchLineNumberOfCalls(MethodCallExpr n, ScenarioStepDependencies lr_dependencies) {
-        return n.getBegin().isPresent() ? n.getBegin().get().line :
-                lr_dependencies.fetchLastStepPosition() + 1;
+        if (n.getBegin().isPresent()) {
+            return n.getBegin().get().line;
+        } else {
+            return lr_dependencies.fetchLastStepPosition() + 1;
+        }
+
     }
 }
