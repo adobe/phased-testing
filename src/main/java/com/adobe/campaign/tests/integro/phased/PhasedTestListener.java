@@ -520,9 +520,9 @@ public class PhasedTestListener
 
             for (ScenarioStepDependencies lt_sd : l_scenarioDependencies.values()) {
                 for (StepDependencies lt_methodName : lt_sd.fetchExecutionOrderList()) {
-                    lr_nonPhasedMethods.add(l_phasedDependencyMethods.stream()
+                    l_phasedDependencyMethods.stream()
                             .filter(m -> m.getMethod().getConstructorOrMethod().getName()
-                                    .equals(lt_methodName.getStepName())).findFirst().get());
+                                    .equals(lt_methodName.getStepName())).findFirst().ifPresent(c -> lr_nonPhasedMethods.add(c));
                 }
             }
 

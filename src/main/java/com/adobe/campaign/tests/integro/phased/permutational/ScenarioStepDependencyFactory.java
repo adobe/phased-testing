@@ -29,8 +29,10 @@ import java.util.List;
 
 public class ScenarioStepDependencyFactory {
 
-    private static final List<Class> CONFIG_CLASSES = Arrays.asList(BeforeClass.class, BeforeMethod.class, BeforeSuite.class, BeforeGroups.class,
-            BeforeTest.class, AfterClass.class,AfterMethod.class,AfterSuite.class, AfterGroups.class, AfterTest.class);
+    private static final List<Class> CONFIG_CLASSES = Arrays.asList(BeforeClass.class, BeforeMethod.class,
+            BeforeSuite.class, BeforeGroups.class,
+            BeforeTest.class, AfterClass.class, AfterMethod.class, AfterSuite.class, AfterGroups.class,
+            AfterTest.class);
 
     /**
      * From a class, this method returns the methods, and what they produce / consume
@@ -46,7 +48,10 @@ public class ScenarioStepDependencyFactory {
         try {
             fis = new FileInputStream(file);
         } catch (FileNotFoundException e) {
-            throw new PhasedTestConfigurationException("The class "+in_class.getTypeName()+" could not be found in the given directory "+ PhasedTestManager.PHASED_TEST_SOURCE_LOCATION+ "you can configure this by setting the execution property PHASED.TESTS.CODE.ROOT", e);
+            throw new PhasedTestConfigurationException(
+                    "The class " + in_class.getTypeName() + " could not be found in the given directory "
+                            + PhasedTestManager.PHASED_TEST_SOURCE_LOCATION
+                            + "you can configure this by setting the execution property PHASED.TESTS.CODE.ROOT", e);
         }
 
         new VoidVisitorAdapter<Object>() {
@@ -55,14 +60,20 @@ public class ScenarioStepDependencyFactory {
             @Override
             public void visit(MethodCallExpr n, Object arg) {
                 super.visit(n, arg);
-                //System.out.println(" [L " + n.getName() + "] " + n.getArgument(0) +" - "+ n);
-                if (n.getName().asString().equals("produce")) {
+                switch (n.getName().asString()) {
+                case "produce":
                     lr_dependencies.putProduce(lt_currentMethod, n.getArgument(0).toString().replaceAll("\"", ""),
-                            n.getBegin().get().line);
-                }
-                if (n.getName().asString().equals("consume")) {
+                            fetchLineNumberOfCalls(n, lr_dependencies));
+                    break;
+                case "produceInStep":
+                    lr_dependencies.putProduce(lt_currentMethod, lt_currentMethod,
+                            fetchLineNumberOfCalls(n, lr_dependencies));
+                    break;
+                case "consume":
+                case "consumeFromStep":
                     lr_dependencies.putConsume(lt_currentMethod, n.getArgument(0).toString().replaceAll("\"", ""),
-                            n.getBegin().get().line);
+                            fetchLineNumberOfCalls(n, lr_dependencies));
+
                 }
             }
 
@@ -70,11 +81,13 @@ public class ScenarioStepDependencyFactory {
             public void visit(MethodDeclaration n, Object arg) {
                 lt_currentMethod = n.getName().asString();
 
-                Method lt_meMethod = Arrays.stream(in_class.getMethods()).filter(f -> f.getName().equals(lt_currentMethod)).findFirst().get();
+                Method lt_meMethod = Arrays.stream(in_class.getMethods())
+                        .filter(f -> f.getName().equals(lt_currentMethod)).findFirst().get();
 
                 lr_dependencies.getStepDependencies().put(lt_currentMethod, new StepDependencies(lt_currentMethod));
                 lr_dependencies.getStep(lt_currentMethod).setStepLine(n.getBegin().get().line);
-                if (Arrays.stream(lt_meMethod.getDeclaredAnnotations()).anyMatch( a -> CONFIG_CLASSES.contains(a.annotationType()))) {
+                if (Arrays.stream(lt_meMethod.getDeclaredAnnotations())
+                        .anyMatch(a -> CONFIG_CLASSES.contains(a.annotationType()))) {
                     lr_dependencies.getStep(lt_currentMethod).setConfigMethod(true);
                 }
 
@@ -84,5 +97,11 @@ public class ScenarioStepDependencyFactory {
         }.visit(StaticJavaParser.parse(fis), null);
 
         return lr_dependencies;
+    }
+
+    //if the code contains a line number we return it otherwise we calculate where the next line would be
+    private static int fetchLineNumberOfCalls(MethodCallExpr n, ScenarioStepDependencies lr_dependencies) {
+        return n.getBegin().isPresent() ? n.getBegin().get().line :
+                lr_dependencies.fetchLastStepPosition() + 1;
     }
 }

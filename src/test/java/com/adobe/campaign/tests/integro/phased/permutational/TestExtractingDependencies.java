@@ -69,6 +69,36 @@ public class TestExtractingDependencies {
     }
 
     @Test
+    public void testFetchExtractingProduceConsumeFromStep()
+            throws NoSuchMethodException, SecurityException, IOException {
+
+        Class<SimpleProducerConsumerFromStep> l_testClass = SimpleProducerConsumerFromStep.class;
+
+        ScenarioStepDependencies dependencies = ScenarioStepDependencyFactory.listMethodCalls(l_testClass);
+
+        assertThat("Our object should have a map od StpDependencies", dependencies.getStepDependencies(),
+                instanceOf(Map.class));
+        assertThat("Our object should be linked to the analyzed class", dependencies.getScenarioName(),
+                equalTo(SimpleProducerConsumerFromStep.class.getTypeName()));
+        assertThat("We should now have two steps defined here", dependencies.getStepDependencies().keySet().size(),
+                equalTo(2));
+
+        assertThat("We should have fetched the correct methods", dependencies.getStepDependencies().keySet(),
+                containsInAnyOrder("bbbbb", "aaaa"));
+
+        assertThat("we should set the correct consume", dependencies.getStep("bbbbb").getConsumeSet(), hasSize(0));
+        assertThat("we should set the correct consume", dependencies.getStep("bbbbb").getProduceSet(),
+                hasItems("bbbbb"));
+
+        assertThat("we should set the correct consume", dependencies.getStep("aaaa").getProduceSet(), hasSize(0));
+        assertThat("we should set the correct consume", dependencies.getStep("aaaa").getConsumeSet(),
+                hasItems("bbbbb"));
+
+        assertThat("The pointer of aaaa should be after that of bbbbb", dependencies.getStep("aaaa").getStepLine(),
+                greaterThan(dependencies.getStep("bbbbb").getStepLine()));
+    }
+
+    @Test
     public void testFetchExtractingProduceConsumeStaticImports()
             throws NoSuchMethodException, SecurityException, IOException {
 
