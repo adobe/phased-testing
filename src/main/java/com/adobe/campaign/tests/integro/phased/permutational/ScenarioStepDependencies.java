@@ -19,8 +19,8 @@ public class ScenarioStepDependencies {
     private String scenarioName;
 
     public ScenarioStepDependencies(String in_scenarioName) {
-        this.scenarioName = in_scenarioName;
-        stepDependencies = new HashMap<>();
+        this.setScenarioName(in_scenarioName);
+        this.setStepDependencies(new HashMap<>());
     }
 
     public Map<String, StepDependencies> getStepDependencies() {
@@ -117,13 +117,6 @@ public class ScenarioStepDependencies {
         lr_orderedSteps.sort(Comparator.comparing(StepDependencies::getStepLine));
 
         return lr_orderedSteps;
-    }
-
-    public List<StepDependencies> fetchExecutionOrderList(Collection<StepDependencies> values,
-            ArrayList<String> es) {
-        List<StepDependencies> lr_orderedList = new ArrayList<>();
-
-        return lr_orderedList;
     }
 
     /**

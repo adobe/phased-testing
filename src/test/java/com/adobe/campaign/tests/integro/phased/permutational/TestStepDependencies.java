@@ -227,23 +227,6 @@ public class TestStepDependencies {
         assertThat("The third entry should be step x", executionList.get(2).getStepName(), equalTo("x"));
     }
 
-    //Planned for #101
-    @Test(enabled = false)
-    public void testOrderStackLevel3() {
-
-        ScenarioStepDependencies dependencies = new ScenarioStepDependencies("a.b.c.D");
-
-        dependencies.putProduce("step1", "a1");
-        dependencies.putConsume("step2", "a1");
-
-        List<StepDependencies> executionList = dependencies.fetchExecutionOrderList(
-                dependencies.getStepDependencies().values(), new ArrayList<>());
-
-        assertThat("We should have two entries one per step", executionList.size(), equalTo(2));
-        assertThat("The first entry should be step 1", executionList.get(0),
-                equalTo(dependencies.getStepDependencies().get("step1")));
-    }
-
     @Test
     public void testOrderStackLevel4_stepRelationsHW() {
 
@@ -303,6 +286,8 @@ public class TestStepDependencies {
         ScenarioStepDependencies dependencies = new ScenarioStepDependencies("a.b.c.D");
         dependencies.addStep("step1");
         dependencies.addStep("step2");
+        dependencies.putProduce("step3", "step3Key");
+        dependencies.putConsume("step4", "step4Key");
 
         assertThat("step1 & step2 are independant",
                 dependencies.getStep("step1").fetchRelation(dependencies.getStep("step2")),
@@ -311,6 +296,27 @@ public class TestStepDependencies {
         assertThat("step2 & step1 are independant",
                 dependencies.getStep("step2").fetchRelation(dependencies.getStep("step1")),
                 equalTo(StepDependencies.Relations.INDEPENDANT));
+/*
+        assertThat("step2 & step3 are independant",
+                dependencies.getStep("step2").fetchRelation(dependencies.getStep("step3")),
+                equalTo(StepDependencies.Relations.INDEPENDANT));
 
+        assertThat("step3 & step1 are independant",
+                dependencies.getStep("step3").fetchRelation(dependencies.getStep("step1")),
+                equalTo(StepDependencies.Relations.INDEPENDANT));
+
+        assertThat("step2 & step4 are independant",
+                dependencies.getStep("step2").fetchRelation(dependencies.getStep("step4")),
+                equalTo(StepDependencies.Relations.INDEPENDANT));
+
+        assertThat("step4 & step1 are independant",
+                dependencies.getStep("step4").fetchRelation(dependencies.getStep("step1")),
+                equalTo(StepDependencies.Relations.INDEPENDANT));
+
+        assertThat("step3 & step4 are independant",
+                dependencies.getStep("step3").fetchRelation(dependencies.getStep("step4")),
+                equalTo(StepDependencies.Relations.INDEPENDANT));
+
+ */
     }
 }
