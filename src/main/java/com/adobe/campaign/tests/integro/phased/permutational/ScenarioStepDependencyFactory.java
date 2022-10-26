@@ -81,12 +81,12 @@ public class ScenarioStepDependencyFactory {
             public void visit(MethodDeclaration n, Object arg) {
                 lt_currentMethod = n.getName().asString();
 
-                Method lt_meMethod = Arrays.stream(in_class.getMethods())
-                        .filter(f -> f.getName().equals(lt_currentMethod)).findFirst().get();
+                Method lt_method = Arrays.stream(in_class.getMethods())
+                        .filter(f -> f.getName().equals(lt_currentMethod)).findFirst().orElseThrow(PhasedTestConfigurationException::new);
 
                 lr_dependencies.getStepDependencies().put(lt_currentMethod, new StepDependencies(lt_currentMethod));
                 lr_dependencies.getStep(lt_currentMethod).setStepLine(n.getBegin().get().line);
-                if (Arrays.stream(lt_meMethod.getDeclaredAnnotations())
+                if (Arrays.stream(lt_method.getDeclaredAnnotations())
                         .anyMatch(a -> CONFIG_CLASSES.contains(a.annotationType()))) {
                     lr_dependencies.getStep(lt_currentMethod).setConfigMethod(true);
                 }

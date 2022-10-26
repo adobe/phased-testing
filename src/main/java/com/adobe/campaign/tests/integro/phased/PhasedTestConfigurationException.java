@@ -36,4 +36,7 @@ public class PhasedTestConfigurationException extends RuntimeException {
         super(in_msg);
     }
 
+    public PhasedTestConfigurationException() {
+        this("unexpected Phased Expection");
+    }
 }
