@@ -9,31 +9,35 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package com.adobe.campaign.tests.integro.phased;
+package com.adobe.campaign.tests.integro.phased.data.permutational;
 
-/**
- * Exceptions that are thrown when preparing the tests. Exceptions of this type
- * should be thrown before the tests are run
- *
- * Author : gandomi
- *
- */
-public class PhasedTestConfigurationException extends RuntimeException {
+import com.adobe.campaign.tests.integro.phased.PhasedTest;
+import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
+import org.testng.annotations.Test;
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = -5305055623086270877L;
+import static org.testng.Assert.assertEquals;
 
-    public PhasedTestConfigurationException(String in_msg, Throwable e) {
-        super(in_msg, e);
+@Test
+@PhasedTest(canShuffle = true)
+public class SimplePermutationTest {
+
+    public void zzzz(String val) {
+        System.err.println("zzzz "+val);
+        PhasedTestManager.produce("step1Key", "A");
     }
 
-    public PhasedTestConfigurationException(String in_msg) {
-        super(in_msg);
+    public void yyyyy(String val) {
+        System.err.println("yyyyy "+val);
+        String l_fetchedValue = PhasedTestManager.consume("step1Key");
+        PhasedTestManager.produce("step2Key", l_fetchedValue + "B");
     }
 
-    public PhasedTestConfigurationException() {
-        this("Unexpected Phased Expection");
+    public void xxxxx(String val) {
+        System.err.println("xxxxx "+val);
+        String l_fetchedValue = PhasedTestManager.consume("step2Key");
+
+        assertEquals(l_fetchedValue, "AB");
+
     }
+
 }

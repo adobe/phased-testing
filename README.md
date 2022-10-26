@@ -156,7 +156,9 @@ The Phased Testing is activated using two annotations:
 
 Moreover, you need to :
 * Make your methods accept at least one argument
-* The methods will be executed in alphabetical order. So prefixing the methods with their step number is a good practice. 
+* Due to the TestNG standards, the methods will be executed, by default in an alphabetical order. So prefixing the methods with their step number is a good practice. 
+
+Note : As of version 7.0.11, we now have the possibility to let the framework pick the order for us.
 
 ### Setting Execution Modes
 
@@ -257,7 +259,6 @@ We are able to run tests in phases since each step stores the information needed
 
 Managing this data is obviously essential to the Phased Tests. We will discuss this in more detail in the chapter on "Managing Phased Data".
 
-
 ### Run Time Properties
 We have the following system properties:
 * PHASED.TESTS.PHASE
@@ -266,6 +267,8 @@ We have the following system properties:
 * PHASED.TESTS.OUTPUT.DIR
 * PHASED.TESTS.RETRY.DISABLED
 * PHASED.TESTS.REPORT.BY.PHASE_GROUP
+* PHASED.TESTS.CODE.ROOT
+* PHASED.TESTS.DETECT.ORDER
 
 #### PHASED.TESTS.PHASE
 We have three phased states:
@@ -288,10 +291,21 @@ By default, we deactivate retry analyzer for the phased tests. However if you re
 #### PHASED.TESTS.REPORT.BY.PHASE_GROUP
 By default, we do not modify reports. Each step in a scenario is reported as is. We have introduced a "Report By Phase Group" functionality, which is activated with this property.
 
+#### PHASED.TESTS.CODE.ROOT
+As of version 7.0.11, we will be detecting the order based on the code. These rules are deduced by analyzing the test code. Since it is not easy to deduce, we require the user to set the root directory from whoch the sources can be found. This directory should point to le location from which the first package directory starts. 
+
+#### PHASED.TESTS.DETECT.ORDER
+As of version 7.0.11, we will be detecting the order based on the code. In 7.0.11, whenever this system property is set (the value is not important in this version), we execute the steps of a scenario based on their position within the class.
+
 ### Executing a CONSUMER phase based on the PRODUCED Data
 Usually when your test code is in the repository of the product being tested, you will be having a delta in tests between two versions **N** & **N+1**. In such cases you will want to only execute the tests that exist in both versions. 
 
 For this, as of version 7.0.9, we have introduced the functionality that allows you to automatically select the phased tests that were executed in a previous phase. This means that when activated in a CONSUMER Phase, the selection is made based on the tests that were executed in the PRODUCER Phase. This functionality is activated when you pass or include the test group `PHASED_PRODUCED_TESTS`.
+
+### Execution Order
+By default, the phased tests, being implemented in TestNG follow the same rules as that test framework. This means that up to version 7.0.10 (included), the execution of the steps in a scenario follows an alphabetical rule.
+
+As of version 7.0.11 we have implemented code based order. Whenever the system property, PHASED.TESTS.DETECT.ORDER is set, the steps are executed in the order the way we declared in the code. By default, we expect the coe to be in maven where the tests are in the directory src/test/java. However, this can be overriden by setting the eecution property PHASED.TESTS.CODE.ROOT.
 
 ## Integrity between Steps and Scenarios 
 ### Phase Contexts - Managing the Scenario Step Executions
@@ -341,7 +355,6 @@ TRUE | TRUE | PASSED
 FALSE | TRUE | SKIPPED
 TRUE | FALSE | FAILED
 
-
 The following use cases exist for a phase group.
 - If all steps succeed, we keep the first step as the end result.
 - If in the current phase we have a failure at step X, we only keep that step result. All following steps are discarded from the result. 
@@ -385,6 +398,10 @@ For now, we do not know how parallel execution will work with phased tests. So i
 For now, we have not come around to deciding how retry should work in the case of phased tests. By default, we deactivate them on the phased tests unless the user specifically chooses to activate them by setting the system property `PHASED.TESTS.RETRY.DISABLED` to false. 
 
 ## Release Notes
+### 7.0.11-SNAPSHOT
+* Implementation of execution order detection base on the code. We now have two options:
+** We continue as before, where we select the order alphabetically.
+** Whenever the system property, PHASED.TESTS.DETECT.ORDER is set, the steps are executed in the order the way we declared in the code. By default, we expect the coe to be in maven where the tests are in the directory src/test/java. However, this can be overriden by setting the eecution property PHASED.TESTS.CODE.ROOT (#5)
 
 ### 7.0.10
 - Reports are now merged by default (#56)
