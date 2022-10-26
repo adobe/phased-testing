@@ -2740,6 +2740,8 @@ public class PhasedTestManagerTests {
                 Matchers.not(equalTo(l_originalMessage)));
 
         assertThat("The message must have the correct value", l_ptce.getMessage(), equalTo(l_newMessage));
+
+        PhasedTestConfigurationException l_ptce2 = new PhasedTestConfigurationException();
     }
 
     @Test

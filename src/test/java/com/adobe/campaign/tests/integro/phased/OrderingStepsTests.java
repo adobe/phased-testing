@@ -119,7 +119,7 @@ public class OrderingStepsTests {
 
     }
 
-    @Test(enabled = true)
+    @Test
     public void testPhasedProducer() {
         System.setProperty("PHASED.TESTS.DETECT.ORDER","true");
         //Activate Merge
@@ -166,6 +166,96 @@ public class OrderingStepsTests {
 
         assertThat("The Report should also include the same value as the Failed",
                 context.getFailedTests().getAllResults().size(), is(equalTo(tla.getFailedTests().size())));
+
+    }
+
+    @Test
+    public void testPhasedFullMonty() {
+        System.setProperty("PHASED.TESTS.DETECT.ORDER","true");
+        //Activate Merge
+        PhasedTestManager.activateMergedReports();
+
+
+        // Rampup
+        TestNG myTestNG = TestTools.createTestNG();
+        TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
+
+        // Define suites
+        XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG, "Automated Suite Phased Testing - Ordering steps");
+
+        // Add listeners
+        mySuite.addListener("com.adobe.campaign.tests.integro.phased.PhasedTestListener");
+
+        // Create an instance of XmlTest and assign a name for it.
+        XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Phased : ordering tests");
+
+        final Class<SimplePermutationTest> l_testClass = SimplePermutationTest.class;
+        //final Class<DebugSimplePermutationTest> l_testClass = DebugSimplePermutationTest.class;
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
+
+        // Add package to test
+        Phases.PRODUCER.activate();
+
+        myTestNG.run();
+
+        assertThat("We should have 6 successful method of phased Tests",
+                (int) tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
+                is(equalTo(6)));
+
+        //Global
+        assertThat("We should have no failed tests", tla.getFailedTests().size(), equalTo(0));
+        assertThat("We should have no skipped tests", tla.getSkippedTests().size(), equalTo(0));
+
+        ITestContext context = tla.getTestContexts().get(0);
+
+        assertThat("The Report NOW only have one passed test",
+                context.getPassedTests().getAllResults().size(), is(equalTo(3)));
+
+        assertThat("The Report should also include the same value as the Skipped",
+                context.getSkippedTests().getAllResults().size(), is(equalTo(tla.getSkippedTests().size())));
+
+        assertThat("The Report should also include the same value as the Failed",
+                context.getFailedTests().getAllResults().size(), is(equalTo(tla.getFailedTests().size())));
+
+        // Rampup Consumer
+        TestNG myTestNGC = TestTools.createTestNG();
+        TestListenerAdapter tlaC = TestTools.fetchTestResultsHandler(myTestNGC);
+
+        // Define suites
+        XmlSuite mySuiteC = TestTools.addSuitToTestNGTest(myTestNGC, "Automated Suite Phased Testing - Ordering steps - Consumer");
+
+        // Add listeners
+        mySuiteC.addListener("com.adobe.campaign.tests.integro.phased.PhasedTestListener");
+
+        // Create an instance of XmlTest and assign a name for it.
+        XmlTest myTestC = TestTools.attachTestToSuite(mySuiteC, "Test Phased : ordering tests - Consumer");
+
+         //final Class<DebugSimplePermutationTest> l_testClass = DebugSimplePermutationTest.class;
+        myTestC.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
+
+        // Add package to test
+        Phases.CONSUMER.activate();
+
+        myTestNGC.run();
+
+        assertThat("We should have 6 successful method of phased Tests",
+                (int) tlaC.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
+                is(equalTo(6)));
+
+        //Global
+        assertThat("We should have no failed tests", tlaC.getFailedTests().size(), equalTo(0));
+        assertThat("We should have no skipped tests", tlaC.getSkippedTests().size(), equalTo(0));
+
+        ITestContext contextC = tlaC.getTestContexts().get(0);
+
+        assertThat("The Report NOW only have one passed test",
+                contextC.getPassedTests().getAllResults().size(), is(equalTo(3)));
+
+        assertThat("The Report should also include the same value as the Skipped",
+                contextC.getSkippedTests().getAllResults().size(), is(equalTo(tlaC.getSkippedTests().size())));
+
+        assertThat("The Report should also include the same value as the Failed",
+                contextC.getFailedTests().getAllResults().size(), is(equalTo(tlaC.getFailedTests().size())));
 
     }
 
