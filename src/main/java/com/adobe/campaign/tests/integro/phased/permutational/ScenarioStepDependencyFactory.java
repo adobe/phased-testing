@@ -85,7 +85,7 @@ public class ScenarioStepDependencyFactory {
                         .filter(f -> f.getName().equals(lt_currentMethod)).findFirst().orElseThrow(PhasedTestConfigurationException::new);
 
                 lr_dependencies.getStepDependencies().put(lt_currentMethod, new StepDependencies(lt_currentMethod));
-                lr_dependencies.getStep(lt_currentMethod).setStepLine(n.getBegin().get().line);
+                lr_dependencies.getStep(lt_currentMethod).setStepLine(n.getBegin().map(s -> s.line).orElse(lr_dependencies.fetchLastStepPosition() + 1));
                 if (Arrays.stream(lt_method.getDeclaredAnnotations())
                         .anyMatch(a -> CONFIG_CLASSES.contains(a.annotationType()))) {
                     lr_dependencies.getStep(lt_currentMethod).setConfigMethod(true);
