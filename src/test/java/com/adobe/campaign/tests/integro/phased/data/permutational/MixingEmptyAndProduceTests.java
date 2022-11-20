@@ -9,31 +9,24 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package com.adobe.campaign.tests.integro.phased;
+package com.adobe.campaign.tests.integro.phased.data.permutational;
 
-/**
- * Exceptions that are thrown when preparing the tests. Exceptions of this type
- * should be thrown before the tests are run
- *
- * Author : gandomi
- *
- */
-public class PhasedTestConfigurationException extends RuntimeException {
+import com.adobe.campaign.tests.integro.phased.PhasedTest;
+import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
+import org.testng.annotations.Test;
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = -5305055623086270877L;
+@PhasedTest(canShuffle = true)
+@Test
+public class MixingEmptyAndProduceTests {
+    public void ccccc(Object param) {
 
-    public PhasedTestConfigurationException(String in_msg, Throwable e) {
-        super(in_msg, e);
+
+    }
+    public void bbbbb(Object param) {
+        PhasedTestManager.produce("keyA","v");
     }
 
-    public PhasedTestConfigurationException(String in_msg) {
-        super(in_msg);
-    }
-
-    public PhasedTestConfigurationException() {
-        this("Unexpected Phased Expection");
+    public void aaaaa(Object param) {
+        PhasedTestManager.consume("keyA");
     }
 }

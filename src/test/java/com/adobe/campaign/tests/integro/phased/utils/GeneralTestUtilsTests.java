@@ -12,7 +12,8 @@
 package com.adobe.campaign.tests.integro.phased.utils;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.nullValue;
 import static org.testng.Assert.assertThrows;
 
 import java.io.File;
@@ -228,60 +229,4 @@ public class GeneralTestUtilsTests {
 
     }
 
-    @Test
-    public void testStorageMethodWithoutArgs() throws NoSuchMethodException, SecurityException {
-
-        final Method l_myTestNoArgs = PhasedTestManagerTests.class.getMethod("testStorageMethod");
-
-        ITestResult l_itr = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
-        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
-
-        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
-        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] {});
-        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
-        Mockito.when(l_com.getMethod()).thenReturn(l_myTestNoArgs);
-
-        assertThat("We should have the correct full name", ClassPathParser.fetchFullName(l_itr),
-                equalTo("com.adobe.campaign.tests.integro.phased.PhasedTestManagerTests.testStorageMethod"));
-
-    }
-
-    @Test
-    public void testStorageMethodWithArgs() throws NoSuchMethodException, SecurityException {
-
-        final Method l_myTestNoArgs = PhasedSeries_H_SingleClass.class.getMethod("step2", String.class);
-
-        ITestResult l_itr = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
-        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
-
-        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
-        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "A" });
-        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
-        Mockito.when(l_com.getMethod()).thenReturn(l_myTestNoArgs);
-
-        assertThat("We should have the correct full name", ClassPathParser.fetchFullName(l_itr),
-                equalTo("com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_SingleClass.step2(A)"));
-
-    }
-
-    @Test
-    public void testStorageMethodWithMultiArgs() throws SecurityException {
-
-        final Object[] l_parameterValues = new Object[] { "Q", "Z" };
-
-        assertThat("We should have the correct full name",
-                ClassPathParser.fetchParameterValues(l_parameterValues), equalTo("(Q,Z)"));
-
-    }
-
-    @Test
-    public void testStorageMethodWithMultiArgsNotJustStrings() throws SecurityException {
-
-        final Object[] l_parameterValues = new Object[] { "Q", Integer.valueOf("3")};
-        assertThat("We should have the correct full name",
-                ClassPathParser.fetchParameterValues(l_parameterValues), equalTo("(Q,3)"));
-
-    }
 }

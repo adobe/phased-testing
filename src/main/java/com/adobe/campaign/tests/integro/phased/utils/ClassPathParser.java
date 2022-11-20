@@ -11,10 +11,12 @@
  */
 package com.adobe.campaign.tests.integro.phased.utils;
 
+import java.io.File;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
+import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
 import org.testng.ITestResult;
 
 public final class ClassPathParser {
@@ -89,4 +91,34 @@ public final class ClassPathParser {
             + ")";
     }
 
+    /**
+     * This method returns the file path of the given class
+     *
+     * @param className The full class path represented as a String
+     * @return The file representing the java class
+     *
+     */
+    public static File fetchClassFile(String className) {
+        if (className == null || className.isEmpty()) {
+            return null;
+        }
+
+        if (className.contains("$")) {
+            className = className.substring(0,className.lastIndexOf('$'));
+        }
+
+        final String l_rootPath = (new File("")).getAbsolutePath() + PhasedTestManager.PHASED_TEST_SOURCE_LOCATION;
+        final String l_filePath = l_rootPath + "/" + className.replace('.', '/') + ".java";
+        return new File(l_filePath);
+    }
+
+    /**
+     * Returns the file representing the test class
+     * @param in_class A class object
+     * @return The file representing the java class
+     */
+    public static File fetchClassFile(Class in_class) {
+        return (in_class.getDeclaringClass() == null) ? fetchClassFile(in_class.getTypeName()) : fetchClassFile(
+                in_class.getDeclaringClass().getTypeName());
+    }
 }
