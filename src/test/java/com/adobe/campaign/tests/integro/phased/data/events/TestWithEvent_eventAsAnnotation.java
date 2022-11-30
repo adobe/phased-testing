@@ -9,27 +9,28 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package com.adobe.campaign.tests.integro.phased.data;
+package com.adobe.campaign.tests.integro.phased.data.events;
+
+import com.adobe.campaign.tests.integro.phased.PhaseEvent;
+import com.adobe.campaign.tests.integro.phased.PhasedDataProvider;
+import com.adobe.campaign.tests.integro.phased.PhasedTest;
+import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
+import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertEquals;
 
-import org.testng.annotations.Test;
-
-import com.adobe.campaign.tests.integro.phased.PhaseEvent;
-import com.adobe.campaign.tests.integro.phased.PhasedTest;
-import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
-
-
 @PhasedTest(canShuffle = true)
-public class PhasedSeries_F_Shuffle {
+@Test
+public class TestWithEvent_eventAsAnnotation {
     
-    @Test
+
     public void step1(String val) {
         System.out.println("step1 " + val);
         PhasedTestManager.produceInStep("A");
     }
 
-    @Test
+
+    @PhaseEvent(eventClasses = {"com.adobe.campaign.tests.integro.phased.data.events.MyNonInterruptiveEvent"})
     public void step2(String val) {
         System.out.println("step2 " + val);
         String l_fetchedValue = PhasedTestManager.consumeFromStep("step1");
@@ -38,7 +39,7 @@ public class PhasedSeries_F_Shuffle {
 
     }
 
-    @Test
+
     public void step3(String val) {
         System.out.println("step3 " + val);
         String l_fetchedValue = PhasedTestManager.consumeFromStep("step2");

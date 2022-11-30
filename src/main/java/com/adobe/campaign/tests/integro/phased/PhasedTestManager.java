@@ -606,6 +606,10 @@ public final class PhasedTestManager {
             return new Object[] { STD_PHASED_GROUP_SINGLE };
         }
 
+        if (Phases.ASYNCHRONOUS.isSelected()) {
+            return new Object[] { STD_PHASED_GROUP_SINGLE };
+        }
+
         return new Object[] {};
     }
 
@@ -784,6 +788,17 @@ public final class PhasedTestManager {
     }
 
     /**
+     * Lets us know if the scenario contains a declared event
+     * @param in_testScenario A Phased Test
+     * @return true if the scenario has a step that contains the annotation {{@link PhaseEvent}}
+     */
+    public static boolean phasedTestHasEvent(Class in_testScenario) {
+
+        return Arrays.stream(in_testScenario.getDeclaredMethods()).anyMatch(t -> t.isAnnotationPresent(PhaseEvent.class));
+    }
+
+
+    /**
      * Checks if the phase step is the last item in the current phase
      * <p>
      * Author : gandomi
@@ -861,7 +876,7 @@ public final class PhasedTestManager {
      */
     static boolean isPhasedTestShuffledMode(Class<?> in_class) {
         return isPhasedTest(in_class) && in_class.getAnnotation(PhasedTest.class).canShuffle() && Phases
-                .getCurrentPhase().hasSplittingEvent();
+                .getCurrentPhase().hasSplittingEvent() && !phasedTestHasEvent(in_class);
     }
 
     /**

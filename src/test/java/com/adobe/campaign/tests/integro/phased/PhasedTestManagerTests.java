@@ -14,6 +14,7 @@ package com.adobe.campaign.tests.integro.phased;
 import com.adobe.campaign.tests.integro.phased.data.*;
 import com.adobe.campaign.tests.integro.phased.data.befaft.PhasedSeries_M_SimpleClass;
 import com.adobe.campaign.tests.integro.phased.data.dp.*;
+import com.adobe.campaign.tests.integro.phased.data.events.TestWithEvent_eventAsAnnotation;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 import org.hamcrest.Matchers;
@@ -1028,6 +1029,30 @@ public class PhasedTestManagerTests {
 
     }
 
+    //NIE
+    @Test
+    public void testFetchProvidersSingle_asynchronousNonInterruptive()
+            throws NoSuchMethodException, SecurityException {
+
+        Phases.ASYNCHRONOUS.activate();
+        final Method l_myMethod1 = TestWithEvent_eventAsAnnotation.class.getMethod("step1", String.class);
+        final Method l_myMethod2 = TestWithEvent_eventAsAnnotation.class.getMethod("step2", String.class);
+        final Method l_myMethod3 = TestWithEvent_eventAsAnnotation.class.getMethod("step3", String.class);
+
+        Object[] l_providerStep1 = PhasedTestManager.fetchProvidersSingle(l_myMethod1);
+
+        assertThat("We should have a parameter for this method",l_providerStep1.length, equalTo(1));
+
+        Object[] l_providerStep2 = PhasedTestManager.fetchProvidersSingle(l_myMethod1);
+
+        assertThat("We should have a parameter for this method",l_providerStep2.length, equalTo(1));
+
+        Object[] l_providerStep3 = PhasedTestManager.fetchProvidersSingle(l_myMethod1);
+
+        assertThat("We should have a parameter for this method",l_providerStep3.length, equalTo(1));
+
+    }
+
     /**
      * Testing issue #33 When we are in Inactive state the Shuffling should not
      * be executed
@@ -1078,6 +1103,46 @@ public class PhasedTestManagerTests {
         assertThat("We should not be in Shuffled mode",
                 !PhasedTestManager.isPhasedTestShuffledMode(l_myMethod));
 
+    }
+
+    //NIE
+    @Test(description = "Testing in Aynchronous mode hello World" )
+    public void testHasAPhaseEvent() throws NoSuchMethodException {
+
+        assertThat("We correctly identify that our class has an event",
+                PhasedTestManager.phasedTestHasEvent(TestWithEvent_eventAsAnnotation.class));
+    }
+
+    @Test(description = "Testing in Aynchronous mode hello World" )
+    public void testHasAPhaseEvent_Negative() throws NoSuchMethodException {
+
+        assertThat("We correctly identify that our class does not have an event",
+                !PhasedTestManager.phasedTestHasEvent(PhasedSeries_H_ShuffledClass.class));
+    }
+
+    //NIE
+    @Test(description = "Testing in Aynchronous mode hello World" )
+    public void testIsInSingleAsynchronousMode() throws NoSuchMethodException {
+
+        Phases.ASYNCHRONOUS.activate();
+        assertThat("We should not be in Shuffled mode",
+                !PhasedTestManager.isPhasedTestShuffledMode(TestWithEvent_eventAsAnnotation.class));
+    }
+
+    @Test(description = "Testing in Aynchronous mode hello World" )
+    public void testIsInSingleAsynchronousMode_isSingleMode() throws NoSuchMethodException {
+
+        Phases.ASYNCHRONOUS.activate();
+        assertThat("We should not be in Single mode",
+                PhasedTestManager.isPhasedTestSingleMode(TestWithEvent_eventAsAnnotation.class));
+    }
+
+    @Test(description = "Testing in Aynchronous mode hello World" )
+    public void testIsInSingleAsynchronousMode_Negative() throws NoSuchMethodException {
+
+        Phases.ASYNCHRONOUS.activate();
+        assertThat("We should not be in Shuffled mode",
+                PhasedTestManager.isPhasedTestShuffledMode(PhasedSeries_H_ShuffledClass.class));
     }
 
     /****** Single mode tests *******/
