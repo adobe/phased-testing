@@ -37,6 +37,7 @@ public class PhasedEventManager {
     public static NonInterruptiveEvent startEvent(String in_event, String in_onAccountOfStep) {
 
         NonInterruptiveEvent nie = null;
+
         try {
             nie = (NonInterruptiveEvent) Class.forName(in_event).newInstance();
         } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
@@ -46,6 +47,7 @@ public class PhasedEventManager {
         logEvent(EventMode.START, in_event, in_onAccountOfStep);
         events.put(in_onAccountOfStep, nie);
         nie.startEvent();
+
         return nie;
     }
 
@@ -53,13 +55,19 @@ public class PhasedEventManager {
      * This method finished the given event for the given step.
      *
      * @param in_event           The event that is logged
-     * @param in_onAccountOfStep The step responsable for the event
+     * @param in_onAccountOfStep The step responsible for the event
      * @return The NonInterruptive Event that is started by this call
      */
     public static NonInterruptiveEvent finishEvent(String in_event, String in_onAccountOfStep) {
+        NonInterruptiveEvent l_activeEvent = events.get(in_onAccountOfStep);
+        if (l_activeEvent == null) {
+            throw new PhasedTestException("No event of the type "+in_event+" was stored for the test step "+in_onAccountOfStep);
+        }
+
+        l_activeEvent.waitTillFinished();
+
         logEvent(EventMode.END, in_event, in_onAccountOfStep);
-        events.get(in_onAccountOfStep).waitTillFinished();
-        return events.get(in_onAccountOfStep);
+        return l_activeEvent;
     }
 
     public static List<PhaseEventLogEntry> getEventLogs() {

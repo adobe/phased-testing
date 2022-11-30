@@ -147,6 +147,24 @@ public class TestPhasedNonInterruptive {
     }
 
     @Test
+    public void eventManagerTests_negative() {
+
+        String myEvent = MyNonInterruptiveEvent.class.getTypeName();
+        String l_stepName = "stepA";
+        NonInterruptiveEvent nie = PhasedEventManager.startEvent(myEvent, l_stepName);
+
+        assertThat("We should have stored an event object",PhasedEventManager.getEvents().size(), equalTo(1));
+        assertThat("We should have stored an event object",PhasedEventManager.getEvents().get(l_stepName), notNullValue());
+        assertThat("We should have stored our event object",PhasedEventManager.getEvents().get(l_stepName), equalTo(nie));
+
+        assertThat("There should be an event logged which is between the current and after dates", PhasedEventManager.getEventLogs().size(), equalTo(1));
+        assertThat("The event should be currently on-going", !nie.isFinished());
+
+        //Stop event
+        assertThrows(PhasedTestException.class, () -> PhasedEventManager.finishEvent(myEvent, "stepB"));
+    }
+
+    @Test
     public void testFetchEventInformation() throws NoSuchMethodException {
         final Class<TestWithEvent_eventAsAnnotation> l_testClass = TestWithEvent_eventAsAnnotation.class;
         Method l_myEventMethod = l_testClass.getMethod("step2", String.class);
@@ -181,6 +199,7 @@ public class TestPhasedNonInterruptive {
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
         Phases.ASYNCHRONOUS.activate();
+        //Phases.NON_PHASED.activate();
         myTestNG.run();
 
         assertThat("The correct phase must have been selected", Phases.getCurrentPhase(), equalTo(Phases.ASYNCHRONOUS));
@@ -202,18 +221,16 @@ public class TestPhasedNonInterruptive {
         assertThat("The first element should be an event defined in step2",l_eventStartLog.getEventName(), Matchers.equalTo(MyNonInterruptiveEvent.class.getTypeName()));
         assertThat("The first element should be an event started by step2",l_eventStartLog.getPhasedStepName(), Matchers.equalTo("com.adobe.campaign.tests.integro.phased.data.events.TestWithEvent_eventAsAnnotation.step2(phased-singleRun)"));
 
+        ITestResult l_testSubjectedToEvent = tla.getPassedTests().stream().filter(t -> t.getName().equals("step2")).collect(Collectors.toList()).get(0);
 
         PhaseEventLogEntry l_eventEndLog = PhasedEventManager.getEventLogs().get(1);
-        assertThat("The end of our event should be after its start", l_eventStartLog.getEventDate().getTime(), Matchers.greaterThanOrEqualTo(l_eventEndLog.getEventDate().getTime()));
+        assertThat("The end of our event should be after the test's start", l_eventEndLog.getEventDate().getTime(), Matchers.greaterThanOrEqualTo(l_testSubjectedToEvent.getStartMillis()));
         assertThat("The second element should be an event defined in step2",l_eventEndLog.getEventMode(), Matchers.equalTo(
                 PhasedEventManager.EventMode.END));
         assertThat("The second element should be an event defined in step2",l_eventEndLog.getEventName(), Matchers.equalTo(MyNonInterruptiveEvent.class.getTypeName()));
         assertThat("The second element should be an event started by step2",l_eventEndLog.getPhasedStepName(), Matchers.equalTo("com.adobe.campaign.tests.integro.phased.data.events.TestWithEvent_eventAsAnnotation.step2(phased-singleRun)"));
 
-        ITestResult x = tla.getPassedTests().stream().filter(t -> t.getName().equals("step2")).collect(Collectors.toList()).get(0);
-//        assertThat("Our event should have started before the test", l_eventStartLog.getEventDate().getTime(), lessThan(x.getStartMillis()));
-
-        assertThat("Our test should have started before the end of the event", x.getStartMillis(), lessThan(l_eventEndLog.getEventDate().getTime()));
+        assertThat("Our test should have started before the end of the event", l_testSubjectedToEvent.getStartMillis(), lessThan(l_eventEndLog.getEventDate().getTime()));
 
     }
 }

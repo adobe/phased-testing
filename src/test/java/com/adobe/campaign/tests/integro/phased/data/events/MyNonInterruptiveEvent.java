@@ -17,7 +17,6 @@ public class MyNonInterruptiveEvent extends NonInterruptiveEvent {
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
-
             }
         });
     }
@@ -35,13 +34,15 @@ public class MyNonInterruptiveEvent extends NonInterruptiveEvent {
 
     @Override
     public boolean waitTillFinished() {
-        while (eventThread.isAlive()) {
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+
+        try {
+            if (eventThread.isAlive()) {
+                this.eventThread.join();
             }
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
+
         return isFinished();
     }
 }

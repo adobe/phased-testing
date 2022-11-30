@@ -88,11 +88,7 @@ public enum Phases {
      *
      */
     void activate() {
-        if (this.hasSplittingEvent) {
-            System.setProperty(PhasedTestManager.PROP_SELECTED_PHASE, this.name());
-        } else {
-            System.clearProperty(PhasedTestManager.PROP_SELECTED_PHASE);
-        }
+        System.setProperty(PhasedTestManager.PROP_SELECTED_PHASE, this.name());
     }
 
     /**

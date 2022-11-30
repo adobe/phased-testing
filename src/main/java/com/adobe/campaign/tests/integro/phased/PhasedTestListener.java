@@ -11,6 +11,7 @@
  */
 package com.adobe.campaign.tests.integro.phased;
 
+import com.adobe.campaign.tests.integro.phased.data.events.NI_Event1;
 import com.adobe.campaign.tests.integro.phased.internal.PhaseProcessorFactory;
 import com.adobe.campaign.tests.integro.phased.permutational.ScenarioStepDependencies;
 import com.adobe.campaign.tests.integro.phased.permutational.ScenarioStepDependencyFactory;
@@ -157,37 +158,15 @@ public class PhasedTestListener
 
             //Managing events
             if (Phases.ASYNCHRONOUS.isSelected()) {
-
                 //Check if there is an event declared
                 if (l_method.isAnnotationPresent(PhaseEvent.class)) {
                     if (l_method.getDeclaredAnnotation(PhaseEvent.class).eventClasses().length > 0) {
                         //TEMP
                         String lt_event = l_method.getDeclaredAnnotation(PhaseEvent.class).eventClasses()[0];
-                        PhasedEventManager.startEvent(lt_event, ClassPathParser.fetchFullName(l_method));
-
+                        PhasedEventManager.startEvent(lt_event, ClassPathParser.fetchFullName(result));
                     }
                 }
-                //Check if we are in asynchronous events
-                //Start events
-                //Log events
             }
-
-            /*
-            Thread t1 = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    NI_Event1 myEvent = new NI_Event1();
-                    myEvent.execute();
-
-                }
-            });
-            t1.start();
-
-            log.info(t1.getState());
-
-             */
-
-
         }
     }
 
@@ -265,27 +244,16 @@ public class PhasedTestListener
             appendShuffleGroupToName(result);
             PhasedTestManager.scenarioStateStore(result);
 
-            //Managing events
             if (Phases.ASYNCHRONOUS.isSelected()) {
-
                 //Check if there is an event declared
                 if (l_method.isAnnotationPresent(PhaseEvent.class)) {
                     if (l_method.getDeclaredAnnotation(PhaseEvent.class).eventClasses().length > 0) {
                         //TEMP
                         String lt_event = l_method.getDeclaredAnnotation(PhaseEvent.class).eventClasses()[0];
-                        PhasedEventManager.finishEvent(lt_event,ClassPathParser.fetchFullName(result) );
-
+                        PhasedEventManager.finishEvent(lt_event, ClassPathParser.fetchFullName(result));
                     }
                 }
-                //Check if we are in asynchronous events
-                //Start events
-                //Log events
             }
-            //Managing events
-            //Check if there is an event declared
-            //Check if we are in asynchronous events
-            //Stop events
-            //Log events
         }
     }
 

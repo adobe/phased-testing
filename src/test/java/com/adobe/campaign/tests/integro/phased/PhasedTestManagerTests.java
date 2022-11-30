@@ -1129,7 +1129,7 @@ public class PhasedTestManagerTests {
                 !PhasedTestManager.isPhasedTestShuffledMode(TestWithEvent_eventAsAnnotation.class));
     }
 
-    @Test(description = "Testing in Aynchronous mode hello World" )
+    @Test(description = "Testing in Asynchronous mode hello World" )
     public void testIsInSingleAsynchronousMode_isSingleMode() throws NoSuchMethodException {
 
         Phases.ASYNCHRONOUS.activate();
@@ -1142,7 +1142,7 @@ public class PhasedTestManagerTests {
 
         Phases.ASYNCHRONOUS.activate();
         assertThat("We should not be in Shuffled mode",
-                PhasedTestManager.isPhasedTestShuffledMode(PhasedSeries_H_ShuffledClass.class));
+                !PhasedTestManager.isPhasedTestShuffledMode(PhasedSeries_H_ShuffledClass.class));
     }
 
     /****** Single mode tests *******/
