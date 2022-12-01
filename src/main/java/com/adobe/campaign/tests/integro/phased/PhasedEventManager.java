@@ -50,7 +50,7 @@ public class PhasedEventManager {
         try {
             Class<?> eventClass = Class.forName(in_event);
 
-            if (!NonInterruptiveEvent.class.isAssignableFrom(eventClass.getClass())) {
+            if (!NonInterruptiveEvent.class.isAssignableFrom(eventClass)) {
                 throw new PhasedTestConfigurationException("The given event "+in_event+ " should be a sub-class of the abstract class "+NonInterruptiveEvent.class.getTypeName()+".");
             }
             nie = (NonInterruptiveEvent) eventClass.newInstance();
