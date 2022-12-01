@@ -11,8 +11,7 @@
  */
 package com.adobe.campaign.tests.integro.phased;
 
-import com.adobe.campaign.tests.integro.phased.data.events.MyNonInterruptiveEvent;
-import com.adobe.campaign.tests.integro.phased.data.events.TestWithEvent_eventAsAnnotation;
+import com.adobe.campaign.tests.integro.phased.data.events.*;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 import com.adobe.campaign.tests.integro.phased.utils.TestTools;
 import org.hamcrest.Matchers;
@@ -142,26 +141,47 @@ public class TestPhasedNonInterruptive {
 
         assertThat("The event should still be stopped now", nieEND.isFinished());
 
-        assertThat("The duration should be more than a second", (finish.getTime() - start.getTime()), greaterThan(500l) );
+        assertThat("The duration should be more than a second", (finish.getTime() - start.getTime()), greaterThan(450l) );
         assertThat("The duration should be less than 2 seconds", (finish.getTime() - start.getTime()), lessThan(600l) );
     }
 
-    @Test
-    public void eventManagerTests_negative() {
+    @Test(description = "We start problematic instances")
+    public void eventManagerTestsStart_negative() {
+
+        String myEvent = MyNonInterruptiveEvent.class.getTypeName();
+        String l_stepName = "stepA";
+
+        //Stop event
+        assertThrows(PhasedTestConfigurationException.class, () -> PhasedEventManager.startEvent("NonExistingEvent", l_stepName));
+
+        assertThrows(PhasedTestConfigurationException.class, () -> PhasedEventManager.startEvent(NonInterruptiveEvent.class.getTypeName(), l_stepName));
+
+        assertThrows(PhasedTestConfigurationException.class, () -> PhasedEventManager.startEvent(NI_Event3.class.getTypeName(), l_stepName));
+
+        assertThrows(PhasedTestConfigurationException.class, () -> PhasedEventManager.startEvent(NI_Event1.class.getTypeName(), l_stepName));
+
+    }
+
+    @Test(description = "We finish an event for a step that has not been started")
+    public void eventManagerTestsEnd_negative() {
 
         String myEvent = MyNonInterruptiveEvent.class.getTypeName();
         String l_stepName = "stepA";
         NonInterruptiveEvent nie = PhasedEventManager.startEvent(myEvent, l_stepName);
 
-        assertThat("We should have stored an event object",PhasedEventManager.getEvents().size(), equalTo(1));
-        assertThat("We should have stored an event object",PhasedEventManager.getEvents().get(l_stepName), notNullValue());
-        assertThat("We should have stored our event object",PhasedEventManager.getEvents().get(l_stepName), equalTo(nie));
-
-        assertThat("There should be an event logged which is between the current and after dates", PhasedEventManager.getEventLogs().size(), equalTo(1));
-        assertThat("The event should be currently on-going", !nie.isFinished());
-
         //Stop event
         assertThrows(PhasedTestException.class, () -> PhasedEventManager.finishEvent(myEvent, "stepB"));
+    }
+
+    @Test(description = "In this example, we finish the wrong event for our step")
+    public void eventManagerTestsEnd_negativeBadEvent() {
+        String myEvent = MyNonInterruptiveEvent.class.getTypeName();
+        String l_stepName = "stepA";
+        NonInterruptiveEvent nie = PhasedEventManager.startEvent(myEvent, l_stepName);
+
+        assertThrows(PhasedTestException.class, () -> PhasedEventManager.finishEvent(NI_Event2.class.getTypeName(), l_stepName));
+
+        assertThrows(PhasedTestConfigurationException.class, () -> PhasedEventManager.finishEvent("NonExistantClass", l_stepName));
     }
 
     @Test

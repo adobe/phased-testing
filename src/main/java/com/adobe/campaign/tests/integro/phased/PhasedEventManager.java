@@ -36,18 +36,30 @@ public class PhasedEventManager {
      */
     public static NonInterruptiveEvent startEvent(String in_event, String in_onAccountOfStep) {
 
-        NonInterruptiveEvent nie = null;
-
-        try {
-            nie = (NonInterruptiveEvent) Class.forName(in_event).newInstance();
-        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
-
-            throw new RuntimeException(e);
-        }
+        NonInterruptiveEvent nie = instantiateClassFromString(in_event);
         logEvent(EventMode.START, in_event, in_onAccountOfStep);
         events.put(in_onAccountOfStep, nie);
         nie.startEvent();
 
+        return nie;
+    }
+
+    private static NonInterruptiveEvent instantiateClassFromString(String in_event) {
+        NonInterruptiveEvent nie = null;
+
+        try {
+            Class<?> eventClass = Class.forName(in_event);
+
+            if (!NonInterruptiveEvent.class.isAssignableFrom(eventClass.getClass())) {
+                throw new PhasedTestConfigurationException("The given event "+in_event+ " should be a sub-class of the abstract class "+NonInterruptiveEvent.class.getTypeName()+".");
+            }
+            nie = (NonInterruptiveEvent) eventClass.newInstance();
+        } catch (IllegalAccessException | InstantiationException e) {
+
+            throw new PhasedTestConfigurationException("We have had a problem instantiating the event "+in_event+".", e);
+        } catch (ClassNotFoundException e) {
+            throw new PhasedTestConfigurationException("The given event class "+in_event+" could not be found.", e);
+        }
         return nie;
     }
 
@@ -62,6 +74,14 @@ public class PhasedEventManager {
         NonInterruptiveEvent l_activeEvent = events.get(in_onAccountOfStep);
         if (l_activeEvent == null) {
             throw new PhasedTestException("No event of the type "+in_event+" was stored for the test step "+in_onAccountOfStep);
+        }
+
+        try {
+            if (Class.forName(in_event) != l_activeEvent.getClass()) {
+                throw new PhasedTestException("The given class "+in_event+" does not exist.");
+            }
+        } catch (ClassNotFoundException e) {
+            throw new PhasedTestConfigurationException("Class "+in_event+" not found.",e);
         }
 
         l_activeEvent.waitTillFinished();

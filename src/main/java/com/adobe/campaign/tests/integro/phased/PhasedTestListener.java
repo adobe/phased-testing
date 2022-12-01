@@ -11,7 +11,6 @@
  */
 package com.adobe.campaign.tests.integro.phased;
 
-import com.adobe.campaign.tests.integro.phased.data.events.NI_Event1;
 import com.adobe.campaign.tests.integro.phased.internal.PhaseProcessorFactory;
 import com.adobe.campaign.tests.integro.phased.permutational.ScenarioStepDependencies;
 import com.adobe.campaign.tests.integro.phased.permutational.ScenarioStepDependencyFactory;
