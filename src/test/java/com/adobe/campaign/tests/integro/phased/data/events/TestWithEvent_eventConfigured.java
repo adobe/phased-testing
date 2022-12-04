@@ -9,36 +9,42 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package com.adobe.campaign.tests.integro.phased;
+package com.adobe.campaign.tests.integro.phased.data.events;
 
-import java.util.Date;
+import com.adobe.campaign.tests.integro.phased.PhaseEvent;
+import com.adobe.campaign.tests.integro.phased.PhasedTest;
+import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
+import org.testng.annotations.Test;
 
-public class PhaseEventLogEntry {
-    Date eventDate;
-    PhasedEventManager.EventMode eventMode;
-    String eventName;
-    String phasedStepName;
+import static org.testng.Assert.assertEquals;
 
-    public PhaseEventLogEntry(PhasedEventManager.EventMode eventMode, String eventName, String phasedStepName) {
-        this.eventDate = new Date();
-        this.eventMode = eventMode;
-        this.eventName = eventName;
-        this.phasedStepName = phasedStepName;
+@PhasedTest(canShuffle = true)
+@Test
+public class TestWithEvent_eventConfigured {
+    
+
+    public void step1(String val) {
+        System.out.println("step1 " + val);
+        PhasedTestManager.produceInStep("A");
     }
 
-    public Date getEventDate() {
-        return eventDate;
+
+    @PhaseEvent
+    public void step2(String val) {
+        System.out.println("step2 " + val);
+        String l_fetchedValue = PhasedTestManager.consumeFromStep("step1");
+        PhasedTestManager.produceInStep(l_fetchedValue + "B");
+        
+
     }
 
-    public PhasedEventManager.EventMode getEventMode() {
-        return eventMode;
+
+    public void step3(String val) {
+        System.out.println("step3 " + val);
+        String l_fetchedValue = PhasedTestManager.consumeFromStep("step2");
+
+        assertEquals(l_fetchedValue, "AB");
+
     }
 
-    public String getEventName() {
-        return eventName;
-    }
-
-    public String getPhasedStepName() {
-        return phasedStepName;
-    }
 }

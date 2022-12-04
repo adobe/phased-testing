@@ -12,6 +12,7 @@
 package com.adobe.campaign.tests.integro.phased;
 
 import com.adobe.campaign.tests.integro.phased.data.events.*;
+import com.adobe.campaign.tests.integro.phased.utils.ConfigValueHandler;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 import com.adobe.campaign.tests.integro.phased.utils.TestTools;
 import org.hamcrest.Matchers;
@@ -34,6 +35,8 @@ import static org.testng.Assert.assertThrows;
 public class TestPhasedNonInterruptive {
     @BeforeMethod
     public void resetVariables() {
+
+        ConfigValueHandler.resetAllValues();
 
         PhasedEventManager.resetEvents();
 
@@ -214,7 +217,7 @@ public class TestPhasedNonInterruptive {
      * @throws SecurityException
      */
     @Test
-    public void testNonInterruptive_Parellel_SHUFFLED() throws NoSuchMethodException, SecurityException {
+    public void testNonInterruptive_ParellelHardCoded_SINGLE() throws NoSuchMethodException, SecurityException {
         // Rampup
         TestNG myTestNG = TestTools.createTestNG();
         TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
@@ -274,6 +277,79 @@ public class TestPhasedNonInterruptive {
         assertThat("The second element should be an event started by step2", l_eventEndLog.getPhasedStepName(),
                 Matchers.equalTo(
                         "com.adobe.campaign.tests.integro.phased.data.events.TestWithEvent_eventAsAnnotation.step2(phased-singleRun)"));
+
+        assertThat("Our test should have started before the end of the event", l_testSubjectedToEvent.getStartMillis(),
+                lessThan(l_eventEndLog.getEventDate().getTime()));
+
+    }
+
+    /**
+     * In this example we pass an event as a system property. The class has an event
+     *
+     * @throws NoSuchMethodException
+     * @throws SecurityException
+     */
+    @Test
+    public void testNonInterruptive_ParellelConfigured_SINGLE() throws NoSuchMethodException, SecurityException {
+        // Rampup
+        TestNG myTestNG = TestTools.createTestNG();
+        TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
+
+        // Define suites
+        XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG, "Automated Suite Phased Testing");
+
+        // Add listeners
+        mySuite.addListener("com.adobe.campaign.tests.integro.phased.PhasedTestListener");
+
+        // Create an instance of XmlTest and assign a name for it.
+        XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Shuffled Phased Tests");
+
+        final Class<TestWithEvent_eventConfigured> l_testClass = TestWithEvent_eventConfigured.class;
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
+
+        Phases.ASYNCHRONOUS.activate();
+        ConfigValueHandler.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
+        myTestNG.run();
+
+        assertThat("The correct phase must have been selected", Phases.getCurrentPhase(), equalTo(Phases.ASYNCHRONOUS));
+        assertThat("The correct phase must have been selected", Phases.getCurrentPhase(),
+                not(equalTo(Phases.NON_PHASED)));
+
+        assertThat("We should have 3 successful methods of phased Tests",
+                (int) tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
+                is(equalTo(3)));
+
+        //Global
+        assertThat("We should have no failed tests", tla.getFailedTests().size(), equalTo(0));
+        assertThat("We should have no skipped tests", tla.getSkippedTests().size(), equalTo(0));
+
+        assertThat("We should have 2 events in the logs", PhasedEventManager.getEventLogs().size(),
+                Matchers.equalTo(2));
+        PhaseEventLogEntry l_eventStartLog = PhasedEventManager.getEventLogs().get(0);
+        assertThat("The first element should be an event defined in step2", l_eventStartLog.getEventMode(),
+                Matchers.equalTo(
+                        PhasedEventManager.EventMode.START));
+
+        assertThat("The first element should be an event defined in step2", l_eventStartLog.getEventName(),
+                Matchers.equalTo(MyNonInterruptiveEvent.class.getTypeName()));
+        assertThat("The first element should be an event started by step2", l_eventStartLog.getPhasedStepName(),
+                Matchers.equalTo(
+                        TestWithEvent_eventConfigured.class.getTypeName()+".step2(phased-singleRun)"));
+
+        ITestResult l_testSubjectedToEvent = tla.getPassedTests().stream().filter(t -> t.getName().equals("step2"))
+                .collect(Collectors.toList()).get(0);
+
+        PhaseEventLogEntry l_eventEndLog = PhasedEventManager.getEventLogs().get(1);
+        assertThat("The end of our event should be after the test's start", l_eventEndLog.getEventDate().getTime(),
+                Matchers.greaterThanOrEqualTo(l_testSubjectedToEvent.getStartMillis()));
+        assertThat("The second element should be an event defined in step2", l_eventEndLog.getEventMode(),
+                Matchers.equalTo(
+                        PhasedEventManager.EventMode.END));
+        assertThat("The second element should be an event defined in step2", l_eventEndLog.getEventName(),
+                Matchers.equalTo(MyNonInterruptiveEvent.class.getTypeName()));
+        assertThat("The second element should be an event started by step2", l_eventEndLog.getPhasedStepName(),
+                Matchers.equalTo(
+                        TestWithEvent_eventConfigured.class.getTypeName()+".step2(phased-singleRun)"));
 
         assertThat("Our test should have started before the end of the event", l_testSubjectedToEvent.getStartMillis(),
                 lessThan(l_eventEndLog.getEventDate().getTime()));

@@ -16,6 +16,7 @@ import com.adobe.campaign.tests.integro.phased.permutational.ScenarioStepDepende
 import com.adobe.campaign.tests.integro.phased.permutational.ScenarioStepDependencyFactory;
 import com.adobe.campaign.tests.integro.phased.permutational.StepDependencies;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
+import com.adobe.campaign.tests.integro.phased.utils.ConfigValueHandler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.testng.*;
@@ -125,7 +126,6 @@ public class PhasedTestListener
             }
 
             final String l_dataProvider = PhasedTestManager.concatenateParameterArray(result.getParameters());
-            System.err.println("testStart : method " + l_method.getName() + " provider " + l_dataProvider);
 
             PhasedTestManager.storePhasedContext(ClassPathParser.fetchFullName(l_method), l_dataProvider);
 
@@ -162,6 +162,9 @@ public class PhasedTestListener
                     if (l_method.getDeclaredAnnotation(PhaseEvent.class).eventClasses().length > 0) {
                         //TEMP
                         String lt_event = l_method.getDeclaredAnnotation(PhaseEvent.class).eventClasses()[0];
+                        PhasedEventManager.startEvent(lt_event, ClassPathParser.fetchFullName(result));
+                    } else if (ConfigValueHandler.EVENTS_NONINTERRUPTIVE.isSet()) {
+                        String lt_event = ConfigValueHandler.EVENTS_NONINTERRUPTIVE.fetchValue();
                         PhasedEventManager.startEvent(lt_event, ClassPathParser.fetchFullName(result));
                     }
                 }
@@ -250,6 +253,9 @@ public class PhasedTestListener
                         //TEMP
                         String lt_event = l_method.getDeclaredAnnotation(PhaseEvent.class).eventClasses()[0];
                         PhasedEventManager.finishEvent(lt_event, ClassPathParser.fetchFullName(result));
+                    } else if (ConfigValueHandler.EVENTS_NONINTERRUPTIVE.isSet()) {
+                        String lt_event = ConfigValueHandler.EVENTS_NONINTERRUPTIVE.fetchValue();
+                        PhasedEventManager.finishEvent(lt_event, ClassPathParser.fetchFullName(result));
                     }
                 }
             }
@@ -309,7 +315,6 @@ public class PhasedTestListener
                 handleFailedPhases(context, each);
             }
         }
-
     }
 
     private void handlePassedPhases(ITestContext context, String lt_phasedClass) {
