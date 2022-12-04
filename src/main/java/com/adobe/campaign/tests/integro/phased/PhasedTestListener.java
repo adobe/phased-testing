@@ -158,15 +158,9 @@ public class PhasedTestListener
             //Managing events
             if (Phases.ASYNCHRONOUS.isSelected()) {
                 //Check if there is an event declared
-                if (l_method.isAnnotationPresent(PhaseEvent.class)) {
-                    if (l_method.getDeclaredAnnotation(PhaseEvent.class).eventClasses().length > 0) {
-                        //TEMP
-                        String lt_event = l_method.getDeclaredAnnotation(PhaseEvent.class).eventClasses()[0];
-                        PhasedEventManager.startEvent(lt_event, ClassPathParser.fetchFullName(result));
-                    } else if (ConfigValueHandler.EVENTS_NONINTERRUPTIVE.isSet()) {
-                        String lt_event = ConfigValueHandler.EVENTS_NONINTERRUPTIVE.fetchValue();
-                        PhasedEventManager.startEvent(lt_event, ClassPathParser.fetchFullName(result));
-                    }
+                String lt_event = PhasedEventManager.fetchEvent(l_method);
+                if (lt_event != null) {
+                    PhasedEventManager.startEvent(lt_event, ClassPathParser.fetchFullName(result));
                 }
             }
         }
@@ -248,15 +242,9 @@ public class PhasedTestListener
 
             if (Phases.ASYNCHRONOUS.isSelected()) {
                 //Check if there is an event declared
-                if (l_method.isAnnotationPresent(PhaseEvent.class)) {
-                    if (l_method.getDeclaredAnnotation(PhaseEvent.class).eventClasses().length > 0) {
-                        //TEMP
-                        String lt_event = l_method.getDeclaredAnnotation(PhaseEvent.class).eventClasses()[0];
-                        PhasedEventManager.finishEvent(lt_event, ClassPathParser.fetchFullName(result));
-                    } else if (ConfigValueHandler.EVENTS_NONINTERRUPTIVE.isSet()) {
-                        String lt_event = ConfigValueHandler.EVENTS_NONINTERRUPTIVE.fetchValue();
-                        PhasedEventManager.finishEvent(lt_event, ClassPathParser.fetchFullName(result));
-                    }
+                String lt_event = PhasedEventManager.fetchEvent(l_method);
+                if (lt_event != null) {
+                    PhasedEventManager.finishEvent(lt_event, ClassPathParser.fetchFullName(result));
                 }
             }
         }

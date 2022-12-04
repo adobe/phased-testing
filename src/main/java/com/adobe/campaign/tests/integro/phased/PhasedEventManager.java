@@ -12,7 +12,9 @@
 package com.adobe.campaign.tests.integro.phased;
 
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
+import com.adobe.campaign.tests.integro.phased.utils.ConfigValueHandler;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -115,5 +117,22 @@ public class PhasedEventManager {
 
     public static Map<String, NonInterruptiveEvent> getEvents() {
         return events;
+    }
+
+    /**
+     * Extracts the event for a given method
+     * @param in_methodWithEventAnnotation A method containing the annotation {@link PhaseEvent}
+     * @return An event that can be executed with this method. Null if no event is applicable
+     */
+    public static String fetchEvent(Method in_methodWithEventAnnotation) {
+        if (in_methodWithEventAnnotation.isAnnotationPresent(PhaseEvent.class)) {
+
+            if (in_methodWithEventAnnotation.getDeclaredAnnotation(PhaseEvent.class).eventClasses().length > 0) {
+                return in_methodWithEventAnnotation.getDeclaredAnnotation(PhaseEvent.class).eventClasses()[0];
+            } else if (ConfigValueHandler.EVENTS_NONINTERRUPTIVE.isSet()) {
+                return ConfigValueHandler.EVENTS_NONINTERRUPTIVE.fetchValue();
+            }
+        }
+        return null;
     }
 }

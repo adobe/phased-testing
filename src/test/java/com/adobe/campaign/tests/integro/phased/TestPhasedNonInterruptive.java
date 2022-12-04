@@ -122,7 +122,8 @@ public class TestPhasedNonInterruptive {
 
         assertThat("The duration should be more than a second", (finish.getTime() - start.getTime()),
                 greaterThanOrEqualTo(executionWait));
-        assertThat("The duration should be less than 2 seconds", (finish.getTime() - start.getTime()), lessThan(executionWait+100));
+        assertThat("The duration should be less than 2 seconds", (finish.getTime() - start.getTime()),
+                lessThan(executionWait + 100));
     }
 
     @Test
@@ -195,6 +196,36 @@ public class TestPhasedNonInterruptive {
 
         assertThrows(PhasedTestConfigurationException.class,
                 () -> PhasedEventManager.finishEvent("NonExistantClass", l_stepName));
+    }
+
+    @Test(description = "Testing that we can extract the event for a step")
+    public void testExtractEvent() throws NoSuchMethodException {
+        Method l_methodWithEvent = TestWithEvent_eventAsAnnotation.class.getMethod("step2", String.class);
+
+        assertThat("We should correctly extract the event from the method",
+                PhasedEventManager.fetchEvent(l_methodWithEvent), equalTo(MyNonInterruptiveEvent.class.getTypeName()));
+
+        Method l_methodWithNoEventSet = TestWithEvent_eventConfigured.class.getMethod("step2", String.class);
+        assertThat("We should correctly extract the event from the method",
+                PhasedEventManager.fetchEvent(l_methodWithNoEventSet), nullValue());
+
+        ConfigValueHandler.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
+        assertThat("We should correctly extract the event from the method",
+                PhasedEventManager.fetchEvent(l_methodWithNoEventSet),
+                equalTo(MyNonInterruptiveEvent.class.getTypeName()));
+
+    }
+
+    @Test(description = "Testing that we correctly return null")
+    public void testExtractEvent_Negative() throws NoSuchMethodException {
+        Method l_methodWithEvent = TestWithEvent_eventAsAnnotation.class.getMethod("step1", String.class);
+
+        assertThat("We should correctly extract the event from the method",
+                PhasedEventManager.fetchEvent(l_methodWithEvent), nullValue());
+
+        Method l_methodWithNoEventSet = TestWithEvent_eventConfigured.class.getMethod("step2", String.class);
+        assertThat("We should correctly extract the event from the method",
+                PhasedEventManager.fetchEvent(l_methodWithNoEventSet), nullValue());
     }
 
     @Test
@@ -334,7 +365,7 @@ public class TestPhasedNonInterruptive {
                 Matchers.equalTo(MyNonInterruptiveEvent.class.getTypeName()));
         assertThat("The first element should be an event started by step2", l_eventStartLog.getPhasedStepName(),
                 Matchers.equalTo(
-                        TestWithEvent_eventConfigured.class.getTypeName()+".step2(phased-singleRun)"));
+                        TestWithEvent_eventConfigured.class.getTypeName() + ".step2(phased-singleRun)"));
 
         ITestResult l_testSubjectedToEvent = tla.getPassedTests().stream().filter(t -> t.getName().equals("step2"))
                 .collect(Collectors.toList()).get(0);
@@ -349,7 +380,7 @@ public class TestPhasedNonInterruptive {
                 Matchers.equalTo(MyNonInterruptiveEvent.class.getTypeName()));
         assertThat("The second element should be an event started by step2", l_eventEndLog.getPhasedStepName(),
                 Matchers.equalTo(
-                        TestWithEvent_eventConfigured.class.getTypeName()+".step2(phased-singleRun)"));
+                        TestWithEvent_eventConfigured.class.getTypeName() + ".step2(phased-singleRun)"));
 
         assertThat("Our test should have started before the end of the event", l_testSubjectedToEvent.getStartMillis(),
                 lessThan(l_eventEndLog.getEventDate().getTime()));
