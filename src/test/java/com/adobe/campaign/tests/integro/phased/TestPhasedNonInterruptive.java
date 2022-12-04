@@ -53,11 +53,6 @@ public class TestPhasedNonInterruptive {
 
         PhasedTestManager.MergedReportData.resetReport();
 
-        //Delete temporary cache
-        File l_newFile = GeneralTestUtils
-                .createEmptyCacheFile(GeneralTestUtils.createCacheDirectory("phased2"), "newFile.properties");
-
-        l_newFile.delete();
 
         //Delete standard cache file
         File l_importCacheFile = new File(
@@ -91,7 +86,7 @@ public class TestPhasedNonInterruptive {
         //Make sure event is stopped
         assertThat("The event should still be stopped now", nie.isFinished());
 
-        Long executionWait = new Long(MyNonInterruptiveEvent.WAIT_TIME_MS);
+        long executionWait = MyNonInterruptiveEvent.WAIT_TIME_MS;
         assertThat("The duration should be more than a second", (finish.getTime() - start.getTime()),
                 greaterThanOrEqualTo(executionWait));
         assertThat("The duration should be less than 2 seconds", (finish.getTime() - start.getTime()),
@@ -116,7 +111,7 @@ public class TestPhasedNonInterruptive {
         assertThat("The event should no longer be on-going", nie.waitTillFinished());
         Date finish = new Date();
 
-        Long executionWait = new Long(MyNonInterruptiveEvent.WAIT_TIME_MS);
+        long executionWait = (long) MyNonInterruptiveEvent.WAIT_TIME_MS;
         //Make sure event is stopped
         assertThat("The event should still be stopped now", nie.isFinished());
 
@@ -128,7 +123,6 @@ public class TestPhasedNonInterruptive {
 
     @Test
     public void eventManagerTests() {
-        Date l_currentDate = new Date();
         String myEvent = MyNonInterruptiveEvent.class.getTypeName();
         NonInterruptiveEvent nie = PhasedEventManager.startEvent(myEvent, "B");
 
@@ -156,7 +150,6 @@ public class TestPhasedNonInterruptive {
     @Test(description = "We start problematic instances")
     public void eventManagerTestsStart_negative() {
 
-        String myEvent = MyNonInterruptiveEvent.class.getTypeName();
         String l_stepName = "stepA";
 
         //Stop event
@@ -178,8 +171,6 @@ public class TestPhasedNonInterruptive {
     public void eventManagerTestsEnd_negative() {
 
         String myEvent = MyNonInterruptiveEvent.class.getTypeName();
-        String l_stepName = "stepA";
-        NonInterruptiveEvent nie = PhasedEventManager.startEvent(myEvent, l_stepName);
 
         //Stop event
         assertThrows(PhasedTestException.class, () -> PhasedEventManager.finishEvent(myEvent, "stepB"));
@@ -187,9 +178,7 @@ public class TestPhasedNonInterruptive {
 
     @Test(description = "In this example, we finish the wrong event for our step")
     public void eventManagerTestsEnd_negativeBadEvent() {
-        String myEvent = MyNonInterruptiveEvent.class.getTypeName();
         String l_stepName = "stepA";
-        NonInterruptiveEvent nie = PhasedEventManager.startEvent(myEvent, l_stepName);
 
         assertThrows(PhasedTestException.class,
                 () -> PhasedEventManager.finishEvent(NI_Event2.class.getTypeName(), l_stepName));
@@ -243,12 +232,9 @@ public class TestPhasedNonInterruptive {
 
     /**
      * In this example we pass an event as a system property. The class has an event
-     *
-     * @throws NoSuchMethodException
-     * @throws SecurityException
      */
     @Test
-    public void testNonInterruptive_ParellelHardCoded_SINGLE() throws NoSuchMethodException, SecurityException {
+    public void testNonInterruptive_ParellelHardCoded_SINGLE()  {
         // Rampup
         TestNG myTestNG = TestTools.createTestNG();
         TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
@@ -317,11 +303,9 @@ public class TestPhasedNonInterruptive {
     /**
      * In this example we pass an event as a system property. The class has an event
      *
-     * @throws NoSuchMethodException
-     * @throws SecurityException
      */
     @Test
-    public void testNonInterruptive_ParellelConfigured_SINGLE() throws NoSuchMethodException, SecurityException {
+    public void testNonInterruptive_ParellelConfigured_SINGLE()  {
         // Rampup
         TestNG myTestNG = TestTools.createTestNG();
         TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
@@ -365,7 +349,7 @@ public class TestPhasedNonInterruptive {
                 Matchers.equalTo(MyNonInterruptiveEvent.class.getTypeName()));
         assertThat("The first element should be an event started by step2", l_eventStartLog.getPhasedStepName(),
                 Matchers.equalTo(
-                        TestWithEvent_eventConfigured.class.getTypeName() + ".step2(phased-singleRun)"));
+                        l_testClass.getTypeName() + ".step2(phased-singleRun)"));
 
         ITestResult l_testSubjectedToEvent = tla.getPassedTests().stream().filter(t -> t.getName().equals("step2"))
                 .collect(Collectors.toList()).get(0);
@@ -380,10 +364,52 @@ public class TestPhasedNonInterruptive {
                 Matchers.equalTo(MyNonInterruptiveEvent.class.getTypeName()));
         assertThat("The second element should be an event started by step2", l_eventEndLog.getPhasedStepName(),
                 Matchers.equalTo(
-                        TestWithEvent_eventConfigured.class.getTypeName() + ".step2(phased-singleRun)"));
+                        l_testClass.getTypeName() + ".step2(phased-singleRun)"));
 
         assertThat("Our test should have started before the end of the event", l_testSubjectedToEvent.getStartMillis(),
                 lessThan(l_eventEndLog.getEventDate().getTime()));
+
+    }
+
+    /**
+     * This is a test for non-intyerruptive events in shuffled classes
+     */
+    @Test
+    public void testNonInterruptive_ParellelConfigured_Shuffled() {
+        // Rampup
+        TestNG myTestNG = TestTools.createTestNG();
+        TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
+
+        // Define suites
+        XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG, "Automated Suite Phased Testing");
+
+        // Add listeners
+        mySuite.addListener("com.adobe.campaign.tests.integro.phased.PhasedTestListener");
+
+        // Create an instance of XmlTest and assign a name for it.
+        XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Shuffled Phased Tests");
+
+        final Class<TestShuffled_eventConfigured> l_testClass = TestShuffled_eventConfigured.class;
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
+
+        Phases.ASYNCHRONOUS.activate();
+        ConfigValueHandler.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
+        myTestNG.run();
+
+        assertThat("We should have 9 successful methods of phased Tests",
+                (int) tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
+                is(equalTo(9)));
+
+        //Global
+        assertThat("We should have no failed tests", tla.getFailedTests().size(), equalTo(0));
+        assertThat("We should have no skipped tests", tla.getSkippedTests().size(), equalTo(0));
+
+        assertThat("We should have 2 events in the logs", PhasedEventManager.getEventLogs().size(),
+                Matchers.equalTo(6));
+
+        ITestResult l_testSubjectedToEvent = tla.getPassedTests().stream().filter(t -> t.getName().equals("step2"))
+                .collect(Collectors.toList()).get(0);
+
 
     }
 }
