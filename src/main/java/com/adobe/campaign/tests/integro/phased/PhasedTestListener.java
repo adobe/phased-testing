@@ -117,8 +117,10 @@ public class PhasedTestListener
         final Method l_method = result.getMethod().getConstructorOrMethod().getMethod();
 
         //reset context
+
         if (PhasedTestManager.isPhasedTest(l_method)) {
 
+            //Cases 1,2,4,5
             //Disable retrying of phased tests
             if (System.getProperty(PhasedTestManager.PROP_DISABLE_RETRY, "true").equalsIgnoreCase("true")) {
                 log.info("{} Disabling Retry for phased Tests.", PhasedTestManager.PHASED_TEST_LOG_PREFIX);
@@ -156,6 +158,7 @@ public class PhasedTestListener
             }
 
             //Managing events
+            //Cases 4 & 5
             if (Phases.ASYNCHRONOUS.isSelected()) {
                 //Check if there is an event declared
                 String lt_event = PhasedEventManager.fetchEvent(l_method);
@@ -240,6 +243,7 @@ public class PhasedTestListener
             appendShuffleGroupToName(result);
             PhasedTestManager.scenarioStateStore(result);
 
+            //Cases 4 & 5
             if (Phases.ASYNCHRONOUS.isSelected()) {
                 //Check if there is an event declared
                 String lt_event = PhasedEventManager.fetchEvent(l_method);
@@ -423,27 +427,31 @@ public class PhasedTestListener
                 annotation.setGroups(l_newArrayString.toArray(l_newGroupArray));
             }
 
+            //NIA Case 1
             if (PhasedTestManager.isPhasedTestShuffledMode(testClass)) {
                 annotation.setDataProvider(PhasedDataProvider.SHUFFLED);
                 annotation.setDataProviderClass(PhasedDataProvider.class);
             }
 
+            //NIA Case 2
             if (PhasedTestManager.isPhasedTestSingleMode(testClass)) {
                 annotation.setDataProvider(PhasedDataProvider.SINGLE);
                 annotation.setDataProviderClass(PhasedDataProvider.class);
             }
+
         }
 
         //Managing Phased tests on method level
         if (testMethod == null) {
             return;
         }
+        //NIA Case 1
         if (PhasedTestManager.isPhasedTestShuffledMode(testMethod)) {
             annotation.setDataProvider(PhasedDataProvider.SHUFFLED);
             annotation.setDataProviderClass(PhasedDataProvider.class);
 
         }
-
+        //NIA Case 2
         if (PhasedTestManager.isPhasedTestSingleMode(testMethod)) {
             annotation.setDataProvider(PhasedDataProvider.SINGLE);
             annotation.setDataProviderClass(PhasedDataProvider.class);
@@ -491,6 +499,7 @@ public class PhasedTestListener
             }
 
             //Prepare data for shuffle calculation
+            //NIA Cases 1 & 5
             if (PhasedTestManager.isPhasedTestShuffledMode(lt_method)) {
                 log.debug("{} In Shuffled mode : current test {}", PhasedTestManager.PHASED_TEST_LOG_PREFIX
                         , ClassPathParser.fetchFullName(lt_method));
@@ -507,6 +516,7 @@ public class PhasedTestListener
         if (!System.getProperties().containsKey("PHASED.TESTS.DETECT.ORDER")) {
             if (Phases.getCurrentPhase().hasSplittingEvent()) {
                 log.info("{} Generating Phased Providers", PhasedTestManager.PHASED_TEST_LOG_PREFIX);
+                //NIA
                 PhasedTestManager.generatePhasedProviders(l_classMethodMap, Phases.getCurrentPhase());
             }
             return list;
@@ -516,9 +526,9 @@ public class PhasedTestListener
             Map<String, ScenarioStepDependencies> l_scenarioDependencies = l_phasedClasses.stream()
                     .map(ScenarioStepDependencyFactory::listMethodCalls).collect(Collectors.toMap(ScenarioStepDependencies::getScenarioName, Function.identity()));
 
-
             if (Phases.getCurrentPhase().hasSplittingEvent()) {
                 log.info("{} Generating Phased Providers", PhasedTestManager.PHASED_TEST_LOG_PREFIX);
+                //NIA
                 PhasedTestManager.generatePhasedProviders(l_classMethodMap, l_scenarioDependencies,
                         Phases.getCurrentPhase());
             }
@@ -529,7 +539,7 @@ public class PhasedTestListener
                     .collect(
                             Collectors.toList());
 
-            //Create list of methods that are in the
+            //Create list of methods that are phased
             List<IMethodInstance> l_phasedDependencyMethods = list.stream().filter(m -> l_phasedClasses.contains(
                     m.getMethod().getConstructorOrMethod().getDeclaringClass())).collect(
                     Collectors.toList());

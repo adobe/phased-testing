@@ -12,7 +12,6 @@
 package com.adobe.campaign.tests.integro.phased;
 
 import com.adobe.campaign.tests.integro.phased.permutational.ScenarioStepDependencies;
-import com.adobe.campaign.tests.integro.phased.permutational.StepDependencies;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 import com.adobe.campaign.tests.integro.phased.utils.StackTraceManager;
@@ -65,6 +64,7 @@ public final class PhasedTestManager {
     static final String STD_PHASED_GROUP_SINGLE = "phased-singleRun";
 
     public static final String STD_MERGE_STEP_ERROR_PREFIX = "Phased Error: Failure in step ";
+
 
     /**
      * The different states a step can assume in a scenario
@@ -877,6 +877,27 @@ public final class PhasedTestManager {
     static boolean isPhasedTestShuffledMode(Class<?> in_class) {
         return isPhasedTest(in_class) && in_class.getAnnotation(PhasedTest.class).canShuffle() && Phases
                 .getCurrentPhase().hasSplittingEvent() && !phasedTestHasEvent(in_class);
+    }
+
+    //NIE
+
+    /**
+     * Lets us know if the given class is to be included in a non-interruptive model
+     * @param in_class A class that is used for testing
+     * @return True if we can include an event along its steps
+     */
+    public static boolean isPhasedTestNonInterruptiveShuffledMode(Class<?> in_class) {
+        return isPhasedTest(in_class) && in_class.getAnnotation(PhasedTest.class).canShuffle() && Phases
+                .ASYNCHRONOUS.isSelected() && !phasedTestHasEvent(in_class) ;
+    }
+
+    /**
+     * Lets us know if the given method is part of a class that is to be included in a non-interruptive model
+     * @param in_method A method that is used for testing
+     * @return True if we can include an event along the steps of the class declaring this step
+     */
+    public static boolean isPhasedTestNonInterruptiveShuffledMode(Method in_method) {
+        return isPhasedTestNonInterruptiveShuffledMode(in_method.getDeclaringClass());
     }
 
     /**

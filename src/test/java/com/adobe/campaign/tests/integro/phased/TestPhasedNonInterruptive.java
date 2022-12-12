@@ -183,6 +183,7 @@ public class TestPhasedNonInterruptive {
         assertThrows(PhasedTestException.class,
                 () -> PhasedEventManager.finishEvent(NI_Event2.class.getTypeName(), l_stepName));
 
+        PhasedEventManager.events.put(l_stepName,new MyNonInterruptiveEvent());
         assertThrows(PhasedTestConfigurationException.class,
                 () -> PhasedEventManager.finishEvent("NonExistantClass", l_stepName));
     }
@@ -374,8 +375,10 @@ public class TestPhasedNonInterruptive {
     /**
      * This is a test for non-intyerruptive events in shuffled classes
      */
-    @Test
+    @Test(enabled = false)
     public void testNonInterruptive_ParellelConfigured_Shuffled() {
+
+
         // Rampup
         TestNG myTestNG = TestTools.createTestNG();
         TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
@@ -394,6 +397,8 @@ public class TestPhasedNonInterruptive {
 
         Phases.ASYNCHRONOUS.activate();
         ConfigValueHandler.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
+
+        assertThat("We should be in shuffled mode", PhasedTestManager.isPhasedTestShuffledMode(l_testClass));
         myTestNG.run();
 
         assertThat("We should have 9 successful methods of phased Tests",

@@ -14,6 +14,7 @@ package com.adobe.campaign.tests.integro.phased;
 import com.adobe.campaign.tests.integro.phased.data.*;
 import com.adobe.campaign.tests.integro.phased.data.befaft.PhasedSeries_M_SimpleClass;
 import com.adobe.campaign.tests.integro.phased.data.dp.*;
+import com.adobe.campaign.tests.integro.phased.data.events.TestShuffled_eventConfigured;
 import com.adobe.campaign.tests.integro.phased.data.events.TestWithEvent_eventAsAnnotation;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
@@ -1054,11 +1055,9 @@ public class PhasedTestManagerTests {
     }
 
     /**
-     * Testing issue #33 When we are in Inactive state the Shuffling should not
-     * be executed
-     *
+     * Testing issue #33 When we are in Inactive state the Shuffling should not be executed
+     * <p>
      * Author : gandomi
-     *
      */
     @Test
     public void testIsInCascadeMode() throws NoSuchMethodException, SecurityException {
@@ -1067,14 +1066,15 @@ public class PhasedTestManagerTests {
         Phases.CONSUMER.activate();
         assertThat("We should be in Shuffled mode", PhasedTestManager.isPhasedTestShuffledMode(l_myMethod));
 
+        assertThat("We should not be in asynchronous Shuffled mode",
+                !PhasedTestManager.isPhasedTestNonInterruptiveShuffledMode(l_myMethod));
+
     }
 
     /**
-     * Testing issue #33 When we are in Inactive state the Shuffled should not
-     * happen
-     *
+     * Testing issue #33 When we are in Inactive state the Shuffled should not happen
+     * <p>
      * Author : gandomi
-     *
      */
     @Test
     public void testIsInCascadeMode_Negative() throws NoSuchMethodException, SecurityException {
@@ -1083,6 +1083,8 @@ public class PhasedTestManagerTests {
         assertThat("We should not be in Shuffled mode",
                 !PhasedTestManager.isPhasedTestShuffledMode(l_myMethod));
 
+        assertThat("We should not be in asynchronous Shuffled mode",
+                !PhasedTestManager.isPhasedTestNonInterruptiveShuffledMode(l_myMethod));
     }
 
     @Test
@@ -1093,6 +1095,9 @@ public class PhasedTestManagerTests {
         assertThat("We should not be in Shuffled mode",
                 !PhasedTestManager.isPhasedTestShuffledMode(l_myMethod));
 
+        assertThat("We should not be in asynchronous Shuffled mode",
+                !PhasedTestManager.isPhasedTestNonInterruptiveShuffledMode(l_myMethod));
+
     }
 
     @Test(description = "Testing with a single mode")
@@ -1102,6 +1107,9 @@ public class PhasedTestManagerTests {
         Phases.CONSUMER.activate();
         assertThat("We should not be in Shuffled mode",
                 !PhasedTestManager.isPhasedTestShuffledMode(l_myMethod));
+
+        assertThat("We should not be in asynchronous Shuffled mode",
+                !PhasedTestManager.isPhasedTestNonInterruptiveShuffledMode(l_myMethod));
 
     }
 
@@ -1122,27 +1130,54 @@ public class PhasedTestManagerTests {
 
     //NIE
     @Test(description = "Testing in Aynchronous mode hello World" )
+    public void testIsInNonInterruptiveMode() throws NoSuchMethodException {
+
+        Phases.ASYNCHRONOUS.activate();
+        assertThat("We should be in Synchronous Shuffled mode",
+                PhasedTestManager.isPhasedTestNonInterruptiveShuffledMode(TestShuffled_eventConfigured.class));
+    }
+
+    @Test(description = "Testing in Aynchronous mode Negative" )
+    public void testIsInNonInterruptiveMode_Negative() throws NoSuchMethodException {
+
+        assertThat("We should not be in Synchronous Shuffled mode",
+                !PhasedTestManager.isPhasedTestNonInterruptiveShuffledMode(TestShuffled_eventConfigured.class));
+    }
+
+    @Test(description = "Testing in Aynchronous mode hello World" )
     public void testIsInSingleAsynchronousMode() throws NoSuchMethodException {
 
         Phases.ASYNCHRONOUS.activate();
+        Class<TestWithEvent_eventAsAnnotation> l_class = TestWithEvent_eventAsAnnotation.class;
         assertThat("We should not be in Shuffled mode",
-                !PhasedTestManager.isPhasedTestShuffledMode(TestWithEvent_eventAsAnnotation.class));
+                !PhasedTestManager.isPhasedTestShuffledMode(l_class));
+
+        assertThat("We should not be in asynchronous Shuffled mode",
+                !PhasedTestManager.isPhasedTestNonInterruptiveShuffledMode(l_class));
     }
 
     @Test(description = "Testing in Asynchronous mode hello World" )
     public void testIsInSingleAsynchronousMode_isSingleMode() throws NoSuchMethodException {
 
         Phases.ASYNCHRONOUS.activate();
+        Class<TestWithEvent_eventAsAnnotation> l_class = TestWithEvent_eventAsAnnotation.class;
         assertThat("We should not be in Single mode",
-                PhasedTestManager.isPhasedTestSingleMode(TestWithEvent_eventAsAnnotation.class));
+                PhasedTestManager.isPhasedTestSingleMode(l_class));
+
+        assertThat("We should not be in asynchronous Shuffled mode",
+                !PhasedTestManager.isPhasedTestNonInterruptiveShuffledMode(l_class));
     }
 
-    @Test(description = "Testing in Aynchronous mode hello World" )
+    @Test(description = "Testing in Aynchronous mode hello World" , enabled = false)
     public void testIsInSingleAsynchronousMode_Negative() throws NoSuchMethodException {
 
         Phases.ASYNCHRONOUS.activate();
+        Class<PhasedSeries_H_ShuffledClass> l_class = PhasedSeries_H_ShuffledClass.class;
         assertThat("We should not be in Shuffled mode",
-                !PhasedTestManager.isPhasedTestShuffledMode(PhasedSeries_H_ShuffledClass.class));
+                !PhasedTestManager.isPhasedTestShuffledMode(l_class));
+
+        assertThat("We should not be in asynchronous Shuffled mode",
+                !PhasedTestManager.isPhasedTestNonInterruptiveShuffledMode(l_class));
     }
 
     /****** Single mode tests *******/
