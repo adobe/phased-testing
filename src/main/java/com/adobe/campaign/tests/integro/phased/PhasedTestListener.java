@@ -416,10 +416,9 @@ public class PhasedTestListener
             Method testMethod) {
         if (testClass != null) {
 
-            //inject the
+            //inject the selector by PRODUCER
             if (PhasedTestManager.isTestsSelectedByProducerMode() && PhasedTestManager.fetchExecutedPhasedClasses()
                     .contains(testClass.getTypeName())) {
-
                 //Create new group array
                 Set<String> l_newArrayString = new HashSet<>(Arrays.asList(annotation.getGroups()));
                 l_newArrayString.add(PhasedTestManager.STD_GROUP_SELECT_TESTS_BY_PRODUCER);

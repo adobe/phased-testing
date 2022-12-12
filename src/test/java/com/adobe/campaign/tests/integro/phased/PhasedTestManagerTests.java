@@ -16,6 +16,7 @@ import com.adobe.campaign.tests.integro.phased.data.befaft.PhasedSeries_M_Simple
 import com.adobe.campaign.tests.integro.phased.data.dp.*;
 import com.adobe.campaign.tests.integro.phased.data.events.TestShuffled_eventConfigured;
 import com.adobe.campaign.tests.integro.phased.data.events.TestWithEvent_eventAsAnnotation;
+import com.adobe.campaign.tests.integro.phased.data.events.TestWithEvent_eventConfigured;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 import org.hamcrest.Matchers;
@@ -1230,6 +1231,17 @@ public class PhasedTestManagerTests {
 
         Phases.CONSUMER.activate();
         assertThat("We should be in Shuffled mode", PhasedTestManager.isPhasedTestShuffledMode(l_myMethod));
+
+    }
+
+    @Test(enabled = false)
+    public void testIsInSingleMode_NegativeAsynchronousMethod() throws NoSuchMethodException, SecurityException {
+        final Method l_myMethod = TestWithEvent_eventConfigured.class.getMethod("step3", String.class);
+
+        Phases.ASYNCHRONOUS.activate();
+        assertThat("We should be in Shuffled mode", !PhasedTestManager.isPhasedTestShuffledMode(l_myMethod));
+        assertThat("We should be in Shuffled mode", !PhasedTestManager.isPhasedTestSingleMode(l_myMethod));
+        assertThat("We should be in Shuffled mode", !PhasedTestManager.isPhasedTestSingleMode(l_myMethod));
 
     }
 

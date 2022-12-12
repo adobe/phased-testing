@@ -398,7 +398,8 @@ public class TestPhasedNonInterruptive {
         Phases.ASYNCHRONOUS.activate();
         ConfigValueHandler.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
 
-        assertThat("We should be in shuffled mode", PhasedTestManager.isPhasedTestShuffledMode(l_testClass));
+        assertThat("We should be in non-interruptive mode not shuffled", !PhasedTestManager.isPhasedTestShuffledMode(l_testClass));
+        assertThat("We should be in non-interruptive mode ", PhasedTestManager.isPhasedTestNonInterruptiveShuffledMode(l_testClass));
         myTestNG.run();
 
         assertThat("We should have 9 successful methods of phased Tests",
