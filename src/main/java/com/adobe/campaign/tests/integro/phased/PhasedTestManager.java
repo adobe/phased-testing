@@ -614,6 +614,26 @@ public final class PhasedTestManager {
     }
 
     /**
+     * Returns the data provider for a standard Non-Phased test. If the test is single and not execute inactive, we do
+     * not execute it
+     * <p>
+     * Author : gandomi
+     *
+     * @param in_method The method/step for which we want to get the data providers for
+     * @return An array containing the data providers for the method. Otherwise an empty array
+     */
+    public static  Object[]  fetchProvidersStandard(Method in_method) {
+        log.debug("Returning provider for method {}", ClassPathParser.fetchFullName(in_method));
+
+        if (Phases.NON_PHASED.isSelected() && !in_method.getDeclaringClass().getAnnotation(PhasedTest.class)
+                .executeInactive()) {
+            return new Object[] { };
+        }
+
+        return new Object[] {PhasedDataProvider.DEFAULT};
+    }
+
+    /**
      * This method calculates how often a class should be run.
      * <p>
      * Author : gandomi
@@ -843,7 +863,7 @@ public final class PhasedTestManager {
      * @return True if the test step/method is part of a SingleRun Phase Test scenario
      */
     static boolean isPhasedTestSingleMode(Method in_method) {
-        return isPhasedTest(in_method) && !isPhasedTestShuffledMode(in_method);
+        return isPhasedTestSingleMode(in_method.getDeclaringClass());
     }
 
     /**
@@ -853,7 +873,7 @@ public final class PhasedTestManager {
      * @return True if the test class is a SingleRun Phase Test scenario
      */
     static boolean isPhasedTestSingleMode(Class<?> in_class) {
-        return isPhasedTest(in_class) && !isPhasedTestShuffledMode(in_class);
+        return isPhasedTest(in_class) && !in_class.getAnnotation(PhasedTest.class).canShuffle();
     }
 
     /**
@@ -864,7 +884,7 @@ public final class PhasedTestManager {
      * @return True if the given test method/step is part of a Shuffled Phased Test scenario
      */
     static boolean isPhasedTestShuffledMode(Method in_method) {
-        return isPhasedTest(in_method) && isPhasedTestShuffledMode(in_method.getDeclaringClass());
+        return isPhasedTestShuffledMode(in_method.getDeclaringClass());
     }
 
     /**
@@ -875,8 +895,9 @@ public final class PhasedTestManager {
      * @return True if the given test scenario is a Shuffled Phased Test scenario
      */
     static boolean isPhasedTestShuffledMode(Class<?> in_class) {
-        return isPhasedTest(in_class) && in_class.getAnnotation(PhasedTest.class).canShuffle() && Phases
-                .getCurrentPhase().hasSplittingEvent() && !phasedTestHasEvent(in_class);
+        return isPhasedTest(in_class) && in_class.getAnnotation(PhasedTest.class).canShuffle();
+        //return isPhasedTest(in_class) && in_class.getAnnotation(PhasedTest.class).canShuffle() && Phases
+        //        .getCurrentPhase().hasSplittingEvent() && !phasedTestHasEvent(in_class);
     }
 
     //NIE
@@ -1382,7 +1403,8 @@ public final class PhasedTestManager {
      */
     public static Integer fetchNrOfStepsBeforePhaseChange(ITestResult in_testResult) {
 
-        if (isPhasedTestShuffledMode(in_testResult.getMethod().getConstructorOrMethod().getMethod())) {
+        if (isPhasedTestShuffledMode(in_testResult.getMethod().getConstructorOrMethod().getMethod()) && Phases.getCurrentPhase()
+                .hasSplittingEvent()) {
 
             final String l_phaseGroup = in_testResult.getParameters()[0].toString();
 

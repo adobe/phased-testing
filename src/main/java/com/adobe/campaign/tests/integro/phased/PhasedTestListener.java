@@ -426,15 +426,16 @@ public class PhasedTestListener
                 annotation.setGroups(l_newArrayString.toArray(l_newGroupArray));
             }
 
-            //NIA Case 1
-            if (PhasedTestManager.isPhasedTestShuffledMode(testClass)) {
-                annotation.setDataProvider(PhasedDataProvider.SHUFFLED);
-                annotation.setDataProviderClass(PhasedDataProvider.class);
+            if (PhasedTestManager.isPhasedTest(testClass)) {
+                if (Phases.NON_PHASED.isSelected()) {
+                    annotation.setDataProvider(
+                            ConfigValueHandler.PHASED_TEST_NONPHASED_LEGACY.is("true") ? PhasedDataProvider.SINGLE : PhasedDataProvider.DEFAULT);
+
+                } else {
+                    annotation.setDataProvider(PhasedTestManager.isPhasedTestShuffledMode(
+                            testClass) ? PhasedDataProvider.SHUFFLED : PhasedDataProvider.SINGLE);
             }
 
-            //NIA Case 2
-            if (PhasedTestManager.isPhasedTestSingleMode(testClass)) {
-                annotation.setDataProvider(PhasedDataProvider.SINGLE);
                 annotation.setDataProviderClass(PhasedDataProvider.class);
             }
 
@@ -444,15 +445,15 @@ public class PhasedTestListener
         if (testMethod == null) {
             return;
         }
-        //NIA Case 1
-        if (PhasedTestManager.isPhasedTestShuffledMode(testMethod)) {
-            annotation.setDataProvider(PhasedDataProvider.SHUFFLED);
-            annotation.setDataProviderClass(PhasedDataProvider.class);
+        if (PhasedTestManager.isPhasedTest(testMethod)) {
+            if (Phases.NON_PHASED.isSelected()) {
+                annotation.setDataProvider(
+                        ConfigValueHandler.PHASED_TEST_NONPHASED_LEGACY.is("true") ? PhasedDataProvider.SINGLE : PhasedDataProvider.DEFAULT);
 
+            } else {
+                annotation.setDataProvider(PhasedTestManager.isPhasedTestShuffledMode(
+                        testMethod) ? PhasedDataProvider.SHUFFLED : PhasedDataProvider.SINGLE);
         }
-        //NIA Case 2
-        if (PhasedTestManager.isPhasedTestSingleMode(testMethod)) {
-            annotation.setDataProvider(PhasedDataProvider.SINGLE);
             annotation.setDataProviderClass(PhasedDataProvider.class);
         }
     }

@@ -18,9 +18,9 @@ import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertEquals;
 
-@PhasedTest(canShuffle = true)
+@PhasedTest(canShuffle = false)
 @Test
-public class TestWithEvent_eventConfigured {
+public class TestSINGLEWithEvent_eventConfigured {
     
 
     public void step1(String val) {

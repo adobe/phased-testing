@@ -12,16 +12,15 @@
 package com.adobe.campaign.tests.integro.phased.data.events;
 
 import com.adobe.campaign.tests.integro.phased.PhaseEvent;
-import com.adobe.campaign.tests.integro.phased.PhasedDataProvider;
 import com.adobe.campaign.tests.integro.phased.PhasedTest;
 import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertEquals;
 
-@PhasedTest(canShuffle = true)
+@PhasedTest(canShuffle = false)
 @Test
-public class TestWithEvent_eventAsAnnotation {
+public class TestSINGLEWithEvent_eventAsAnnotation {
     
 
     public void step1(String val) {

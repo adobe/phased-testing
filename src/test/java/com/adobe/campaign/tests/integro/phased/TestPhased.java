@@ -17,6 +17,7 @@ import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledDP
 import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledDPSimple;
 import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledNoArgs;
 import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledWrongArgs;
+import com.adobe.campaign.tests.integro.phased.utils.ConfigValueHandler;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 import com.adobe.campaign.tests.integro.phased.utils.TestTools;
 import org.hamcrest.Matchers;
@@ -45,6 +46,8 @@ public class TestPhased {
     public void resetVariables() {
 
         PhasedTestManager.clearCache();
+
+        ConfigValueHandler.resetAllValues();
 
         System.clearProperty(PhasedTestManager.PROP_PHASED_DATA_PATH);
         System.clearProperty(PhasedTestManager.PROP_SELECTED_PHASE);
@@ -192,13 +195,50 @@ public class TestPhased {
     }
 
     /**
-     * In this case when we have not set any value regarding the Phase state we are in the state IANACTIVE. In this case
+     * In this case when we have not set any value regarding the Phase state we are in the state INACTIVE. In this case
      * the execution of not is defined by the Class Annotation
      * <p>
      * Author : gandomi
      */
     @Test
-    public void testInActiveNoExecutions() {
+    public void testInActiveNoExecutions_LEGACY() {
+        // Rampup
+        TestNG myTestNG = TestTools.createTestNG();
+        TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
+
+        // Define suites
+        XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG, "Automated Suite Phased Testing");
+
+        // Add listeners
+        mySuite.addListener("com.adobe.campaign.tests.integro.phased.PhasedTestListener");
+
+        // Create an instance of XmlTest and assign a name for it.
+        XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Phased Tests");
+
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(PhasedSeries_B_NoInActive.class)));
+        ConfigValueHandler.PHASED_TEST_NONPHASED_LEGACY.activate("true");
+        myTestNG.run();
+
+        assertThat("We should have no executed methods of phased Tests",
+                (int) tla.getFailedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_B_NoInActive.class)).count(),
+                is(equalTo(0)));
+
+        assertThat("We should have no executed methods of phased Tests",
+                (int) tla.getPassedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(PhasedSeries_B_NoInActive.class)).count(),
+                is(equalTo(0)));
+
+    }
+
+    /**
+     * In this case when we have not set any value regarding the Phase state we are in the state INACTIVE. In this case
+     * the execution of not is defined by the Class Annotation
+     * <p>
+     * Author : gandomi
+     */
+    @Test
+    public void testInActiveNoExecutions_Default() {
         // Rampup
         TestNG myTestNG = TestTools.createTestNG();
         TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
@@ -1275,15 +1315,15 @@ public class TestPhased {
         //STEP 1
         assertThat("We should have executed step1 with the phased group 0",
                 tla.getPassedTests().stream().filter(m -> m.getName().equals("step1")).anyMatch(
-                        m -> m.getParameters()[0].equals(PhasedTestManager.STD_PHASED_GROUP_SINGLE)));
+                        m -> m.getParameters()[0].equals(PhasedDataProvider.DEFAULT)));
 
         assertThat("We should have executed step1 with the phased group 1",
                 tla.getPassedTests().stream().filter(m -> m.getName().equals("step2")).anyMatch(
-                        m -> m.getParameters()[0].equals(PhasedTestManager.STD_PHASED_GROUP_SINGLE)));
+                        m -> m.getParameters()[0].equals(PhasedDataProvider.DEFAULT)));
 
         assertThat("We should  have executed step1 with the phased group 2",
                 tla.getPassedTests().stream().filter(m -> m.getName().equals("step3")).anyMatch(
-                        m -> m.getParameters()[0].equals(PhasedTestManager.STD_PHASED_GROUP_SINGLE)));
+                        m -> m.getParameters()[0].equals(PhasedDataProvider.DEFAULT)));
 
         //Global
         assertThat("We should have no failed tests", tla.getFailedTests().size(), equalTo(0));

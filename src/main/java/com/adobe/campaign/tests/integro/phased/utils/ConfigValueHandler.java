@@ -14,7 +14,10 @@ package com.adobe.campaign.tests.integro.phased.utils;
 import java.util.Arrays;
 
 public enum ConfigValueHandler {
-    EVENTS_NONINTERRUPTIVE("PHASED.EVENTS.NONINTERRUPTIVE","", false);
+    EVENTS_NONINTERRUPTIVE("PHASED.EVENTS.NONINTERRUPTIVE","", false),
+    PHASED_TEST_NONPHASED_LEGACY( "PHASED.TESTS.NONPHASED.LEGACY", "false", false ) {
+
+    };
     public final String defaultValue;
     public final String systemName;
     public final boolean requiredValue;
@@ -61,5 +64,14 @@ public enum ConfigValueHandler {
      */
     public boolean isSet() {
         return System.getProperties().containsKey(this.systemName);
+    }
+
+    /**
+     * Compares the value using equalsIgnoreCase
+     * @param in_value
+     * @return true if the given value is the same as the set one.
+     */
+    public boolean is(String in_value) {
+        return this.fetchValue().equalsIgnoreCase(in_value);
     }
 }

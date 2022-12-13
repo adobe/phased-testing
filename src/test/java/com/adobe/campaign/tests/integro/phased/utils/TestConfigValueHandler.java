@@ -82,4 +82,22 @@ public class TestConfigValueHandler {
         assertThat("By default the list of NIE should be empty",eventItem.fetchValue(), equalTo(eventItem.defaultValue));
     }
 
+    @Test
+    public void testEqualsIgnoreCase() {
+        ConfigValueHandler eventItem = ConfigValueHandler.PHASED_TEST_NONPHASED_LEGACY;
+
+        assertThat("We should correctly have the value 'false'", eventItem.is("false"));
+
+        eventItem.activate("FALse");
+
+        assertThat("We should correctly have the value 'false'", eventItem.is("false"));
+
+        eventItem.activate("true");
+
+        assertThat("We should correctly have the value 'true'", !eventItem.is("false"));
+
+        assertThat("We should correctly have the value 'true'", eventItem.is("True"));
+
+    }
+
 }

@@ -14,9 +14,9 @@ package com.adobe.campaign.tests.integro.phased;
 import com.adobe.campaign.tests.integro.phased.data.*;
 import com.adobe.campaign.tests.integro.phased.data.befaft.PhasedSeries_M_SimpleClass;
 import com.adobe.campaign.tests.integro.phased.data.dp.*;
+import com.adobe.campaign.tests.integro.phased.data.events.TestSINGLEWithEvent_eventAsAnnotation;
 import com.adobe.campaign.tests.integro.phased.data.events.TestShuffled_eventConfigured;
-import com.adobe.campaign.tests.integro.phased.data.events.TestWithEvent_eventAsAnnotation;
-import com.adobe.campaign.tests.integro.phased.data.events.TestWithEvent_eventConfigured;
+import com.adobe.campaign.tests.integro.phased.data.events.TestSINGLEWithEvent_eventConfigured;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 import org.hamcrest.Matchers;
@@ -929,6 +929,9 @@ public class PhasedTestManagerTests {
         assertThat(l_providerStep1.length, equalTo(1));
 
         assertThat(l_providerStep1[0], equalTo(PhasedTestManager.STD_PHASED_GROUP_SINGLE));
+        Object[] l_providerStep2 = PhasedTestManager.fetchProvidersStandard(l_myMethod);
+        assertThat(l_providerStep2.length, equalTo(1));
+        assertThat(l_providerStep2[0], equalTo(PhasedDataProvider.DEFAULT));
     }
 
     @Test
@@ -940,6 +943,8 @@ public class PhasedTestManagerTests {
         Object[] l_providerStep1 = PhasedTestManager.fetchProvidersSingle(l_myMethod);
 
         assertThat(l_providerStep1.length, equalTo(0));
+        Object[] l_providerStep2 = PhasedTestManager.fetchProvidersStandard(l_myMethod);
+        assertThat(l_providerStep2.length, equalTo(0));
     }
 
     @Test
@@ -1037,9 +1042,9 @@ public class PhasedTestManagerTests {
             throws NoSuchMethodException, SecurityException {
 
         Phases.ASYNCHRONOUS.activate();
-        final Method l_myMethod1 = TestWithEvent_eventAsAnnotation.class.getMethod("step1", String.class);
-        final Method l_myMethod2 = TestWithEvent_eventAsAnnotation.class.getMethod("step2", String.class);
-        final Method l_myMethod3 = TestWithEvent_eventAsAnnotation.class.getMethod("step3", String.class);
+        final Method l_myMethod1 = TestSINGLEWithEvent_eventAsAnnotation.class.getMethod("step1", String.class);
+        final Method l_myMethod2 = TestSINGLEWithEvent_eventAsAnnotation.class.getMethod("step2", String.class);
+        final Method l_myMethod3 = TestSINGLEWithEvent_eventAsAnnotation.class.getMethod("step3", String.class);
 
         Object[] l_providerStep1 = PhasedTestManager.fetchProvidersSingle(l_myMethod1);
 
@@ -1081,8 +1086,8 @@ public class PhasedTestManagerTests {
     public void testIsInCascadeMode_Negative() throws NoSuchMethodException, SecurityException {
         final Method l_myMethod = PhasedSeries_F_Shuffle.class.getMethod("step3", String.class);
 
-        assertThat("We should not be in Shuffled mode",
-                !PhasedTestManager.isPhasedTestShuffledMode(l_myMethod));
+        assertThat("We should be in Shuffled mode",
+                PhasedTestManager.isPhasedTestShuffledMode(l_myMethod));
 
         assertThat("We should not be in asynchronous Shuffled mode",
                 !PhasedTestManager.isPhasedTestNonInterruptiveShuffledMode(l_myMethod));
@@ -1119,7 +1124,7 @@ public class PhasedTestManagerTests {
     public void testHasAPhaseEvent() throws NoSuchMethodException {
 
         assertThat("We correctly identify that our class has an event",
-                PhasedTestManager.phasedTestHasEvent(TestWithEvent_eventAsAnnotation.class));
+                PhasedTestManager.phasedTestHasEvent(TestSINGLEWithEvent_eventAsAnnotation.class));
     }
 
     @Test(description = "Testing in Aynchronous mode hello World" )
@@ -1149,7 +1154,7 @@ public class PhasedTestManagerTests {
     public void testIsInSingleAsynchronousMode() throws NoSuchMethodException {
 
         Phases.ASYNCHRONOUS.activate();
-        Class<TestWithEvent_eventAsAnnotation> l_class = TestWithEvent_eventAsAnnotation.class;
+        Class<TestSINGLEWithEvent_eventAsAnnotation> l_class = TestSINGLEWithEvent_eventAsAnnotation.class;
         assertThat("We should not be in Shuffled mode",
                 !PhasedTestManager.isPhasedTestShuffledMode(l_class));
 
@@ -1161,7 +1166,7 @@ public class PhasedTestManagerTests {
     public void testIsInSingleAsynchronousMode_isSingleMode() throws NoSuchMethodException {
 
         Phases.ASYNCHRONOUS.activate();
-        Class<TestWithEvent_eventAsAnnotation> l_class = TestWithEvent_eventAsAnnotation.class;
+        Class<TestSINGLEWithEvent_eventAsAnnotation> l_class = TestSINGLEWithEvent_eventAsAnnotation.class;
         assertThat("We should not be in Single mode",
                 PhasedTestManager.isPhasedTestSingleMode(l_class));
 
@@ -1199,15 +1204,6 @@ public class PhasedTestManagerTests {
     }
 
     @Test
-    public void testIsInSingleMode_TestIsCascadingButTheStateIsInActive()
-            throws NoSuchMethodException, SecurityException {
-        final Method l_myMethod = PhasedSeries_F_Shuffle.class.getMethod("step3", String.class);
-
-        assertThat("We should not be in single mode", PhasedTestManager.isPhasedTestSingleMode(l_myMethod));
-
-    }
-
-    @Test
     public void testIsInSingleMode_Negative2() throws NoSuchMethodException, SecurityException {
         final Method l_myMethod = NormalSeries_A.class.getMethod("firstTest");
 
@@ -1236,7 +1232,7 @@ public class PhasedTestManagerTests {
 
     @Test(enabled = false)
     public void testIsInSingleMode_NegativeAsynchronousMethod() throws NoSuchMethodException, SecurityException {
-        final Method l_myMethod = TestWithEvent_eventConfigured.class.getMethod("step3", String.class);
+        final Method l_myMethod = TestSINGLEWithEvent_eventConfigured.class.getMethod("step3", String.class);
 
         Phases.ASYNCHRONOUS.activate();
         assertThat("We should be in Shuffled mode", !PhasedTestManager.isPhasedTestShuffledMode(l_myMethod));

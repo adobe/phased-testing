@@ -190,12 +190,12 @@ public class TestPhasedNonInterruptive {
 
     @Test(description = "Testing that we can extract the event for a step")
     public void testExtractEvent() throws NoSuchMethodException {
-        Method l_methodWithEvent = TestWithEvent_eventAsAnnotation.class.getMethod("step2", String.class);
+        Method l_methodWithEvent = TestSINGLEWithEvent_eventAsAnnotation.class.getMethod("step2", String.class);
 
         assertThat("We should correctly extract the event from the method",
                 PhasedEventManager.fetchEvent(l_methodWithEvent), equalTo(MyNonInterruptiveEvent.class.getTypeName()));
 
-        Method l_methodWithNoEventSet = TestWithEvent_eventConfigured.class.getMethod("step2", String.class);
+        Method l_methodWithNoEventSet = TestSINGLEWithEvent_eventConfigured.class.getMethod("step2", String.class);
         assertThat("We should correctly extract the event from the method",
                 PhasedEventManager.fetchEvent(l_methodWithNoEventSet), nullValue());
 
@@ -208,19 +208,19 @@ public class TestPhasedNonInterruptive {
 
     @Test(description = "Testing that we correctly return null")
     public void testExtractEvent_Negative() throws NoSuchMethodException {
-        Method l_methodWithEvent = TestWithEvent_eventAsAnnotation.class.getMethod("step1", String.class);
+        Method l_methodWithEvent = TestSINGLEWithEvent_eventAsAnnotation.class.getMethod("step1", String.class);
 
         assertThat("We should correctly extract the event from the method",
                 PhasedEventManager.fetchEvent(l_methodWithEvent), nullValue());
 
-        Method l_methodWithNoEventSet = TestWithEvent_eventConfigured.class.getMethod("step2", String.class);
+        Method l_methodWithNoEventSet = TestSINGLEWithEvent_eventConfigured.class.getMethod("step2", String.class);
         assertThat("We should correctly extract the event from the method",
                 PhasedEventManager.fetchEvent(l_methodWithNoEventSet), nullValue());
     }
 
     @Test
     public void testFetchEventInformation() throws NoSuchMethodException {
-        final Class<TestWithEvent_eventAsAnnotation> l_testClass = TestWithEvent_eventAsAnnotation.class;
+        final Class<TestSINGLEWithEvent_eventAsAnnotation> l_testClass = TestSINGLEWithEvent_eventAsAnnotation.class;
         Method l_myEventMethod = l_testClass.getMethod("step2", String.class);
 
         assertThat("Step2 should have the Event annotation", l_myEventMethod.isAnnotationPresent(PhaseEvent.class));
@@ -249,7 +249,7 @@ public class TestPhasedNonInterruptive {
         // Create an instance of XmlTest and assign a name for it.
         XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Shuffled Phased Tests");
 
-        final Class<TestWithEvent_eventAsAnnotation> l_testClass = TestWithEvent_eventAsAnnotation.class;
+        final Class<TestSINGLEWithEvent_eventAsAnnotation> l_testClass = TestSINGLEWithEvent_eventAsAnnotation.class;
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
         Phases.ASYNCHRONOUS.activate();
@@ -279,7 +279,7 @@ public class TestPhasedNonInterruptive {
                 Matchers.equalTo(MyNonInterruptiveEvent.class.getTypeName()));
         assertThat("The first element should be an event started by step2", l_eventStartLog.getPhasedStepName(),
                 Matchers.equalTo(
-                        "com.adobe.campaign.tests.integro.phased.data.events.TestWithEvent_eventAsAnnotation.step2(phased-singleRun)"));
+                        "com.adobe.campaign.tests.integro.phased.data.events.TestSINGLEWithEvent_eventAsAnnotation.step2(phased-singleRun)"));
 
         ITestResult l_testSubjectedToEvent = tla.getPassedTests().stream().filter(t -> t.getName().equals("step2"))
                 .collect(Collectors.toList()).get(0);
@@ -294,7 +294,7 @@ public class TestPhasedNonInterruptive {
                 Matchers.equalTo(MyNonInterruptiveEvent.class.getTypeName()));
         assertThat("The second element should be an event started by step2", l_eventEndLog.getPhasedStepName(),
                 Matchers.equalTo(
-                        "com.adobe.campaign.tests.integro.phased.data.events.TestWithEvent_eventAsAnnotation.step2(phased-singleRun)"));
+                        "com.adobe.campaign.tests.integro.phased.data.events.TestSINGLEWithEvent_eventAsAnnotation.step2(phased-singleRun)"));
 
         assertThat("Our test should have started before the end of the event", l_testSubjectedToEvent.getStartMillis(),
                 lessThan(l_eventEndLog.getEventDate().getTime()));
@@ -320,7 +320,7 @@ public class TestPhasedNonInterruptive {
         // Create an instance of XmlTest and assign a name for it.
         XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Shuffled Phased Tests");
 
-        final Class<TestWithEvent_eventConfigured> l_testClass = TestWithEvent_eventConfigured.class;
+        final Class<TestSINGLEWithEvent_eventConfigured> l_testClass = TestSINGLEWithEvent_eventConfigured.class;
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
         Phases.ASYNCHRONOUS.activate();
