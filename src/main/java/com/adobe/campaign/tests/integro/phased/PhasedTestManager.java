@@ -13,6 +13,7 @@ package com.adobe.campaign.tests.integro.phased;
 
 import com.adobe.campaign.tests.integro.phased.permutational.ScenarioStepDependencies;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
+import com.adobe.campaign.tests.integro.phased.utils.ConfigValueHandler;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 import com.adobe.campaign.tests.integro.phased.utils.StackTraceManager;
 import java.util.Map.Entry;
@@ -63,8 +64,9 @@ public final class PhasedTestManager {
     static final String STD_PHASED_GROUP_PREFIX = "phased-shuffledGroup_";
     static final String STD_PHASED_GROUP_SINGLE = "phased-singleRun";
 
-    public static final String STD_MERGE_STEP_ERROR_PREFIX = "Phased Error: Failure in step ";
+    static final String STD_PHASED_GROUP_NIE_PREFIX = "phased-shuffledGroupNIE_";
 
+    public static final String STD_MERGE_STEP_ERROR_PREFIX = "Phased Error: Failure in step ";
 
     /**
      * The different states a step can assume in a scenario
@@ -559,6 +561,7 @@ public final class PhasedTestManager {
         final MethodMapping l_methodMapping = methodMap.get(in_methodFullName);
         Object[][] l_objectArrayPhased = new Object[l_methodMapping.nrOfProviders][1];
 
+
         for (int rows = 0; rows < l_methodMapping.nrOfProviders; rows++) {
 
             int lt_nrBeforePhase = in_phasedState.equals(Phases.PRODUCER) ? (l_methodMapping.totalClassMethods
@@ -566,9 +569,13 @@ public final class PhasedTestManager {
 
             int lt_nrAfterPhase = l_methodMapping.totalClassMethods - lt_nrBeforePhase;
 
-            l_objectArrayPhased[rows][0] = STD_PHASED_GROUP_PREFIX + lt_nrBeforePhase
-                + "_"
-                + lt_nrAfterPhase;
+            if (in_phasedState.hasSplittingEvent()) {
+                l_objectArrayPhased[rows][0] = STD_PHASED_GROUP_PREFIX + lt_nrBeforePhase
+                        + "_"
+                        + lt_nrAfterPhase;
+            } else {
+                l_objectArrayPhased[rows][0] = STD_PHASED_GROUP_NIE_PREFIX + (rows+1);
+            }
         }
 
         //Fetch class level data providers
@@ -666,18 +673,26 @@ public final class PhasedTestManager {
         methodMap = new HashMap<>();
 
         for (Entry<Class<?>, List<String>> entry : in_classMethodMap.entrySet()) {
-
             List<String> lt_methodList = entry.getValue();
+            if (in_phaseState.hasSplittingEvent) {
 
-            if (in_phaseState.equals(Phases.CONSUMER)) {
-                Collections.reverse(lt_methodList);
-            }
+                if (in_phaseState.equals(Phases.CONSUMER)) {
+                    Collections.reverse(lt_methodList);
+                }
 
-            for (int i = 0; i < entry.getValue().size(); i++) {
-                methodMap.put(lt_methodList.get(i),
-                        new MethodMapping(entry.getKey(), entry.getValue().size() - i,
-                                entry.getValue().size()));
+                for (int i = 0; i < entry.getValue().size(); i++) {
+                    methodMap.put(lt_methodList.get(i),
+                            new MethodMapping(entry.getKey(), entry.getValue().size() - i,
+                                    entry.getValue().size()));
 
+                }
+            } else {
+                for (int i = 0; i < entry.getValue().size(); i++) {
+                    methodMap.put(lt_methodList.get(i),
+                            new MethodMapping(entry.getKey(), entry.getValue().size(),
+                                    entry.getValue().size()));
+
+                }
             }
         }
         return methodMap;
@@ -832,6 +847,21 @@ public final class PhasedTestManager {
     }
 
     /**
+     * Returns the declared event if declared on the method. Null is returned if no such declaration is present
+     * @param in_method The method we are examining
+     * @return The event that is declared on the method. Null if there is no event declared for the method
+     */
+    public static String fetchDeclaredEvent(Method in_method) {
+        if (in_method.isAnnotationPresent(PhaseEvent.class)) {
+
+            if (in_method.getDeclaredAnnotation(PhaseEvent.class).eventClasses().length > 0) {
+                return in_method.getDeclaredAnnotation(PhaseEvent.class).eventClasses()[0];
+            }
+        }
+        return null;
+    }
+
+    /**
      * This method tells us if the method is a valid phased test. This is done by seeing if the annotation PhasedStep is
      * on the method, and if the annotation PhasedTest is on the class
      * <p>
@@ -900,27 +930,6 @@ public final class PhasedTestManager {
         //        .getCurrentPhase().hasSplittingEvent() && !phasedTestHasEvent(in_class);
     }
 
-    //NIE
-
-    /**
-     * Lets us know if the given class is to be included in a non-interruptive model
-     * @param in_class A class that is used for testing
-     * @return True if we can include an event along its steps
-     */
-    public static boolean isPhasedTestNonInterruptiveShuffledMode(Class<?> in_class) {
-        return isPhasedTest(in_class) && in_class.getAnnotation(PhasedTest.class).canShuffle() && Phases
-                .ASYNCHRONOUS.isSelected() && !phasedTestHasEvent(in_class) ;
-    }
-
-    /**
-     * Lets us know if the given method is part of a class that is to be included in a non-interruptive model
-     * @param in_method A method that is used for testing
-     * @return True if we can include an event along the steps of the class declaring this step
-     */
-    public static boolean isPhasedTestNonInterruptiveShuffledMode(Method in_method) {
-        return isPhasedTestNonInterruptiveShuffledMode(in_method.getDeclaringClass());
-    }
-
     /**
      * This method provides an ID for the scenario given the ITestNGResult. This is assembled using the Classname + the
      * PhaseGroup
@@ -949,6 +958,7 @@ public final class PhasedTestManager {
 
         final String l_scenarioName = fetchScenarioName(in_testResult);
 
+        //TODO move to synchronize state
         if (scenarioContext.containsKey(l_scenarioName)) {
             scenarioContext.get(l_scenarioName).synchronizeState(in_testResult);
         } else {
@@ -1005,7 +1015,7 @@ public final class PhasedTestManager {
             return hasStepsExecutedInProducer(in_testResult) ? ScenarioState.SKIP_NORESULT : ScenarioState.CONTINUE;
         }
 
-        //In the case of retry when activaed for the phased tests, we let testng manage it.
+        //In the case of retry when activated for the phased tests, we let testng manage it.
         if (getScenarioContext().get(l_scenarioName).getCurrentStep()
                 .equals(ClassPathParser.fetchFullName(in_testResult))) {
             return ScenarioState.CONTINUE;
@@ -1474,12 +1484,13 @@ public final class PhasedTestManager {
 
     protected static class ScenarioContextData {
         public static final String NOT_APPLICABLE_STEP_NAME = "NA";
-
         private boolean passed;
         private long duration;
         private String failedStep;
         private Phases failedInPhase;
         private String currentStep;
+        private int stepNr;
+
 
         ScenarioContextData() {
             passed = true;
@@ -1564,6 +1575,14 @@ public final class PhasedTestManager {
             this.failedInPhase = failedInPhase;
         }
 
+        public int getStepNr() {
+            return stepNr;
+        }
+
+        public void setStepNr(int stepNr) {
+            this.stepNr = stepNr;
+        }
+
         /**
          * Given a TestResult object we will update the given scenarioContext
          * <p>
@@ -1583,6 +1602,7 @@ public final class PhasedTestManager {
             }
             duration += (in_testResult.getEndMillis() - in_testResult.getStartMillis());
             setCurrentStep(ClassPathParser.fetchFullName(in_testResult));
+            stepNr++;
         }
 
         /**
@@ -1636,6 +1656,8 @@ public final class PhasedTestManager {
                         + " does not allow us to deduce the Phase.");
             }
 
+            //TODO include the StepNr ?
+
         }
 
         public String getCurrentStep() {
@@ -1645,5 +1667,26 @@ public final class PhasedTestManager {
         public void setCurrentStep(String currentStep) {
             this.currentStep = currentStep;
         }
+    }
+
+    public static int asynchrounousExtractIndex(ITestResult in_testResult) {
+        String l_currentShuffleGroup = in_testResult.getParameters()[0].toString();
+
+
+        int lr_index = -1;
+
+        try {
+
+            String l_indexString = l_currentShuffleGroup.substring(l_currentShuffleGroup.length() - 1,
+                    l_currentShuffleGroup.length());
+            log.info("Parsing {} begin : {}, end {}, gives : {}",l_currentShuffleGroup, l_currentShuffleGroup.length() - 2, l_currentShuffleGroup.length() - 1, l_indexString);
+            lr_index = Integer.parseInt(
+                    l_indexString);
+
+
+        } catch (NumberFormatException nfe) {
+            throw new PhasedTestException("Problem extracting shuffle group number "+ l_currentShuffleGroup, nfe);
+        }
+        return lr_index;
     }
 }
