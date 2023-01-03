@@ -91,6 +91,7 @@ public class PhasesTests {
                 Phases.getCurrentPhase(), is(equalTo(Phases.ASYNCHRONOUS)));
 
         assertThat("We should have a check me ethod that works", Phases.ASYNCHRONOUS.isSelected());
+        
 
     }
 

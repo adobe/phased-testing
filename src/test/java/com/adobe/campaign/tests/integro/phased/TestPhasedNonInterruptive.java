@@ -12,9 +12,7 @@
 package com.adobe.campaign.tests.integro.phased;
 
 import com.adobe.campaign.tests.integro.phased.data.events.*;
-import com.adobe.campaign.tests.integro.phased.utils.ConfigValueHandler;
-import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
-import com.adobe.campaign.tests.integro.phased.utils.TestTools;
+import com.adobe.campaign.tests.integro.phased.utils.*;
 import org.hamcrest.Matchers;
 import org.testng.*;
 import org.testng.annotations.BeforeMethod;
@@ -189,33 +187,70 @@ public class TestPhasedNonInterruptive {
     }
 
     @Test(description = "Testing that we can extract the event for a step")
-    public void testExtractEvent() throws NoSuchMethodException {
+    public void testExtractEvent_SINGLE() throws NoSuchMethodException {
         Method l_methodWithEvent = TestSINGLEWithEvent_eventAsAnnotation.class.getMethod("step2", String.class);
+        ITestResult l_itr1 = MockTestTools.generateTestResultMock(l_methodWithEvent, new Object[]{"D"});
 
         assertThat("We should correctly extract the event from the method",
-                PhasedEventManager.fetchEvent(l_methodWithEvent), equalTo(MyNonInterruptiveEvent.class.getTypeName()));
+                PhasedTestManager.fetchDeclaredEvent(l_methodWithEvent), equalTo(MyNonInterruptiveEvent.class.getTypeName()));
 
         Method l_methodWithNoEventSet = TestSINGLEWithEvent_eventConfigured.class.getMethod("step2", String.class);
         assertThat("We should correctly extract the event from the method",
-                PhasedEventManager.fetchEvent(l_methodWithNoEventSet), nullValue());
+                PhasedTestManager.fetchDeclaredEvent(l_methodWithNoEventSet), nullValue());
 
         ConfigValueHandler.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
         assertThat("We should correctly extract the event from the method",
-                PhasedEventManager.fetchEvent(l_methodWithNoEventSet),
+                PhasedEventManager.fetchEvent(l_itr1),
+                equalTo(MyNonInterruptiveEvent.class.getTypeName()));
+
+        Method l_methodWithEventButNotHardCoded = TestSINGLEWithEvent_eventConfigured.class.getMethod("step2", String.class);
+        ITestResult l_itr2 = MockTestTools.generateTestResultMock(l_methodWithEventButNotHardCoded, new Object[]{"D"});
+        assertThat("We should correctly extract the event from the method",
+                PhasedEventManager.fetchEvent(l_itr2),
                 equalTo(MyNonInterruptiveEvent.class.getTypeName()));
 
     }
 
     @Test(description = "Testing that we correctly return null")
-    public void testExtractEvent_Negative() throws NoSuchMethodException {
+    public void testExtractEvent_SINGLE_Negative() throws NoSuchMethodException {
         Method l_methodWithEvent = TestSINGLEWithEvent_eventAsAnnotation.class.getMethod("step1", String.class);
 
         assertThat("We should correctly extract the event from the method",
-                PhasedEventManager.fetchEvent(l_methodWithEvent), nullValue());
+                PhasedTestManager.fetchDeclaredEvent(l_methodWithEvent), nullValue());
 
         Method l_methodWithNoEventSet = TestSINGLEWithEvent_eventConfigured.class.getMethod("step2", String.class);
         assertThat("We should correctly extract the event from the method",
-                PhasedEventManager.fetchEvent(l_methodWithNoEventSet), nullValue());
+                PhasedTestManager.fetchDeclaredEvent(l_methodWithNoEventSet), nullValue());
+
+        ConfigValueHandler.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
+        Method l_methodWithEventButNotHardCoded = TestSINGLEWithEvent_eventConfigured.class.getMethod("step1", String.class);
+        ITestResult l_itr = MockTestTools.generateTestResultMock(l_methodWithEventButNotHardCoded, new Object[]{"D"});
+        assertThat("We should correctly extract the event from the method",
+                PhasedEventManager.fetchEvent(l_itr),
+                Matchers.nullValue());
+    }
+
+    @Test(description = "Testing that we can extract the event for a step")
+    public void testExtractEvent_SUFFLED() throws NoSuchMethodException {
+        Method l_methodWithEvent = TestShuffled_eventConfigured.class.getMethod("step2", String.class);
+        String l_phaseGroup = PhasedTestManager.STD_PHASED_GROUP_NIE_PREFIX + "1";
+        ITestResult l_itr1 = MockTestTools.generateTestResultMock(l_methodWithEvent, new Object[]{ l_phaseGroup });
+
+        ConfigValueHandler.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
+
+        assertThat("We should correctly extract the event from the method",
+                PhasedEventManager.fetchEvent(l_itr1,true),
+                equalTo(MyNonInterruptiveEvent.class.getTypeName()));
+
+        PhasedTestManager.scenarioStateStore(l_itr1);
+        PhasedTestManager.storePhasedContext(ClassPathParser.fetchFullName(l_methodWithEvent), l_phaseGroup);
+
+        assertThat("We should correctly extract the event from the method",
+                PhasedEventManager.fetchEvent(l_itr1, false),
+                equalTo(MyNonInterruptiveEvent.class.getTypeName()));
+
+
+
     }
 
     @Test
@@ -375,9 +410,8 @@ public class TestPhasedNonInterruptive {
     /**
      * This is a test for non-intyerruptive events in shuffled classes
      */
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testNonInterruptive_ParellelConfigured_Shuffled() {
-
 
         // Rampup
         TestNG myTestNG = TestTools.createTestNG();
@@ -398,9 +432,9 @@ public class TestPhasedNonInterruptive {
         Phases.ASYNCHRONOUS.activate();
         ConfigValueHandler.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
 
-        assertThat("We should be in non-interruptive mode not shuffled", !PhasedTestManager.isPhasedTestShuffledMode(l_testClass));
-        assertThat("We should be in non-interruptive mode ", PhasedTestManager.isPhasedTestNonInterruptiveShuffledMode(l_testClass));
         myTestNG.run();
+
+        assertThat("We should be in non-interruptive mode shuffled", PhasedTestManager.isPhasedTestShuffledMode(l_testClass));
 
         assertThat("We should have 9 successful methods of phased Tests",
                 (int) tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
@@ -410,12 +444,7 @@ public class TestPhasedNonInterruptive {
         assertThat("We should have no failed tests", tla.getFailedTests().size(), equalTo(0));
         assertThat("We should have no skipped tests", tla.getSkippedTests().size(), equalTo(0));
 
-        assertThat("We should have 2 events in the logs", PhasedEventManager.getEventLogs().size(),
+        assertThat("We should have the correct number of events in the logs (1 x phase groups)", PhasedEventManager.getEventLogs().size(),
                 Matchers.equalTo(6));
-
-        ITestResult l_testSubjectedToEvent = tla.getPassedTests().stream().filter(t -> t.getName().equals("step2"))
-                .collect(Collectors.toList()).get(0);
-
-
     }
 }

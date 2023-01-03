@@ -14,7 +14,7 @@ package com.adobe.campaign.tests.integro.phased.utils;
 import java.util.Arrays;
 
 public enum ConfigValueHandler {
-    EVENTS_NONINTERRUPTIVE("PHASED.EVENTS.NONINTERRUPTIVE","", false),
+    EVENTS_NONINTERRUPTIVE("PHASED.EVENTS.NONINTERRUPTIVE",null, false),
     PHASED_TEST_NONPHASED_LEGACY( "PHASED.TESTS.NONPHASED.LEGACY", "false", false ) {
 
     };

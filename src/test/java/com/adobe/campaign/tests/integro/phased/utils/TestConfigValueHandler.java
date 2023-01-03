@@ -17,6 +17,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.isEmptyOrNullString;
 
 public class TestConfigValueHandler {
 
@@ -31,7 +32,7 @@ public class TestConfigValueHandler {
         ConfigValueHandler eventItem = ConfigValueHandler.EVENTS_NONINTERRUPTIVE;
 
         assertThat("By default the list of NIE should be empty",eventItem.systemName, equalTo("PHASED.EVENTS.NONINTERRUPTIVE"));
-        assertThat("By default the list of NIE should be empty",eventItem.defaultValue, Matchers.isEmptyString());
+        assertThat("By default the list of NIE should be empty",eventItem.defaultValue, isEmptyOrNullString());
         assertThat("The value is not set by default", !eventItem.requiredValue);
     }
 

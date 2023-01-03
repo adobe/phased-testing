@@ -160,9 +160,11 @@ public class PhasedTestListener
             //Managing events
             //Cases 4 & 5
             if (Phases.ASYNCHRONOUS.isSelected()) {
+                PhasedTestManager.getPhasedCache();
                 //Check if there is an event declared
-                String lt_event = PhasedEventManager.fetchEvent(l_method);
+                String lt_event = PhasedEventManager.fetchEvent(result, true);
                 if (lt_event != null) {
+                    //TODO use PhasedTestManager for fetching full name instead
                     PhasedEventManager.startEvent(lt_event, ClassPathParser.fetchFullName(result));
                 }
             }
@@ -245,9 +247,11 @@ public class PhasedTestListener
 
             //Cases 4 & 5
             if (Phases.ASYNCHRONOUS.isSelected()) {
+                PhasedTestManager.getPhasedCache();
                 //Check if there is an event declared
-                String lt_event = PhasedEventManager.fetchEvent(l_method);
+                String lt_event = PhasedEventManager.fetchEvent(result, false);
                 if (lt_event != null) {
+                    //TODO use PhasedTestManager for fetching full name instead
                     PhasedEventManager.finishEvent(lt_event, ClassPathParser.fetchFullName(result));
                 }
             }
@@ -514,11 +518,11 @@ public class PhasedTestListener
 
         //If the property PHASED.TESTS.DETECT.ORDER not set, we follow the standard TestNG order
         if (!System.getProperties().containsKey("PHASED.TESTS.DETECT.ORDER")) {
-            if (Phases.getCurrentPhase().hasSplittingEvent()) {
+           // if (Phases.getCurrentPhase().hasSplittingEvent()) {
                 log.info("{} Generating Phased Providers", PhasedTestManager.PHASED_TEST_LOG_PREFIX);
                 //NIA
                 PhasedTestManager.generatePhasedProviders(l_classMethodMap, Phases.getCurrentPhase());
-            }
+           // }
             return list;
         } else {
 
