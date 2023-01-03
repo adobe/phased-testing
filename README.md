@@ -90,7 +90,7 @@ The diagram above represents what will be executed by the following code:
 
 ```java
 @Test
-@PhasedTest(canShuffle = true)
+@PhasedTest(canShuffle = false)
 public class ShuffledTest {
 
     public void step1(String val) {
