@@ -13,7 +13,6 @@ package com.adobe.campaign.tests.integro.phased;
 
 import com.adobe.campaign.tests.integro.phased.permutational.ScenarioStepDependencies;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
-import com.adobe.campaign.tests.integro.phased.utils.ConfigValueHandler;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 import com.adobe.campaign.tests.integro.phased.utils.StackTraceManager;
 import java.util.Map.Entry;
@@ -1669,9 +1668,13 @@ public final class PhasedTestManager {
         }
     }
 
-    public static int asynchrounousExtractIndex(ITestResult in_testResult) {
+    /**
+     * Extracts the index of the current shuffle group
+     * @param in_testResult A test result object
+     * @return The index of the shuffle group
+     */
+    public static int asynchronousExtractIndex(ITestResult in_testResult) {
         String l_currentShuffleGroup = in_testResult.getParameters()[0].toString();
-
 
         int lr_index = -1;
 
@@ -1679,7 +1682,7 @@ public final class PhasedTestManager {
 
             String l_indexString = l_currentShuffleGroup.substring(l_currentShuffleGroup.length() - 1,
                     l_currentShuffleGroup.length());
-            log.info("Parsing {} begin : {}, end {}, gives : {}",l_currentShuffleGroup, l_currentShuffleGroup.length() - 2, l_currentShuffleGroup.length() - 1, l_indexString);
+            log.debug("Parsing {} begin : {}, end {}, gives : {}",l_currentShuffleGroup, l_currentShuffleGroup.length() - 2, l_currentShuffleGroup.length() - 1, l_indexString);
             lr_index = Integer.parseInt(
                     l_indexString);
 

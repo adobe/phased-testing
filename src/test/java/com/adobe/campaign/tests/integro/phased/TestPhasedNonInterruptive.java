@@ -447,4 +447,46 @@ public class TestPhasedNonInterruptive {
         assertThat("We should have the correct number of events in the logs (1 x phase groups)", PhasedEventManager.getEventLogs().size(),
                 Matchers.equalTo(6));
     }
+
+
+    @Test
+    public void testNonInterruptive_ParellelConfigured_Shuffled_AfterPhase() {
+
+        // Rampup
+        TestNG myTestNG = TestTools.createTestNG();
+        TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
+
+        // Define suites
+        XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG, "Automated Suite Phased Testing");
+
+        // Add listeners
+        mySuite.addListener("com.adobe.campaign.tests.integro.phased.PhasedTestListener");
+
+        // Create an instance of XmlTest and assign a name for it.
+        XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Shuffled Phased Tests");
+
+        final Class<TestShuffled_eventConfiguredAfter> l_testClass = TestShuffled_eventConfiguredAfter.class;
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
+
+        Phases.ASYNCHRONOUS.activate();
+        ConfigValueHandler.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
+
+        assertThat("The after phase should not yet have been updated", TestShuffled_eventConfiguredAfter.originalValue, Matchers.equalTo(0));
+        myTestNG.run();
+
+        assertThat("We should be in non-interruptive mode shuffled", PhasedTestManager.isPhasedTestShuffledMode(l_testClass));
+
+        assertThat("We should have 9 successful methods of phased Tests",
+                (int) tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
+                is(equalTo(9)));
+
+        //Global
+        assertThat("We should have no failed tests", tla.getFailedTests().size(), equalTo(0));
+        assertThat("We should have no skipped tests", tla.getSkippedTests().size(), equalTo(0));
+
+        assertThat("We should have the correct number of events in the logs (1 x phase groups)", PhasedEventManager.getEventLogs().size(),
+                Matchers.equalTo(6));
+
+        assertThat("The after phase should not yet have been updated", TestShuffled_eventConfiguredAfter.originalValue, Matchers.equalTo(1));
+    }
 }

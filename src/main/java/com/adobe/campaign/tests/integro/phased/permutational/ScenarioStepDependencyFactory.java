@@ -62,7 +62,7 @@ public class ScenarioStepDependencyFactory {
                 super.visit(n, arg);
                 switch (n.getName().asString()) {
                 case "produce":
-                    lr_dependencies.putProduce(lt_currentMethod, n.getArgument(0).toString().replaceAll("\"", ""),
+                    lr_dependencies.putProduce(lt_currentMethod, n.getArgument(0).toString().replace("\"", ""),
                             fetchLineNumberOfCalls(n, lr_dependencies));
                     break;
                 case "produceInStep":
@@ -71,8 +71,11 @@ public class ScenarioStepDependencyFactory {
                     break;
                 case "consume":
                 case "consumeFromStep":
-                    lr_dependencies.putConsume(lt_currentMethod, n.getArgument(0).toString().replaceAll("\"", ""),
+                    lr_dependencies.putConsume(lt_currentMethod, n.getArgument(0).toString().replace("\"", ""),
                             fetchLineNumberOfCalls(n, lr_dependencies));
+                    break;
+                default:
+                    break;
 
                 }
             }

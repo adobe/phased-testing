@@ -67,13 +67,14 @@ The following dependency needs to be added to your pom file:
 ```
 
 ## Phases
-We have three test phases:
+We have four test phases:
 * **Producer** In this state the tests are preparing data to be used in the following test phase. 
 * **Consumer** In this state the tests consume the data produced in the previous phase. 
 * **Non-Phased** In this state, we have not designated a state, as such, if not unwanted, we execute all tests.
+* **Asynchrounous** In this phase the events are executed in parallel to a step.
 
 ### Phase Modes
-We have two modes of execution Phased Testing:
+We have three modes of execution Phased Testing:
 * Default Mode
 * Single Mode
 * Shuffled Mode

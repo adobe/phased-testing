@@ -11,7 +11,6 @@
  */
 package com.adobe.campaign.tests.integro.phased;
 
-import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
 import com.adobe.campaign.tests.integro.phased.utils.ConfigValueHandler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -48,7 +47,7 @@ public class PhasedEventManager {
      * This method starts the given event for the given step.
      *
      * @param in_event           The event that is logged
-     * @param in_onAccountOfStep The step responsable for the event
+     * @param in_onAccountOfStep The step responsible for the event
      * @return The NonInterruptive Event that is started by this call
      */
     protected static NonInterruptiveEvent startEvent(String in_event, String in_onAccountOfStep) {
@@ -151,7 +150,7 @@ public class PhasedEventManager {
             //Use Phase Context instead
             String l_currentShuffleGroup = in_testResult.getParameters()[0].toString();
 
-            int l_currentShuffleGroupNr = PhasedTestManager.asynchrounousExtractIndex(in_testResult);
+            int l_currentShuffleGroupNr = PhasedTestManager.asynchronousExtractIndex(in_testResult);
 
             String l_currentScenario = PhasedTestManager.fetchScenarioName(in_testResult);
             int l_currentStep = PhasedTestManager.getScenarioContext().containsKey(l_currentScenario) ? PhasedTestManager.getScenarioContext()

@@ -29,7 +29,6 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.testng.asserts.SoftAssert;
-import org.testng.internal.ConstructorOrMethod;
 
 import java.io.*;
 import java.lang.reflect.Method;
@@ -3125,7 +3124,7 @@ public class PhasedTestManagerTests {
         String l_dataProvider = PhasedTestManager.STD_PHASED_GROUP_NIE_PREFIX+"3";
         ITestResult l_itr = MockTestTools.generateTestResultMock(l_method, new Object[]{l_dataProvider});
 
-        assertThat("We should have correctly extracted the number for the index",PhasedTestManager.asynchrounousExtractIndex(l_itr), Matchers.equalTo(3));
+        assertThat("We should have correctly extracted the number for the index",PhasedTestManager.asynchronousExtractIndex(l_itr), Matchers.equalTo(3));
 
         //PhasedTestManager.getScenarioContext().put(l_scenarioName, new P)
 

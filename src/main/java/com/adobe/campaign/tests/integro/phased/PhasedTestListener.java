@@ -160,7 +160,7 @@ public class PhasedTestListener
             //Managing events
             //Cases 4 & 5
             if (Phases.ASYNCHRONOUS.isSelected()) {
-                PhasedTestManager.getPhasedCache();
+
                 //Check if there is an event declared
                 String lt_event = PhasedEventManager.fetchEvent(result, true);
                 if (lt_event != null) {
