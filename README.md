@@ -278,12 +278,14 @@ We have the following system properties:
 * PHASED.TESTS.REPORT.BY.PHASE_GROUP
 * PHASED.TESTS.CODE.ROOT
 * PHASED.TESTS.DETECT.ORDER
+* PHASED.TESTS.NONPHASED.LEGACY
 
 #### PHASED.TESTS.PHASE
-We have three phased states:
+We have four phased states:
 1. **PRODUCER** : We produce information
 2. **CONSUMER** : We consume information
-3. **NON_PHASED** : By default we execute all the steps in a phased test, unless the @PhasedTest has set the attribute **executeInactive** to "false"
+3. **ASYNCHRONOUS** : We execute an event during a phase.
+4. **NON_PHASED** : By default we execute all the steps in a phased test, unless the @PhasedTest has set the attribute **executeInactive** to "false"
 
 #### PHASED.TESTS.DATABROKER
 This parameter allows you to tell the PhaseTestManager which DataBroker implementation you want to use. The is usually a full class path (package name + class name). More on this will be dealt with in the chapter on Phased Data Broker.
@@ -305,6 +307,9 @@ As of version 7.0.11, we will be detecting the order based on the code. These ru
 
 #### PHASED.TESTS.DETECT.ORDER
 As of version 7.0.11, we will be detecting the order based on the code. In 7.0.11, whenever this system property is set (the value is not important in this version), we execute the steps of a scenario based on their position within the class.
+
+#### PHASED.TESTS.NONPHASED.LEGACY
+For versions < 8.0.0 we had a bug where the default execution mode was executed in a phase group called "phased-data-provider-single". This was incorrect, and as of version 8.0.0 the default execution mode of a phased test is "phased-default". Due to backward compatibility, we allow users to keep the old mode if they chose to. 
 
 ### Executing a CONSUMER phase based on the PRODUCED Data
 Usually when your test code is in the repository of the product being tested, you will be having a delta in tests between two versions **N** & **N+1**. In such cases you will want to only execute the tests that exist in both versions. 
