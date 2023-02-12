@@ -150,6 +150,14 @@ public class ShuffledTest {
 }
 ```
 
+#### Asynchronous Execution Mode
+As of version 8, we are introducing the asynchronous execution mode. Asynchronous execution modes allow you to inject an event during the execution of the steps of a scenario. An asynchronous execution of a shuffled test, will suffle the test, but will for each phase group execute, in parallel, the given event for each step.
+
+Example:
+
+![Asynchronous Execution Mode](diagrams/PhasedDiagrams-Parallel Non-Interruptive Event.drawio.png)
+
+
 ## Writing a Phased Test
 The Phased Testing is activated using two annotations:
 * **@PhasedTest** : Class level annotation. Allows you to control how the test should be executed
