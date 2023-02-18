@@ -67,6 +67,7 @@ public class PhasedEventManager {
             try {
                 Thread.sleep(1);
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
                 throw new RuntimeException(e);
             }
         }
@@ -161,7 +162,7 @@ public class PhasedEventManager {
         } else {
             int l_incrementValue = in_inStart ? 1 : 0;
             //Use Phase Context instead
-            String l_currentShuffleGroup = in_testResult.getParameters()[0].toString();
+            //String l_currentShuffleGroup = in_testResult.getParameters()[0].toString();
 
             int l_currentShuffleGroupNr = PhasedTestManager.asynchronousExtractIndex(in_testResult);
 
