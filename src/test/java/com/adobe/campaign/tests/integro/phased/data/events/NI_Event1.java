@@ -9,31 +9,20 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-/**
- * 
- */
-package com.adobe.campaign.tests.integro.phased;
+package com.adobe.campaign.tests.integro.phased.data.events;
 
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-import java.util.List;
+public class NI_Event1 {
+    protected static Logger log = LogManager.getLogger();
+    public void execute()  {
+        log.info("Running Event");
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
 
-@Retention(RUNTIME)
-@Target(ElementType.METHOD)
-/**
- * A PhasedTest Step in a class means that the class itself is a PhasedTest
- *
- * Author : gandomi
- *
- */
-public @interface PhaseEvent {
-
-    boolean phaseEnd() default false;
-
-    String[] consumes() default {};
-
-    String[] eventClasses() default {};
+    }
 }

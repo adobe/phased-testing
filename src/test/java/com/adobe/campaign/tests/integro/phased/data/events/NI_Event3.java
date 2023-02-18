@@ -9,31 +9,32 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-/**
- * 
- */
-package com.adobe.campaign.tests.integro.phased;
+package com.adobe.campaign.tests.integro.phased.data.events;
 
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import com.adobe.campaign.tests.integro.phased.NonInterruptiveEvent;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-import java.util.List;
+public class NI_Event3 extends NonInterruptiveEvent {
+    protected static Logger log = LogManager.getLogger();
 
-@Retention(RUNTIME)
-@Target(ElementType.METHOD)
-/**
- * A PhasedTest Step in a class means that the class itself is a PhasedTest
- *
- * Author : gandomi
- *
- */
-public @interface PhaseEvent {
+    public NI_Event3() throws IllegalAccessException {
+        throw new IllegalAccessException("Forced Exception");
+    }
 
-    boolean phaseEnd() default false;
 
-    String[] consumes() default {};
+    @Override
+    public boolean startEvent() {
+        return false;
+    }
 
-    String[] eventClasses() default {};
+    @Override
+    public boolean isFinished() {
+        return false;
+    }
+
+    @Override
+    public boolean waitTillFinished() {
+        return false;
+    }
 }

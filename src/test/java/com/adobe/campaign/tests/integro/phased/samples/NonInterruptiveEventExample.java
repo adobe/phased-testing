@@ -9,31 +9,23 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-/**
- * 
- */
-package com.adobe.campaign.tests.integro.phased;
+package com.adobe.campaign.tests.integro.phased.samples;
 
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import com.adobe.campaign.tests.integro.phased.NonInterruptiveEvent;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-import java.util.List;
+public class NonInterruptiveEventExample extends NonInterruptiveEvent {
+    @Override
+    public boolean startEvent() {
+        return false;
+    }
 
-@Retention(RUNTIME)
-@Target(ElementType.METHOD)
-/**
- * A PhasedTest Step in a class means that the class itself is a PhasedTest
- *
- * Author : gandomi
- *
- */
-public @interface PhaseEvent {
+    @Override
+    public boolean isFinished() {
+        return false;
+    }
 
-    boolean phaseEnd() default false;
-
-    String[] consumes() default {};
-
-    String[] eventClasses() default {};
+    @Override
+    public boolean waitTillFinished() {
+        return false;
+    }
 }

@@ -83,6 +83,16 @@ public class PhasesTests {
 
         assertThat("We should have a check me ethod that works", Phases.PRODUCER.isSelected());
 
+        assertThat("We should find the correct state ASYNCHRONOUS_EVENT",
+                Phases.fetchCorrespondingPhase("asYnChronous"), is(equalTo(Phases.ASYNCHRONOUS)));
+
+        System.setProperty(PhasedTestManager.PROP_SELECTED_PHASE, "ASYNCHRONOUS");
+        assertThat("We should now have the state Producer for the PhasedTestStates",
+                Phases.getCurrentPhase(), is(equalTo(Phases.ASYNCHRONOUS)));
+
+        assertThat("We should have a check me ethod that works", Phases.ASYNCHRONOUS.isSelected());
+        
+
     }
 
     
@@ -93,5 +103,7 @@ public class PhasesTests {
         assertThat("All phases should have a splitting event", Arrays.stream(l_phasesWithEvents).allMatch(p -> p.hasSplittingEvent));
 
     }
+
+
 
 }

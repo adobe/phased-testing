@@ -9,30 +9,42 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package com.adobe.campaign.tests.integro.phased;
+package com.adobe.campaign.tests.integro.phased.data.events;
 
-import java.lang.reflect.Method;
+import com.adobe.campaign.tests.integro.phased.PhaseEvent;
+import com.adobe.campaign.tests.integro.phased.PhasedTest;
+import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
+import org.testng.annotations.Test;
 
-import org.testng.annotations.DataProvider;
+import static org.testng.Assert.assertEquals;
 
-public class PhasedDataProvider {
-    public static final String SHUFFLED = "phased-data-provider-shuffled";
-    public static final String SINGLE = "phased-data-provider-single";
-    public static final String DEFAULT = "phased-default";
-
-    @DataProvider(name = SHUFFLED)
-    public Object[][] shuffledMode(Method m) {
-        return PhasedTestManager.fetchProvidersShuffled(m);
-    }
+@PhasedTest(canShuffle = false)
+@Test
+public class TestSINGLEWithEvent_eventAsAnnotation {
     
-    @DataProvider(name = SINGLE)
-    public Object[] singleRunMode(Method m) {
-        return PhasedTestManager.fetchProvidersSingle(m);
+
+    public void step1(String val) {
+        System.out.println("step1 " + val);
+        PhasedTestManager.produceInStep("A");
     }
-    
-    @DataProvider(name = PhasedDataProvider.DEFAULT)
-    public Object[] defaultDP(Method m) {
-        return PhasedTestManager.fetchProvidersStandard(m);
+
+
+    @PhaseEvent(eventClasses = {"com.adobe.campaign.tests.integro.phased.data.events.MyNonInterruptiveEvent"})
+    public void step2(String val) {
+        System.out.println("step2 " + val);
+        String l_fetchedValue = PhasedTestManager.consumeFromStep("step1");
+        PhasedTestManager.produceInStep(l_fetchedValue + "B");
+        
+
+    }
+
+
+    public void step3(String val) {
+        System.out.println("step3 " + val);
+        String l_fetchedValue = PhasedTestManager.consumeFromStep("step2");
+
+        assertEquals(l_fetchedValue, "AB");
+
     }
 
 }

@@ -14,7 +14,7 @@ package com.adobe.campaign.tests.integro.phased;
 import java.util.Arrays;
 
 public enum Phases {
-    PRODUCER(true), CONSUMER(true), NON_PHASED(false);
+    PRODUCER(true), CONSUMER(true), NON_PHASED(false), ASYNCHRONOUS(false);
 
     boolean hasSplittingEvent;
 
@@ -88,11 +88,7 @@ public enum Phases {
      *
      */
     void activate() {
-        if (this.hasSplittingEvent) {
-            System.setProperty(PhasedTestManager.PROP_SELECTED_PHASE, this.name());
-        } else {
-            System.clearProperty(PhasedTestManager.PROP_SELECTED_PHASE);
-        }
+        System.setProperty(PhasedTestManager.PROP_SELECTED_PHASE, this.name());
     }
 
     /**

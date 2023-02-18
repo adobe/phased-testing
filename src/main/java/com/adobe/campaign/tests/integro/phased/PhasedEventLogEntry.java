@@ -9,31 +9,37 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-/**
- * 
- */
 package com.adobe.campaign.tests.integro.phased;
 
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import java.util.Date;
+import java.util.concurrent.ExecutorService;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-import java.util.List;
+public class PhasedEventLogEntry {
+    Date eventDate;
+    PhasedEventManager.EventMode eventMode;
+    String eventName;
+    String phasedStepName;
 
-@Retention(RUNTIME)
-@Target(ElementType.METHOD)
-/**
- * A PhasedTest Step in a class means that the class itself is a PhasedTest
- *
- * Author : gandomi
- *
- */
-public @interface PhaseEvent {
+    public PhasedEventLogEntry(PhasedEventManager.EventMode eventMode, String eventName, String phasedStepName) {
+        this.eventDate = new Date();
+        this.eventMode = eventMode;
+        this.eventName = eventName;
+        this.phasedStepName = phasedStepName;
+    }
 
-    boolean phaseEnd() default false;
+    public Date getEventDate() {
+        return eventDate;
+    }
 
-    String[] consumes() default {};
+    public PhasedEventManager.EventMode getEventMode() {
+        return eventMode;
+    }
 
-    String[] eventClasses() default {};
+    public String getEventName() {
+        return eventName;
+    }
+
+    public String getPhasedStepName() {
+        return phasedStepName;
+    }
 }
