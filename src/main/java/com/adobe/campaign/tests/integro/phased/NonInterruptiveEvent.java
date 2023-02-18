@@ -15,9 +15,7 @@ import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
 
-public abstract class NonInterruptiveEvent {
-
-    protected Thread eventThread;
+public abstract class NonInterruptiveEvent implements Runnable {
 
     /**
      * Starts the non-interruptive event
@@ -36,5 +34,31 @@ public abstract class NonInterruptiveEvent {
      */
     //
     public abstract boolean waitTillFinished();
+
+    public enum states {DEFINED , STARTED, FAILURE, FINISHED};
+
+    protected states state = states.DEFINED;
+
+    @Override
+    public void run() {
+        state = startEvent() ? states.STARTED : states.FAILURE;
+
+        if (state.equals(states.FAILURE)) {
+            throw new PhasedTestingEventException("There was a problem starting this event.");
+        }
+
+        waitTillFinished();
+
+        if (!isFinished()) {
+            throw new PhasedTestingEventException("This event did not finish as expected.");
+        }
+        state=states.FINISHED;
+        Thread.currentThread().interrupt();
+        return;
+    }
+
+    public states getState() {
+        return state;
+    }
 
 }

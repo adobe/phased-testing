@@ -311,6 +311,8 @@ public class PhasedTestListener
                 handleFailedPhases(context, each);
             }
         }
+
+        PhasedEventManager.stopEventExecutor();
     }
 
     private void handlePassedPhases(ITestContext context, String lt_phasedClass) {

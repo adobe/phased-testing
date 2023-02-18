@@ -21,16 +21,20 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class PhasedEventManager {
     private static final Logger log = LogManager.getLogger();
+
+    private static ExecutorService eventExecutor = null;
 
     protected static enum EventMode {START, END};
 
     static Map<String, NonInterruptiveEvent> events = new HashMap<String, NonInterruptiveEvent>();
 
 
-    private static List<PhaseEventLogEntry> eventLogs = new ArrayList();
+    private static List<PhasedEventLogEntry> eventLogs = new ArrayList();
 
     /**
      * Used for logging events
@@ -40,7 +44,7 @@ public class PhasedEventManager {
      * @param in_onAccountOfStep The step responsable for the event
      */
     static void logEvent(EventMode in_eventMode, String in_event, String in_onAccountOfStep) {
-        eventLogs.add(new PhaseEventLogEntry(in_eventMode, in_event, in_onAccountOfStep));
+        eventLogs.add(new PhasedEventLogEntry(in_eventMode, in_event, in_onAccountOfStep));
     }
 
     /**
@@ -48,15 +52,24 @@ public class PhasedEventManager {
      *
      * @param in_event           The event that is logged
      * @param in_onAccountOfStep The step responsible for the event
-     * @return The NonInterruptive Event that is started by this call
+     * @return The Non-Interruptive Event that is started by this call
      */
     protected static NonInterruptiveEvent startEvent(String in_event, String in_onAccountOfStep) {
-
+        //Lazy load the service when needed
+        if (eventExecutor == null) {
+            eventExecutor = Executors.newSingleThreadExecutor();
+        }
         NonInterruptiveEvent nie = instantiateClassFromString(in_event);
         logEvent(EventMode.START, in_event, in_onAccountOfStep);
         events.put(in_onAccountOfStep, nie);
-        nie.startEvent();
-
+        eventExecutor.submit(nie);
+        while (nie.getState().equals(NonInterruptiveEvent.states.DEFINED)) {
+            try {
+                Thread.sleep(1);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
         return nie;
     }
 
@@ -106,7 +119,7 @@ public class PhasedEventManager {
         return l_activeEvent;
     }
 
-    public static List<PhaseEventLogEntry> getEventLogs() {
+    public static List<PhasedEventLogEntry> getEventLogs() {
         return eventLogs;
     }
 
@@ -162,5 +175,15 @@ public class PhasedEventManager {
             return null;
         }
     }
+
+    public static ExecutorService getEventExecutor() {
+        return eventExecutor;
+    }
+
+    public static void stopEventExecutor() {
+        if (eventExecutor != null)
+            eventExecutor.shutdown();
+    }
+
 
 }

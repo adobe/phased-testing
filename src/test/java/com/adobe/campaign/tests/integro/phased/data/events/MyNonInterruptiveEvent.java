@@ -12,11 +12,15 @@
 package com.adobe.campaign.tests.integro.phased.data.events;
 
 import com.adobe.campaign.tests.integro.phased.NonInterruptiveEvent;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.Date;
 
 public class MyNonInterruptiveEvent extends NonInterruptiveEvent {
     public static final int WAIT_TIME_MS = 500;
+    private Thread eventThread;
+    private static final Logger log = LogManager.getLogger();
 
     public MyNonInterruptiveEvent() {
 
@@ -35,6 +39,7 @@ public class MyNonInterruptiveEvent extends NonInterruptiveEvent {
     @Override
     public boolean startEvent() {
         eventThread.start();
+        log.info("started");
         return eventThread.isAlive();
     }
 

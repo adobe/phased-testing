@@ -12,14 +12,15 @@
 package com.adobe.campaign.tests.integro.phased;
 
 import java.util.Date;
+import java.util.concurrent.ExecutorService;
 
-public class PhaseEventLogEntry {
+public class PhasedEventLogEntry {
     Date eventDate;
     PhasedEventManager.EventMode eventMode;
     String eventName;
     String phasedStepName;
 
-    public PhaseEventLogEntry(PhasedEventManager.EventMode eventMode, String eventName, String phasedStepName) {
+    public PhasedEventLogEntry(PhasedEventManager.EventMode eventMode, String eventName, String phasedStepName) {
         this.eventDate = new Date();
         this.eventMode = eventMode;
         this.eventName = eventName;

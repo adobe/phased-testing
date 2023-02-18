@@ -15,6 +15,7 @@ import com.adobe.campaign.tests.integro.phased.data.events.*;
 import com.adobe.campaign.tests.integro.phased.utils.*;
 import org.hamcrest.Matchers;
 import org.testng.*;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.testng.xml.XmlClass;
@@ -32,6 +33,7 @@ import static org.testng.Assert.assertThrows;
 
 public class TestPhasedNonInterruptive {
     @BeforeMethod
+    @AfterMethod
     public void resetVariables() {
 
         ConfigValueHandler.resetAllValues();
@@ -64,6 +66,8 @@ public class TestPhasedNonInterruptive {
         PhasedTestManager.MergedReportData.configureMergedReportName(new LinkedHashSet<>(),
                 new LinkedHashSet<>(
                         Arrays.asList(PhasedReportElements.DATA_PROVIDERS, PhasedReportElements.PHASE)));
+
+        //PhasedEventManager.stopEventManager();
     }
 
     @Test(description = "A test to check that our non-interruptive event works as expected")
@@ -89,6 +93,7 @@ public class TestPhasedNonInterruptive {
                 greaterThanOrEqualTo(executionWait));
         assertThat("The duration should be less than 2 seconds", (finish.getTime() - start.getTime()),
                 lessThan(executionWait + 100));
+
     }
 
     @Test(description = "A test to check that our non-interruptive event works as expected when instantiated as a string")
@@ -122,15 +127,20 @@ public class TestPhasedNonInterruptive {
     @Test
     public void eventManagerTests() {
         String myEvent = MyNonInterruptiveEvent.class.getTypeName();
-        NonInterruptiveEvent nie = PhasedEventManager.startEvent(myEvent, "B");
+        assertThat("In the beginning executor should be null", PhasedEventManager.getEventExecutor(),nullValue());
 
+        NonInterruptiveEvent nie = PhasedEventManager.startEvent(myEvent, "B");
+        Date start = new Date();
+        assertThat("Our event should be started", nie.getState().equals(NonInterruptiveEvent.states.STARTED));
         assertThat("We should have stored an event object", PhasedEventManager.getEvents().size(), equalTo(1));
         assertThat("We should have stored an event object", PhasedEventManager.getEvents().get("B"), notNullValue());
         assertThat("We should have stored our event object", PhasedEventManager.getEvents().get("B"), equalTo(nie));
 
-        Date start = new Date();
+
         assertThat("There should be an event logged which is between the current and after dates",
                 PhasedEventManager.getEventLogs().size(), equalTo(1));
+
+
         assertThat("The event should be currently on-going", !nie.isFinished());
 
         //Stop event
@@ -143,6 +153,11 @@ public class TestPhasedNonInterruptive {
         assertThat("The duration should be more than a second", (finish.getTime() - start.getTime()),
                 greaterThan(450l));
         assertThat("The duration should be less than 2 seconds", (finish.getTime() - start.getTime()), lessThan(600l));
+        assertThat("Our event should be finished", nie.getState().equals(NonInterruptiveEvent.states.FINISHED));
+
+        assertThat("In the end executor should no longer be null (lazily instantiated)", PhasedEventManager.getEventExecutor(),notNullValue());
+
+        //PhasedEventManager.stopEventManager();
     }
 
     @Test(description = "We start problematic instances")
@@ -305,7 +320,7 @@ public class TestPhasedNonInterruptive {
 
         assertThat("We should have 2 events in the logs", PhasedEventManager.getEventLogs().size(),
                 Matchers.equalTo(2));
-        PhaseEventLogEntry l_eventStartLog = PhasedEventManager.getEventLogs().get(0);
+        PhasedEventLogEntry l_eventStartLog = PhasedEventManager.getEventLogs().get(0);
         assertThat("The first element should be an event defined in step2", l_eventStartLog.getEventMode(),
                 Matchers.equalTo(
                         PhasedEventManager.EventMode.START));
@@ -319,7 +334,7 @@ public class TestPhasedNonInterruptive {
         ITestResult l_testSubjectedToEvent = tla.getPassedTests().stream().filter(t -> t.getName().equals("step2"))
                 .collect(Collectors.toList()).get(0);
 
-        PhaseEventLogEntry l_eventEndLog = PhasedEventManager.getEventLogs().get(1);
+        PhasedEventLogEntry l_eventEndLog = PhasedEventManager.getEventLogs().get(1);
         assertThat("The end of our event should be after the test's start", l_eventEndLog.getEventDate().getTime(),
                 Matchers.greaterThanOrEqualTo(l_testSubjectedToEvent.getStartMillis()));
         assertThat("The second element should be an event defined in step2", l_eventEndLog.getEventMode(),
@@ -376,7 +391,7 @@ public class TestPhasedNonInterruptive {
 
         assertThat("We should have 2 events in the logs", PhasedEventManager.getEventLogs().size(),
                 Matchers.equalTo(2));
-        PhaseEventLogEntry l_eventStartLog = PhasedEventManager.getEventLogs().get(0);
+        PhasedEventLogEntry l_eventStartLog = PhasedEventManager.getEventLogs().get(0);
         assertThat("The first element should be an event defined in step2", l_eventStartLog.getEventMode(),
                 Matchers.equalTo(
                         PhasedEventManager.EventMode.START));
@@ -390,7 +405,7 @@ public class TestPhasedNonInterruptive {
         ITestResult l_testSubjectedToEvent = tla.getPassedTests().stream().filter(t -> t.getName().equals("step2"))
                 .collect(Collectors.toList()).get(0);
 
-        PhaseEventLogEntry l_eventEndLog = PhasedEventManager.getEventLogs().get(1);
+        PhasedEventLogEntry l_eventEndLog = PhasedEventManager.getEventLogs().get(1);
         assertThat("The end of our event should be after the test's start", l_eventEndLog.getEventDate().getTime(),
                 Matchers.greaterThanOrEqualTo(l_testSubjectedToEvent.getStartMillis()));
         assertThat("The second element should be an event defined in step2", l_eventEndLog.getEventMode(),
