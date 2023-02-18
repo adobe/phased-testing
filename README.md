@@ -243,20 +243,22 @@ In order have some level of predictability for non-interruptive events, we have 
 
 In the example before we have created an event `NonInterruptiveEventExample`:
 ```java
-@Override
-    public boolean startEvent() {
-        return false;
-    }
+public class NonInterruptiveEventExample extends NonInterruptiveEvent {
+  @Override
+  public boolean startEvent() {
+    return false;
+  }
 
-    @Override
-    public boolean isFinished() {
-        return false;
-    }
+  @Override
+  public boolean isFinished() {
+    return false;
+  }
 
-    @Override
-    public boolean waitTillFinished() {
-        return false;
-    }
+  @Override
+  public boolean waitTillFinished() {
+    return false;
+  }
+}
 ```
 
 As you can see we have to implement three methods:
