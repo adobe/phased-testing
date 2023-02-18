@@ -263,10 +263,45 @@ In order to define these event you will need to implement these methods, as you 
 #### Binding an Event to a Scenario
 In order for your scenario to interact with an event you will need to declare it. This can be done in three ways:
 * Phased Event Annotation
-* Phased Test Annotation
+* Phased Test Annotation (SOON)
 * Test Suite Definition
 
-#### 
+#### Attaching an Event using the PhaseEvent Annotation
+The mode is only applicable to Single Run execution modes.
+
+In the case of single run scenarios, we can specify which phase event should be triggered on the annotation itself. This is by setting the `eventClasses` attribute for the `@PhaseEvent` annotation.
+
+In the example below the PhaseEvent is always executed at the step2 of the scenario. Here we have specified that when we are in asynchroous mode only the event `com.adobe.campaign.tests.integro.phased.data.events.MyNonInterruptiveEvent` should be executed. 
+```Java
+@PhasedTest(canShuffle = false)
+@Test
+public class SingeRunScenarioWithEvent {
+
+    public void step1(String val) {
+        PhasedTestManager.produceInStep("A");
+    }
+
+    @PhaseEvent(eventClasses = {"com.adobe.campaign.tests.integro.phased.data.events.MyNonInterruptiveEvent"})
+    public void step2(String val) {
+        String l_fetchedValue = PhasedTestManager.consumeFromStep("step1");
+        PhasedTestManager.produceInStep(l_fetchedValue + "B");
+    }
+
+    public void step3(String val) {
+        String l_fetchedValue = PhasedTestManager.consumeFromStep("step2");
+
+        assertEquals(l_fetchedValue, "AB");
+    }
+}
+```
+
+#### Attaching an Event using the PhasedTest Annotation
+(Not implemented yet)
+In this case we expect us to specify if a scenario is only suject to the same event. This will be done at the `@PhasedTest` annotation using the attribute `eventClasses`. When set we only use the specified event.
+
+#### Attaching an Event to the Test Suite
+In this case, we state that all scenarios should be using the same Event. We can activate this mode by setting the environment variable `PHASED.EVENTS.NONINTERRUPTIVE` to the event class.
+
 
 ### Before- and After-Phase Actions
 We have introduced the possibility of defining Before and After Phases. This means that you can state if a method can be invoked before or after the phased tests are executed. These methods are only activated when we are in a Phase, and will not run when executed when we execute the scenarios in Non-Phased mode. 
