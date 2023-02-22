@@ -102,6 +102,9 @@ The following dependency needs to be added to your pom file:
 </dependency>
 ```
 
+### Demo
+We have a standard demo that can be accessed through the [Phased Test Demo](https://github.com/baubakg/phased-test-demo).
+
 ## Phases
 Phases are directives at execution time, where we let the system know, in what way we want our tests to interact with an event. 
 
