@@ -518,7 +518,8 @@ public final class PhasedTestManager {
     }
 
     /**
-     * Calculates the data providers for the current method and test context
+     * Returns the provider for shuffling tests. In general the values are Shuffle group prefix + Nr of steps before the
+     * Phase Event and the number of steps after the event.
      * <p>
      * Author : gandomi
      *
@@ -526,8 +527,7 @@ public final class PhasedTestManager {
      * @return A two-dimensional array of all the data providers attached to the current step/method
      */
     public static Object[][] fetchProvidersShuffled(Method in_method) {
-        String l_methodFullName = ClassPathParser.fetchFullName(in_method);
-        return fetchProvidersShuffled(l_methodFullName);
+        return fetchProvidersShuffled(in_method, Phases.getCurrentPhase());
     }
 
     /**
@@ -536,28 +536,14 @@ public final class PhasedTestManager {
      * <p>
      * Author : gandomi
      *
-     * @param in_methodFullName The full name of the method used for identifying it in the phase context
-     * @return A two-dimensional array of all the data providers attached to the current step/method
-     */
-    public static Object[][] fetchProvidersShuffled(String in_methodFullName) {
-
-        return fetchProvidersShuffled(in_methodFullName, Phases.getCurrentPhase());
-    }
-
-    /**
-     * Returns the provider for shuffling tests. In general the values are Shuffle group prefix + Nr of steps before the
-     * Phase Event and the number of steps after the event.
-     * <p>
-     * Author : gandomi
-     *
-     * @param in_methodFullName The full name of the method used for identifying it in the phase context
+     * @param in_method The full name of the method used for identifying it in the phase context
      * @param in_phasedState    The phase state for which we should retrieve the parameters. The parameters will be
      *                          different based on the phase.
      * @return A two-dimensional array of all the data providers attached to the current step/method
      */
-    public static Object[][] fetchProvidersShuffled(String in_methodFullName, Phases in_phasedState) {
+    public static Object[][] fetchProvidersShuffled(Method in_method, Phases in_phasedState) {
 
-        final MethodMapping l_methodMapping = methodMap.get(in_methodFullName);
+        final MethodMapping l_methodMapping = methodMap.get(ClassPathParser.fetchFullName(in_method));
         Object[][] l_objectArrayPhased = new Object[l_methodMapping.nrOfProviders][1];
 
 
@@ -583,7 +569,7 @@ public final class PhasedTestManager {
         //Merge
         Object[][] lr_dataProviders = dataProvidersCrossJoin(l_objectArrayPhased, l_userDefinedDataProviders);
 
-        log.debug("{} Returning provider for method {}", PhasedTestManager.PHASED_TEST_LOG_PREFIX, in_methodFullName);
+        log.debug("{} Returning provider for method {}", PhasedTestManager.PHASED_TEST_LOG_PREFIX, ClassPathParser.fetchFullName(in_method));
         return lr_dataProviders;
     }
 
@@ -914,6 +900,17 @@ public final class PhasedTestManager {
      */
     static boolean isPhasedTestShuffledMode(Method in_method) {
         return isPhasedTestShuffledMode(in_method.getDeclaringClass());
+    }
+
+    /**
+     * This method lets us know if the steps in a PhasedTest are to be executed in a shuffled manner. For a test with 3
+     * steps the test will be executed 6 times in total
+     *
+     * @param in_testResult A test result
+     * @return True if the given test method/step is part of a Shuffled Phased Test scenario
+     */
+     static boolean isPhasedTestShuffledMode(ITestResult in_testResult) {
+        return isPhasedTestShuffledMode(in_testResult.getMethod().getConstructorOrMethod().getMethod());
     }
 
     /**
@@ -1412,7 +1409,7 @@ public final class PhasedTestManager {
      */
     public static Integer fetchNrOfStepsBeforePhaseChange(ITestResult in_testResult) {
 
-        if (isPhasedTestShuffledMode(in_testResult.getMethod().getConstructorOrMethod().getMethod()) && Phases.getCurrentPhase()
+        if (isPhasedTestShuffledMode(in_testResult) && Phases.getCurrentPhase()
                 .hasSplittingEvent()) {
 
             final String l_phaseGroup = in_testResult.getParameters()[0].toString();
@@ -1678,17 +1675,20 @@ public final class PhasedTestManager {
 
         int lr_index = -1;
 
-        try {
+        if (PhasedTestManager.isPhasedTestShuffledMode(in_testResult)) {
 
-            String l_indexString = l_currentShuffleGroup.substring(l_currentShuffleGroup.length() - 1,
-                    l_currentShuffleGroup.length());
-            log.debug("Parsing {} begin : {}, end {}, gives : {}",l_currentShuffleGroup, l_currentShuffleGroup.length() - 2, l_currentShuffleGroup.length() - 1, l_indexString);
-            lr_index = Integer.parseInt(
-                    l_indexString);
+            try {
 
+                String l_indexString = l_currentShuffleGroup.substring(l_currentShuffleGroup.length() - 1,
+                        l_currentShuffleGroup.length());
+                log.debug("Parsing {} begin : {}, end {}, gives : {}", l_currentShuffleGroup,
+                        l_currentShuffleGroup.length() - 2, l_currentShuffleGroup.length() - 1, l_indexString);
+                lr_index = Integer.parseInt(
+                        l_indexString);
 
-        } catch (NumberFormatException nfe) {
-            throw new PhasedTestException("Problem extracting shuffle group number "+ l_currentShuffleGroup, nfe);
+            } catch (NumberFormatException nfe) {
+                throw new PhasedTestException("Problem extracting shuffle group number " + l_currentShuffleGroup, nfe);
+            }
         }
         return lr_index;
     }
