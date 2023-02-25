@@ -17,9 +17,9 @@ import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertEquals;
 
-@PhasedTest(canShuffle = true)
+@PhasedTest(canShuffle = true, eventClasses={"com.adobe.campaign.tests.integro.phased.data.events.MyNonInterruptiveEvent"})
 @Test
-public class TestShuffled_eventPassedAsExecutionVariable {
+public class TestShuffled_eventDefinedOnPhasedTestAnnotation {
     
 
     public void step1(String val) {

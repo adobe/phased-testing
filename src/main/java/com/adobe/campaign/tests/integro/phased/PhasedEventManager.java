@@ -11,6 +11,7 @@
  */
 package com.adobe.campaign.tests.integro.phased;
 
+import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
 import com.adobe.campaign.tests.integro.phased.utils.ConfigValueHandler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -138,23 +139,24 @@ public class PhasedEventManager {
         return events;
     }
 
-    public static String fetchEvent(ITestResult in_testResult) {
-        return  fetchEvent(in_testResult, true);
-    }
-
     /**
-     * Extracts the event for a given method
+     * Extracts the event for a given method. The choice of the event is based on where the event is declared. The declarations have the following presedence:
+     * <ol>
+     *     <li>Declaration in @PhaseEvent</li>
+     *     <li>Declaration in @PhasedTest</li>
+     *     <li>When the property PHASED.EVENTS.NONINTERRUPTIVE is set</li>
+     * </ol>
      * @param in_testResult A result object for a test containing the annotation {@link PhaseEvent}
      * @return An event that can be executed with this method. Null if no event is applicable
      */
-    public static String fetchEvent(ITestResult in_testResult, boolean in_inStart) {
-        Method in_methodWithEventAnnotation = in_testResult.getMethod().getConstructorOrMethod().getMethod();
+    public static String fetchEvent(ITestResult in_testResult) {
+        Method l_currentMethod = in_testResult.getMethod().getConstructorOrMethod().getMethod();
 
-        if (PhasedTestManager.isPhasedTestSingleMode(in_methodWithEventAnnotation)) {
-            if (in_methodWithEventAnnotation.isAnnotationPresent(PhaseEvent.class)) {
+        if (PhasedTestManager.isPhasedTestSingleMode(l_currentMethod)) {
+            if (l_currentMethod.isAnnotationPresent(PhaseEvent.class)) {
 
-                if (in_methodWithEventAnnotation.getDeclaredAnnotation(PhaseEvent.class).eventClasses().length > 0) {
-                    return in_methodWithEventAnnotation.getDeclaredAnnotation(PhaseEvent.class).eventClasses()[0];
+                if (l_currentMethod.getDeclaredAnnotation(PhaseEvent.class).eventClasses().length > 0) {
+                    return l_currentMethod.getDeclaredAnnotation(PhaseEvent.class).eventClasses()[0];
                 } else {
                     return ConfigValueHandler.EVENTS_NONINTERRUPTIVE.fetchValue();
                 }
@@ -162,17 +164,15 @@ public class PhasedEventManager {
 
             return null;
         } else {
-            int l_incrementValue = in_inStart ? 1 : 0;
+
             //Use Phase Context instead
             //String l_currentShuffleGroup = in_testResult.getParameters()[0].toString();
 
             int l_currentShuffleGroupNr = PhasedTestManager.asynchronousExtractIndex(in_testResult);
 
-            String l_currentScenario = PhasedTestManager.fetchScenarioName(in_testResult);
-            int l_currentStep = PhasedTestManager.getScenarioContext().containsKey(l_currentScenario) ? PhasedTestManager.getScenarioContext()
-                    .get(l_currentScenario).getStepNr() : 0;
+            int l_currentStep = PhasedTestManager.getMethodMap().get(ClassPathParser.fetchFullName(l_currentMethod)).methodOrderInExecution;
 
-            if (l_currentStep + l_incrementValue == l_currentShuffleGroupNr) {
+            if (l_currentStep  == l_currentShuffleGroupNr) {
                 return ConfigValueHandler.EVENTS_NONINTERRUPTIVE.fetchValue();
             }
             return null;

@@ -637,10 +637,17 @@ public class PhasedTestManagerTests {
 
         assertThat("The first method should have one entry", l_result.get(ClassPathParser.fetchFullName(method3)).nrOfProviders, equalTo(1));
 
+
         assertThat("We should have the same amount of total sizes", l_result.get(ClassPathParser.fetchFullName(method1)).totalClassMethods,
                 equalTo(l_result.get(ClassPathParser.fetchFullName(method2)).totalClassMethods));
         assertThat("We should have the same amount of total sizes", l_result.get(ClassPathParser.fetchFullName(method1)).totalClassMethods,
                 equalTo(l_result.get(ClassPathParser.fetchFullName(method3)).totalClassMethods));
+
+        assertThat("The first method should have three entries", l_result.get(ClassPathParser.fetchFullName(method1)).methodOrderInExecution, equalTo(1));
+
+        assertThat("The first method should have two entries", l_result.get(ClassPathParser.fetchFullName(method2)).methodOrderInExecution, equalTo(2));
+
+        assertThat("The first method should have one entry", l_result.get(ClassPathParser.fetchFullName(method3)).methodOrderInExecution, equalTo(3));
 
 
         Object[][] l_providerA = PhasedTestManager.fetchProvidersShuffled(method1);

@@ -32,5 +32,5 @@ public @interface PhasedTest {
 
     boolean executeInactive() default true;
     boolean canShuffle();
-
+    String[] eventClasses() default {};
 }

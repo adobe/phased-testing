@@ -162,8 +162,8 @@ public class PhasedTestListener
             if (Phases.ASYNCHRONOUS.isSelected()) {
 
                 //Check if there is an event declared
-                String lt_event = PhasedEventManager.fetchEvent(result, true);
-                if (lt_event != null) {
+                String lt_event = PhasedEventManager.fetchEvent(result);
+                if (PhasedEventManager.fetchEvent(result) != null) {
                     //TODO use PhasedTestManager for fetching full name instead
                     PhasedEventManager.startEvent(lt_event, ClassPathParser.fetchFullName(result));
                 }
@@ -249,7 +249,7 @@ public class PhasedTestListener
             if (Phases.ASYNCHRONOUS.isSelected()) {
                 PhasedTestManager.getPhasedCache();
                 //Check if there is an event declared
-                String lt_event = PhasedEventManager.fetchEvent(result, false);
+                String lt_event = PhasedEventManager.fetchEvent(result);
                 if (lt_event != null) {
                     //TODO use PhasedTestManager for fetching full name instead
                     PhasedEventManager.finishEvent(lt_event, ClassPathParser.fetchFullName(result));
@@ -532,12 +532,12 @@ public class PhasedTestListener
             Map<String, ScenarioStepDependencies> l_scenarioDependencies = l_phasedClasses.stream()
                     .map(ScenarioStepDependencyFactory::listMethodCalls).collect(Collectors.toMap(ScenarioStepDependencies::getScenarioName, Function.identity()));
 
-            if (Phases.getCurrentPhase().hasSplittingEvent()) {
+            //if (Phases.getCurrentPhase().hasSplittingEvent()) {
                 log.info("{} Generating Phased Providers", PhasedTestManager.PHASED_TEST_LOG_PREFIX);
                 //NIA
                 PhasedTestManager.generatePhasedProviders(l_classMethodMap, l_scenarioDependencies,
                         Phases.getCurrentPhase());
-            }
+            //}
 
             //Start by adding the non-phased tests
             List<IMethodInstance> lr_nonPhasedMethods = list.stream()

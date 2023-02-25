@@ -198,6 +198,10 @@ public final class PhasedTestManager {
 
     }
 
+    public static Map<String, MethodMapping> getMethodMap() {
+        return methodMap;
+    }
+
     /**
      * This method stores a phased test data in the cache. It will be stored with the keys: "class, method, instance"
      * and a value
@@ -639,11 +643,6 @@ public final class PhasedTestManager {
 
     }
 
-    public static Map<String, MethodMapping>  generatePhasedProviders(Map<Class<?>, List<String>> in_classMethodMap, Map<String, ScenarioStepDependencies>
-            in_scenarioDependencies) {
-        return generatePhasedProviders(in_classMethodMap, in_scenarioDependencies, Phases.getCurrentPhase());
-    }
-
     /**
      * This method calculates how often a scenario should be run, given the steps/methods it has.
      * <p>
@@ -655,10 +654,34 @@ public final class PhasedTestManager {
      */
     public static Map<String, MethodMapping> generatePhasedProviders(Map<Class<?>, List<String>> in_classMethodMap,
             Phases in_phaseState) {
+
+        return generatePhasedProviders(in_classMethodMap, null, in_phaseState);
+
+    }
+
+    /**
+     * This method calculates how often a scenario should be run, given the steps/methods it has. This overriding allows
+     * us to take into account the ordering
+     * <p>
+     * Author : gandomi
+     *
+     * @param in_classMethodMap       A map of a class and it is methods (A scenario and its steps)
+     * @param in_scenarioDependencies A map allowing us to detect the test execution order
+     * @param in_phaseState           The phase in which we are
+     * @return A map letting us know that for a given method how often it will be executed in the current phase
+     */
+    public static Map<String, MethodMapping> generatePhasedProviders(Map<Class<?>, List<String>> in_classMethodMap,
+            Map<String, ScenarioStepDependencies> in_scenarioDependencies, Phases in_phaseState) {
         methodMap = new HashMap<>();
 
         for (Entry<Class<?>, List<String>> entry : in_classMethodMap.entrySet()) {
-            List<String> lt_methodList = entry.getValue();
+
+            List<String> lt_methodList =
+                    in_scenarioDependencies == null ? entry.getValue() : in_scenarioDependencies.get(
+                                    entry.getKey().getTypeName()).fetchExecutionOrderList().stream()
+                            .map(ol -> entry.getKey().getTypeName() + "." + ol.getStepName()).collect(
+                                    Collectors.toList());
+
             if (in_phaseState.hasSplittingEvent) {
 
                 if (in_phaseState.equals(Phases.CONSUMER)) {
@@ -668,40 +691,16 @@ public final class PhasedTestManager {
                 for (int i = 0; i < entry.getValue().size(); i++) {
                     methodMap.put(lt_methodList.get(i),
                             new MethodMapping(entry.getKey(), entry.getValue().size() - i,
-                                    entry.getValue().size()));
+                                    entry.getValue().size(), i + 1));
 
                 }
             } else {
                 for (int i = 0; i < entry.getValue().size(); i++) {
                     methodMap.put(lt_methodList.get(i),
                             new MethodMapping(entry.getKey(), entry.getValue().size(),
-                                    entry.getValue().size()));
+                                    entry.getValue().size(), i + 1));
 
                 }
-            }
-        }
-        return methodMap;
-
-    }
-
-    public static Map<String, MethodMapping>  generatePhasedProviders(Map<Class<?>, List<String>> in_classMethodMap, Map<String, ScenarioStepDependencies> in_scenarioDependencies, Phases in_phaseState) {
-        methodMap = new HashMap<>();
-
-        for (Entry<Class<?>, List<String>> entry : in_classMethodMap.entrySet()) {
-
-            //List<String> lt_methodList = entry.getValue();
-            List<String> lt_methodList = in_scenarioDependencies.get(entry.getKey().getTypeName()).fetchExecutionOrderList().stream().map(ol -> entry.getKey().getTypeName()+"."+ol.getStepName()).collect(
-                    Collectors.toList());
-            //List<String> lt_methodList = lt_orderedMethodList.
-            if (in_phaseState.equals(Phases.CONSUMER)) {
-                Collections.reverse(lt_methodList);
-            }
-
-            for (int i = 0; i < entry.getValue().size(); i++) {
-                methodMap.put(lt_methodList.get(i),
-                        new MethodMapping(entry.getKey(), entry.getValue().size() - i,
-                                entry.getValue().size()));
-
             }
         }
         return methodMap;

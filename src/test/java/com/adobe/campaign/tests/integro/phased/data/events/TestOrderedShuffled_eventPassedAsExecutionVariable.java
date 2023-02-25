@@ -19,23 +19,23 @@ import static org.testng.Assert.assertEquals;
 
 @PhasedTest(canShuffle = true)
 @Test
-public class TestShuffled_eventPassedAsExecutionVariable {
+public class TestOrderedShuffled_eventPassedAsExecutionVariable {
     
 
-    public void step1(String val) {
+    public void stepZZZ(String val) {
         System.out.println("step1 " + val);
-        PhasedTestManager.produceInStep("A");
+        PhasedTestManager.produce("step1","A");
     }
 
-    public void step2(String val) {
+    public void stepMMM(String val) {
         System.out.println("step2 " + val);
-        String l_fetchedValue = PhasedTestManager.consumeFromStep("step1");
-        PhasedTestManager.produceInStep(l_fetchedValue + "B");
+        String l_fetchedValue = PhasedTestManager.consume("step1");
+        PhasedTestManager.produce("step2",l_fetchedValue + "B");
     }
 
-    public void step3(String val) {
+    public void stepAAA(String val) {
         System.out.println("step3 " + val);
-        String l_fetchedValue = PhasedTestManager.consumeFromStep("step2");
+        String l_fetchedValue = PhasedTestManager.consume("step2");
 
         assertEquals(l_fetchedValue, "AB");
     }
