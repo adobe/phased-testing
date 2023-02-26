@@ -11,7 +11,6 @@
  */
 package com.adobe.campaign.tests.integro.phased.utils;
 
-import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
 import com.adobe.campaign.tests.integro.phased.PhasedTestManagerTests;
 import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_SingleClass;
 import com.adobe.campaign.tests.integro.phased.data.permutational.SimpleProducerConsumerNestedContainer;
@@ -34,9 +33,9 @@ public class ClassPathParserTests {
     @BeforeMethod
     @AfterMethod
     private void reset() {
-        System.clearProperty("PHASED.TESTS.CODE.ROOT");
-        PhasedTestManager.PHASED_TEST_SOURCE_LOCATION="/src/test/java";
+        ConfigValueHandler.resetAllValues();
     }
+
     @Test
     public void testStorageMethodWithoutArgs() throws NoSuchMethodException, SecurityException {
 
@@ -168,7 +167,8 @@ public class ClassPathParserTests {
 
     @Test
     public void testFetchClassFileConfigured() throws SecurityException {
-        PhasedTestManager.PHASED_TEST_SOURCE_LOCATION="/src/test/java/com";
+        ConfigValueHandler.PHASED_TEST_SOURCE_LOCATION.activate("/src/test/java/com");
+
         //Fetch File for Class
         assertThat("We should have correctly found the file that is not null",
                 ClassPathParser.fetchClassFile("adobe.campaign.tests.integro.phased.data.PhasedSeries_H_SingleClass"),

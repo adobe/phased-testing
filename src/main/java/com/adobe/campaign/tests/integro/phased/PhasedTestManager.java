@@ -31,8 +31,6 @@ import java.util.stream.Collectors;
 
 public final class PhasedTestManager {
 
-    public static String PHASED_TEST_SOURCE_LOCATION = System.getProperty("PHASED.TESTS.CODE.ROOT","/src/test/java");
-
     private PhasedTestManager() {
         //Utility class. Defeat instantiation.
     }

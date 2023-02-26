@@ -15,9 +15,9 @@ import java.util.Arrays;
 
 public enum ConfigValueHandler {
     EVENTS_NONINTERRUPTIVE("PHASED.EVENTS.NONINTERRUPTIVE",null, false),
-    PHASED_TEST_NONPHASED_LEGACY( "PHASED.TESTS.NONPHASED.LEGACY", "false", false ) {
+    PHASED_TEST_NONPHASED_LEGACY( "PHASED.TESTS.NONPHASED.LEGACY", "false", false ),
+    PHASED_TEST_SOURCE_LOCATION("PHASED.TESTS.CODE.ROOT","/src/test/java", false);
 
-    };
     public final String defaultValue;
     public final String systemName;
     public final boolean requiredValue;
