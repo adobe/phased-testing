@@ -831,21 +831,6 @@ public final class PhasedTestManager {
     }
 
     /**
-     * Returns the declared event if declared on the method. Null is returned if no such declaration is present
-     * @param in_method The method we are examining
-     * @return The event that is declared on the method. Null if there is no event declared for the method
-     */
-    public static String fetchDeclaredEvent(Method in_method) {
-        if (in_method.isAnnotationPresent(PhaseEvent.class)) {
-
-            if (in_method.getDeclaredAnnotation(PhaseEvent.class).eventClasses().length > 0) {
-                return in_method.getDeclaredAnnotation(PhaseEvent.class).eventClasses()[0];
-            }
-        }
-        return null;
-    }
-
-    /**
      * This method tells us if the method is a valid phased test. This is done by seeing if the annotation PhasedStep is
      * on the method, and if the annotation PhasedTest is on the class
      * <p>

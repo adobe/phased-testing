@@ -15,8 +15,8 @@ import com.adobe.campaign.tests.integro.phased.data.*;
 import com.adobe.campaign.tests.integro.phased.data.befaft.PhasedSeries_M_SimpleClass;
 import com.adobe.campaign.tests.integro.phased.data.dp.*;
 import com.adobe.campaign.tests.integro.phased.data.events.TestSINGLEWithEvent_eventAsAnnotation;
+import com.adobe.campaign.tests.integro.phased.data.events.TestSINGLEWithEvent_eventAsExecProperty;
 import com.adobe.campaign.tests.integro.phased.data.events.TestShuffled_eventPassedAsExecutionVariable;
-import com.adobe.campaign.tests.integro.phased.data.events.TestSINGLEWithEvent_eventConfigured;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 import com.adobe.campaign.tests.integro.phased.utils.MockTestTools;
@@ -33,7 +33,6 @@ import org.testng.asserts.SoftAssert;
 import java.io.*;
 import java.lang.reflect.Method;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -1254,7 +1253,7 @@ public class PhasedTestManagerTests {
 
     @Test(enabled = false)
     public void testIsInSingleMode_NegativeAsynchronousMethod() throws NoSuchMethodException, SecurityException {
-        final Method l_myMethod = TestSINGLEWithEvent_eventConfigured.class.getMethod("step3", String.class);
+        final Method l_myMethod = TestSINGLEWithEvent_eventAsExecProperty.class.getMethod("step3", String.class);
 
         Phases.ASYNCHRONOUS.activate();
         assertThat("We should be in Shuffled mode", !PhasedTestManager.isPhasedTestShuffledMode(l_myMethod));
@@ -3168,8 +3167,8 @@ public class PhasedTestManagerTests {
 
     @Test
     public void testFetchNieNr_SingleGroup() throws NoSuchMethodException {
-        String l_className = TestSINGLEWithEvent_eventConfigured.class.getTypeName();
-        Method l_method = TestSINGLEWithEvent_eventConfigured.class.getMethod("step1",String.class);
+        String l_className = TestSINGLEWithEvent_eventAsExecProperty.class.getTypeName();
+        Method l_method = TestSINGLEWithEvent_eventAsExecProperty.class.getMethod("step1",String.class);
         String l_dataProvider = PhasedTestManager.STD_PHASED_GROUP_SINGLE;
         ITestResult l_itr = MockTestTools.generateTestResultMock(l_method, new Object[]{l_dataProvider});
 

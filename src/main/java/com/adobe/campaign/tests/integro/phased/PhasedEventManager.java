@@ -30,6 +30,27 @@ public class PhasedEventManager {
 
     private static ExecutorService eventExecutor = null;
 
+    /**
+     * Returns the declared event.  if declared on the method. The declarations have the following precedence:
+     * <ol>
+     *  <li>Declaration in @PhaseEvent</li>
+     *  <li>Declaration in @PhasedTest</li>
+     *  <li>When the property PHASED.EVENTS.NONINTERRUPTIVE is set</li>
+     * </ol>Null is returned if no such declaration is present.
+     * @param in_method The method we are examining
+     * @return The event that is declared on the method. Null if there is no event declared for the method
+     */
+    public static String fetchApplicableEvent(Method in_method) {
+        if (in_method.isAnnotationPresent(PhaseEvent.class) && (in_method.getDeclaredAnnotation(PhaseEvent.class).eventClasses().length > 0)) {
+            return in_method.getDeclaredAnnotation(PhaseEvent.class).eventClasses()[0];
+        } else if (PhasedTestManager.isPhasedTest(in_method) && (in_method.getDeclaringClass().getDeclaredAnnotation(PhasedTest.class).eventClasses().length > 0)) {
+            return in_method.getDeclaringClass().getDeclaredAnnotation(PhasedTest.class).eventClasses()[0];
+        } else if (ConfigValueHandler.EVENTS_NONINTERRUPTIVE.isSet()) {
+            return ConfigValueHandler.EVENTS_NONINTERRUPTIVE.fetchValue();
+        }
+        return null;
+    }
+
     protected static enum EventMode {START, END};
 
     static Map<String, NonInterruptiveEvent> events = new HashMap<String, NonInterruptiveEvent>();
@@ -140,12 +161,7 @@ public class PhasedEventManager {
     }
 
     /**
-     * Extracts the event for a given method. The choice of the event is based on where the event is declared. The declarations have the following presedence:
-     * <ol>
-     *     <li>Declaration in @PhaseEvent</li>
-     *     <li>Declaration in @PhasedTest</li>
-     *     <li>When the property PHASED.EVENTS.NONINTERRUPTIVE is set</li>
-     * </ol>
+     * Extracts the event for a given method. The choice of the event is based on where the event is declared.
      * @param in_testResult A result object for a test containing the annotation {@link PhaseEvent}
      * @return An event that can be executed with this method. Null if no event is applicable
      */
@@ -153,16 +169,12 @@ public class PhasedEventManager {
         Method l_currentMethod = in_testResult.getMethod().getConstructorOrMethod().getMethod();
 
         if (PhasedTestManager.isPhasedTestSingleMode(l_currentMethod)) {
+            //Check if the current method is subject to event
             if (l_currentMethod.isAnnotationPresent(PhaseEvent.class)) {
-
-                if (l_currentMethod.getDeclaredAnnotation(PhaseEvent.class).eventClasses().length > 0) {
-                    return l_currentMethod.getDeclaredAnnotation(PhaseEvent.class).eventClasses()[0];
-                } else {
-                    return ConfigValueHandler.EVENTS_NONINTERRUPTIVE.fetchValue();
-                }
+                return fetchApplicableEvent(l_currentMethod);
+            } else {
+                return null;
             }
-
-            return null;
         } else {
 
             //Use Phase Context instead
@@ -173,7 +185,7 @@ public class PhasedEventManager {
             int l_currentStep = PhasedTestManager.getMethodMap().get(ClassPathParser.fetchFullName(l_currentMethod)).methodOrderInExecution;
 
             if (l_currentStep  == l_currentShuffleGroupNr) {
-                return ConfigValueHandler.EVENTS_NONINTERRUPTIVE.fetchValue();
+                return fetchApplicableEvent(l_currentMethod);
             }
             return null;
         }
