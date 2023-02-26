@@ -15,8 +15,8 @@ import com.adobe.campaign.tests.integro.phased.data.*;
 import com.adobe.campaign.tests.integro.phased.data.befaft.PhasedSeries_M_SimpleClass;
 import com.adobe.campaign.tests.integro.phased.data.dp.*;
 import com.adobe.campaign.tests.integro.phased.data.events.TestSINGLEWithEvent_eventAsAnnotation;
-import com.adobe.campaign.tests.integro.phased.data.events.TestShuffled_eventConfigured;
-import com.adobe.campaign.tests.integro.phased.data.events.TestSINGLEWithEvent_eventConfigured;
+import com.adobe.campaign.tests.integro.phased.data.events.TestSINGLEWithEvent_eventAsExecProperty;
+import com.adobe.campaign.tests.integro.phased.data.events.TestShuffled_eventPassedAsExecutionVariable;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 import com.adobe.campaign.tests.integro.phased.utils.MockTestTools;
@@ -614,29 +614,42 @@ public class PhasedTestManagerTests {
     }
 
     @Test
-    public void testCreateDataProviderData() {
+    public void testCreateDataProviderData() throws NoSuchMethodException {
         Phases.PRODUCER.activate();
 
         Map<Class<?>, List<String>> l_myMap = new HashMap<>();
+        Method method1 = PhasedSeries_F_Shuffle.class.getMethod("step1", String.class);
+        Method method2 = PhasedSeries_F_Shuffle.class.getMethod("step2", String.class);
+        Method method3 = PhasedSeries_F_Shuffle.class.getMethod("step3", String.class);
 
-        l_myMap.put(PhasedSeries_F_Shuffle.class, Arrays.asList("a", "b", "c"));
+        l_myMap.put(PhasedSeries_F_Shuffle.class,
+                Arrays.asList(ClassPathParser.fetchFullName(method1), ClassPathParser.fetchFullName(method2),
+                        ClassPathParser.fetchFullName(method3)));
 
         Map<String, MethodMapping> l_result = PhasedTestManager.generatePhasedProviders(l_myMap,
                 Phases.getCurrentPhase());
 
-        assertThat("we need to have the expected key", l_result.containsKey("a"));
-        assertThat("The first method should have three entries", l_result.get("a").nrOfProviders, equalTo(3));
+        assertThat("we need to have the expected key", l_result.containsKey(ClassPathParser.fetchFullName(method1)));
+        assertThat("The first method should have three entries", l_result.get(ClassPathParser.fetchFullName(method1)).nrOfProviders, equalTo(3));
 
-        assertThat("The first method should have two entries", l_result.get("b").nrOfProviders, equalTo(2));
+        assertThat("The first method should have two entries", l_result.get(ClassPathParser.fetchFullName(method2)).nrOfProviders, equalTo(2));
 
-        assertThat("The first method should have one entry", l_result.get("c").nrOfProviders, equalTo(1));
+        assertThat("The first method should have one entry", l_result.get(ClassPathParser.fetchFullName(method3)).nrOfProviders, equalTo(1));
 
-        assertThat("We should have the same amount of total sizes", l_result.get("a").totalClassMethods,
-                equalTo(l_result.get("b").totalClassMethods));
-        assertThat("We should have the same amount of total sizes", l_result.get("a").totalClassMethods,
-                equalTo(l_result.get("c").totalClassMethods));
 
-        Object[][] l_providerA = PhasedTestManager.fetchProvidersShuffled("a");
+        assertThat("We should have the same amount of total sizes", l_result.get(ClassPathParser.fetchFullName(method1)).totalClassMethods,
+                equalTo(l_result.get(ClassPathParser.fetchFullName(method2)).totalClassMethods));
+        assertThat("We should have the same amount of total sizes", l_result.get(ClassPathParser.fetchFullName(method1)).totalClassMethods,
+                equalTo(l_result.get(ClassPathParser.fetchFullName(method3)).totalClassMethods));
+
+        assertThat("The first method should have three entries", l_result.get(ClassPathParser.fetchFullName(method1)).methodOrderInExecution, equalTo(1));
+
+        assertThat("The first method should have two entries", l_result.get(ClassPathParser.fetchFullName(method2)).methodOrderInExecution, equalTo(2));
+
+        assertThat("The first method should have one entry", l_result.get(ClassPathParser.fetchFullName(method3)).methodOrderInExecution, equalTo(3));
+
+
+        Object[][] l_providerA = PhasedTestManager.fetchProvidersShuffled(method1);
 
         assertThat(l_providerA[0].length, equalTo(1));
 
@@ -644,14 +657,14 @@ public class PhasedTestManagerTests {
         assertThat(l_providerA[1][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1"));
         assertThat(l_providerA[2][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2"));
 
-        Object[][] l_providerB = PhasedTestManager.fetchProvidersShuffled("b");
+        Object[][] l_providerB = PhasedTestManager.fetchProvidersShuffled(method2);
 
         assertThat(l_providerB[0].length, equalTo(1));
 
         assertThat(l_providerB[0][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0"));
         assertThat(l_providerB[1][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1"));
 
-        Object[][] l_providerC = PhasedTestManager.fetchProvidersShuffled("c");
+        Object[][] l_providerC = PhasedTestManager.fetchProvidersShuffled(method3);
 
         assertThat(l_providerC[0].length, equalTo(1));
 
@@ -660,29 +673,34 @@ public class PhasedTestManagerTests {
     }
 
     @Test
-    public void testCreateDataProviderData_withOwnDataProvider() {
+    public void testCreateDataProviderData_withOwnDataProvider() throws NoSuchMethodException {
         Phases.PRODUCER.activate();
 
         Map<Class<?>, List<String>> l_myMap = new HashMap<>();
+        Method method1 = PhasedSeries_Lbis_ShuffledDP.class.getMethod("step1", String.class, String.class);
+        Method method2 = PhasedSeries_Lbis_ShuffledDP.class.getMethod("step2", String.class, String.class);
+        Method method3 = PhasedSeries_Lbis_ShuffledDP.class.getMethod("step3", String.class, String.class);
 
-        l_myMap.put(PhasedSeries_L_ShuffledDP.class, Arrays.asList("a", "b", "c"));
+        l_myMap.put(PhasedSeries_Lbis_ShuffledDP.class,
+                Arrays.asList(ClassPathParser.fetchFullName(method1), ClassPathParser.fetchFullName(method2),
+                        ClassPathParser.fetchFullName(method3)));
 
         Map<String, MethodMapping> l_result = PhasedTestManager.generatePhasedProviders(l_myMap,
                 Phases.getCurrentPhase());
 
-        assertThat("we need to have the expected key", l_result.containsKey("a"));
-        assertThat("The first method should have three entries", l_result.get("a").nrOfProviders, equalTo(3));
+        assertThat("we need to have the expected key", l_result.containsKey(ClassPathParser.fetchFullName(method1)));
+        assertThat("The first method should have three entries", l_result.get(ClassPathParser.fetchFullName(method1)).nrOfProviders, equalTo(3));
 
-        assertThat("The first method should have two entries", l_result.get("b").nrOfProviders, equalTo(2));
+        assertThat("The first method should have two entries", l_result.get(ClassPathParser.fetchFullName(method2)).nrOfProviders, equalTo(2));
 
-        assertThat("The first method should have one entry", l_result.get("c").nrOfProviders, equalTo(1));
+        assertThat("The first method should have one entry", l_result.get(ClassPathParser.fetchFullName(method3)).nrOfProviders, equalTo(1));
 
-        assertThat("We should have the same amount of total sizes", l_result.get("a").totalClassMethods,
-                equalTo(l_result.get("b").totalClassMethods));
-        assertThat("We should have the same amount of total sizes", l_result.get("a").totalClassMethods,
-                equalTo(l_result.get("c").totalClassMethods));
+        assertThat("We should have the same amount of total sizes", l_result.get(ClassPathParser.fetchFullName(method1)).totalClassMethods,
+                equalTo(l_result.get(ClassPathParser.fetchFullName(method2)).totalClassMethods));
+        assertThat("We should have the same amount of total sizes", l_result.get(ClassPathParser.fetchFullName(method1)).totalClassMethods,
+                equalTo(l_result.get(ClassPathParser.fetchFullName(method3)).totalClassMethods));
 
-        Object[][] l_providerA = PhasedTestManager.fetchProvidersShuffled("a");
+        Object[][] l_providerA = PhasedTestManager.fetchProvidersShuffled(method1);
 
         assertThat(l_providerA.length, equalTo(6));
         assertThat(l_providerA[0].length, equalTo(2));
@@ -700,7 +718,7 @@ public class PhasedTestManagerTests {
         assertThat(l_providerA[5][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2"));
         assertThat(l_providerA[5][1], equalTo(PhasedSeries_L_PROVIDER.PROVIDER_B));
 
-        Object[][] l_providerB = PhasedTestManager.fetchProvidersShuffled("b");
+        Object[][] l_providerB = PhasedTestManager.fetchProvidersShuffled(method2);
 
         assertThat(l_providerB.length, equalTo(4));
         assertThat(l_providerB[0].length, equalTo(2));
@@ -714,7 +732,7 @@ public class PhasedTestManagerTests {
         assertThat(l_providerB[3][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1"));
         assertThat(l_providerB[3][1], equalTo(PhasedSeries_L_PROVIDER.PROVIDER_B));
 
-        Object[][] l_providerC = PhasedTestManager.fetchProvidersShuffled("c");
+        Object[][] l_providerC = PhasedTestManager.fetchProvidersShuffled(method3);
 
         assertThat(l_providerC.length, equalTo(2));
         assertThat(l_providerC[0].length, equalTo(2));
@@ -728,29 +746,34 @@ public class PhasedTestManagerTests {
 
 
     @Test
-    public void testCreateDataProviderData_withOwnDataProviderOrdered() {
+    public void testCreateDataProviderData_withOwnDataProviderOrdered() throws NoSuchMethodException {
         Phases.PRODUCER.activate();
 
         Map<Class<?>, List<String>> l_myMap = new HashMap<>();
+        Method method1 = PhasedSeries_Lbis_ShuffledDP.class.getMethod("step1", String.class, String.class);
+        Method method2 = PhasedSeries_Lbis_ShuffledDP.class.getMethod("step2", String.class, String.class);
+        Method method3 = PhasedSeries_Lbis_ShuffledDP.class.getMethod("step3", String.class, String.class);
 
-        l_myMap.put(PhasedSeries_L_ShuffledDP.class, Arrays.asList("a", "b", "c"));
+        l_myMap.put(PhasedSeries_Lbis_ShuffledDP.class,
+                Arrays.asList(ClassPathParser.fetchFullName(method1), ClassPathParser.fetchFullName(method2),
+                        ClassPathParser.fetchFullName(method3)));
 
         Map<String, MethodMapping> l_result = PhasedTestManager.generatePhasedProviders(l_myMap,
                 Phases.getCurrentPhase());
 
-        assertThat("we need to have the expected key", l_result.containsKey("a"));
-        assertThat("The first method should have three entries", l_result.get("a").nrOfProviders, equalTo(3));
+        assertThat("we need to have the expected key", l_result.containsKey(ClassPathParser.fetchFullName(method1)));
+        assertThat("The first method should have three entries", l_result.get(ClassPathParser.fetchFullName(method1)).nrOfProviders, equalTo(3));
 
-        assertThat("The first method should have two entries", l_result.get("b").nrOfProviders, equalTo(2));
+        assertThat("The first method should have two entries", l_result.get(ClassPathParser.fetchFullName(method2)).nrOfProviders, equalTo(2));
 
-        assertThat("The first method should have one entry", l_result.get("c").nrOfProviders, equalTo(1));
+        assertThat("The first method should have one entry", l_result.get(ClassPathParser.fetchFullName(method3)).nrOfProviders, equalTo(1));
 
-        assertThat("We should have the same amount of total sizes", l_result.get("a").totalClassMethods,
-                equalTo(l_result.get("b").totalClassMethods));
-        assertThat("We should have the same amount of total sizes", l_result.get("a").totalClassMethods,
-                equalTo(l_result.get("c").totalClassMethods));
+        assertThat("We should have the same amount of total sizes", l_result.get(ClassPathParser.fetchFullName(method1)).totalClassMethods,
+                equalTo(l_result.get(ClassPathParser.fetchFullName(method2)).totalClassMethods));
+        assertThat("We should have the same amount of total sizes", l_result.get(ClassPathParser.fetchFullName(method1)).totalClassMethods,
+                equalTo(l_result.get(ClassPathParser.fetchFullName(method3)).totalClassMethods));
 
-        Object[][] l_providerA = PhasedTestManager.fetchProvidersShuffled("a");
+        Object[][] l_providerA = PhasedTestManager.fetchProvidersShuffled(method1);
 
         assertThat(l_providerA.length, equalTo(6));
         assertThat(l_providerA[0].length, equalTo(2));
@@ -768,7 +791,7 @@ public class PhasedTestManagerTests {
         assertThat(l_providerA[5][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2"));
         assertThat(l_providerA[5][1], equalTo(PhasedSeries_L_PROVIDER.PROVIDER_B));
 
-        Object[][] l_providerB = PhasedTestManager.fetchProvidersShuffled("b");
+        Object[][] l_providerB = PhasedTestManager.fetchProvidersShuffled(method2);
 
         assertThat(l_providerB.length, equalTo(4));
         assertThat(l_providerB[0].length, equalTo(2));
@@ -782,7 +805,7 @@ public class PhasedTestManagerTests {
         assertThat(l_providerB[3][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1"));
         assertThat(l_providerB[3][1], equalTo(PhasedSeries_L_PROVIDER.PROVIDER_B));
 
-        Object[][] l_providerC = PhasedTestManager.fetchProvidersShuffled("c");
+        Object[][] l_providerC = PhasedTestManager.fetchProvidersShuffled(method3);
 
         assertThat(l_providerC.length, equalTo(2));
         assertThat(l_providerC[0].length, equalTo(2));
@@ -794,38 +817,44 @@ public class PhasedTestManagerTests {
 
     }
 
+
     @Test
-    public void testCreateDataProviderData_modeConsumer() throws SecurityException {
+    public void testCreateDataProviderData_modeConsumer() throws SecurityException, NoSuchMethodException {
         Map<Class<?>, List<String>> l_myMap = new HashMap<>();
 
-        final Class<PhasedSeries_F_Shuffle> l_myClass = PhasedSeries_F_Shuffle.class;
-        l_myMap.put(l_myClass, Arrays.asList("a", "b", "c"));
+        Method method1 = PhasedSeries_F_Shuffle.class.getMethod("step1", String.class);
+        Method method2 = PhasedSeries_F_Shuffle.class.getMethod("step2", String.class);
+        Method method3 = PhasedSeries_F_Shuffle.class.getMethod("step3", String.class);
+
+        l_myMap.put(PhasedSeries_F_Shuffle.class,
+                Arrays.asList(ClassPathParser.fetchFullName(method1), ClassPathParser.fetchFullName(method2),
+                        ClassPathParser.fetchFullName(method3)));
 
         Map<String, MethodMapping> l_result = PhasedTestManager.generatePhasedProviders(l_myMap,
                 Phases.CONSUMER);
 
-        assertThat("we need to have the expected key", l_result.containsKey("a"));
-        assertThat("The first method should have three entries", l_result.get("a").nrOfProviders, equalTo(1));
+        assertThat("we need to have the expected key", l_result.containsKey(ClassPathParser.fetchFullName(method1)));
+        assertThat("The first method should have three entries", l_result.get(ClassPathParser.fetchFullName(method1)).nrOfProviders, equalTo(1));
 
-        assertThat("The first method should have three entries", l_result.get("b").nrOfProviders, equalTo(2));
+        assertThat("The second method should have three entries", l_result.get(ClassPathParser.fetchFullName(method2)).nrOfProviders, equalTo(2));
 
-        assertThat("The first method should have three entries", l_result.get("c").totalClassMethods,
+        assertThat("The third method should have three entries", l_result.get(ClassPathParser.fetchFullName(method3)).totalClassMethods,
                 equalTo(3));
 
-        Object[][] l_providerA = PhasedTestManager.fetchProvidersShuffled("a", Phases.CONSUMER);
+        Object[][] l_providerA = PhasedTestManager.fetchProvidersShuffled(method1, Phases.CONSUMER);
 
         assertThat(l_providerA[0].length, equalTo(1));
 
         assertThat(l_providerA[0][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "0_3"));
 
-        Object[][] l_providerB = PhasedTestManager.fetchProvidersShuffled("b", Phases.CONSUMER);
+        Object[][] l_providerB = PhasedTestManager.fetchProvidersShuffled(method2, Phases.CONSUMER);
 
         assertThat(l_providerB[0].length, equalTo(1));
 
         assertThat(l_providerB[0][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "0_3"));
         assertThat(l_providerB[1][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2"));
 
-        Object[][] l_providerC = PhasedTestManager.fetchProvidersShuffled("c", Phases.CONSUMER);
+        Object[][] l_providerC = PhasedTestManager.fetchProvidersShuffled(method3, Phases.CONSUMER);
 
         assertThat(l_providerC[0].length, equalTo(1));
 
@@ -837,29 +866,35 @@ public class PhasedTestManagerTests {
 
     //NIE
     @Test
-    public void testCreateDataProviderData_forNonInterruptive() {
+    public void testCreateDataProviderData_forNonInterruptive() throws NoSuchMethodException {
         Phases.ASYNCHRONOUS.activate();
 
         Map<Class<?>, List<String>> l_myMap = new HashMap<>();
 
-        l_myMap.put(PhasedSeries_F_Shuffle.class, Arrays.asList("a", "b", "c"));
+        Method method1 = PhasedSeries_F_Shuffle.class.getMethod("step1", String.class);
+        Method method2 = PhasedSeries_F_Shuffle.class.getMethod("step2", String.class);
+        Method method3 = PhasedSeries_F_Shuffle.class.getMethod("step3", String.class);
+        
+        l_myMap.put(PhasedSeries_F_Shuffle.class,
+                Arrays.asList(ClassPathParser.fetchFullName(method1), ClassPathParser.fetchFullName(method2),
+                        ClassPathParser.fetchFullName(method3)));
 
         Map<String, MethodMapping> l_result = PhasedTestManager.generatePhasedProviders(l_myMap,
                 Phases.getCurrentPhase());
 
-        assertThat("we need to have the expected key", l_result.containsKey("a"));
-        assertThat("The first method should have three entries", l_result.get("a").nrOfProviders, equalTo(3));
+        assertThat("we need to have the expected key", l_result.containsKey(ClassPathParser.fetchFullName(method1)));
+        assertThat("The first method should have three entries", l_result.get(ClassPathParser.fetchFullName(method1)).nrOfProviders, equalTo(3));
 
-        assertThat("The first method should have two entries", l_result.get("b").nrOfProviders, equalTo(3));
+        assertThat("The first method should have two entries", l_result.get(ClassPathParser.fetchFullName(method2)).nrOfProviders, equalTo(3));
 
-        assertThat("The first method should have one entry", l_result.get("c").nrOfProviders, equalTo(3));
+        assertThat("The first method should have one entry", l_result.get(ClassPathParser.fetchFullName(method3)).nrOfProviders, equalTo(3));
 
-        assertThat("We should have the same amount of total sizes", l_result.get("a").totalClassMethods,
-                equalTo(l_result.get("b").totalClassMethods));
-        assertThat("We should have the same amount of total sizes", l_result.get("a").totalClassMethods,
-                equalTo(l_result.get("c").totalClassMethods));
+        assertThat("We should have the same amount of total sizes", l_result.get(ClassPathParser.fetchFullName(method1)).totalClassMethods,
+                equalTo(l_result.get(ClassPathParser.fetchFullName(method2)).totalClassMethods));
+        assertThat("We should have the same amount of total sizes", l_result.get(ClassPathParser.fetchFullName(method1)).totalClassMethods,
+                equalTo(l_result.get(ClassPathParser.fetchFullName(method3)).totalClassMethods));
 
-        Object[][] l_providerA = PhasedTestManager.fetchProvidersShuffled("a");
+        Object[][] l_providerA = PhasedTestManager.fetchProvidersShuffled(method1);
 
         assertThat(l_providerA[0].length, equalTo(1));
 
@@ -867,7 +902,7 @@ public class PhasedTestManagerTests {
         assertThat(l_providerA[1][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_NIE_PREFIX + "2"));
         assertThat(l_providerA[2][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_NIE_PREFIX + "3"));
 
-        Object[][] l_providerB = PhasedTestManager.fetchProvidersShuffled("b");
+        Object[][] l_providerB = PhasedTestManager.fetchProvidersShuffled(method2);
 
         assertThat(l_providerB[0].length, equalTo(1));
 
@@ -875,7 +910,7 @@ public class PhasedTestManagerTests {
         assertThat(l_providerB[1][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_NIE_PREFIX + "2"));
         assertThat(l_providerB[2][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_NIE_PREFIX + "3"));
 
-        Object[][] l_providerC = PhasedTestManager.fetchProvidersShuffled("c");
+        Object[][] l_providerC = PhasedTestManager.fetchProvidersShuffled(method3);
 
         assertThat(l_providerC[0].length, equalTo(1));
 
@@ -1218,7 +1253,7 @@ public class PhasedTestManagerTests {
 
     @Test(enabled = false)
     public void testIsInSingleMode_NegativeAsynchronousMethod() throws NoSuchMethodException, SecurityException {
-        final Method l_myMethod = TestSINGLEWithEvent_eventConfigured.class.getMethod("step3", String.class);
+        final Method l_myMethod = TestSINGLEWithEvent_eventAsExecProperty.class.getMethod("step3", String.class);
 
         Phases.ASYNCHRONOUS.activate();
         assertThat("We should be in Shuffled mode", !PhasedTestManager.isPhasedTestShuffledMode(l_myMethod));
@@ -3119,8 +3154,8 @@ public class PhasedTestManagerTests {
 
     @Test
     public void testFetchNieNr() throws NoSuchMethodException {
-        String l_className = TestShuffled_eventConfigured.class.getTypeName();
-        Method l_method = TestShuffled_eventConfigured.class.getMethod("step1",String.class);
+        String l_className = TestShuffled_eventPassedAsExecutionVariable.class.getTypeName();
+        Method l_method = TestShuffled_eventPassedAsExecutionVariable.class.getMethod("step1",String.class);
         String l_dataProvider = PhasedTestManager.STD_PHASED_GROUP_NIE_PREFIX+"3";
         ITestResult l_itr = MockTestTools.generateTestResultMock(l_method, new Object[]{l_dataProvider});
 
@@ -3128,6 +3163,16 @@ public class PhasedTestManagerTests {
 
         //PhasedTestManager.getScenarioContext().put(l_scenarioName, new P)
 
+    }
+
+    @Test
+    public void testFetchNieNr_SingleGroup() throws NoSuchMethodException {
+        String l_className = TestSINGLEWithEvent_eventAsExecProperty.class.getTypeName();
+        Method l_method = TestSINGLEWithEvent_eventAsExecProperty.class.getMethod("step1",String.class);
+        String l_dataProvider = PhasedTestManager.STD_PHASED_GROUP_SINGLE;
+        ITestResult l_itr = MockTestTools.generateTestResultMock(l_method, new Object[]{l_dataProvider});
+
+        assertThat("We should have correctly extracted the number for the index",PhasedTestManager.asynchronousExtractIndex(l_itr), Matchers.equalTo(-1));
     }
 
     @Test

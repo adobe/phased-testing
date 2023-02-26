@@ -198,6 +198,10 @@ public final class PhasedTestManager {
 
     }
 
+    public static Map<String, MethodMapping> getMethodMap() {
+        return methodMap;
+    }
+
     /**
      * This method stores a phased test data in the cache. It will be stored with the keys: "class, method, instance"
      * and a value
@@ -518,7 +522,8 @@ public final class PhasedTestManager {
     }
 
     /**
-     * Calculates the data providers for the current method and test context
+     * Returns the provider for shuffling tests. In general the values are Shuffle group prefix + Nr of steps before the
+     * Phase Event and the number of steps after the event.
      * <p>
      * Author : gandomi
      *
@@ -526,8 +531,7 @@ public final class PhasedTestManager {
      * @return A two-dimensional array of all the data providers attached to the current step/method
      */
     public static Object[][] fetchProvidersShuffled(Method in_method) {
-        String l_methodFullName = ClassPathParser.fetchFullName(in_method);
-        return fetchProvidersShuffled(l_methodFullName);
+        return fetchProvidersShuffled(in_method, Phases.getCurrentPhase());
     }
 
     /**
@@ -536,28 +540,14 @@ public final class PhasedTestManager {
      * <p>
      * Author : gandomi
      *
-     * @param in_methodFullName The full name of the method used for identifying it in the phase context
-     * @return A two-dimensional array of all the data providers attached to the current step/method
-     */
-    public static Object[][] fetchProvidersShuffled(String in_methodFullName) {
-
-        return fetchProvidersShuffled(in_methodFullName, Phases.getCurrentPhase());
-    }
-
-    /**
-     * Returns the provider for shuffling tests. In general the values are Shuffle group prefix + Nr of steps before the
-     * Phase Event and the number of steps after the event.
-     * <p>
-     * Author : gandomi
-     *
-     * @param in_methodFullName The full name of the method used for identifying it in the phase context
+     * @param in_method The full name of the method used for identifying it in the phase context
      * @param in_phasedState    The phase state for which we should retrieve the parameters. The parameters will be
      *                          different based on the phase.
      * @return A two-dimensional array of all the data providers attached to the current step/method
      */
-    public static Object[][] fetchProvidersShuffled(String in_methodFullName, Phases in_phasedState) {
+    public static Object[][] fetchProvidersShuffled(Method in_method, Phases in_phasedState) {
 
-        final MethodMapping l_methodMapping = methodMap.get(in_methodFullName);
+        final MethodMapping l_methodMapping = methodMap.get(ClassPathParser.fetchFullName(in_method));
         Object[][] l_objectArrayPhased = new Object[l_methodMapping.nrOfProviders][1];
 
 
@@ -583,7 +573,7 @@ public final class PhasedTestManager {
         //Merge
         Object[][] lr_dataProviders = dataProvidersCrossJoin(l_objectArrayPhased, l_userDefinedDataProviders);
 
-        log.debug("{} Returning provider for method {}", PhasedTestManager.PHASED_TEST_LOG_PREFIX, in_methodFullName);
+        log.debug("{} Returning provider for method {}", PhasedTestManager.PHASED_TEST_LOG_PREFIX, ClassPathParser.fetchFullName(in_method));
         return lr_dataProviders;
     }
 
@@ -653,11 +643,6 @@ public final class PhasedTestManager {
 
     }
 
-    public static Map<String, MethodMapping>  generatePhasedProviders(Map<Class<?>, List<String>> in_classMethodMap, Map<String, ScenarioStepDependencies>
-            in_scenarioDependencies) {
-        return generatePhasedProviders(in_classMethodMap, in_scenarioDependencies, Phases.getCurrentPhase());
-    }
-
     /**
      * This method calculates how often a scenario should be run, given the steps/methods it has.
      * <p>
@@ -669,10 +654,34 @@ public final class PhasedTestManager {
      */
     public static Map<String, MethodMapping> generatePhasedProviders(Map<Class<?>, List<String>> in_classMethodMap,
             Phases in_phaseState) {
+
+        return generatePhasedProviders(in_classMethodMap, null, in_phaseState);
+
+    }
+
+    /**
+     * This method calculates how often a scenario should be run, given the steps/methods it has. This overriding allows
+     * us to take into account the ordering
+     * <p>
+     * Author : gandomi
+     *
+     * @param in_classMethodMap       A map of a class and it is methods (A scenario and its steps)
+     * @param in_scenarioDependencies A map allowing us to detect the test execution order
+     * @param in_phaseState           The phase in which we are
+     * @return A map letting us know that for a given method how often it will be executed in the current phase
+     */
+    public static Map<String, MethodMapping> generatePhasedProviders(Map<Class<?>, List<String>> in_classMethodMap,
+            Map<String, ScenarioStepDependencies> in_scenarioDependencies, Phases in_phaseState) {
         methodMap = new HashMap<>();
 
         for (Entry<Class<?>, List<String>> entry : in_classMethodMap.entrySet()) {
-            List<String> lt_methodList = entry.getValue();
+
+            List<String> lt_methodList =
+                    in_scenarioDependencies == null ? entry.getValue() : in_scenarioDependencies.get(
+                                    entry.getKey().getTypeName()).fetchExecutionOrderList().stream()
+                            .map(ol -> entry.getKey().getTypeName() + "." + ol.getStepName()).collect(
+                                    Collectors.toList());
+
             if (in_phaseState.hasSplittingEvent) {
 
                 if (in_phaseState.equals(Phases.CONSUMER)) {
@@ -682,40 +691,16 @@ public final class PhasedTestManager {
                 for (int i = 0; i < entry.getValue().size(); i++) {
                     methodMap.put(lt_methodList.get(i),
                             new MethodMapping(entry.getKey(), entry.getValue().size() - i,
-                                    entry.getValue().size()));
+                                    entry.getValue().size(), i + 1));
 
                 }
             } else {
                 for (int i = 0; i < entry.getValue().size(); i++) {
                     methodMap.put(lt_methodList.get(i),
                             new MethodMapping(entry.getKey(), entry.getValue().size(),
-                                    entry.getValue().size()));
+                                    entry.getValue().size(), i + 1));
 
                 }
-            }
-        }
-        return methodMap;
-
-    }
-
-    public static Map<String, MethodMapping>  generatePhasedProviders(Map<Class<?>, List<String>> in_classMethodMap, Map<String, ScenarioStepDependencies> in_scenarioDependencies, Phases in_phaseState) {
-        methodMap = new HashMap<>();
-
-        for (Entry<Class<?>, List<String>> entry : in_classMethodMap.entrySet()) {
-
-            //List<String> lt_methodList = entry.getValue();
-            List<String> lt_methodList = in_scenarioDependencies.get(entry.getKey().getTypeName()).fetchExecutionOrderList().stream().map(ol -> entry.getKey().getTypeName()+"."+ol.getStepName()).collect(
-                    Collectors.toList());
-            //List<String> lt_methodList = lt_orderedMethodList.
-            if (in_phaseState.equals(Phases.CONSUMER)) {
-                Collections.reverse(lt_methodList);
-            }
-
-            for (int i = 0; i < entry.getValue().size(); i++) {
-                methodMap.put(lt_methodList.get(i),
-                        new MethodMapping(entry.getKey(), entry.getValue().size() - i,
-                                entry.getValue().size()));
-
             }
         }
         return methodMap;
@@ -846,21 +831,6 @@ public final class PhasedTestManager {
     }
 
     /**
-     * Returns the declared event if declared on the method. Null is returned if no such declaration is present
-     * @param in_method The method we are examining
-     * @return The event that is declared on the method. Null if there is no event declared for the method
-     */
-    public static String fetchDeclaredEvent(Method in_method) {
-        if (in_method.isAnnotationPresent(PhaseEvent.class)) {
-
-            if (in_method.getDeclaredAnnotation(PhaseEvent.class).eventClasses().length > 0) {
-                return in_method.getDeclaredAnnotation(PhaseEvent.class).eventClasses()[0];
-            }
-        }
-        return null;
-    }
-
-    /**
      * This method tells us if the method is a valid phased test. This is done by seeing if the annotation PhasedStep is
      * on the method, and if the annotation PhasedTest is on the class
      * <p>
@@ -914,6 +884,17 @@ public final class PhasedTestManager {
      */
     static boolean isPhasedTestShuffledMode(Method in_method) {
         return isPhasedTestShuffledMode(in_method.getDeclaringClass());
+    }
+
+    /**
+     * This method lets us know if the steps in a PhasedTest are to be executed in a shuffled manner. For a test with 3
+     * steps the test will be executed 6 times in total
+     *
+     * @param in_testResult A test result
+     * @return True if the given test method/step is part of a Shuffled Phased Test scenario
+     */
+     static boolean isPhasedTestShuffledMode(ITestResult in_testResult) {
+        return isPhasedTestShuffledMode(in_testResult.getMethod().getConstructorOrMethod().getMethod());
     }
 
     /**
@@ -1412,7 +1393,7 @@ public final class PhasedTestManager {
      */
     public static Integer fetchNrOfStepsBeforePhaseChange(ITestResult in_testResult) {
 
-        if (isPhasedTestShuffledMode(in_testResult.getMethod().getConstructorOrMethod().getMethod()) && Phases.getCurrentPhase()
+        if (isPhasedTestShuffledMode(in_testResult) && Phases.getCurrentPhase()
                 .hasSplittingEvent()) {
 
             final String l_phaseGroup = in_testResult.getParameters()[0].toString();
@@ -1678,17 +1659,20 @@ public final class PhasedTestManager {
 
         int lr_index = -1;
 
-        try {
+        if (PhasedTestManager.isPhasedTestShuffledMode(in_testResult)) {
 
-            String l_indexString = l_currentShuffleGroup.substring(l_currentShuffleGroup.length() - 1,
-                    l_currentShuffleGroup.length());
-            log.debug("Parsing {} begin : {}, end {}, gives : {}",l_currentShuffleGroup, l_currentShuffleGroup.length() - 2, l_currentShuffleGroup.length() - 1, l_indexString);
-            lr_index = Integer.parseInt(
-                    l_indexString);
+            try {
 
+                String l_indexString = l_currentShuffleGroup.substring(l_currentShuffleGroup.length() - 1,
+                        l_currentShuffleGroup.length());
+                log.debug("Parsing {} begin : {}, end {}, gives : {}", l_currentShuffleGroup,
+                        l_currentShuffleGroup.length() - 2, l_currentShuffleGroup.length() - 1, l_indexString);
+                lr_index = Integer.parseInt(
+                        l_indexString);
 
-        } catch (NumberFormatException nfe) {
-            throw new PhasedTestException("Problem extracting shuffle group number "+ l_currentShuffleGroup, nfe);
+            } catch (NumberFormatException nfe) {
+                throw new PhasedTestException("Problem extracting shuffle group number " + l_currentShuffleGroup, nfe);
+            }
         }
         return lr_index;
     }

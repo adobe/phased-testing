@@ -9,28 +9,35 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-/**
- * 
- */
-package com.adobe.campaign.tests.integro.phased;
+package com.adobe.campaign.tests.integro.phased.data.events;
 
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import com.adobe.campaign.tests.integro.phased.PhasedTest;
+import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
+import org.testng.annotations.Test;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+import static org.testng.Assert.assertEquals;
 
-@Retention(RUNTIME)
-@Target(ElementType.TYPE)
-/**
- * A PhasedTest Step in a class means that the class itself is a PhasedTest
- *
- * Author : gandomi
- *
- */
-public @interface PhasedTest {
+@PhasedTest(canShuffle = true)
+@Test
+public class TestShuffled_eventPassedAsExecutionVariable {
+    
 
-    boolean executeInactive() default true;
-    boolean canShuffle();
-    String[] eventClasses() default {};
+    public void step1(String val) {
+        System.out.println("step1 " + val);
+        PhasedTestManager.produceInStep("A");
+    }
+
+    public void step2(String val) {
+        System.out.println("step2 " + val);
+        String l_fetchedValue = PhasedTestManager.consumeFromStep("step1");
+        PhasedTestManager.produceInStep(l_fetchedValue + "B");
+    }
+
+    public void step3(String val) {
+        System.out.println("step3 " + val);
+        String l_fetchedValue = PhasedTestManager.consumeFromStep("step2");
+
+        assertEquals(l_fetchedValue, "AB");
+    }
+
 }

@@ -272,10 +272,12 @@ As you can see we have to implement three methods:
 In order to define these event you will need to implement these methods, as you who are defining the event have the best knowledge on how these event will work.
 
 #### Binding an Event to a Scenario
-In order for your scenario to interact with an event you will need to declare it. This can be done in three ways:
+In order for your scenario to interact with an event you will need to declare it. This can be done in three ways (in order of precedence) :
 * Phased Event Annotation
-* Phased Test Annotation (SOON)
+* Phased Test Annotation
 * Test Suite Definition
+
+If you have the event declared in more than one level (for example on both the PhasedEvent and the PhasedTest annotation), it is the value with more precedence which is taken into account.
 
 #### Attaching an Event using the PhaseEvent Annotation
 The mode is only applicable to Single Run execution modes.
@@ -286,7 +288,7 @@ In the example below the PhaseEvent is always executed at the step2 of the scena
 ```Java
 @PhasedTest(canShuffle = false)
 @Test
-public class SingeRunScenarioWithEvent {
+public class SingleRunScenarioWithEvent {
 
     public void step1(String val) {
         PhasedTestManager.produceInStep("A");
@@ -307,8 +309,29 @@ public class SingeRunScenarioWithEvent {
 ```
 
 #### Attaching an Event using the PhasedTest Annotation
-(Not implemented yet)
-In this case we expect us to specify if a scenario is only suject to the same event. This will be done at the `@PhasedTest` annotation using the attribute `eventClasses`. When set we only use the specified event.
+In this case we expect us to specify if a scenario is only subject to the same event. This will be done at the `@PhasedTest` annotation using the attribute `eventClasses`. When set we only use the specified event.
+
+```Java
+@PhasedTest(canShuffle = true, eventClasses = {"com.adobe.campaign.tests.integro.phased.data.events.MyNonInterruptiveEvent"})
+@Test
+public class ShuffledScenarioWithEvent {
+
+    public void step1(String val) {
+        PhasedTestManager.produce("step1Value","A");
+    }
+    
+    public void step2(String val) {
+        String l_fetchedValue = PhasedTestManager.consume("step1Value");
+        PhasedTestManager.produce("Step2Value", l_fetchedValue + "B");
+    }
+
+    public void step3(String val) {
+        String l_fetchedValue = PhasedTestManager.consume("Step2Value");
+
+        assertEquals(l_fetchedValue, "AB");
+    }
+}
+```
 
 #### Attaching an Event to the Test Suite
 In this case, we state that all scenarios should be using the same Event. We can activate this mode by setting the environment variable `PHASED.EVENTS.NONINTERRUPTIVE` to the event class.
@@ -545,11 +568,11 @@ For now, we have not come around to deciding how retry should work in the case o
 
 ## Release Notes
 ### 8.0.0-SNAPSHOT
-* Non-Interrupted Events
+* [Non-Interrupted Events](#Shuffled---Non-Interruptive)
 * [#112](https://github.com/adobe/phased-testing/issues/112) Technical : Extracted the execution properties to the class ConfigValueHandler.
 * [#115](https://github.com/adobe/phased-testing/issues/115) Fixed bug where the Non-Phased execution was stored as SINGLE-RUN. You can still keep the old behaviour by passing the property "PHASED.TESTS.NONPHASED.LEGACY" to "true". However by default they are stored as "phased-default".
 * [#114](https://github.com/adobe/phased-testing/issues/114) Technical : The methods PhasedTestManager.isPhasedTestShuffledMode & PhasedTestManager.isPhasedTestSingleMode no longer take into account the current phase. Instead, they simply return the information about wether or not the given method/class is Shuffled or Single Mode.
-* Implementation of execution order detection base on the code. We now have two options:
+* [Implementation of execution order detection base on the code.](#Execution-Order) We now have two options:
   * We continue as before, where we select the order alphabetically.
   * Whenever the system property, PHASED.TESTS.DETECT.ORDER is set, the steps are executed in the order the way we declared in the code. By default, we expect the coe to be in maven where the tests are in the directory src/test/java. However, this can be overriden by setting the eecution property PHASED.TESTS.CODE.ROOT (#5)
 

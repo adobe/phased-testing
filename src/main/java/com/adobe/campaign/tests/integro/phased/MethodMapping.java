@@ -16,11 +16,13 @@ class MethodMapping  {
     Class<?> declaredClass;
     int nrOfProviders;
     int totalClassMethods;
+    int methodOrderInExecution;
     
-    MethodMapping(Class<?> in_declaredClass, int in_nrOfProviders, int in_nrOfStepsInTest) {
+    MethodMapping(Class<?> in_declaredClass, int in_nrOfProviders, int in_nrOfStepsInTest, int in_executionOrder) {
         nrOfProviders=in_nrOfProviders;
         totalClassMethods=in_nrOfStepsInTest;
         declaredClass=in_declaredClass;
+        methodOrderInExecution=in_executionOrder;
     }
 
 }

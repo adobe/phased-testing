@@ -11,6 +11,7 @@
  */
 package com.adobe.campaign.tests.integro.phased;
 
+import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
 import com.adobe.campaign.tests.integro.phased.utils.ConfigValueHandler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -28,6 +29,27 @@ public class PhasedEventManager {
     private static final Logger log = LogManager.getLogger();
 
     private static ExecutorService eventExecutor = null;
+
+    /**
+     * Returns the declared event.  if declared on the method. The declarations have the following precedence:
+     * <ol>
+     *  <li>Declaration in @PhaseEvent</li>
+     *  <li>Declaration in @PhasedTest</li>
+     *  <li>When the property PHASED.EVENTS.NONINTERRUPTIVE is set</li>
+     * </ol>Null is returned if no such declaration is present.
+     * @param in_method The method we are examining
+     * @return The event that is declared on the method. Null if there is no event declared for the method
+     */
+    public static String fetchApplicableEvent(Method in_method) {
+        if (in_method.isAnnotationPresent(PhaseEvent.class) && (in_method.getDeclaredAnnotation(PhaseEvent.class).eventClasses().length > 0)) {
+            return in_method.getDeclaredAnnotation(PhaseEvent.class).eventClasses()[0];
+        } else if (PhasedTestManager.isPhasedTest(in_method) && (in_method.getDeclaringClass().getDeclaredAnnotation(PhasedTest.class).eventClasses().length > 0)) {
+            return in_method.getDeclaringClass().getDeclaredAnnotation(PhasedTest.class).eventClasses()[0];
+        } else if (ConfigValueHandler.EVENTS_NONINTERRUPTIVE.isSet()) {
+            return ConfigValueHandler.EVENTS_NONINTERRUPTIVE.fetchValue();
+        }
+        return null;
+    }
 
     protected static enum EventMode {START, END};
 
@@ -138,42 +160,32 @@ public class PhasedEventManager {
         return events;
     }
 
-    public static String fetchEvent(ITestResult in_testResult) {
-        return  fetchEvent(in_testResult, true);
-    }
-
     /**
-     * Extracts the event for a given method
+     * Extracts the event for a given method. The choice of the event is based on where the event is declared.
      * @param in_testResult A result object for a test containing the annotation {@link PhaseEvent}
      * @return An event that can be executed with this method. Null if no event is applicable
      */
-    public static String fetchEvent(ITestResult in_testResult, boolean in_inStart) {
-        Method in_methodWithEventAnnotation = in_testResult.getMethod().getConstructorOrMethod().getMethod();
+    public static String fetchEvent(ITestResult in_testResult) {
+        Method l_currentMethod = in_testResult.getMethod().getConstructorOrMethod().getMethod();
 
-        if (PhasedTestManager.isPhasedTestSingleMode(in_methodWithEventAnnotation)) {
-            if (in_methodWithEventAnnotation.isAnnotationPresent(PhaseEvent.class)) {
-
-                if (in_methodWithEventAnnotation.getDeclaredAnnotation(PhaseEvent.class).eventClasses().length > 0) {
-                    return in_methodWithEventAnnotation.getDeclaredAnnotation(PhaseEvent.class).eventClasses()[0];
-                } else {
-                    return ConfigValueHandler.EVENTS_NONINTERRUPTIVE.fetchValue();
-                }
+        if (PhasedTestManager.isPhasedTestSingleMode(l_currentMethod)) {
+            //Check if the current method is subject to event
+            if (l_currentMethod.isAnnotationPresent(PhaseEvent.class)) {
+                return fetchApplicableEvent(l_currentMethod);
+            } else {
+                return null;
             }
-
-            return null;
         } else {
-            int l_incrementValue = in_inStart ? 1 : 0;
+
             //Use Phase Context instead
             //String l_currentShuffleGroup = in_testResult.getParameters()[0].toString();
 
             int l_currentShuffleGroupNr = PhasedTestManager.asynchronousExtractIndex(in_testResult);
 
-            String l_currentScenario = PhasedTestManager.fetchScenarioName(in_testResult);
-            int l_currentStep = PhasedTestManager.getScenarioContext().containsKey(l_currentScenario) ? PhasedTestManager.getScenarioContext()
-                    .get(l_currentScenario).getStepNr() : 0;
+            int l_currentStep = PhasedTestManager.getMethodMap().get(ClassPathParser.fetchFullName(l_currentMethod)).methodOrderInExecution;
 
-            if (l_currentStep + l_incrementValue == l_currentShuffleGroupNr) {
-                return ConfigValueHandler.EVENTS_NONINTERRUPTIVE.fetchValue();
+            if (l_currentStep  == l_currentShuffleGroupNr) {
+                return fetchApplicableEvent(l_currentMethod);
             }
             return null;
         }
