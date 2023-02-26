@@ -568,11 +568,11 @@ For now, we have not come around to deciding how retry should work in the case o
 
 ## Release Notes
 ### 8.0.0-SNAPSHOT
-* Non-Interrupted Events
+* [Non-Interrupted Events](#Shuffled---Non-Interruptive)
 * [#112](https://github.com/adobe/phased-testing/issues/112) Technical : Extracted the execution properties to the class ConfigValueHandler.
 * [#115](https://github.com/adobe/phased-testing/issues/115) Fixed bug where the Non-Phased execution was stored as SINGLE-RUN. You can still keep the old behaviour by passing the property "PHASED.TESTS.NONPHASED.LEGACY" to "true". However by default they are stored as "phased-default".
 * [#114](https://github.com/adobe/phased-testing/issues/114) Technical : The methods PhasedTestManager.isPhasedTestShuffledMode & PhasedTestManager.isPhasedTestSingleMode no longer take into account the current phase. Instead, they simply return the information about wether or not the given method/class is Shuffled or Single Mode.
-* Implementation of execution order detection base on the code. We now have two options:
+* [Implementation of execution order detection base on the code.](#Execution-Order) We now have two options:
   * We continue as before, where we select the order alphabetically.
   * Whenever the system property, PHASED.TESTS.DETECT.ORDER is set, the steps are executed in the order the way we declared in the code. By default, we expect the coe to be in maven where the tests are in the directory src/test/java. However, this can be overriden by setting the eecution property PHASED.TESTS.CODE.ROOT (#5)
 
