@@ -309,13 +309,23 @@ public class TestPhasedNonInterruptive {
                 equalTo(MyNonInterruptiveEvent.class.getTypeName()));
     }
 
-    @Test(enabled = false, description = "Testing the hierarchy of the event definitions on the shuffled mode")
+    @Test(description = "Testing the hierarchy of the event definitions on the shuffled mode")
     public void testExtractEvent_SUFFLED_definitionOnAnnotation() throws NoSuchMethodException {
         Method l_methodWithEvent = TestShuffled_eventDefinedOnPhasedTestAnnotation.class.getMethod("step2", String.class);
         String l_phaseGroup = PhasedTestManager.STD_PHASED_GROUP_NIE_PREFIX + "1";
         ITestResult l_itr1 = MockTestTools.generateTestResultMock(l_methodWithEvent, new Object[]{ l_phaseGroup });
 
+        assertThat("We should correctly extract the event from the method",
+                PhasedEventManager.fetchApplicableEvent(l_methodWithEvent),
+                equalTo(MyNonInterruptiveEvent.class.getTypeName()));
+
         ConfigValueHandler.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent2.class.getTypeName());
+
+        assertThat("The vent should not change since we have specified it on the Phased Test",
+                PhasedEventManager.fetchApplicableEvent(l_methodWithEvent),
+                equalTo(MyNonInterruptiveEvent.class.getTypeName()));
+
+        PhasedTestManager.getMethodMap().put(ClassPathParser.fetchFullName(l_methodWithEvent), new MethodMapping(TestShuffled_eventDefinedOnPhasedTestAnnotation.class, 3, 3, 1));
 
         assertThat("We should correctly extract the event from the method",
                 PhasedEventManager.fetchEvent(l_itr1),
@@ -606,7 +616,7 @@ public class TestPhasedNonInterruptive {
     /**
      * Testing that the event is declared on the phased annotation level
      */
-    @Test(enabled = false)
+    @Test
     public void testNonInterruptive_ParellelConfiguredOnPhaseTestAnnotation_Shuffled() {
 
         // Rampup
