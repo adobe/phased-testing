@@ -519,12 +519,10 @@ public class PhasedTestListener
         }
 
         //If the property PHASED.TESTS.DETECT.ORDER not set, we follow the standard TestNG order
-        if (!System.getProperties().containsKey("PHASED.TESTS.DETECT.ORDER")) {
-           // if (Phases.getCurrentPhase().hasSplittingEvent()) {
-                log.info("{} Generating Phased Providers", PhasedTestManager.PHASED_TEST_LOG_PREFIX);
-                //NIA
-                PhasedTestManager.generatePhasedProviders(l_classMethodMap, Phases.getCurrentPhase());
-           // }
+        if (ConfigValueHandler.PHASED_TEST_DETECT_ORDER.is("false")) {
+            log.info("{} Generating Phased Providers", PhasedTestManager.PHASED_TEST_LOG_PREFIX);
+            //NIA
+            PhasedTestManager.generatePhasedProviders(l_classMethodMap, Phases.getCurrentPhase());
             return list;
         } else {
 

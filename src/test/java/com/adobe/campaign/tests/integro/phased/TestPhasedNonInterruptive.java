@@ -42,8 +42,6 @@ public class TestPhasedNonInterruptive {
 
         PhasedTestManager.clearCache();
 
-        System.clearProperty("PHASED.TESTS.DETECT.ORDER");
-
         PhasedTestManager.deactivateMergedReports();
         PhasedTestManager.deactivateTestSelectionByProducerMode();
 
@@ -547,7 +545,7 @@ public class TestPhasedNonInterruptive {
 
         Phases.ASYNCHRONOUS.activate();
         ConfigValueHandler.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
-        System.setProperty("PHASED.TESTS.DETECT.ORDER","true");
+        ConfigValueHandler.PHASED_TEST_DETECT_ORDER.activate("true");
 
         myTestNG.run();
 
