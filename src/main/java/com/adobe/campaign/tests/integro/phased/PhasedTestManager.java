@@ -50,8 +50,8 @@ public final class PhasedTestManager {
     //public static final String PROP_PHASED_TEST_DATABROKER = "PHASED.TESTS.DATABROKER";
     //public static final String PROP_DISABLE_RETRY = "PHASED.TESTS.RETRY.DISABLED";
     //public static final String PROP_MERGE_STEP_RESULTS = "PHASED.TESTS.REPORT.BY.PHASE_GROUP";
-    public static final String PROP_TEST_SELECTION_BY_PROPERTIES = "PROP.TEST.SELECTION.BY.PROPERTIES";
-    private static final String PROP_SCENARIO_EXPORTED_PREFIX = "PHASED.TESTS.STORAGE.SCENARIO.PREFIX";
+    //public static final String PROP_TEST_SELECTION_BY_PROPERTIES = "PROP.TEST.SELECTION.BY.PROPERTIES";
+    //private static final String PROP_SCENARIO_EXPORTED_PREFIX = "PHASED.TESTS.STORAGE.SCENARIO.PREFIX";
 
     public static final String DEFAULT_CACHE_DIR = "phased_output";
     public static final String STD_CACHE_DIR = System.getProperty(PROP_OUTPUT_DIR, DEFAULT_CACHE_DIR);
@@ -89,7 +89,7 @@ public final class PhasedTestManager {
 
     static Boolean selectTestsByProducerMode = Boolean.FALSE;
 
-    static final String SCENARIO_CONTEXT_PREFIX = System.getProperty(PROP_SCENARIO_EXPORTED_PREFIX, "[TC]");
+    static final String SCENARIO_CONTEXT_PREFIX = ConfigValueHandler.PROP_SCENARIO_EXPORTED_PREFIX.fetchValue();
 
     public static class MergedReportData {
 

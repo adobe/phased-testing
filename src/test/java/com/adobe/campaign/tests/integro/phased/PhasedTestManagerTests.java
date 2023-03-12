@@ -46,8 +46,6 @@ public class PhasedTestManagerTests {
         PhasedTestManager.clearCache();
         ConfigValueHandler.resetAllValues();
 
-        System.clearProperty(PhasedTestManager.PROP_TEST_SELECTION_BY_PROPERTIES);
-
         PhasedTestManager.deactivateMergedReports();
         PhasedTestManager.MergedReportData.resetReport();
 
