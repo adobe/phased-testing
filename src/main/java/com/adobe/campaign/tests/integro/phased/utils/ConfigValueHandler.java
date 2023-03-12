@@ -11,15 +11,19 @@
  */
 package com.adobe.campaign.tests.integro.phased.utils;
 
+import com.adobe.campaign.tests.integro.phased.Phases;
+
 import java.util.Arrays;
 
 public enum ConfigValueHandler {
     EVENTS_NONINTERRUPTIVE("PHASED.EVENTS.NONINTERRUPTIVE",null, false),
     PHASED_TEST_NONPHASED_LEGACY( "PHASED.TESTS.NONPHASED.LEGACY", "false", false ),
-    PHASED_TEST_SOURCE_LOCATION("PHASED.TESTS.CODE.ROOT","/src/test/java", false);
+    PHASED_TEST_SOURCE_LOCATION("PHASED.TESTS.CODE.ROOT","/src/test/java", false),
+    PROP_PHASED_DATA_PATH("PHASED.TESTS.STORAGE.PATH", null, false),
+    PROP_SELECTED_PHASE("PHASED.TESTS.PHASE", Phases.NON_PHASED.name(), false);
 
-    public final String defaultValue;
     public final String systemName;
+    public final String defaultValue;
     public final boolean requiredValue;
 
     ConfigValueHandler(String in_propertyName, String in_defaultValue, boolean in_requiredValue) {

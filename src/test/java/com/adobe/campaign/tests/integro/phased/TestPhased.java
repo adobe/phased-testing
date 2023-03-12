@@ -49,8 +49,6 @@ public class TestPhased {
 
         ConfigValueHandler.resetAllValues();
 
-        System.clearProperty(PhasedTestManager.PROP_PHASED_DATA_PATH);
-        System.clearProperty(PhasedTestManager.PROP_SELECTED_PHASE);
         System.clearProperty(PhasedTestManager.PROP_PHASED_TEST_DATABROKER);
         System.clearProperty(PhasedTestManager.PROP_DISABLE_RETRY);
         System.clearProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS);
@@ -287,7 +285,8 @@ public class TestPhased {
         myTest.setXmlClasses(Arrays.asList(new XmlClass(PhasedSeries_H_SingleClass.class),
                 new XmlClass(NormalSeries_A.class)));
 
-        System.setProperty(PhasedTestManager.PROP_SELECTED_PHASE, "conSumer");
+        ConfigValueHandler.PROP_SELECTED_PHASE.activate("conSumer");
+
         Properties phasedCache = PhasedTestManager.phasedCache;
         phasedCache.put("com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_SingleClass.step2("
                 + PhasedTestManager.STD_PHASED_GROUP_SINGLE + ")", "AB");

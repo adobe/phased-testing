@@ -13,6 +13,7 @@ package com.adobe.campaign.tests.integro.phased;
 
 import com.adobe.campaign.tests.integro.phased.permutational.ScenarioStepDependencies;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
+import com.adobe.campaign.tests.integro.phased.utils.ConfigValueHandler;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 import com.adobe.campaign.tests.integro.phased.utils.StackTraceManager;
 import java.util.Map.Entry;
@@ -43,9 +44,9 @@ public final class PhasedTestManager {
 
     private static final Logger log = LogManager.getLogger();
 
-    public static final String PROP_PHASED_DATA_PATH = "PHASED.TESTS.STORAGE.PATH";
+    //public static final String PROP_PHASED_DATA_PATH = "PHASED.TESTS.STORAGE.PATH";
     public static final String PROP_OUTPUT_DIR = "PHASED.TESTS.OUTPUT.DIR";
-    public static final String PROP_SELECTED_PHASE = "PHASED.TESTS.PHASE";
+    //public static final String PROP_SELECTED_PHASE = "PHASED.TESTS.PHASE";
     public static final String PROP_PHASED_TEST_DATABROKER = "PHASED.TESTS.DATABROKER";
     public static final String PROP_DISABLE_RETRY = "PHASED.TESTS.RETRY.DISABLED";
     public static final String PROP_MERGE_STEP_RESULTS = "PHASED.TESTS.REPORT.BY.PHASE_GROUP";
@@ -413,13 +414,12 @@ public final class PhasedTestManager {
      */
     public static File fetchExportFile() {
         File l_exportCacheFile;
-        if (System.getProperties().containsKey(PROP_PHASED_DATA_PATH)) {
-            l_exportCacheFile = new File(System.getProperty(PROP_PHASED_DATA_PATH));
 
+        if (ConfigValueHandler.PROP_PHASED_DATA_PATH.isSet() ) {
+            return new File(ConfigValueHandler.PROP_PHASED_DATA_PATH.fetchValue());
         } else {
-            l_exportCacheFile = new File(GeneralTestUtils.fetchCacheDirectory(STD_STORE_DIR), STD_STORE_FILE);
+            return new File(GeneralTestUtils.fetchCacheDirectory(STD_STORE_DIR), STD_STORE_FILE);
         }
-        return l_exportCacheFile;
     }
 
     /**
@@ -503,13 +503,13 @@ public final class PhasedTestManager {
 
         if (dataBroker == null) {
 
-            if (System.getProperties().containsKey(PROP_PHASED_DATA_PATH)) {
-                l_importCacheFile = new File(System.getProperty(PROP_PHASED_DATA_PATH));
+            if (ConfigValueHandler.PROP_PHASED_DATA_PATH.isSet()) {
+                l_importCacheFile = new File(ConfigValueHandler.PROP_PHASED_DATA_PATH.fetchValue());
 
             } else {
                 l_importCacheFile = new File(GeneralTestUtils.fetchCacheDirectory(STD_STORE_DIR), STD_STORE_FILE);
                 log.warn("{} The system property {} not set. Fetching Phased Test data from {}.",
-                        PHASED_TEST_LOG_PREFIX, PROP_PHASED_DATA_PATH, l_importCacheFile.getPath());
+                        PHASED_TEST_LOG_PREFIX, ConfigValueHandler.PROP_PHASED_DATA_PATH.fetchValue(), l_importCacheFile.getPath());
             }
         } else {
             log.info("{} Fetching cache through DataBroker.", PHASED_TEST_LOG_PREFIX);

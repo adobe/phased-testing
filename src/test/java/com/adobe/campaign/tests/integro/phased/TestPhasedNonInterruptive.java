@@ -42,8 +42,6 @@ public class TestPhasedNonInterruptive {
 
         PhasedTestManager.clearCache();
 
-        System.clearProperty(PhasedTestManager.PROP_PHASED_DATA_PATH);
-        System.clearProperty(PhasedTestManager.PROP_SELECTED_PHASE);
         System.clearProperty(PhasedTestManager.PROP_PHASED_TEST_DATABROKER);
         System.clearProperty(PhasedTestManager.PROP_DISABLE_RETRY);
         System.clearProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS);

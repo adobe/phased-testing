@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 
 import com.adobe.campaign.tests.integro.phased.data.befaft.*;
+import com.adobe.campaign.tests.integro.phased.utils.ConfigValueHandler;
 import org.hamcrest.Matchers;
 import org.testng.ITestContext;
 import org.testng.TestListenerAdapter;
@@ -39,9 +40,8 @@ public class TestPhased_BEFORE_AFTER {
     public void resetVariables() {
 
         PhasedTestManager.clearCache();
+        ConfigValueHandler.resetAllValues();
 
-        System.clearProperty(PhasedTestManager.PROP_PHASED_DATA_PATH);
-        System.clearProperty(PhasedTestManager.PROP_SELECTED_PHASE);
         System.clearProperty(PhasedTestManager.PROP_PHASED_TEST_DATABROKER);
         System.clearProperty(PhasedTestManager.PROP_DISABLE_RETRY);
         System.clearProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS);
