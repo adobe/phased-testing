@@ -28,8 +28,6 @@ public class PhasesTests {
     public void cleanCache() {
         PhasedTestManager.clearCache();
         ConfigValueHandler.resetAllValues();
-
-        System.clearProperty(PhasedTestManager.PROP_PHASED_TEST_DATABROKER);
     }
 
     @AfterMethod

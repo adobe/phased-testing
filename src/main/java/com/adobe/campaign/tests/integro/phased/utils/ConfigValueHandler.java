@@ -20,7 +20,8 @@ public enum ConfigValueHandler {
     PHASED_TEST_NONPHASED_LEGACY( "PHASED.TESTS.NONPHASED.LEGACY", "false", false ),
     PHASED_TEST_SOURCE_LOCATION("PHASED.TESTS.CODE.ROOT","/src/test/java", false),
     PROP_PHASED_DATA_PATH("PHASED.TESTS.STORAGE.PATH", null, false),
-    PROP_SELECTED_PHASE("PHASED.TESTS.PHASE", Phases.NON_PHASED.name(), false);
+    PROP_SELECTED_PHASE("PHASED.TESTS.PHASE", Phases.NON_PHASED.name(), false),
+    PROP_PHASED_TEST_DATABROKER("PHASED.TESTS.DATABROKER", null, false);
 
     public final String systemName;
     public final String defaultValue;

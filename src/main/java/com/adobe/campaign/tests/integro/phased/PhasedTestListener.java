@@ -55,12 +55,12 @@ public class PhasedTestListener
 
         // *** Import DataBroker ***
         String l_phasedDataBrokerClass = null;
-        if (System.getProperties().containsKey(PhasedTestManager.PROP_PHASED_TEST_DATABROKER)) {
-            l_phasedDataBrokerClass = System.getProperty(PhasedTestManager.PROP_PHASED_TEST_DATABROKER);
+        if (ConfigValueHandler.PROP_PHASED_TEST_DATABROKER.isSet()) {
+            l_phasedDataBrokerClass = ConfigValueHandler.PROP_PHASED_TEST_DATABROKER.fetchValue();
         } else if (suites.get(0).getAllParameters()
-                .containsKey(PhasedTestManager.PROP_PHASED_TEST_DATABROKER)) {
+                .containsKey(ConfigValueHandler.PROP_PHASED_TEST_DATABROKER.name())) {
             l_phasedDataBrokerClass = suites.get(0)
-                    .getParameter(PhasedTestManager.PROP_PHASED_TEST_DATABROKER);
+                    .getParameter(ConfigValueHandler.PROP_PHASED_TEST_DATABROKER.name());
         } else if (!Phases.NON_PHASED.isSelected()) {
             log.info("{} No PhasedDataBroker set. Using the file system path {}/{} instead ",
                     PhasedTestManager.PHASED_TEST_LOG_PREFIX, PhasedTestManager.STD_STORE_DIR,

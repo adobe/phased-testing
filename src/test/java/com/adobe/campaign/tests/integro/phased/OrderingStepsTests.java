@@ -42,7 +42,6 @@ public class OrderingStepsTests {
         PhasedTestManager.clearCache();
         ConfigValueHandler.resetAllValues();
 
-        System.clearProperty(PhasedTestManager.PROP_PHASED_TEST_DATABROKER);
         System.clearProperty(PhasedTestManager.PROP_DISABLE_RETRY);
         System.clearProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS);
         System.clearProperty("PHASED.TESTS.DETECT.ORDER");

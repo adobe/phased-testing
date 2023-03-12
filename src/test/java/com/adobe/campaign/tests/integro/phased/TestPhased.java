@@ -49,7 +49,6 @@ public class TestPhased {
 
         ConfigValueHandler.resetAllValues();
 
-        System.clearProperty(PhasedTestManager.PROP_PHASED_TEST_DATABROKER);
         System.clearProperty(PhasedTestManager.PROP_DISABLE_RETRY);
         System.clearProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS);
 
@@ -1406,7 +1405,7 @@ public class TestPhased {
         // Define suites
         XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG, "Automated Suite Phased Testing");
         Map<String, String> l_myparameters = new HashMap<>();
-        l_myparameters.put(PhasedTestManager.PROP_PHASED_TEST_DATABROKER,
+        l_myparameters.put(ConfigValueHandler.PROP_PHASED_TEST_DATABROKER.name(),
                 PhasedDataBrokerTestImplementation.class.getTypeName());
         mySuite.setParameters(l_myparameters);
 
@@ -1453,7 +1452,7 @@ public class TestPhased {
         // Define suites
         XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG, "Automated Suite Phased Testing");
         Map<String, String> l_myparameters = new HashMap<>();
-        l_myparameters.put(PhasedTestManager.PROP_PHASED_TEST_DATABROKER, NormalSeries_A.class.getTypeName());
+        l_myparameters.put(ConfigValueHandler.PROP_PHASED_TEST_DATABROKER.name(), NormalSeries_A.class.getTypeName());
         mySuite.setParameters(l_myparameters);
 
         // Add listeners
@@ -1465,8 +1464,7 @@ public class TestPhased {
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(PhasedSeries_E_FullMonty.class)));
 
         Phases.PRODUCER.activate();
-        System.setProperty(PhasedTestManager.PROP_PHASED_TEST_DATABROKER,
-                PhasedDataBrokerTestImplementation.class.getTypeName());
+        ConfigValueHandler.PROP_PHASED_TEST_DATABROKER.activate(PhasedDataBrokerTestImplementation.class.getTypeName());
 
         myTestNG.run();
 
@@ -1501,7 +1499,7 @@ public class TestPhased {
         // Define suites
         XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG, "Automated Suite Phased Testing");
         Map<String, String> l_myparameters = new HashMap<>();
-        l_myparameters.put(PhasedTestManager.PROP_PHASED_TEST_DATABROKER, NormalSeries_A.class.getTypeName());
+        l_myparameters.put(ConfigValueHandler.PROP_PHASED_TEST_DATABROKER.name(), NormalSeries_A.class.getTypeName());
         mySuite.setParameters(l_myparameters);
 
         // Add listeners
