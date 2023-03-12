@@ -122,7 +122,7 @@ public class PhasedTestListener
 
             //Cases 1,2,4,5
             //Disable retrying of phased tests
-            if (System.getProperty(PhasedTestManager.PROP_DISABLE_RETRY, "true").equalsIgnoreCase("true")) {
+            if (ConfigValueHandler.PROP_DISABLE_RETRY.fetchValue().equalsIgnoreCase("true")) {
                 log.info("{} Disabling Retry for phased Tests.", PhasedTestManager.PHASED_TEST_LOG_PREFIX);
                 result.getMethod().setRetryAnalyzerClass(DisabledRetryAnalyzer.class);
             }

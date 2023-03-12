@@ -42,7 +42,6 @@ public class TestPhased_BEFORE_AFTER {
         PhasedTestManager.clearCache();
         ConfigValueHandler.resetAllValues();
 
-        System.clearProperty(PhasedTestManager.PROP_DISABLE_RETRY);
         System.clearProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS);
 
         PhasedTestManager.deactivateMergedReports();

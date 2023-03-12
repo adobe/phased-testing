@@ -35,7 +35,6 @@ public class TestPhased_Demos {
         PhasedTestManager.clearCache();
         ConfigValueHandler.resetAllValues();
 
-        System.clearProperty(PhasedTestManager.PROP_DISABLE_RETRY);
         System.clearProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS);
 
         PhasedTestManager.deactivateMergedReports();
