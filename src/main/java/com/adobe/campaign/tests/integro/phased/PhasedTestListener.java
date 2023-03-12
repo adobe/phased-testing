@@ -55,12 +55,12 @@ public class PhasedTestListener
 
         // *** Import DataBroker ***
         String l_phasedDataBrokerClass = null;
-        if (System.getProperties().containsKey(PhasedTestManager.PROP_PHASED_TEST_DATABROKER)) {
-            l_phasedDataBrokerClass = System.getProperty(PhasedTestManager.PROP_PHASED_TEST_DATABROKER);
+        if (ConfigValueHandler.PROP_PHASED_TEST_DATABROKER.isSet()) {
+            l_phasedDataBrokerClass = ConfigValueHandler.PROP_PHASED_TEST_DATABROKER.fetchValue();
         } else if (suites.get(0).getAllParameters()
-                .containsKey(PhasedTestManager.PROP_PHASED_TEST_DATABROKER)) {
+                .containsKey(ConfigValueHandler.PROP_PHASED_TEST_DATABROKER.systemName)) {
             l_phasedDataBrokerClass = suites.get(0)
-                    .getParameter(PhasedTestManager.PROP_PHASED_TEST_DATABROKER);
+                    .getParameter(ConfigValueHandler.PROP_PHASED_TEST_DATABROKER.systemName);
         } else if (!Phases.NON_PHASED.isSelected()) {
             log.info("{} No PhasedDataBroker set. Using the file system path {}/{} instead ",
                     PhasedTestManager.PHASED_TEST_LOG_PREFIX, PhasedTestManager.STD_STORE_DIR,
@@ -122,7 +122,7 @@ public class PhasedTestListener
 
             //Cases 1,2,4,5
             //Disable retrying of phased tests
-            if (System.getProperty(PhasedTestManager.PROP_DISABLE_RETRY, "true").equalsIgnoreCase("true")) {
+            if (ConfigValueHandler.PROP_DISABLE_RETRY.is("true")) {
                 log.info("{} Disabling Retry for phased Tests.", PhasedTestManager.PHASED_TEST_LOG_PREFIX);
                 result.getMethod().setRetryAnalyzerClass(DisabledRetryAnalyzer.class);
             }
@@ -519,12 +519,10 @@ public class PhasedTestListener
         }
 
         //If the property PHASED.TESTS.DETECT.ORDER not set, we follow the standard TestNG order
-        if (!System.getProperties().containsKey("PHASED.TESTS.DETECT.ORDER")) {
-           // if (Phases.getCurrentPhase().hasSplittingEvent()) {
-                log.info("{} Generating Phased Providers", PhasedTestManager.PHASED_TEST_LOG_PREFIX);
-                //NIA
-                PhasedTestManager.generatePhasedProviders(l_classMethodMap, Phases.getCurrentPhase());
-           // }
+        if (ConfigValueHandler.PHASED_TEST_DETECT_ORDER.is("false")) {
+            log.info("{} Generating Phased Providers", PhasedTestManager.PHASED_TEST_LOG_PREFIX);
+            //NIA
+            PhasedTestManager.generatePhasedProviders(l_classMethodMap, Phases.getCurrentPhase());
             return list;
         } else {
 

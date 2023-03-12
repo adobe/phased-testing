@@ -49,12 +49,6 @@ public class TestPhased {
 
         ConfigValueHandler.resetAllValues();
 
-        System.clearProperty(PhasedTestManager.PROP_PHASED_DATA_PATH);
-        System.clearProperty(PhasedTestManager.PROP_SELECTED_PHASE);
-        System.clearProperty(PhasedTestManager.PROP_PHASED_TEST_DATABROKER);
-        System.clearProperty(PhasedTestManager.PROP_DISABLE_RETRY);
-        System.clearProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS);
-
         PhasedTestManager.deactivateMergedReports();
         PhasedTestManager.deactivateTestSelectionByProducerMode();
 
@@ -287,7 +281,8 @@ public class TestPhased {
         myTest.setXmlClasses(Arrays.asList(new XmlClass(PhasedSeries_H_SingleClass.class),
                 new XmlClass(NormalSeries_A.class)));
 
-        System.setProperty(PhasedTestManager.PROP_SELECTED_PHASE, "conSumer");
+        ConfigValueHandler.PROP_SELECTED_PHASE.activate("conSumer");
+
         Properties phasedCache = PhasedTestManager.phasedCache;
         phasedCache.put("com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_SingleClass.step2("
                 + PhasedTestManager.STD_PHASED_GROUP_SINGLE + ")", "AB");
@@ -545,7 +540,7 @@ public class TestPhased {
         // Add package to test
 
         Phases.PRODUCER.activate();
-        System.setProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS, "false");
+        ConfigValueHandler.PROP_MERGE_STEP_RESULTS.activate("false");
 
         myTestNG.run();
 
@@ -1016,7 +1011,7 @@ public class TestPhased {
         // Add package to test
 
         Phases.PRODUCER.activate();
-        System.setProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS, "false");
+        ConfigValueHandler.PROP_MERGE_STEP_RESULTS.activate("false");
 
         myTestNG.run();
 
@@ -1407,7 +1402,7 @@ public class TestPhased {
         // Define suites
         XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG, "Automated Suite Phased Testing");
         Map<String, String> l_myparameters = new HashMap<>();
-        l_myparameters.put(PhasedTestManager.PROP_PHASED_TEST_DATABROKER,
+        l_myparameters.put(ConfigValueHandler.PROP_PHASED_TEST_DATABROKER.systemName,
                 PhasedDataBrokerTestImplementation.class.getTypeName());
         mySuite.setParameters(l_myparameters);
 
@@ -1454,7 +1449,7 @@ public class TestPhased {
         // Define suites
         XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG, "Automated Suite Phased Testing");
         Map<String, String> l_myparameters = new HashMap<>();
-        l_myparameters.put(PhasedTestManager.PROP_PHASED_TEST_DATABROKER, NormalSeries_A.class.getTypeName());
+        l_myparameters.put(ConfigValueHandler.PROP_PHASED_TEST_DATABROKER.systemName, NormalSeries_A.class.getTypeName());
         mySuite.setParameters(l_myparameters);
 
         // Add listeners
@@ -1466,8 +1461,7 @@ public class TestPhased {
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(PhasedSeries_E_FullMonty.class)));
 
         Phases.PRODUCER.activate();
-        System.setProperty(PhasedTestManager.PROP_PHASED_TEST_DATABROKER,
-                PhasedDataBrokerTestImplementation.class.getTypeName());
+        ConfigValueHandler.PROP_PHASED_TEST_DATABROKER.activate(PhasedDataBrokerTestImplementation.class.getTypeName());
 
         myTestNG.run();
 
@@ -1502,7 +1496,7 @@ public class TestPhased {
         // Define suites
         XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG, "Automated Suite Phased Testing");
         Map<String, String> l_myparameters = new HashMap<>();
-        l_myparameters.put(PhasedTestManager.PROP_PHASED_TEST_DATABROKER, NormalSeries_A.class.getTypeName());
+        l_myparameters.put(ConfigValueHandler.PROP_PHASED_TEST_DATABROKER.systemName, NormalSeries_A.class.getTypeName());
         mySuite.setParameters(l_myparameters);
 
         // Add listeners
@@ -1582,7 +1576,7 @@ public class TestPhased {
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(PhasedSeries_H_SingleClass.class)));
 
         Phases.PRODUCER.activate();
-        System.setProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS, "true");
+        ConfigValueHandler.PROP_MERGE_STEP_RESULTS.activate("true");
 
         myTestNG.run();
 
@@ -1959,7 +1953,7 @@ public class TestPhased {
         // Add package to test
 
         Phases.PRODUCER.activate();
-        System.setProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS, "true");
+        ConfigValueHandler.PROP_MERGE_STEP_RESULTS.activate("true");
 
         myTestNG.run();
 
@@ -2733,7 +2727,7 @@ public class TestPhased {
         // Add package to test
 
         Phases.PRODUCER.activate();
-        System.setProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS, "true");
+        ConfigValueHandler.PROP_MERGE_STEP_RESULTS.activate("true");
 
         myTestNG.run();
 

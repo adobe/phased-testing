@@ -13,6 +13,7 @@ package com.adobe.campaign.tests.integro.phased;
 
 import com.adobe.campaign.tests.integro.phased.permutational.ScenarioStepDependencies;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
+import com.adobe.campaign.tests.integro.phased.utils.ConfigValueHandler;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 import com.adobe.campaign.tests.integro.phased.utils.StackTraceManager;
 import java.util.Map.Entry;
@@ -31,8 +32,6 @@ import java.util.stream.Collectors;
 
 public final class PhasedTestManager {
 
-    public static String PHASED_TEST_SOURCE_LOCATION = System.getProperty("PHASED.TESTS.CODE.ROOT","/src/test/java");
-
     private PhasedTestManager() {
         //Utility class. Defeat instantiation.
     }
@@ -45,17 +44,8 @@ public final class PhasedTestManager {
 
     private static final Logger log = LogManager.getLogger();
 
-    public static final String PROP_PHASED_DATA_PATH = "PHASED.TESTS.STORAGE.PATH";
-    public static final String PROP_OUTPUT_DIR = "PHASED.TESTS.OUTPUT.DIR";
-    public static final String PROP_SELECTED_PHASE = "PHASED.TESTS.PHASE";
-    public static final String PROP_PHASED_TEST_DATABROKER = "PHASED.TESTS.DATABROKER";
-    public static final String PROP_DISABLE_RETRY = "PHASED.TESTS.RETRY.DISABLED";
-    public static final String PROP_MERGE_STEP_RESULTS = "PHASED.TESTS.REPORT.BY.PHASE_GROUP";
-    public static final String PROP_TEST_SELECTION_BY_PROPERTIES = "PROP.TEST.SELECTION.BY.PROPERTIES";
-    private static final String PROP_SCENARIO_EXPORTED_PREFIX = "PHASED.TESTS.STORAGE.SCENARIO.PREFIX";
-
     public static final String DEFAULT_CACHE_DIR = "phased_output";
-    public static final String STD_CACHE_DIR = System.getProperty(PROP_OUTPUT_DIR, DEFAULT_CACHE_DIR);
+    public static final String STD_CACHE_DIR = ConfigValueHandler.PROP_OUTPUT_DIR.fetchValue();
     public static final String STD_STORE_DIR = "phased_tests";
     public static final String STD_STORE_FILE = "phaseData.properties";
 
@@ -90,7 +80,7 @@ public final class PhasedTestManager {
 
     static Boolean selectTestsByProducerMode = Boolean.FALSE;
 
-    static final String SCENARIO_CONTEXT_PREFIX = System.getProperty(PROP_SCENARIO_EXPORTED_PREFIX, "[TC]");
+    static final String SCENARIO_CONTEXT_PREFIX = ConfigValueHandler.PROP_SCENARIO_EXPORTED_PREFIX.fetchValue();
 
     public static class MergedReportData {
 
@@ -415,13 +405,12 @@ public final class PhasedTestManager {
      */
     public static File fetchExportFile() {
         File l_exportCacheFile;
-        if (System.getProperties().containsKey(PROP_PHASED_DATA_PATH)) {
-            l_exportCacheFile = new File(System.getProperty(PROP_PHASED_DATA_PATH));
 
+        if (ConfigValueHandler.PROP_PHASED_DATA_PATH.isSet() ) {
+            return new File(ConfigValueHandler.PROP_PHASED_DATA_PATH.fetchValue());
         } else {
-            l_exportCacheFile = new File(GeneralTestUtils.fetchCacheDirectory(STD_STORE_DIR), STD_STORE_FILE);
+            return new File(GeneralTestUtils.fetchCacheDirectory(STD_STORE_DIR), STD_STORE_FILE);
         }
-        return l_exportCacheFile;
     }
 
     /**
@@ -505,13 +494,13 @@ public final class PhasedTestManager {
 
         if (dataBroker == null) {
 
-            if (System.getProperties().containsKey(PROP_PHASED_DATA_PATH)) {
-                l_importCacheFile = new File(System.getProperty(PROP_PHASED_DATA_PATH));
+            if (ConfigValueHandler.PROP_PHASED_DATA_PATH.isSet()) {
+                l_importCacheFile = new File(ConfigValueHandler.PROP_PHASED_DATA_PATH.fetchValue());
 
             } else {
                 l_importCacheFile = new File(GeneralTestUtils.fetchCacheDirectory(STD_STORE_DIR), STD_STORE_FILE);
                 log.warn("{} The system property {} not set. Fetching Phased Test data from {}.",
-                        PHASED_TEST_LOG_PREFIX, PROP_PHASED_DATA_PATH, l_importCacheFile.getPath());
+                        PHASED_TEST_LOG_PREFIX, ConfigValueHandler.PROP_PHASED_DATA_PATH.fetchValue(), l_importCacheFile.getPath());
             }
         } else {
             log.info("{} Fetching cache through DataBroker.", PHASED_TEST_LOG_PREFIX);
@@ -1451,13 +1440,11 @@ public final class PhasedTestManager {
      */
     static void applyMergeReportChoice() {
         //Activating merge results if the value is set in the system properties
-        if (System.getProperty(PROP_MERGE_STEP_RESULTS, "NOTSET")
-                .equalsIgnoreCase("true")) {
+        if (ConfigValueHandler.PROP_MERGE_STEP_RESULTS.is("true")) {
             activateMergedReports();
         }
 
-        if (System.getProperty(PROP_MERGE_STEP_RESULTS, "NOTSET")
-                .equalsIgnoreCase("false")) {
+        if (ConfigValueHandler.PROP_MERGE_STEP_RESULTS.is("false")) {
             deactivateMergedReports();
         }
     }

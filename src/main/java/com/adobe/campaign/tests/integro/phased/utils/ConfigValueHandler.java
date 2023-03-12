@@ -11,15 +11,26 @@
  */
 package com.adobe.campaign.tests.integro.phased.utils;
 
+import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
+import com.adobe.campaign.tests.integro.phased.Phases;
+
 import java.util.Arrays;
 
 public enum ConfigValueHandler {
+    PROP_SELECTED_PHASE("PHASED.TESTS.PHASE", Phases.NON_PHASED.name(), false),
     EVENTS_NONINTERRUPTIVE("PHASED.EVENTS.NONINTERRUPTIVE",null, false),
-    PHASED_TEST_NONPHASED_LEGACY( "PHASED.TESTS.NONPHASED.LEGACY", "false", false ) {
+    PROP_PHASED_TEST_DATABROKER("PHASED.TESTS.DATABROKER", null, false),
+    PROP_PHASED_DATA_PATH("PHASED.TESTS.STORAGE.PATH", null, false),
+    PROP_OUTPUT_DIR("PHASED.TESTS.OUTPUT.DIR", PhasedTestManager.DEFAULT_CACHE_DIR,false),
+    PROP_DISABLE_RETRY("PHASED.TESTS.RETRY.DISABLED", "true", false),
+    PROP_MERGE_STEP_RESULTS("PHASED.TESTS.REPORT.BY.PHASE_GROUP","NOTSET", false),
+    PHASED_TEST_SOURCE_LOCATION("PHASED.TESTS.CODE.ROOT","/src/test/java", false),
+    PHASED_TEST_DETECT_ORDER("PHASED.TESTS.DETECT.ORDER", "false", false),
+    PHASED_TEST_NONPHASED_LEGACY( "PHASED.TESTS.NONPHASED.LEGACY", "false", false ),
+    PROP_SCENARIO_EXPORTED_PREFIX("PHASED.TESTS.STORAGE.SCENARIO.PREFIX", "[TC]", false);
 
-    };
-    public final String defaultValue;
     public final String systemName;
+    public final String defaultValue;
     public final boolean requiredValue;
 
     ConfigValueHandler(String in_propertyName, String in_defaultValue, boolean in_requiredValue) {

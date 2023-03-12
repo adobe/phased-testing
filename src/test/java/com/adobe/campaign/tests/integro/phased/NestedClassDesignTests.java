@@ -16,6 +16,7 @@ import com.adobe.campaign.tests.integro.phased.data.nested.PhasedSeries_J_Recipi
 import com.adobe.campaign.tests.integro.phased.data.nested.PhasedSeries_N_BeforePhase_BeforeSuite;
 import com.adobe.campaign.tests.integro.phased.data.nested.PhasedSeries_N_NestedContainer;
 import com.adobe.campaign.tests.integro.phased.data.nested.PhasedSeries_N_Simple_BeforeSuite;
+import com.adobe.campaign.tests.integro.phased.utils.ConfigValueHandler;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 import com.adobe.campaign.tests.integro.phased.utils.TestTools;
 import org.testng.ITestContext;
@@ -40,12 +41,7 @@ public class NestedClassDesignTests {
     public void resetVariables() {
 
         PhasedTestManager.clearCache();
-
-        System.clearProperty(PhasedTestManager.PROP_PHASED_DATA_PATH);
-        System.clearProperty(PhasedTestManager.PROP_SELECTED_PHASE);
-        System.clearProperty(PhasedTestManager.PROP_PHASED_TEST_DATABROKER);
-        System.clearProperty(PhasedTestManager.PROP_DISABLE_RETRY);
-        System.clearProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS);
+        ConfigValueHandler.resetAllValues();
 
         PhasedTestManager.deactivateMergedReports();
         PhasedTestManager.MergedReportData.resetReport();
@@ -206,7 +202,7 @@ public class NestedClassDesignTests {
         // Add package to test
 
         Phases.PRODUCER.activate();
-        System.setProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS, "true");
+        ConfigValueHandler.PROP_MERGE_STEP_RESULTS.activate("true");
 
         myTestNG.run();
 
@@ -295,7 +291,7 @@ public class NestedClassDesignTests {
         // Add package to test
 
         Phases.PRODUCER.activate();
-        System.setProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS, "true");
+        ConfigValueHandler.PROP_MERGE_STEP_RESULTS.activate("true");
 
         myTestNG.run();
 
@@ -347,7 +343,7 @@ public class NestedClassDesignTests {
 
         // Add package to test
         Phases.PRODUCER.activate();
-        System.setProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS, "true");
+        ConfigValueHandler.PROP_MERGE_STEP_RESULTS.activate("true");
 
         myTestNG.run();
 
