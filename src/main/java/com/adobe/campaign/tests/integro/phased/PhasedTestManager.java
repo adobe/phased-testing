@@ -49,7 +49,7 @@ public final class PhasedTestManager {
     //public static final String PROP_SELECTED_PHASE = "PHASED.TESTS.PHASE";
     //public static final String PROP_PHASED_TEST_DATABROKER = "PHASED.TESTS.DATABROKER";
     //public static final String PROP_DISABLE_RETRY = "PHASED.TESTS.RETRY.DISABLED";
-    public static final String PROP_MERGE_STEP_RESULTS = "PHASED.TESTS.REPORT.BY.PHASE_GROUP";
+    //public static final String PROP_MERGE_STEP_RESULTS = "PHASED.TESTS.REPORT.BY.PHASE_GROUP";
     public static final String PROP_TEST_SELECTION_BY_PROPERTIES = "PROP.TEST.SELECTION.BY.PROPERTIES";
     private static final String PROP_SCENARIO_EXPORTED_PREFIX = "PHASED.TESTS.STORAGE.SCENARIO.PREFIX";
 
@@ -1449,13 +1449,11 @@ public final class PhasedTestManager {
      */
     static void applyMergeReportChoice() {
         //Activating merge results if the value is set in the system properties
-        if (System.getProperty(PROP_MERGE_STEP_RESULTS, "NOTSET")
-                .equalsIgnoreCase("true")) {
+        if (ConfigValueHandler.PROP_MERGE_STEP_RESULTS.is("true")) {
             activateMergedReports();
         }
 
-        if (System.getProperty(PROP_MERGE_STEP_RESULTS, "NOTSET")
-                .equalsIgnoreCase("false")) {
+        if (ConfigValueHandler.PROP_MERGE_STEP_RESULTS.is("false")) {
             deactivateMergedReports();
         }
     }

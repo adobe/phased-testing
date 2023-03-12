@@ -43,8 +43,6 @@ public class NestedClassDesignTests {
         PhasedTestManager.clearCache();
         ConfigValueHandler.resetAllValues();
 
-        System.clearProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS);
-
         PhasedTestManager.deactivateMergedReports();
         PhasedTestManager.MergedReportData.resetReport();
 
@@ -204,7 +202,7 @@ public class NestedClassDesignTests {
         // Add package to test
 
         Phases.PRODUCER.activate();
-        System.setProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS, "true");
+        ConfigValueHandler.PROP_MERGE_STEP_RESULTS.activate("true");
 
         myTestNG.run();
 
@@ -293,7 +291,7 @@ public class NestedClassDesignTests {
         // Add package to test
 
         Phases.PRODUCER.activate();
-        System.setProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS, "true");
+        ConfigValueHandler.PROP_MERGE_STEP_RESULTS.activate("true");
 
         myTestNG.run();
 
@@ -345,7 +343,7 @@ public class NestedClassDesignTests {
 
         // Add package to test
         Phases.PRODUCER.activate();
-        System.setProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS, "true");
+        ConfigValueHandler.PROP_MERGE_STEP_RESULTS.activate("true");
 
         myTestNG.run();
 

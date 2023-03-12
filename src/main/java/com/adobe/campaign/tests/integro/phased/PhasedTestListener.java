@@ -58,9 +58,9 @@ public class PhasedTestListener
         if (ConfigValueHandler.PROP_PHASED_TEST_DATABROKER.isSet()) {
             l_phasedDataBrokerClass = ConfigValueHandler.PROP_PHASED_TEST_DATABROKER.fetchValue();
         } else if (suites.get(0).getAllParameters()
-                .containsKey(ConfigValueHandler.PROP_PHASED_TEST_DATABROKER.name())) {
+                .containsKey(ConfigValueHandler.PROP_PHASED_TEST_DATABROKER.systemName)) {
             l_phasedDataBrokerClass = suites.get(0)
-                    .getParameter(ConfigValueHandler.PROP_PHASED_TEST_DATABROKER.name());
+                    .getParameter(ConfigValueHandler.PROP_PHASED_TEST_DATABROKER.systemName);
         } else if (!Phases.NON_PHASED.isSelected()) {
             log.info("{} No PhasedDataBroker set. Using the file system path {}/{} instead ",
                     PhasedTestManager.PHASED_TEST_LOG_PREFIX, PhasedTestManager.STD_STORE_DIR,
@@ -122,7 +122,7 @@ public class PhasedTestListener
 
             //Cases 1,2,4,5
             //Disable retrying of phased tests
-            if (ConfigValueHandler.PROP_DISABLE_RETRY.fetchValue().equalsIgnoreCase("true")) {
+            if (ConfigValueHandler.PROP_DISABLE_RETRY.is("true")) {
                 log.info("{} Disabling Retry for phased Tests.", PhasedTestManager.PHASED_TEST_LOG_PREFIX);
                 result.getMethod().setRetryAnalyzerClass(DisabledRetryAnalyzer.class);
             }

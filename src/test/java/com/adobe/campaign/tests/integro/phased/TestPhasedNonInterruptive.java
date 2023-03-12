@@ -42,7 +42,6 @@ public class TestPhasedNonInterruptive {
 
         PhasedTestManager.clearCache();
 
-        System.clearProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS);
         System.clearProperty("PHASED.TESTS.DETECT.ORDER");
 
         PhasedTestManager.deactivateMergedReports();

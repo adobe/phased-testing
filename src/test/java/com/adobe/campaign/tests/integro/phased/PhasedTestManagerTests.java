@@ -46,7 +46,6 @@ public class PhasedTestManagerTests {
         PhasedTestManager.clearCache();
         ConfigValueHandler.resetAllValues();
 
-        System.clearProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS);
         System.clearProperty(PhasedTestManager.PROP_TEST_SELECTION_BY_PROPERTIES);
 
         PhasedTestManager.deactivateMergedReports();
@@ -2661,18 +2660,18 @@ public class PhasedTestManagerTests {
         assertThat("By default we do not have We should now be in merge report results",
                 !PhasedTestManager.isMergedReportsActivated());
 
-        System.setProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS, "true");
+        ConfigValueHandler.PROP_MERGE_STEP_RESULTS.activate("true");
 
         PhasedTestManager.applyMergeReportChoice();
 
         assertThat("We should now be in merge report results", PhasedTestManager.isMergedReportsActivated());
         Assert.assertTrue(
-                Boolean.getBoolean(PhasedTestManager.PROP_MERGE_STEP_RESULTS));
+                Boolean.getBoolean(ConfigValueHandler.PROP_MERGE_STEP_RESULTS.systemName));
 
-        System.setProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS, "FALSE");
+        ConfigValueHandler.PROP_MERGE_STEP_RESULTS.activate("FALSE");
 
         Assert.assertFalse(
-                Boolean.getBoolean(PhasedTestManager.PROP_MERGE_STEP_RESULTS));
+                Boolean.getBoolean(ConfigValueHandler.PROP_MERGE_STEP_RESULTS.systemName));
 
         assertThat("We should still not have de-activated the  merge report results",
                 PhasedTestManager.isMergedReportsActivated());
