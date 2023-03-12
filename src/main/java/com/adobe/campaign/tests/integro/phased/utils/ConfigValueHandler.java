@@ -11,6 +11,7 @@
  */
 package com.adobe.campaign.tests.integro.phased.utils;
 
+import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
 import com.adobe.campaign.tests.integro.phased.Phases;
 
 import java.util.Arrays;
@@ -24,7 +25,8 @@ public enum ConfigValueHandler {
     PROP_PHASED_TEST_DATABROKER("PHASED.TESTS.DATABROKER", null, false),
     PROP_DISABLE_RETRY("PHASED.TESTS.RETRY.DISABLED", "true", false),
     PROP_MERGE_STEP_RESULTS("PHASED.TESTS.REPORT.BY.PHASE_GROUP","NOTSET", false),
-    PROP_SCENARIO_EXPORTED_PREFIX("PHASED.TESTS.STORAGE.SCENARIO.PREFIX", "[TC]", false);
+    PROP_SCENARIO_EXPORTED_PREFIX("PHASED.TESTS.STORAGE.SCENARIO.PREFIX", "[TC]", false),
+    PROP_OUTPUT_DIR("PHASED.TESTS.OUTPUT.DIR", PhasedTestManager.DEFAULT_CACHE_DIR,false);
 
     public final String systemName;
     public final String defaultValue;

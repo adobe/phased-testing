@@ -45,7 +45,7 @@ public final class PhasedTestManager {
     private static final Logger log = LogManager.getLogger();
 
     //public static final String PROP_PHASED_DATA_PATH = "PHASED.TESTS.STORAGE.PATH";
-    public static final String PROP_OUTPUT_DIR = "PHASED.TESTS.OUTPUT.DIR";
+    //public static final String PROP_OUTPUT_DIR = "PHASED.TESTS.OUTPUT.DIR";
     //public static final String PROP_SELECTED_PHASE = "PHASED.TESTS.PHASE";
     //public static final String PROP_PHASED_TEST_DATABROKER = "PHASED.TESTS.DATABROKER";
     //public static final String PROP_DISABLE_RETRY = "PHASED.TESTS.RETRY.DISABLED";
@@ -54,7 +54,7 @@ public final class PhasedTestManager {
     //private static final String PROP_SCENARIO_EXPORTED_PREFIX = "PHASED.TESTS.STORAGE.SCENARIO.PREFIX";
 
     public static final String DEFAULT_CACHE_DIR = "phased_output";
-    public static final String STD_CACHE_DIR = System.getProperty(PROP_OUTPUT_DIR, DEFAULT_CACHE_DIR);
+    public static final String STD_CACHE_DIR = ConfigValueHandler.PROP_OUTPUT_DIR.fetchValue();
     public static final String STD_STORE_DIR = "phased_tests";
     public static final String STD_STORE_FILE = "phaseData.properties";
 
