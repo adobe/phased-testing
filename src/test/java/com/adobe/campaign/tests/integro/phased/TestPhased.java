@@ -134,6 +134,7 @@ public class TestPhased {
         myTest.setXmlClasses(Arrays.asList(new XmlClass(PhasedSeries_D_SingleNoPhase.class)));
 
         Phases.PRODUCER.activate();
+        ConfigValueHandler.PHASED_TEST_NONPHASED_LEGACY.activate("false");
 
         myTestNG.run();
 
@@ -144,6 +145,41 @@ public class TestPhased {
                 (int) tla.getPassedTests().stream()
                         .filter(m -> m.getInstance().getClass().equals(PhasedSeries_D_SingleNoPhase.class)).count(),
                 is(equalTo(3)));
+    }
+
+    /**
+     * This is a corner case for when we declare shuffled, but we also add an event
+     * <p>
+     * Author : gandomi
+     */
+    @Test
+    public void testSHUFFLE_wherePhaseEventHasBeenSet() {
+        // Rampup
+        TestNG myTestNG = TestTools.createTestNG();
+        TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
+
+        // Define suites
+        XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG, "Automated Suite Phased Testing");
+
+        // Add listeners
+        mySuite.addListener("com.adobe.campaign.tests.integro.phased.PhasedTestListener");
+
+        // Create an instance of XmlTest and assign a name for it.
+        XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Simple Phased Tests");
+
+        myTest.setXmlClasses(Arrays.asList(new XmlClass(PhasedTestSingleWithCanShuffleTrue.class)));
+
+        Phases.PRODUCER.activate();
+
+        myTestNG.run();
+
+        assertThat("We should have no failed methods of phased Tests", tla.getFailedTests().size(),
+                is(equalTo(0)));
+
+        assertThat("All Tests shuld have been executed",
+                (int) tla.getPassedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(PhasedTestSingleWithCanShuffleTrue.class)).count(),
+                is(equalTo(1)));
     }
 
     /**
@@ -475,6 +511,72 @@ public class TestPhased {
         assertThat("We should have 1 successful methods of phased Tests",
                 (int) tla2.getPassedTests().stream()
                         .filter(m -> m.getInstance().getClass().equals(PhasedSeries_E_FullMonty.class)).count(),
+                is(equalTo(1)));
+
+        assertThat("We should have no unsuccesful methods of phased Tests",
+                tla.getFailedTests().size() + tla.getSkippedTests().size(), is(equalTo(0)));
+
+    }
+
+    @Test
+    public void testFullMonty_SingleRun_newModel() {
+        //  ***** PRODUCER ****
+        TestNG myTestNG = TestTools.createTestNG();
+        TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
+
+        // Define suites
+        XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG, "Automated Suite Phased Testing");
+
+        // Add listeners
+        mySuite.addListener("com.adobe.campaign.tests.integro.phased.PhasedTestListener");
+
+        // Create an instance of XmlTest and assign a name for it.
+        XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Phased Tests");
+
+        Class<PhasedTestSingleWithoutCanShuffle> l_testClass = PhasedTestSingleWithoutCanShuffle.class;
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
+
+        Phases.PRODUCER.activate();
+        myTestNG.run();
+
+        assertThat("We should have 2 successful methods of phased Tests",
+                (int) tla.getPassedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
+                is(equalTo(2)));
+
+        assertThat("We should have 2 successful methods of phased Tests",
+                (int) tla.getPassedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
+                is(equalTo(2)));
+
+        assertThat("We should have no unsuccesful methods of phased Tests",
+                tla.getFailedTests().size() + tla.getSkippedTests().size(), is(equalTo(0)));
+
+        // ***** COSNUMER ****
+
+        //Clear data
+        PhasedTestManager.clearCache();
+        Phases.CONSUMER.activate();
+
+        TestNG myTestNG2 = TestTools.createTestNG();
+        TestListenerAdapter tla2 = TestTools.fetchTestResultsHandler(myTestNG2);
+
+        // Define suites
+        XmlSuite mySuite2 = TestTools.addSuitToTestNGTest(myTestNG2, "Automated Suite Phased Testing");
+
+        // Add listeners
+        mySuite2.addListener("com.adobe.campaign.tests.integro.phased.PhasedTestListener");
+
+        // Create an instance of XmlTest and assign a name for it.
+        XmlTest myTest2 = TestTools.attachTestToSuite(mySuite2, "Test Phased Tests");
+
+        myTest2.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
+
+        myTestNG2.run();
+
+        assertThat("We should have 1 successful methods of phased Tests",
+                (int) tla2.getPassedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
                 is(equalTo(1)));
 
         assertThat("We should have no unsuccesful methods of phased Tests",
@@ -1154,6 +1256,151 @@ public class TestPhased {
         XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Merged Phased Tests Producer");
 
         final Class<PhasedSeries_F_Shuffle> l_testClass = PhasedSeries_F_Shuffle.class;
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
+
+        // Add package to test
+
+        Phases.PRODUCER.activate();
+
+        PhasedTestManager.activateMergedReports();
+
+        myTestNG.run();
+
+        assertThat("We should have 6 successful methods of phased Tests",
+                (int) tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
+                is(equalTo(6)));
+
+        //Global
+        assertThat("We should have no failed tests", tla.getFailedTests().size(), equalTo(0));
+        assertThat("We should have no skipped tests", tla.getSkippedTests().size(), equalTo(0));
+
+        ITestContext context = tla.getTestContexts().get(0);
+
+        assertThat("The Report should also include the same value as the Passed",
+                context.getPassedTests().getAllResults().size(), is(equalTo(3)));
+
+        assertThat("The Report should also include the same value as the Skipped",
+                context.getSkippedTests().getAllResults().size(), is(equalTo(tla.getSkippedTests().size())));
+
+        assertThat("The Report should also include the same value as the Failed",
+                context.getFailedTests().getAllResults().size(), is(equalTo(tla.getFailedTests().size())));
+
+        // ******** CONSUMER ********
+
+        //Clear data
+        PhasedTestManager.clearCache();
+        Phases.CONSUMER.activate();
+
+        TestNG myTestNG2 = TestTools.createTestNG();
+        TestListenerAdapter tla2 = TestTools.fetchTestResultsHandler(myTestNG2);
+
+        // Define suites
+        XmlSuite mySuite2 = TestTools.addSuitToTestNGTest(myTestNG2, "Automated Suite Merged Phased Testing");
+
+        // Add listeners
+        mySuite2.addListener("com.adobe.campaign.tests.integro.phased.PhasedTestListener");
+
+        // Create an instance of XmlTest and assign a name for it.
+        XmlTest myTest2 = TestTools.attachTestToSuite(mySuite2,
+                "Test Repetetive Phased Merged Tests Consumer");
+
+        myTest2.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
+
+        myTestNG2.run();
+
+        assertThat("We should have 6 successful methods of phased Tests",
+                (int) tla2.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass))
+                        .count(),
+                is(equalTo(6)));
+
+        //STEP 1
+        assertThat("We should have no executions for the phased group 0",
+                tla2.getPassedTests().stream().filter(m -> m.getName().equals("step1")).noneMatch(
+                        m -> m.getParameters()[0].equals(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0")));
+
+        assertThat("We should NOT have executed step1 with the phased group 0",
+                tla2.getPassedTests().stream().filter(m -> m.getName().equals("step1")).noneMatch(
+                        m -> m.getParameters()[0].equals(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1")));
+
+        assertThat("We should NOT have executed step1 with the phased group 1",
+                tla2.getPassedTests().stream().filter(m -> m.getName().equals("step1")).noneMatch(
+                        m -> m.getParameters()[0].equals(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2")));
+
+        assertThat("We should have executed step1 with the phased group 2",
+                tla2.getPassedTests().stream().filter(m -> m.getName().equals("step1")).anyMatch(
+                        m -> m.getParameters()[0].equals(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "0_3")));
+
+        //STEP 2
+
+        assertThat("We should have no executions for the phased group 0",
+                tla2.getPassedTests().stream().filter(m -> m.getName().equals("step2")).noneMatch(
+                        m -> m.getParameters()[0].equals(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0")));
+
+        assertThat("We should NOT have executed step2 with the phased group 1",
+                tla2.getPassedTests().stream().filter(m -> m.getName().equals("step2")).noneMatch(
+                        m -> m.getParameters()[0].equals(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1")));
+
+        assertThat("We should have executed step2 with the phased group 2",
+                tla2.getPassedTests().stream().filter(m -> m.getName().equals("step2")).anyMatch(
+                        m -> m.getParameters()[0].equals(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2")));
+
+        assertThat("We should have executed step2 with the phased group 3",
+                tla2.getPassedTests().stream().filter(m -> m.getName().equals("step2")).anyMatch(
+                        m -> m.getParameters()[0].equals(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "0_3")));
+
+        //STEP 3
+        assertThat("We should have no executions for the phased group 0",
+                tla2.getPassedTests().stream().filter(m -> m.getName().equals("step3")).noneMatch(
+                        m -> m.getParameters()[0].equals(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0")));
+
+        assertThat("We should have executed step3 with the phased group 1",
+                tla2.getPassedTests().stream().filter(m -> m.getName().equals("step3")).anyMatch(
+                        m -> m.getParameters()[0].equals(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1")));
+
+        assertThat("We should have executed step3 with the phased group 2",
+                tla2.getPassedTests().stream().filter(m -> m.getName().equals("step3")).anyMatch(
+                        m -> m.getParameters()[0].equals(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2")));
+
+        assertThat("We should have executed step3 with the phased group 3",
+                tla2.getPassedTests().stream().filter(m -> m.getName().equals("step3")).anyMatch(
+                        m -> m.getParameters()[0].equals(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "0_3")));
+
+        //Global
+        assertThat("We should have no failed tests", tla2.getFailedTests().size(), equalTo(0));
+        assertThat("We should have no skipped tests", tla2.getSkippedTests().size(), equalTo(0));
+
+        ITestContext contextConsumer = tla2.getTestContexts().get(0);
+
+        assertThat("The Report should also include the same value as the Passed",
+                contextConsumer.getPassedTests().getAllResults().size(), is(equalTo(3)));
+
+        assertThat("The Report should also include the same value as the Skipped",
+                contextConsumer.getSkippedTests().getAllResults().size(),
+                is(equalTo(tla2.getSkippedTests().size())));
+
+        assertThat("The Report should also include the same value as the Failed",
+                contextConsumer.getFailedTests().getAllResults().size(),
+                is(equalTo(tla2.getFailedTests().size())));
+
+    }
+
+    @Test
+    public void testSHUFFLED_FullMonty_newModel() {
+        // ******** PRODUCER ********
+        // Rampup
+        TestNG myTestNG = TestTools.createTestNG();
+        TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
+
+        // Define suites
+        XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG, "Automated Suite Merged Phased Testing");
+
+        // Add listeners
+        mySuite.addListener("com.adobe.campaign.tests.integro.phased.PhasedTestListener");
+
+        // Create an instance of XmlTest and assign a name for it.
+        XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Merged Phased Tests Producer");
+
+        final Class<PhasedTestShuffledWithoutCanShuffle> l_testClass = PhasedTestShuffledWithoutCanShuffle.class;
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
         // Add package to test

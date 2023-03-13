@@ -10,15 +10,15 @@
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 /**
- * 
+ *
  */
 package com.adobe.campaign.tests.integro.phased;
-
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
+
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 @Retention(RUNTIME)
 @Target(ElementType.TYPE)
@@ -31,6 +31,15 @@ import java.lang.annotation.Target;
 public @interface PhasedTest {
 
     boolean executeInactive() default true;
-    boolean canShuffle();
+
+    /**
+     * Lets us know if the phased test can shuffle
+     *
+     * @Deprecated From now on by default a phased test will shuffle, unless you set a @PaseEvent annotation on one of
+     * the steps. In that case the Phased test will be considered as a Single Run Phased test.
+     */
+    @Deprecated
+    boolean canShuffle() default true;
+
     String[] eventClasses() default {};
 }
