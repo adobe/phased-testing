@@ -251,6 +251,7 @@
                 <version>2.10.4</version>
                 <configuration>
                     <stylesheet>java</stylesheet>
+                    <source>8</source>
                 </configuration>
             </plugin>
         </plugins>
