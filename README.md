@@ -132,7 +132,7 @@ The diagram above represents what will be executed by the following code:
 
 ```java
 @Test
-@PhasedTest(canShuffle = false)
+@PhasedTest
 public class ShuffledTest {
 
     public void step1(String val) {
@@ -161,7 +161,7 @@ The code below will react differently depending on the PHASE/Execution mode it i
 
 ```java
 @Test
-@PhasedTest(canShuffle = true)
+@PhasedTest
 public class ShuffledTest {
 
     public void step1(String val) {
@@ -182,7 +182,7 @@ public class ShuffledTest {
 ```
 
 ##### Shuffled - Interruptive
-When a suffled test is executed in an interruptive mode (Phases PRODUCER and CONSUMER), we execute all the possible ordered combinations interruptions the scenario can be subject to. Example Given a test with three steps, in Producer State, we :
+When a shuffled test is executed in an interruptive mode (Phases PRODUCER and CONSUMER), we execute all the possible ordered combinations interruptions the scenario can be subject to. Example Given a test with three steps, in Producer State, we :
 1. Execute all the three steps
 2. Execute the first two steps
 3. Execute the first step only
@@ -217,19 +217,19 @@ Note : As of version 7.0.11, we now have the possibility to let the framework pi
 ### Setting Execution Modes
 
 #### Shuffled Mode
-In order for a test scenario to be executed in shuffle mode you need to add the following annotation at the class level `@PhasedTest(canShuffle = true)`
+In order for a test scenario to be executed in shuffle mode you need to add the following annotation at the class level `@PhasedTest`
 
 #### Single Run Mode
-In order for a test scenario to be executed in shuffle mode you need to add the following annotation at the class level `@PhasedTest(canShuffle = false)`. However because the interruption will happen at the same location all the time, you have to add the annotation `@PhaseEven@PhaseEvent` where you expect the interruption to occur.
+In order for a test scenario to be executed in shuffle mode you simply need to set the annotation `@PhaseEvent` somewhere along its steps.  The location of this annotation is where you expect the interruption to occur..
 
-Optionally if you consider that the scenario can never be run as non-phased, you need also include:  `@PhasedTest(canShuffle = false, executeInactive = false)`. When executeInactive is false, the Single Run scenario will only run when in Phases.
+Optionally if you consider that the scenario can never be run as non-phased, you need also include:  `@PhasedTest(executeInactive = false)`. When executeInactive is false, the Single Run scenario will only run when in Phases.
 
 ### Local Execution
 Ideally you should set the default data provider on your tests. This allows you to execute the test locally without needing to force the Phased Test listener.
 
 ```
 @Test( dataProvider = PhasedDataProvider.DEFAULT, dataProviderClass = PhasedDataProvider.class)
-@PhasedTest(canShuffle = true)
+@PhasedTest
 public class MyPhasedTest {
 }
 ```
@@ -286,7 +286,7 @@ In the case of single run scenarios, we can specify which phase event should be 
 
 In the example below the PhaseEvent is always executed at the step2 of the scenario. Here we have specified that when we are in asynchroous mode only the event `com.adobe.campaign.tests.integro.phased.data.events.MyNonInterruptiveEvent` should be executed. 
 ```Java
-@PhasedTest(canShuffle = false)
+@PhasedTest
 @Test
 public class SingleRunScenarioWithEvent {
 
@@ -312,7 +312,7 @@ public class SingleRunScenarioWithEvent {
 In this case we expect us to specify if a scenario is only subject to the same event. This will be done at the `@PhasedTest` annotation using the attribute `eventClasses`. When set we only use the specified event.
 
 ```Java
-@PhasedTest(canShuffle = true, eventClasses = {"com.adobe.campaign.tests.integro.phased.data.events.MyNonInterruptiveEvent"})
+@PhasedTest(eventClasses = {"com.adobe.campaign.tests.integro.phased.data.events.MyNonInterruptiveEvent"})
 @Test
 public class ShuffledScenarioWithEvent {
 
@@ -379,7 +379,7 @@ Example:
 ```java
 public class PhasedTestSeries_NestedContainer {
   @Test
-  @PhasedTest(canShuffle = true)
+  @PhasedTest
   public class PhasedScenario1 {
 
     public void step1(String val) {
@@ -394,7 +394,7 @@ public class PhasedTestSeries_NestedContainer {
   }
 
   @Test
-  @PhasedTest(canShuffle = true)
+  @PhasedTest
   public class PhasedScenario2 {
 
     public void step1(String val) {
@@ -575,6 +575,10 @@ For now, we have not come around to deciding how retry should work in the case o
 * [Implementation of execution order detection base on the code.](#Execution-Order) We now have two options:
   * We continue as before, where we select the order alphabetically.
   * Whenever the system property, PHASED.TESTS.DETECT.ORDER is set, the steps are executed in the order the way we declared in the code. By default, we expect the coe to be in maven where the tests are in the directory src/test/java. However, this can be overriden by setting the eecution property PHASED.TESTS.CODE.ROOT (#5)
+* [#116](https://github.com/adobe/phased-testing/issues/116) We are now removing the explicite "SingleRun" mode. 
+  * All Phased Tests without a @PhaseEvent anotation next to a step are now considered as "Shuffled".
+  * Any Phased Test with a @PhaseEvent annotation is a Singe Run test.
+  * We have now deprecated the @PhasedTest "canShuffle" attribute.
 
 ### 7.0.10
 - Reports are now merged by default (#56)

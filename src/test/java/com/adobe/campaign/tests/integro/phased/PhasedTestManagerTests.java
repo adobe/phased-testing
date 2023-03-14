@@ -944,6 +944,20 @@ public class PhasedTestManagerTests {
 
         assertThat("step1 should be considered as a producer execution",
                 PhasedTestManager.isExecutedInProducerMode(l_myMethod));
+
+        final Method l_myMethodNew = PhasedTestSingleWithoutCanShuffle.class.getMethod("step1", String.class);
+
+        assertThat("step1 should be considered as a producer execution",
+                PhasedTestManager.isExecutedInProducerMode(l_myMethod));
+    }
+
+    @Test
+    public void testIsExecutedProducer_ConflictCanShuffleAndEvent() throws NoSuchMethodException, SecurityException {
+
+        final Method l_myMethod = PhasedSeries_H_ShuffledClass.class.getMethod("step1", String.class);
+
+        assertThat("step1 could not be be considered as a producer execution, as it has no event",
+                !PhasedTestManager.isExecutedInProducerMode(l_myMethod));
     }
 
     @Test
@@ -1146,28 +1160,27 @@ public class PhasedTestManagerTests {
      * Author : gandomi
      */
     @Test
-    public void testIsInCascadeMode() throws NoSuchMethodException, SecurityException {
-        final Method l_myMethod = PhasedSeries_F_Shuffle.class.getMethod("step3", String.class);
+    public void testIsInShuffledMode() throws NoSuchMethodException, SecurityException {
+        final Method l_myMethodTestOnMethods = PhasedSeries_F_Shuffle.class.getMethod("step3", String.class);
+        final Method l_myMethodTestOnClass = PhasedSeries_H_ShuffledClass.class.getMethod("step3", String.class);
+        final Method l_newShuffleRunFormat = PhasedTestShuffledWithoutCanShuffle.class.getMethod("step1", String.class);
+
+
+        assertThat("We should be in Shuffled mode", PhasedTestManager.isPhasedTestShuffledMode(l_myMethodTestOnMethods));
+        assertThat("We should be in Shuffled mode", PhasedTestManager.isPhasedTestShuffledMode(l_myMethodTestOnClass));
+        assertThat("We should be in Shuffled mode", PhasedTestManager.isPhasedTestShuffledMode(l_newShuffleRunFormat));
+
 
         Phases.CONSUMER.activate();
-        assertThat("We should be in Shuffled mode", PhasedTestManager.isPhasedTestShuffledMode(l_myMethod));
+        assertThat("We should be in Shuffled mode", PhasedTestManager.isPhasedTestShuffledMode(l_myMethodTestOnMethods));
+        assertThat("We should be in Shuffled mode", PhasedTestManager.isPhasedTestShuffledMode(l_myMethodTestOnClass));
+        assertThat("We should be in Shuffled mode", PhasedTestManager.isPhasedTestShuffledMode(l_newShuffleRunFormat));
+
     }
 
-    /**
-     * Testing issue #33 When we are in Inactive state the Shuffled should not happen
-     * <p>
-     * Author : gandomi
-     */
-    @Test
-    public void testIsInCascadeMode_Negative() throws NoSuchMethodException, SecurityException {
-        final Method l_myMethod = PhasedSeries_F_Shuffle.class.getMethod("step3", String.class);
-
-        assertThat("We should be in Shuffled mode",
-                PhasedTestManager.isPhasedTestShuffledMode(l_myMethod));
-    }
 
     @Test
-    public void testIsInCascadeMode_Negative2() throws NoSuchMethodException, SecurityException {
+    public void testIsInShuffleMode_Negative2() throws NoSuchMethodException, SecurityException {
         final Method l_myMethod = NormalSeries_A.class.getMethod("firstTest");
 
         Phases.CONSUMER.activate();
@@ -1177,12 +1190,25 @@ public class PhasedTestManagerTests {
     }
 
     @Test(description = "Testing with a single mode")
-    public void testIsInCascadeMode_Negative3() throws NoSuchMethodException, SecurityException {
+    public void testIsInShuffleMode_Negative3() throws NoSuchMethodException, SecurityException {
         final Method l_myMethod = PhasedSeries_A.class.getMethod("step1", String.class);
 
         Phases.CONSUMER.activate();
         assertThat("We should not be in Shuffled mode",
                 !PhasedTestManager.isPhasedTestShuffledMode(l_myMethod));
+
+        //Case 2
+        final Method l_myMethod2 = PhasedTestSingleWithoutCanShuffle.class.getMethod("step1", String.class);
+
+        assertThat("We should not be in Shuffled mode",
+                !PhasedTestManager.isPhasedTestShuffledMode(l_myMethod2));
+
+        //Case 3
+        final Method l_myMethod3 = PhasedSeries_D_SingleNoPhase.class.getMethod("step1", String.class);
+
+        assertThat("We should not be in Shuffled mode",
+                !PhasedTestManager.isPhasedTestShuffledMode(l_myMethod3));
+
     }
 
     //NIE
@@ -1190,33 +1216,48 @@ public class PhasedTestManagerTests {
     public void testHasAPhaseEvent() throws NoSuchMethodException {
 
         assertThat("We correctly identify that our class has an event",
-                PhasedTestManager.phasedTestHasEvent(TestSINGLEWithEvent_eventAsAnnotation.class));
+                PhasedTestManager.isPhasedTestWithEvent(TestSINGLEWithEvent_eventAsAnnotation.class));
     }
 
     @Test(description = "Testing in Aynchronous mode hello World" )
     public void testHasAPhaseEvent_Negative() throws NoSuchMethodException {
 
         assertThat("We correctly identify that our class does not have an event",
-                !PhasedTestManager.phasedTestHasEvent(PhasedSeries_H_ShuffledClass.class));
+                !PhasedTestManager.isPhasedTestWithEvent(PhasedSeries_H_ShuffledClass.class));
     }
 
 
     /****** Single mode tests *******/
 
+    //Issue #116 case 1
     @Test(description = "Testing with a single mode")
     public void testIsInSingleMode_STD() throws NoSuchMethodException, SecurityException {
-        final Method l_myMethod = PhasedSeries_A.class.getMethod("step1", String.class);
+        final Method l_myMethodTestOnMethods = PhasedSeries_A.class.getMethod("step1", String.class);
+
+        final Method l_myMethodTestOnClass = PhasedSeries_H_SingleClass.class.getMethod("step1", String.class);
+        final Method l_newSingleRunFormat = PhasedTestSingleWithoutCanShuffle.class.getMethod("step1", String.class);
+
+        assertThat("We should be in Single mode", PhasedTestManager.isPhasedTestSingleMode(l_myMethodTestOnMethods));
+        assertThat("We should be in Single mode", PhasedTestManager.isPhasedTestSingleMode(l_myMethodTestOnClass));
+        assertThat("We should be in Single mode", PhasedTestManager.isPhasedTestSingleMode(l_newSingleRunFormat));
 
         Phases.CONSUMER.activate();
-        assertThat("We should not be in Shuffled mode", PhasedTestManager.isPhasedTestSingleMode(l_myMethod));
+        assertThat("We should be in Single mode", PhasedTestManager.isPhasedTestSingleMode(l_myMethodTestOnMethods));
+        assertThat("We should be in Single mode", PhasedTestManager.isPhasedTestSingleMode(l_myMethodTestOnClass));
+        assertThat("We should be in Single mode", PhasedTestManager.isPhasedTestSingleMode(l_newSingleRunFormat));
     }
 
-    @Test(description = "Testing with a single mode")
-    public void testIsInSingleMode_InActiveState() throws NoSuchMethodException, SecurityException {
-        final Method l_myMethod = PhasedSeries_A.class.getMethod("step1", String.class);
+    @Test
+    public void testContradictionSingleWithNoEvent() throws NoSuchMethodException {
 
-        assertThat("We should not be in Shuffled mode", PhasedTestManager.isPhasedTestSingleMode(l_myMethod));
+        final Method l_newSingleRunFormat = PhasedSeries_D_SingleNoPhase.class.getMethod("step1", String.class);
+        assertThat("We should be in Single mode", PhasedTestManager.isPhasedTestSingleMode(l_newSingleRunFormat));
+
+        Phases.CONSUMER.activate();
+        assertThat("We should be in Single mode", PhasedTestManager.isPhasedTestSingleMode(l_newSingleRunFormat));
+
     }
+
 
     @Test
     public void testIsInSingleMode_Negative2() throws NoSuchMethodException, SecurityException {
@@ -1227,20 +1268,13 @@ public class PhasedTestManagerTests {
 
     }
 
+    //Issue #116 case 3
     @Test
     public void testIsInSingleMode_Shuffled_Negative3() throws NoSuchMethodException, SecurityException {
         final Method l_myMethod = PhasedSeries_H_ShuffledClass.class.getMethod("step1", String.class);
 
         Phases.PRODUCER.activate();
         assertThat("We should not be in single mode", !PhasedTestManager.isPhasedTestSingleMode(l_myMethod));
-
-    }
-
-    @Test
-    public void testIsInSingleMode() throws NoSuchMethodException, SecurityException {
-        final Method l_myMethod = PhasedSeries_F_Shuffle.class.getMethod("step3", String.class);
-
-        Phases.CONSUMER.activate();
         assertThat("We should be in Shuffled mode", PhasedTestManager.isPhasedTestShuffledMode(l_myMethod));
 
     }
@@ -3179,5 +3213,4 @@ public class PhasedTestManagerTests {
         assertThat(PhasedTestManager.MergedReportData.prefix,notNullValue());
         assertThat(PhasedTestManager.MergedReportData.suffix,notNullValue());
     }
-
 }

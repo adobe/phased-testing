@@ -57,6 +57,7 @@ public final class PhasedTestManager {
 
     public static final String STD_MERGE_STEP_ERROR_PREFIX = "Phased Error: Failure in step ";
 
+
     /**
      * The different states a step can assume in a scenario
      * <p>
@@ -800,7 +801,7 @@ public final class PhasedTestManager {
      * @param in_testScenario A Phased Test
      * @return true if the scenario has a step that contains the annotation {{@link PhaseEvent}}
      */
-    public static boolean phasedTestHasEvent(Class in_testScenario) {
+    public static boolean isPhasedTestWithEvent(Class in_testScenario) {
 
         return Arrays.stream(in_testScenario.getDeclaredMethods()).anyMatch(t -> t.isAnnotationPresent(PhaseEvent.class));
     }
@@ -861,7 +862,9 @@ public final class PhasedTestManager {
      * @return True if the test class is a SingleRun Phase Test scenario
      */
     static boolean isPhasedTestSingleMode(Class<?> in_class) {
-        return isPhasedTest(in_class) && !in_class.getAnnotation(PhasedTest.class).canShuffle();
+        //TODO in 8.0.2 to be removed
+        //return isPhasedTest(in_class) && (isPhasedTestWithEvent(in_class)
+        return isPhasedTest(in_class) && (isPhasedTestWithEvent(in_class) || !in_class.getAnnotation(PhasedTest.class).canShuffle());
     }
 
     /**
@@ -894,9 +897,8 @@ public final class PhasedTestManager {
      * @return True if the given test scenario is a Shuffled Phased Test scenario
      */
     static boolean isPhasedTestShuffledMode(Class<?> in_class) {
-        return isPhasedTest(in_class) && in_class.getAnnotation(PhasedTest.class).canShuffle();
-        //return isPhasedTest(in_class) && in_class.getAnnotation(PhasedTest.class).canShuffle() && Phases
-        //        .getCurrentPhase().hasSplittingEvent() && !phasedTestHasEvent(in_class);
+        //return isPhasedTest(in_class) && in_class.getAnnotation(PhasedTest.class).canShuffle();
+        return isPhasedTest(in_class) && !isPhasedTestWithEvent(in_class) && in_class.getAnnotation(PhasedTest.class).canShuffle();
     }
 
     /**
@@ -1663,4 +1665,5 @@ public final class PhasedTestManager {
         }
         return lr_index;
     }
+
 }
