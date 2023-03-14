@@ -11,10 +11,12 @@
  */
 package com.adobe.campaign.tests.integro.phased;
 
+import com.adobe.campaign.tests.integro.phased.utils.ConfigValueHandler;
+
 import java.util.Arrays;
 
 public enum Phases {
-    PRODUCER(true), CONSUMER(true), NON_PHASED(false);
+    PRODUCER(true), CONSUMER(true), NON_PHASED(false), ASYNCHRONOUS(false);
 
     boolean hasSplittingEvent;
 
@@ -32,7 +34,7 @@ public enum Phases {
      *
      */
     public static Phases getCurrentPhase() {
-        return fetchCorrespondingPhase(System.getProperty(PhasedTestManager.PROP_SELECTED_PHASE));
+        return fetchCorrespondingPhase(ConfigValueHandler.PROP_SELECTED_PHASE.fetchValue());
     }
 
     /**
@@ -88,11 +90,7 @@ public enum Phases {
      *
      */
     void activate() {
-        if (this.hasSplittingEvent) {
-            System.setProperty(PhasedTestManager.PROP_SELECTED_PHASE, this.name());
-        } else {
-            System.clearProperty(PhasedTestManager.PROP_SELECTED_PHASE);
-        }
+        ConfigValueHandler.PROP_SELECTED_PHASE.activate(this.name());
     }
 
     /**

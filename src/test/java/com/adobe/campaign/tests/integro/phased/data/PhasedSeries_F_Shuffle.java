@@ -30,7 +30,6 @@ public class PhasedSeries_F_Shuffle {
     }
 
     @Test
-    @PhaseEvent
     public void step2(String val) {
         System.out.println("step2 " + val);
         String l_fetchedValue = PhasedTestManager.consumeFromStep("step1");

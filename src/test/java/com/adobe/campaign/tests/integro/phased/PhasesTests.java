@@ -11,6 +11,7 @@
  */
 package com.adobe.campaign.tests.integro.phased;
 
+import com.adobe.campaign.tests.integro.phased.utils.ConfigValueHandler;
 import org.hamcrest.Matchers;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -26,11 +27,7 @@ public class PhasesTests {
     @BeforeClass
     public void cleanCache() {
         PhasedTestManager.clearCache();
-
-        System.clearProperty(PhasedTestManager.PROP_PHASED_DATA_PATH);
-        System.clearProperty(PhasedTestManager.PROP_SELECTED_PHASE);
-        System.clearProperty(PhasedTestManager.PROP_PHASED_TEST_DATABROKER);
-
+        ConfigValueHandler.resetAllValues();
     }
 
     @AfterMethod
@@ -41,7 +38,7 @@ public class PhasesTests {
     
     @Test
     public void testSetPhase() {
-        assertThat("We should have no phase value", System.getProperty(PhasedTestManager.PROP_SELECTED_PHASE),Matchers.nullValue());
+        assertThat("We should have no phase value", System.getProperty(ConfigValueHandler.PROP_SELECTED_PHASE.name()),Matchers.nullValue());
         Phases.PRODUCER.activate();
         
         assertThat("We should have the correct phase", Phases.PRODUCER.isSelected());
@@ -77,12 +74,20 @@ public class PhasesTests {
         assertThat("We should find the correct state CONSUMER",
                 Phases.fetchCorrespondingPhase("conSumer"), is(equalTo(Phases.CONSUMER)));
 
-        System.setProperty(PhasedTestManager.PROP_SELECTED_PHASE, "PRODuCER");
+        ConfigValueHandler.PROP_SELECTED_PHASE.activate("PRODuCER");
         assertThat("We should now have the state Producer for the PhasedTestStates",
                 Phases.getCurrentPhase(), is(equalTo(Phases.PRODUCER)));
 
         assertThat("We should have a check me ethod that works", Phases.PRODUCER.isSelected());
 
+        assertThat("We should find the correct state ASYNCHRONOUS_EVENT",
+                Phases.fetchCorrespondingPhase("asYnChronous"), is(equalTo(Phases.ASYNCHRONOUS)));
+
+        ConfigValueHandler.PROP_SELECTED_PHASE.activate(Phases.ASYNCHRONOUS.name());
+        assertThat("We should now have the state Producer for the PhasedTestStates",
+                Phases.getCurrentPhase(), is(equalTo(Phases.ASYNCHRONOUS)));
+
+        assertThat("We should have a check me ethod that works", Phases.ASYNCHRONOUS.isSelected());
     }
 
     
@@ -93,5 +98,7 @@ public class PhasesTests {
         assertThat("All phases should have a splitting event", Arrays.stream(l_phasesWithEvents).allMatch(p -> p.hasSplittingEvent));
 
     }
+
+
 
 }

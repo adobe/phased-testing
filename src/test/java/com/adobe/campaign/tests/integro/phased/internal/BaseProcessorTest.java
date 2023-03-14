@@ -12,6 +12,8 @@
 package com.adobe.campaign.tests.integro.phased.internal;
 
 import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
+import com.adobe.campaign.tests.integro.phased.Phases;
+import com.adobe.campaign.tests.integro.phased.utils.ConfigValueHandler;
 import org.testng.IHookCallBack;
 import org.testng.IHookable;
 import org.testng.ITestResult;
@@ -20,8 +22,8 @@ public class BaseProcessorTest implements IHookable {
 
   @Override
   public void run(IHookCallBack callBack, ITestResult testResult) {
-    System.setProperty(PhasedTestManager.PROP_SELECTED_PHASE, "PRODUCER");
+    ConfigValueHandler.PROP_SELECTED_PHASE.activate(Phases.PRODUCER.name());
     callBack.runTestMethod(testResult);
-    System.clearProperty(PhasedTestManager.PROP_SELECTED_PHASE);
+    ConfigValueHandler.PROP_SELECTED_PHASE.reset();
   }
 }

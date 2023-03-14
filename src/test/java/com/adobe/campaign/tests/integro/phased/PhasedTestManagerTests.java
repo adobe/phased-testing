@@ -14,8 +14,13 @@ package com.adobe.campaign.tests.integro.phased;
 import com.adobe.campaign.tests.integro.phased.data.*;
 import com.adobe.campaign.tests.integro.phased.data.befaft.PhasedSeries_M_SimpleClass;
 import com.adobe.campaign.tests.integro.phased.data.dp.*;
+import com.adobe.campaign.tests.integro.phased.data.events.TestSINGLEWithEvent_eventAsAnnotation;
+import com.adobe.campaign.tests.integro.phased.data.events.TestSINGLEWithEvent_eventAsExecProperty;
+import com.adobe.campaign.tests.integro.phased.data.events.TestShuffled_eventPassedAsExecutionVariable;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
+import com.adobe.campaign.tests.integro.phased.utils.ConfigValueHandler;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
+import com.adobe.campaign.tests.integro.phased.utils.MockTestTools;
 import org.hamcrest.Matchers;
 import org.mockito.Mockito;
 import org.testng.Assert;
@@ -25,7 +30,6 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.testng.asserts.SoftAssert;
-import org.testng.internal.ConstructorOrMethod;
 
 import java.io.*;
 import java.lang.reflect.Method;
@@ -40,12 +44,7 @@ public class PhasedTestManagerTests {
     @BeforeClass
     public void cleanCache() {
         PhasedTestManager.clearCache();
-
-        System.clearProperty(PhasedTestManager.PROP_PHASED_DATA_PATH);
-        System.clearProperty(PhasedTestManager.PROP_SELECTED_PHASE);
-        System.clearProperty(PhasedTestManager.PROP_PHASED_TEST_DATABROKER);
-        System.clearProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS);
-        System.clearProperty(PhasedTestManager.PROP_TEST_SELECTION_BY_PROPERTIES);
+        ConfigValueHandler.resetAllValues();
 
         PhasedTestManager.deactivateMergedReports();
         PhasedTestManager.MergedReportData.resetReport();
@@ -271,13 +270,13 @@ public class PhasedTestManagerTests {
     }
 
     /**
-     * Testing that when the property
-     * ({@value PhasedTestManager#PROP_PHASED_DATA_PATH} is set, that path is
+     * Testing that when the property {@value ConfigValueHandler#PROP_PHASED_DATA_PATH#value} is set, that path is
      * used.
      *
      * Author : gandomi
      *
      */
+    // ({@value PhasedTestManager#PROP_PHASED_DATA_PATH} is set, that path is
     @Test
     public void exportingData_UsingSystemValues() throws IOException {
         PhasedTestManager.produceInStep("Hello");
@@ -286,7 +285,7 @@ public class PhasedTestManagerTests {
                 .createEmptyCacheFile(GeneralTestUtils.createCacheDirectory("phased2"), "newFile.properties");
         assertThat("The new file should be empty", !l_newFile.exists());
 
-        System.setProperty(PhasedTestManager.PROP_PHASED_DATA_PATH, l_newFile.getPath());
+        ConfigValueHandler.PROP_PHASED_DATA_PATH.activate(l_newFile.getPath());
 
         File l_phasedTestFile = PhasedTestManager.exportPhaseData();
 
@@ -313,12 +312,10 @@ public class PhasedTestManagerTests {
     }
 
     /**
-     * Testing that when the property
-     * ({@value PhasedTestManager#PROP_PHASED_DATA_PATH} is set, that path is
+     * Testing that when the property PHASED.TESTS.STORAGE.PATH is set, that path is
      * used.
      *
      * Author : gandomi
-     *
      *
      */
     @Test
@@ -328,7 +325,7 @@ public class PhasedTestManagerTests {
                 GeneralTestUtils.createCacheDirectory("testingTheFetchExportFile"), "newFile.properties");
         assertThat("The new file should be empty", !l_newFile.exists());
 
-        System.setProperty(PhasedTestManager.PROP_PHASED_DATA_PATH, l_newFile.getPath());
+        ConfigValueHandler.PROP_PHASED_DATA_PATH.activate(l_newFile.getPath());
 
         assertThat(PhasedTestManager.fetchExportFile().getAbsolutePath(),
                 equalTo(l_newFile.getAbsolutePath()));
@@ -598,7 +595,7 @@ public class PhasedTestManagerTests {
         assertThat("The old file should now be empty", !l_phasedTestData.exists());
 
         PhasedTestManager.clearCache();
-        System.setProperty(PhasedTestManager.PROP_PHASED_DATA_PATH, l_newFile.getPath());
+        ConfigValueHandler.PROP_PHASED_DATA_PATH.activate(l_newFile.getPath());
         Properties l_phasedTestdata = PhasedTestManager.importPhaseData();
 
         assertThat("We should find our property", l_phasedTestdata, Matchers.notNullValue());
@@ -611,28 +608,42 @@ public class PhasedTestManagerTests {
     }
 
     @Test
-    public void testCreateDataProviderData() {
+    public void testCreateDataProviderData() throws NoSuchMethodException {
         Phases.PRODUCER.activate();
 
         Map<Class<?>, List<String>> l_myMap = new HashMap<>();
+        Method method1 = PhasedSeries_F_Shuffle.class.getMethod("step1", String.class);
+        Method method2 = PhasedSeries_F_Shuffle.class.getMethod("step2", String.class);
+        Method method3 = PhasedSeries_F_Shuffle.class.getMethod("step3", String.class);
 
-        l_myMap.put(PhasedSeries_F_Shuffle.class, Arrays.asList("a", "b", "c"));
+        l_myMap.put(PhasedSeries_F_Shuffle.class,
+                Arrays.asList(ClassPathParser.fetchFullName(method1), ClassPathParser.fetchFullName(method2),
+                        ClassPathParser.fetchFullName(method3)));
 
-        Map<String, MethodMapping> l_result = PhasedTestManager.generatePhasedProviders(l_myMap);
+        Map<String, MethodMapping> l_result = PhasedTestManager.generatePhasedProviders(l_myMap,
+                Phases.getCurrentPhase());
 
-        assertThat("we need to have the expected key", l_result.containsKey("a"));
-        assertThat("The first method should have three entries", l_result.get("a").nrOfProviders, equalTo(3));
+        assertThat("we need to have the expected key", l_result.containsKey(ClassPathParser.fetchFullName(method1)));
+        assertThat("The first method should have three entries", l_result.get(ClassPathParser.fetchFullName(method1)).nrOfProviders, equalTo(3));
 
-        assertThat("The first method should have two entries", l_result.get("b").nrOfProviders, equalTo(2));
+        assertThat("The first method should have two entries", l_result.get(ClassPathParser.fetchFullName(method2)).nrOfProviders, equalTo(2));
 
-        assertThat("The first method should have one entry", l_result.get("c").nrOfProviders, equalTo(1));
+        assertThat("The first method should have one entry", l_result.get(ClassPathParser.fetchFullName(method3)).nrOfProviders, equalTo(1));
 
-        assertThat("We should have the same amount of total sizes", l_result.get("a").totalClassMethods,
-                equalTo(l_result.get("b").totalClassMethods));
-        assertThat("We should have the same amount of total sizes", l_result.get("a").totalClassMethods,
-                equalTo(l_result.get("c").totalClassMethods));
 
-        Object[][] l_providerA = PhasedTestManager.fetchProvidersShuffled("a");
+        assertThat("We should have the same amount of total sizes", l_result.get(ClassPathParser.fetchFullName(method1)).totalClassMethods,
+                equalTo(l_result.get(ClassPathParser.fetchFullName(method2)).totalClassMethods));
+        assertThat("We should have the same amount of total sizes", l_result.get(ClassPathParser.fetchFullName(method1)).totalClassMethods,
+                equalTo(l_result.get(ClassPathParser.fetchFullName(method3)).totalClassMethods));
+
+        assertThat("The first method should have three entries", l_result.get(ClassPathParser.fetchFullName(method1)).methodOrderInExecution, equalTo(1));
+
+        assertThat("The first method should have two entries", l_result.get(ClassPathParser.fetchFullName(method2)).methodOrderInExecution, equalTo(2));
+
+        assertThat("The first method should have one entry", l_result.get(ClassPathParser.fetchFullName(method3)).methodOrderInExecution, equalTo(3));
+
+
+        Object[][] l_providerA = PhasedTestManager.fetchProvidersShuffled(method1);
 
         assertThat(l_providerA[0].length, equalTo(1));
 
@@ -640,14 +651,14 @@ public class PhasedTestManagerTests {
         assertThat(l_providerA[1][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1"));
         assertThat(l_providerA[2][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2"));
 
-        Object[][] l_providerB = PhasedTestManager.fetchProvidersShuffled("b");
+        Object[][] l_providerB = PhasedTestManager.fetchProvidersShuffled(method2);
 
         assertThat(l_providerB[0].length, equalTo(1));
 
         assertThat(l_providerB[0][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0"));
         assertThat(l_providerB[1][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1"));
 
-        Object[][] l_providerC = PhasedTestManager.fetchProvidersShuffled("c");
+        Object[][] l_providerC = PhasedTestManager.fetchProvidersShuffled(method3);
 
         assertThat(l_providerC[0].length, equalTo(1));
 
@@ -656,28 +667,34 @@ public class PhasedTestManagerTests {
     }
 
     @Test
-    public void testCreateDataProviderData_withOwnDataProvider() {
+    public void testCreateDataProviderData_withOwnDataProvider() throws NoSuchMethodException {
         Phases.PRODUCER.activate();
 
         Map<Class<?>, List<String>> l_myMap = new HashMap<>();
+        Method method1 = PhasedSeries_Lbis_ShuffledDP.class.getMethod("step1", String.class, String.class);
+        Method method2 = PhasedSeries_Lbis_ShuffledDP.class.getMethod("step2", String.class, String.class);
+        Method method3 = PhasedSeries_Lbis_ShuffledDP.class.getMethod("step3", String.class, String.class);
 
-        l_myMap.put(PhasedSeries_L_ShuffledDP.class, Arrays.asList("a", "b", "c"));
+        l_myMap.put(PhasedSeries_Lbis_ShuffledDP.class,
+                Arrays.asList(ClassPathParser.fetchFullName(method1), ClassPathParser.fetchFullName(method2),
+                        ClassPathParser.fetchFullName(method3)));
 
-        Map<String, MethodMapping> l_result = PhasedTestManager.generatePhasedProviders(l_myMap);
+        Map<String, MethodMapping> l_result = PhasedTestManager.generatePhasedProviders(l_myMap,
+                Phases.getCurrentPhase());
 
-        assertThat("we need to have the expected key", l_result.containsKey("a"));
-        assertThat("The first method should have three entries", l_result.get("a").nrOfProviders, equalTo(3));
+        assertThat("we need to have the expected key", l_result.containsKey(ClassPathParser.fetchFullName(method1)));
+        assertThat("The first method should have three entries", l_result.get(ClassPathParser.fetchFullName(method1)).nrOfProviders, equalTo(3));
 
-        assertThat("The first method should have two entries", l_result.get("b").nrOfProviders, equalTo(2));
+        assertThat("The first method should have two entries", l_result.get(ClassPathParser.fetchFullName(method2)).nrOfProviders, equalTo(2));
 
-        assertThat("The first method should have one entry", l_result.get("c").nrOfProviders, equalTo(1));
+        assertThat("The first method should have one entry", l_result.get(ClassPathParser.fetchFullName(method3)).nrOfProviders, equalTo(1));
 
-        assertThat("We should have the same amount of total sizes", l_result.get("a").totalClassMethods,
-                equalTo(l_result.get("b").totalClassMethods));
-        assertThat("We should have the same amount of total sizes", l_result.get("a").totalClassMethods,
-                equalTo(l_result.get("c").totalClassMethods));
+        assertThat("We should have the same amount of total sizes", l_result.get(ClassPathParser.fetchFullName(method1)).totalClassMethods,
+                equalTo(l_result.get(ClassPathParser.fetchFullName(method2)).totalClassMethods));
+        assertThat("We should have the same amount of total sizes", l_result.get(ClassPathParser.fetchFullName(method1)).totalClassMethods,
+                equalTo(l_result.get(ClassPathParser.fetchFullName(method3)).totalClassMethods));
 
-        Object[][] l_providerA = PhasedTestManager.fetchProvidersShuffled("a");
+        Object[][] l_providerA = PhasedTestManager.fetchProvidersShuffled(method1);
 
         assertThat(l_providerA.length, equalTo(6));
         assertThat(l_providerA[0].length, equalTo(2));
@@ -695,7 +712,7 @@ public class PhasedTestManagerTests {
         assertThat(l_providerA[5][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2"));
         assertThat(l_providerA[5][1], equalTo(PhasedSeries_L_PROVIDER.PROVIDER_B));
 
-        Object[][] l_providerB = PhasedTestManager.fetchProvidersShuffled("b");
+        Object[][] l_providerB = PhasedTestManager.fetchProvidersShuffled(method2);
 
         assertThat(l_providerB.length, equalTo(4));
         assertThat(l_providerB[0].length, equalTo(2));
@@ -709,7 +726,7 @@ public class PhasedTestManagerTests {
         assertThat(l_providerB[3][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1"));
         assertThat(l_providerB[3][1], equalTo(PhasedSeries_L_PROVIDER.PROVIDER_B));
 
-        Object[][] l_providerC = PhasedTestManager.fetchProvidersShuffled("c");
+        Object[][] l_providerC = PhasedTestManager.fetchProvidersShuffled(method3);
 
         assertThat(l_providerC.length, equalTo(2));
         assertThat(l_providerC[0].length, equalTo(2));
@@ -721,38 +738,117 @@ public class PhasedTestManagerTests {
 
     }
 
+
     @Test
-    public void testCreateDataProviderData_modeConsumer() throws SecurityException {
+    public void testCreateDataProviderData_withOwnDataProviderOrdered() throws NoSuchMethodException {
+        Phases.PRODUCER.activate();
+
+        Map<Class<?>, List<String>> l_myMap = new HashMap<>();
+        Method method1 = PhasedSeries_Lbis_ShuffledDP.class.getMethod("step1", String.class, String.class);
+        Method method2 = PhasedSeries_Lbis_ShuffledDP.class.getMethod("step2", String.class, String.class);
+        Method method3 = PhasedSeries_Lbis_ShuffledDP.class.getMethod("step3", String.class, String.class);
+
+        l_myMap.put(PhasedSeries_Lbis_ShuffledDP.class,
+                Arrays.asList(ClassPathParser.fetchFullName(method1), ClassPathParser.fetchFullName(method2),
+                        ClassPathParser.fetchFullName(method3)));
+
+        Map<String, MethodMapping> l_result = PhasedTestManager.generatePhasedProviders(l_myMap,
+                Phases.getCurrentPhase());
+
+        assertThat("we need to have the expected key", l_result.containsKey(ClassPathParser.fetchFullName(method1)));
+        assertThat("The first method should have three entries", l_result.get(ClassPathParser.fetchFullName(method1)).nrOfProviders, equalTo(3));
+
+        assertThat("The first method should have two entries", l_result.get(ClassPathParser.fetchFullName(method2)).nrOfProviders, equalTo(2));
+
+        assertThat("The first method should have one entry", l_result.get(ClassPathParser.fetchFullName(method3)).nrOfProviders, equalTo(1));
+
+        assertThat("We should have the same amount of total sizes", l_result.get(ClassPathParser.fetchFullName(method1)).totalClassMethods,
+                equalTo(l_result.get(ClassPathParser.fetchFullName(method2)).totalClassMethods));
+        assertThat("We should have the same amount of total sizes", l_result.get(ClassPathParser.fetchFullName(method1)).totalClassMethods,
+                equalTo(l_result.get(ClassPathParser.fetchFullName(method3)).totalClassMethods));
+
+        Object[][] l_providerA = PhasedTestManager.fetchProvidersShuffled(method1);
+
+        assertThat(l_providerA.length, equalTo(6));
+        assertThat(l_providerA[0].length, equalTo(2));
+
+        assertThat(l_providerA[0][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0"));
+        assertThat(l_providerA[0][1], equalTo(PhasedSeries_L_PROVIDER.PROVIDER_A));
+        assertThat(l_providerA[1][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0"));
+        assertThat(l_providerA[1][1], equalTo(PhasedSeries_L_PROVIDER.PROVIDER_B));
+        assertThat(l_providerA[2][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1"));
+        assertThat(l_providerA[2][1], equalTo(PhasedSeries_L_PROVIDER.PROVIDER_A));
+        assertThat(l_providerA[3][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1"));
+        assertThat(l_providerA[3][1], equalTo(PhasedSeries_L_PROVIDER.PROVIDER_B));
+        assertThat(l_providerA[4][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2"));
+        assertThat(l_providerA[4][1], equalTo(PhasedSeries_L_PROVIDER.PROVIDER_A));
+        assertThat(l_providerA[5][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2"));
+        assertThat(l_providerA[5][1], equalTo(PhasedSeries_L_PROVIDER.PROVIDER_B));
+
+        Object[][] l_providerB = PhasedTestManager.fetchProvidersShuffled(method2);
+
+        assertThat(l_providerB.length, equalTo(4));
+        assertThat(l_providerB[0].length, equalTo(2));
+
+        assertThat(l_providerB[0][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0"));
+        assertThat(l_providerB[0][1], equalTo(PhasedSeries_L_PROVIDER.PROVIDER_A));
+        assertThat(l_providerB[1][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0"));
+        assertThat(l_providerB[1][1], equalTo(PhasedSeries_L_PROVIDER.PROVIDER_B));
+        assertThat(l_providerB[2][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1"));
+        assertThat(l_providerB[2][1], equalTo(PhasedSeries_L_PROVIDER.PROVIDER_A));
+        assertThat(l_providerB[3][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1"));
+        assertThat(l_providerB[3][1], equalTo(PhasedSeries_L_PROVIDER.PROVIDER_B));
+
+        Object[][] l_providerC = PhasedTestManager.fetchProvidersShuffled(method3);
+
+        assertThat(l_providerC.length, equalTo(2));
+        assertThat(l_providerC[0].length, equalTo(2));
+
+        assertThat(l_providerC[0][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0"));
+        assertThat(l_providerC[0][1], equalTo(PhasedSeries_L_PROVIDER.PROVIDER_A));
+        assertThat(l_providerC[1][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0"));
+        assertThat(l_providerC[1][1], equalTo(PhasedSeries_L_PROVIDER.PROVIDER_B));
+
+    }
+
+
+    @Test
+    public void testCreateDataProviderData_modeConsumer() throws SecurityException, NoSuchMethodException {
         Map<Class<?>, List<String>> l_myMap = new HashMap<>();
 
-        final Class<PhasedSeries_F_Shuffle> l_myClass = PhasedSeries_F_Shuffle.class;
-        l_myMap.put(l_myClass, Arrays.asList("a", "b", "c"));
+        Method method1 = PhasedSeries_F_Shuffle.class.getMethod("step1", String.class);
+        Method method2 = PhasedSeries_F_Shuffle.class.getMethod("step2", String.class);
+        Method method3 = PhasedSeries_F_Shuffle.class.getMethod("step3", String.class);
+
+        l_myMap.put(PhasedSeries_F_Shuffle.class,
+                Arrays.asList(ClassPathParser.fetchFullName(method1), ClassPathParser.fetchFullName(method2),
+                        ClassPathParser.fetchFullName(method3)));
 
         Map<String, MethodMapping> l_result = PhasedTestManager.generatePhasedProviders(l_myMap,
                 Phases.CONSUMER);
 
-        assertThat("we need to have the expected key", l_result.containsKey("a"));
-        assertThat("The first method should have three entries", l_result.get("a").nrOfProviders, equalTo(1));
+        assertThat("we need to have the expected key", l_result.containsKey(ClassPathParser.fetchFullName(method1)));
+        assertThat("The first method should have three entries", l_result.get(ClassPathParser.fetchFullName(method1)).nrOfProviders, equalTo(1));
 
-        assertThat("The first method should have three entries", l_result.get("b").nrOfProviders, equalTo(2));
+        assertThat("The second method should have three entries", l_result.get(ClassPathParser.fetchFullName(method2)).nrOfProviders, equalTo(2));
 
-        assertThat("The first method should have three entries", l_result.get("c").totalClassMethods,
+        assertThat("The third method should have three entries", l_result.get(ClassPathParser.fetchFullName(method3)).totalClassMethods,
                 equalTo(3));
 
-        Object[][] l_providerA = PhasedTestManager.fetchProvidersShuffled("a");
+        Object[][] l_providerA = PhasedTestManager.fetchProvidersShuffled(method1, Phases.CONSUMER);
 
         assertThat(l_providerA[0].length, equalTo(1));
 
         assertThat(l_providerA[0][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "0_3"));
 
-        Object[][] l_providerB = PhasedTestManager.fetchProvidersShuffled("b");
+        Object[][] l_providerB = PhasedTestManager.fetchProvidersShuffled(method2, Phases.CONSUMER);
 
         assertThat(l_providerB[0].length, equalTo(1));
 
         assertThat(l_providerB[0][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "0_3"));
         assertThat(l_providerB[1][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2"));
 
-        Object[][] l_providerC = PhasedTestManager.fetchProvidersShuffled("c");
+        Object[][] l_providerC = PhasedTestManager.fetchProvidersShuffled(method3, Phases.CONSUMER);
 
         assertThat(l_providerC[0].length, equalTo(1));
 
@@ -761,6 +857,63 @@ public class PhasedTestManagerTests {
         assertThat(l_providerC[2][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1"));
 
     }
+
+    //NIE
+    @Test
+    public void testCreateDataProviderData_forNonInterruptive() throws NoSuchMethodException {
+        Phases.ASYNCHRONOUS.activate();
+
+        Map<Class<?>, List<String>> l_myMap = new HashMap<>();
+
+        Method method1 = PhasedSeries_F_Shuffle.class.getMethod("step1", String.class);
+        Method method2 = PhasedSeries_F_Shuffle.class.getMethod("step2", String.class);
+        Method method3 = PhasedSeries_F_Shuffle.class.getMethod("step3", String.class);
+        
+        l_myMap.put(PhasedSeries_F_Shuffle.class,
+                Arrays.asList(ClassPathParser.fetchFullName(method1), ClassPathParser.fetchFullName(method2),
+                        ClassPathParser.fetchFullName(method3)));
+
+        Map<String, MethodMapping> l_result = PhasedTestManager.generatePhasedProviders(l_myMap,
+                Phases.getCurrentPhase());
+
+        assertThat("we need to have the expected key", l_result.containsKey(ClassPathParser.fetchFullName(method1)));
+        assertThat("The first method should have three entries", l_result.get(ClassPathParser.fetchFullName(method1)).nrOfProviders, equalTo(3));
+
+        assertThat("The first method should have two entries", l_result.get(ClassPathParser.fetchFullName(method2)).nrOfProviders, equalTo(3));
+
+        assertThat("The first method should have one entry", l_result.get(ClassPathParser.fetchFullName(method3)).nrOfProviders, equalTo(3));
+
+        assertThat("We should have the same amount of total sizes", l_result.get(ClassPathParser.fetchFullName(method1)).totalClassMethods,
+                equalTo(l_result.get(ClassPathParser.fetchFullName(method2)).totalClassMethods));
+        assertThat("We should have the same amount of total sizes", l_result.get(ClassPathParser.fetchFullName(method1)).totalClassMethods,
+                equalTo(l_result.get(ClassPathParser.fetchFullName(method3)).totalClassMethods));
+
+        Object[][] l_providerA = PhasedTestManager.fetchProvidersShuffled(method1);
+
+        assertThat(l_providerA[0].length, equalTo(1));
+
+        assertThat(l_providerA[0][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_NIE_PREFIX + "1"));
+        assertThat(l_providerA[1][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_NIE_PREFIX + "2"));
+        assertThat(l_providerA[2][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_NIE_PREFIX + "3"));
+
+        Object[][] l_providerB = PhasedTestManager.fetchProvidersShuffled(method2);
+
+        assertThat(l_providerB[0].length, equalTo(1));
+
+        assertThat(l_providerB[0][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_NIE_PREFIX + "1"));
+        assertThat(l_providerB[1][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_NIE_PREFIX + "2"));
+        assertThat(l_providerB[2][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_NIE_PREFIX + "3"));
+
+        Object[][] l_providerC = PhasedTestManager.fetchProvidersShuffled(method3);
+
+        assertThat(l_providerC[0].length, equalTo(1));
+
+        assertThat(l_providerC[0][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_NIE_PREFIX + "1"));
+        assertThat(l_providerC[1][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_NIE_PREFIX + "2"));
+        assertThat(l_providerC[2][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_NIE_PREFIX + "3"));
+
+    }
+
 
     @Test
     public void testPhasedManagerContext() {
@@ -791,6 +944,20 @@ public class PhasedTestManagerTests {
 
         assertThat("step1 should be considered as a producer execution",
                 PhasedTestManager.isExecutedInProducerMode(l_myMethod));
+
+        final Method l_myMethodNew = PhasedTestSingleWithoutCanShuffle.class.getMethod("step1", String.class);
+
+        assertThat("step1 should be considered as a producer execution",
+                PhasedTestManager.isExecutedInProducerMode(l_myMethod));
+    }
+
+    @Test
+    public void testIsExecutedProducer_ConflictCanShuffleAndEvent() throws NoSuchMethodException, SecurityException {
+
+        final Method l_myMethod = PhasedSeries_H_ShuffledClass.class.getMethod("step1", String.class);
+
+        assertThat("step1 could not be be considered as a producer execution, as it has no event",
+                !PhasedTestManager.isExecutedInProducerMode(l_myMethod));
     }
 
     @Test
@@ -856,6 +1023,9 @@ public class PhasedTestManagerTests {
         assertThat(l_providerStep1.length, equalTo(1));
 
         assertThat(l_providerStep1[0], equalTo(PhasedTestManager.STD_PHASED_GROUP_SINGLE));
+        Object[] l_providerStep2 = PhasedTestManager.fetchProvidersStandard(l_myMethod);
+        assertThat(l_providerStep2.length, equalTo(1));
+        assertThat(l_providerStep2[0], equalTo(PhasedDataProvider.DEFAULT));
     }
 
     @Test
@@ -867,6 +1037,8 @@ public class PhasedTestManagerTests {
         Object[] l_providerStep1 = PhasedTestManager.fetchProvidersSingle(l_myMethod);
 
         assertThat(l_providerStep1.length, equalTo(0));
+        Object[] l_providerStep2 = PhasedTestManager.fetchProvidersStandard(l_myMethod);
+        assertThat(l_providerStep2.length, equalTo(0));
     }
 
     @Test
@@ -958,40 +1130,57 @@ public class PhasedTestManagerTests {
 
     }
 
+    //NIE
+    @Test
+    public void testFetchProvidersSingle_asynchronousNonInterruptive()
+            throws NoSuchMethodException, SecurityException {
+
+        Phases.ASYNCHRONOUS.activate();
+        final Method l_myMethod1 = TestSINGLEWithEvent_eventAsAnnotation.class.getMethod("step1", String.class);
+        final Method l_myMethod2 = TestSINGLEWithEvent_eventAsAnnotation.class.getMethod("step2", String.class);
+        final Method l_myMethod3 = TestSINGLEWithEvent_eventAsAnnotation.class.getMethod("step3", String.class);
+
+        Object[] l_providerStep1 = PhasedTestManager.fetchProvidersSingle(l_myMethod1);
+
+        assertThat("We should have a parameter for this method",l_providerStep1.length, equalTo(1));
+
+        Object[] l_providerStep2 = PhasedTestManager.fetchProvidersSingle(l_myMethod1);
+
+        assertThat("We should have a parameter for this method",l_providerStep2.length, equalTo(1));
+
+        Object[] l_providerStep3 = PhasedTestManager.fetchProvidersSingle(l_myMethod1);
+
+        assertThat("We should have a parameter for this method",l_providerStep3.length, equalTo(1));
+
+    }
+
     /**
-     * Testing issue #33 When we are in Inactive state the Shuffling should not
-     * be executed
-     *
+     * Testing issue #33 When we are in Inactive state the Shuffling should not be executed
+     * <p>
      * Author : gandomi
-     *
      */
     @Test
-    public void testIsInCascadeMode() throws NoSuchMethodException, SecurityException {
-        final Method l_myMethod = PhasedSeries_F_Shuffle.class.getMethod("step3", String.class);
+    public void testIsInShuffledMode() throws NoSuchMethodException, SecurityException {
+        final Method l_myMethodTestOnMethods = PhasedSeries_F_Shuffle.class.getMethod("step3", String.class);
+        final Method l_myMethodTestOnClass = PhasedSeries_H_ShuffledClass.class.getMethod("step3", String.class);
+        final Method l_newShuffleRunFormat = PhasedTestShuffledWithoutCanShuffle.class.getMethod("step1", String.class);
+
+
+        assertThat("We should be in Shuffled mode", PhasedTestManager.isPhasedTestShuffledMode(l_myMethodTestOnMethods));
+        assertThat("We should be in Shuffled mode", PhasedTestManager.isPhasedTestShuffledMode(l_myMethodTestOnClass));
+        assertThat("We should be in Shuffled mode", PhasedTestManager.isPhasedTestShuffledMode(l_newShuffleRunFormat));
+
 
         Phases.CONSUMER.activate();
-        assertThat("We should be in Shuffled mode", PhasedTestManager.isPhasedTestShuffledMode(l_myMethod));
+        assertThat("We should be in Shuffled mode", PhasedTestManager.isPhasedTestShuffledMode(l_myMethodTestOnMethods));
+        assertThat("We should be in Shuffled mode", PhasedTestManager.isPhasedTestShuffledMode(l_myMethodTestOnClass));
+        assertThat("We should be in Shuffled mode", PhasedTestManager.isPhasedTestShuffledMode(l_newShuffleRunFormat));
 
     }
 
-    /**
-     * Testing issue #33 When we are in Inactive state the Shuffled should not
-     * happen
-     *
-     * Author : gandomi
-     *
-     */
-    @Test
-    public void testIsInCascadeMode_Negative() throws NoSuchMethodException, SecurityException {
-        final Method l_myMethod = PhasedSeries_F_Shuffle.class.getMethod("step3", String.class);
-
-        assertThat("We should not be in Shuffled mode",
-                !PhasedTestManager.isPhasedTestShuffledMode(l_myMethod));
-
-    }
 
     @Test
-    public void testIsInCascadeMode_Negative2() throws NoSuchMethodException, SecurityException {
+    public void testIsInShuffleMode_Negative2() throws NoSuchMethodException, SecurityException {
         final Method l_myMethod = NormalSeries_A.class.getMethod("firstTest");
 
         Phases.CONSUMER.activate();
@@ -1001,40 +1190,74 @@ public class PhasedTestManagerTests {
     }
 
     @Test(description = "Testing with a single mode")
-    public void testIsInCascadeMode_Negative3() throws NoSuchMethodException, SecurityException {
+    public void testIsInShuffleMode_Negative3() throws NoSuchMethodException, SecurityException {
         final Method l_myMethod = PhasedSeries_A.class.getMethod("step1", String.class);
 
         Phases.CONSUMER.activate();
         assertThat("We should not be in Shuffled mode",
                 !PhasedTestManager.isPhasedTestShuffledMode(l_myMethod));
 
+        //Case 2
+        final Method l_myMethod2 = PhasedTestSingleWithoutCanShuffle.class.getMethod("step1", String.class);
+
+        assertThat("We should not be in Shuffled mode",
+                !PhasedTestManager.isPhasedTestShuffledMode(l_myMethod2));
+
+        //Case 3
+        final Method l_myMethod3 = PhasedSeries_D_SingleNoPhase.class.getMethod("step1", String.class);
+
+        assertThat("We should not be in Shuffled mode",
+                !PhasedTestManager.isPhasedTestShuffledMode(l_myMethod3));
+
     }
+
+    //NIE
+    @Test(description = "Testing in Aynchronous mode hello World" )
+    public void testHasAPhaseEvent() throws NoSuchMethodException {
+
+        assertThat("We correctly identify that our class has an event",
+                PhasedTestManager.isPhasedTestWithEvent(TestSINGLEWithEvent_eventAsAnnotation.class));
+    }
+
+    @Test(description = "Testing in Aynchronous mode hello World" )
+    public void testHasAPhaseEvent_Negative() throws NoSuchMethodException {
+
+        assertThat("We correctly identify that our class does not have an event",
+                !PhasedTestManager.isPhasedTestWithEvent(PhasedSeries_H_ShuffledClass.class));
+    }
+
 
     /****** Single mode tests *******/
 
+    //Issue #116 case 1
     @Test(description = "Testing with a single mode")
     public void testIsInSingleMode_STD() throws NoSuchMethodException, SecurityException {
-        final Method l_myMethod = PhasedSeries_A.class.getMethod("step1", String.class);
+        final Method l_myMethodTestOnMethods = PhasedSeries_A.class.getMethod("step1", String.class);
+
+        final Method l_myMethodTestOnClass = PhasedSeries_H_SingleClass.class.getMethod("step1", String.class);
+        final Method l_newSingleRunFormat = PhasedTestSingleWithoutCanShuffle.class.getMethod("step1", String.class);
+
+        assertThat("We should be in Single mode", PhasedTestManager.isPhasedTestSingleMode(l_myMethodTestOnMethods));
+        assertThat("We should be in Single mode", PhasedTestManager.isPhasedTestSingleMode(l_myMethodTestOnClass));
+        assertThat("We should be in Single mode", PhasedTestManager.isPhasedTestSingleMode(l_newSingleRunFormat));
 
         Phases.CONSUMER.activate();
-        assertThat("We should not be in Shuffled mode", PhasedTestManager.isPhasedTestSingleMode(l_myMethod));
-    }
-
-    @Test(description = "Testing with a single mode")
-    public void testIsInSingleMode_InActiveState() throws NoSuchMethodException, SecurityException {
-        final Method l_myMethod = PhasedSeries_A.class.getMethod("step1", String.class);
-
-        assertThat("We should not be in Shuffled mode", PhasedTestManager.isPhasedTestSingleMode(l_myMethod));
+        assertThat("We should be in Single mode", PhasedTestManager.isPhasedTestSingleMode(l_myMethodTestOnMethods));
+        assertThat("We should be in Single mode", PhasedTestManager.isPhasedTestSingleMode(l_myMethodTestOnClass));
+        assertThat("We should be in Single mode", PhasedTestManager.isPhasedTestSingleMode(l_newSingleRunFormat));
     }
 
     @Test
-    public void testIsInSingleMode_TestIsCascadingButTheStateIsInActive()
-            throws NoSuchMethodException, SecurityException {
-        final Method l_myMethod = PhasedSeries_F_Shuffle.class.getMethod("step3", String.class);
+    public void testContradictionSingleWithNoEvent() throws NoSuchMethodException {
 
-        assertThat("We should not be in single mode", PhasedTestManager.isPhasedTestSingleMode(l_myMethod));
+        final Method l_newSingleRunFormat = PhasedSeries_D_SingleNoPhase.class.getMethod("step1", String.class);
+        assertThat("We should be in Single mode", PhasedTestManager.isPhasedTestSingleMode(l_newSingleRunFormat));
+
+        Phases.CONSUMER.activate();
+        assertThat("We should be in Single mode", PhasedTestManager.isPhasedTestSingleMode(l_newSingleRunFormat));
 
     }
+
 
     @Test
     public void testIsInSingleMode_Negative2() throws NoSuchMethodException, SecurityException {
@@ -1045,21 +1268,25 @@ public class PhasedTestManagerTests {
 
     }
 
+    //Issue #116 case 3
     @Test
     public void testIsInSingleMode_Shuffled_Negative3() throws NoSuchMethodException, SecurityException {
         final Method l_myMethod = PhasedSeries_H_ShuffledClass.class.getMethod("step1", String.class);
 
         Phases.PRODUCER.activate();
         assertThat("We should not be in single mode", !PhasedTestManager.isPhasedTestSingleMode(l_myMethod));
+        assertThat("We should be in Shuffled mode", PhasedTestManager.isPhasedTestShuffledMode(l_myMethod));
 
     }
 
-    @Test
-    public void testIsInSingleMode() throws NoSuchMethodException, SecurityException {
-        final Method l_myMethod = PhasedSeries_F_Shuffle.class.getMethod("step3", String.class);
+    @Test(enabled = false)
+    public void testIsInSingleMode_NegativeAsynchronousMethod() throws NoSuchMethodException, SecurityException {
+        final Method l_myMethod = TestSINGLEWithEvent_eventAsExecProperty.class.getMethod("step3", String.class);
 
-        Phases.CONSUMER.activate();
-        assertThat("We should be in Shuffled mode", PhasedTestManager.isPhasedTestShuffledMode(l_myMethod));
+        Phases.ASYNCHRONOUS.activate();
+        assertThat("We should be in Shuffled mode", !PhasedTestManager.isPhasedTestShuffledMode(l_myMethod));
+        assertThat("We should be in Shuffled mode", !PhasedTestManager.isPhasedTestSingleMode(l_myMethod));
+        assertThat("We should be in Shuffled mode", !PhasedTestManager.isPhasedTestSingleMode(l_myMethod));
 
     }
 
@@ -1120,15 +1347,9 @@ public class PhasedTestManagerTests {
 
         final Method l_myTestWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
                 String.class);
+        Object[] l_argumentObjects = { "Q" };
 
-        ITestResult l_itr = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
-        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
-
-        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
-        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "Q" });
-        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
-        Mockito.when(l_com.getMethod()).thenReturn(l_myTestWithOneArg);
+        ITestResult l_itr = MockTestTools.generateTestResultMock(l_myTestWithOneArg, l_argumentObjects);
 
         assertThat("We should have the correct full name", PhasedTestManager.fetchScenarioName(l_itr),
                 equalTo("com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClassWithError(Q)"));
@@ -1159,15 +1380,7 @@ public class PhasedTestManagerTests {
         //Define previous step
         final Method l_myTestBeforeWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step1",
                 String.class);
-        ITestResult l_itr = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
-        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
-
-        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
-        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
-        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "0_1" });
-        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
-        Mockito.when(l_com.getMethod()).thenReturn(l_myTestBeforeWithOneArg);
+        ITestResult l_itr = MockTestTools.generateTestResultMock(l_myTestBeforeWithOneArg, new Object[] { "0_1" });
 
         PhasedTestManager.scenarioStateStore(l_itr);
 
@@ -1223,15 +1436,9 @@ public class PhasedTestManagerTests {
         //Define previous step
         final Method l_myTestBeforeWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step2",
                 String.class);
-        ITestResult l_itr = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
-        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
 
-        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
-        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.FAILURE);
-        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "2_1" });
-        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
-        Mockito.when(l_com.getMethod()).thenReturn(l_myTestBeforeWithOneArg);
+        ITestResult l_itr = MockTestTools.generateTestResultMock(l_myTestBeforeWithOneArg, new Object[] { "2_1" },
+                ITestResult.FAILURE);
 
         PhasedTestManager.scenarioStateStore(l_itr);
         String l_scenarioName = PhasedTestManager.fetchScenarioName(l_itr);
@@ -1240,18 +1447,11 @@ public class PhasedTestManagerTests {
                 PhasedTestManager.getScenarioContext().containsKey(l_scenarioName));
 
         //Define current step
-        ITestResult l_itr2 = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod2 = Mockito.mock(ITestNGMethod.class);
-        ConstructorOrMethod l_com2 = Mockito.mock(ConstructorOrMethod.class);
-
         final Method l_myTestAfterWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
                 String.class);
-        Mockito.when(l_itr2.getMethod()).thenReturn(l_itrMethod2);
-        Mockito.when(l_itr2.getParameters()).thenReturn(new Object[] { "2_1" });
-        Mockito.when(l_itrMethod2.getConstructorOrMethod()).thenReturn(l_com2);
-        Mockito.when(l_com2.getMethod()).thenReturn(l_myTestAfterWithOneArg);
+        ITestResult l_itr2 = MockTestTools.generateTestResultMock(l_myTestAfterWithOneArg, new Object[] { "2_1" });
 
-       String l_scenarioName2 = PhasedTestManager.fetchScenarioName(l_itr2);
+        String l_scenarioName2 = PhasedTestManager.fetchScenarioName(l_itr2);
 
         //PhasedTestManager.scenarioStateStore(l_itr2);
 
@@ -1300,15 +1500,7 @@ public class PhasedTestManagerTests {
         final Method l_myTestWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step2",
                 String.class);
 
-        ITestResult l_itr = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
-        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
-
-        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
-        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
-        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "1_2" });
-        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
-        Mockito.when(l_com.getMethod()).thenReturn(l_myTestWithOneArg);
+        ITestResult l_itr = MockTestTools.generateTestResultMock(l_myTestWithOneArg, new Object[] { "1_2" });
 
         assertThat("Before storing the context the value is true if we are not in consumer",
                 PhasedTestManager.scenarioStateDecision(l_itr),
@@ -1327,16 +1519,9 @@ public class PhasedTestManagerTests {
                 equalTo(PhasedTestManager.ScenarioState.CONTINUE));
 
         //Step 3
-        ITestResult l_itr2 = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod2 = Mockito.mock(ITestNGMethod.class);
-        ConstructorOrMethod l_com2 = Mockito.mock(ConstructorOrMethod.class);
-
         final Method l_myTestAfterWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
                 String.class);
-        Mockito.when(l_itr2.getMethod()).thenReturn(l_itrMethod2);
-        Mockito.when(l_itr2.getParameters()).thenReturn(new Object[] { "1_2" });
-        Mockito.when(l_itrMethod2.getConstructorOrMethod()).thenReturn(l_com2);
-        Mockito.when(l_com2.getMethod()).thenReturn(l_myTestAfterWithOneArg);
+        ITestResult l_itr2 = MockTestTools.generateTestResultMock(l_myTestAfterWithOneArg, new Object[] { "1_2" });
 
         PhasedTestManager.clearCache();
 
@@ -1374,15 +1559,8 @@ public class PhasedTestManagerTests {
         final Method l_myTestWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step1",
                 String.class);
 
-        ITestResult l_itr = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
-        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
-
-        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
-        Mockito.when(l_itr.getParameters())
-                .thenReturn(new Object[] { PhasedTestManager.STD_PHASED_GROUP_PREFIX + "0_6" });
-        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
-        Mockito.when(l_com.getMethod()).thenReturn(l_myTestWithOneArg);
+        ITestResult l_itr = MockTestTools.generateTestResultMock(l_myTestWithOneArg,
+                new Object[] { PhasedTestManager.STD_PHASED_GROUP_PREFIX + "0_6" });
 
         Phases.CONSUMER.activate();
 
@@ -1418,16 +1596,10 @@ public class PhasedTestManagerTests {
         //Step 2
         final Method l_myTestWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step2",
                 String.class);
+        Object[] t = { "2_1" };
+        int success = ITestResult.SUCCESS;
 
-        ITestResult l_itr = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
-        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
-
-        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
-        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
-        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "2_1" });
-        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
-        Mockito.when(l_com.getMethod()).thenReturn(l_myTestWithOneArg);
+        ITestResult l_itr = MockTestTools.generateTestResultMock(l_myTestWithOneArg, t, success);
 
         assertThat("Before storing the context the value is true if we are not in consumer",
                 PhasedTestManager.scenarioStateDecision(l_itr),
@@ -1440,14 +1612,7 @@ public class PhasedTestManagerTests {
         //Step 3
         final Method l_myTestWithOneArg2 = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
                 String.class);
-        ITestResult l_itr2 = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod2 = Mockito.mock(ITestNGMethod.class);
-        ConstructorOrMethod l_com2 = Mockito.mock(ConstructorOrMethod.class);
-
-        Mockito.when(l_itr2.getMethod()).thenReturn(l_itrMethod2);
-        Mockito.when(l_itr2.getParameters()).thenReturn(new Object[] { "2_1" });
-        Mockito.when(l_itrMethod2.getConstructorOrMethod()).thenReturn(l_com2);
-        Mockito.when(l_com2.getMethod()).thenReturn(l_myTestWithOneArg2);
+        ITestResult l_itr2 = MockTestTools.generateTestResultMock(l_myTestWithOneArg2, new Object[] { "2_1" });
 
         assertThat("In consumer mode We should be able to continue with the phase group",
                 PhasedTestManager.scenarioStateDecision(l_itr2),
@@ -1478,20 +1643,10 @@ public class PhasedTestManagerTests {
     @Test
     public void phaseScenarioStates_case6_extra_FAILED() throws NoSuchMethodException, SecurityException {
 
-        //Step 2
         final Method l_myTestWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step2",
                 String.class);
 
-        ITestResult l_itr = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
-        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
-
-        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
-        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.FAILURE);
-        Mockito.when(l_itr.getParameters())
-                .thenReturn(new Object[] { PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1" });
-        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
-        Mockito.when(l_com.getMethod()).thenReturn(l_myTestWithOneArg);
+        ITestResult l_itr = MockTestTools.generateTestResultMock(l_myTestWithOneArg, new Object[] { PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1" }, ITestResult.FAILURE);
 
         assertThat("Before storing the context the value is true if we are not in consumer",
                 PhasedTestManager.scenarioStateDecision(l_itr),
@@ -1511,15 +1666,8 @@ public class PhasedTestManagerTests {
         //Step 3
         final Method l_myTestWithOneArg2 = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
                 String.class);
-        ITestResult l_itr2 = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod2 = Mockito.mock(ITestNGMethod.class);
-        ConstructorOrMethod l_com2 = Mockito.mock(ConstructorOrMethod.class);
-
-        Mockito.when(l_itr2.getMethod()).thenReturn(l_itrMethod2);
-        Mockito.when(l_itr2.getParameters())
-                .thenReturn(new Object[] { PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1" });
-        Mockito.when(l_itrMethod2.getConstructorOrMethod()).thenReturn(l_com2);
-        Mockito.when(l_com2.getMethod()).thenReturn(l_myTestWithOneArg2);
+        ITestResult l_itr2 = MockTestTools.generateTestResultMock(l_myTestWithOneArg2,
+                new Object[] { PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1" });
 
         assertThat("In consumer mode We should be able to continue with the phase group",
                 PhasedTestManager.scenarioStateDecision(l_itr2),
@@ -1558,16 +1706,8 @@ public class PhasedTestManagerTests {
         final Method l_myTestWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
                 String.class);
 
-        ITestResult l_itr = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
-        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
-
-        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
-        //Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
-        Mockito.when(l_itr.getParameters())
-                .thenReturn(new Object[] { PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1" });
-        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
-        Mockito.when(l_com.getMethod()).thenReturn(l_myTestWithOneArg);
+        ITestResult l_itr = MockTestTools.generateTestResultMock(l_myTestWithOneArg,
+                new Object[] { PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1" });
 
         Phases.CONSUMER.activate();
 
@@ -1615,15 +1755,7 @@ public class PhasedTestManagerTests {
         final Method l_myTestWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step1",
                 String.class);
 
-        ITestResult l_itr = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
-        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
-
-        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
-        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SKIP);
-        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "Q" });
-        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
-        Mockito.when(l_com.getMethod()).thenReturn(l_myTestWithOneArg);
+        ITestResult l_itr = MockTestTools.generateTestResultMock(l_myTestWithOneArg, new Object[] { "Q" }, ITestResult.SKIP);
         Mockito.when(l_itr.getThrowable()).thenReturn(new AssertionError("Failed"));
 
         PhasedTestManager.scenarioStateStore(l_itr);
@@ -1636,15 +1768,7 @@ public class PhasedTestManagerTests {
         final Method l_myTestWithOneArg2 = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step2",
                 String.class);
 
-        ITestResult l_itr2 = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod2 = Mockito.mock(ITestNGMethod.class);
-        ConstructorOrMethod l_com2 = Mockito.mock(ConstructorOrMethod.class);
-
-        Mockito.when(l_itr2.getMethod()).thenReturn(l_itrMethod2);
-        Mockito.when(l_itr2.getStatus()).thenReturn(ITestResult.SKIP);
-        Mockito.when(l_itr2.getParameters()).thenReturn(new Object[] { "Q" });
-        Mockito.when(l_itrMethod2.getConstructorOrMethod()).thenReturn(l_com2);
-        Mockito.when(l_com2.getMethod()).thenReturn(l_myTestWithOneArg2);
+        ITestResult l_itr2 = MockTestTools.generateTestResultMock(l_myTestWithOneArg2, new Object[] { "Q" }, ITestResult.SKIP);
         Mockito.when(l_itr2.getThrowable()).thenReturn(new AssertionError("Failed"));
 
         assertThat("We should not be able to continue with the phase group",
@@ -1682,15 +1806,7 @@ public class PhasedTestManagerTests {
         final Method l_myTestWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step2",
                 String.class);
 
-        ITestResult l_itr = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
-        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
-
-        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
-        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SKIP);
-        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "Q" });
-        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
-        Mockito.when(l_com.getMethod()).thenReturn(l_myTestWithOneArg);
+        ITestResult l_itr = MockTestTools.generateTestResultMock(l_myTestWithOneArg, new Object[] { "Q" }, ITestResult.SKIP);
 
         PhasedTestManager.scenarioStateStore(l_itr);
 
@@ -1702,15 +1818,7 @@ public class PhasedTestManagerTests {
         final Method l_myTestWithOneArg2 = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
                 String.class);
 
-        ITestResult l_itr2 = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod2 = Mockito.mock(ITestNGMethod.class);
-        ConstructorOrMethod l_com2 = Mockito.mock(ConstructorOrMethod.class);
-
-        Mockito.when(l_itr2.getMethod()).thenReturn(l_itrMethod2);
-
-        Mockito.when(l_itr2.getParameters()).thenReturn(new Object[] { "Q" });
-        Mockito.when(l_itrMethod2.getConstructorOrMethod()).thenReturn(l_com2);
-        Mockito.when(l_com2.getMethod()).thenReturn(l_myTestWithOneArg2);
+        ITestResult l_itr2 = MockTestTools.generateTestResultMock(l_myTestWithOneArg2, new Object[] { "Q" });
 
         assertThat("We should not be able to continue with the phase group",
                 PhasedTestManager.scenarioStateDecision(l_itr2),equalTo(PhasedTestManager.ScenarioState.SKIP_PREVIOUS_FAILURE));
@@ -1752,15 +1860,7 @@ public class PhasedTestManagerTests {
         //Define previous step
         final Method l_myTestBeforeWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step2",
                 String.class);
-        ITestResult l_itr = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
-        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
-
-        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
-        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SKIP);
-        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "3_0" });
-        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
-        Mockito.when(l_com.getMethod()).thenReturn(l_myTestBeforeWithOneArg);
+        ITestResult l_itr = MockTestTools.generateTestResultMock(l_myTestBeforeWithOneArg, new Object[] { "3_0" }, ITestResult.SKIP);
 
         PhasedTestManager.scenarioStateStore(l_itr);
 
@@ -1799,15 +1899,7 @@ public class PhasedTestManagerTests {
         final Method l_myTestWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step2",
                 String.class);
 
-        ITestResult l_itr = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
-        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
-
-        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
-        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.FAILURE);
-        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "Q" });
-        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
-        Mockito.when(l_com.getMethod()).thenReturn(l_myTestWithOneArg);
+        ITestResult l_itr = MockTestTools.generateTestResultMock(l_myTestWithOneArg, new Object[] { "Q" }, ITestResult.FAILURE);
 
         PhasedTestManager.scenarioStateStore(l_itr);
 
@@ -1838,30 +1930,14 @@ public class PhasedTestManagerTests {
         final Method l_myTestWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step1",
                 String.class);
 
-        ITestResult l_itr = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
-        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
-
-        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
-        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
-        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "1_3" });
-        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
-        Mockito.when(l_com.getMethod()).thenReturn(l_myTestWithOneArg);
+        ITestResult l_itr = MockTestTools.generateTestResultMock(l_myTestWithOneArg, new Object[] { "1_3" });
 
         PhasedTestManager.scenarioStateStore(l_itr);
 
         final Method l_myTestWithOneArg2 = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step2",
                 String.class);
 
-        ITestResult l_itr2 = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod2 = Mockito.mock(ITestNGMethod.class);
-        ConstructorOrMethod l_com2 = Mockito.mock(ConstructorOrMethod.class);
-
-        Mockito.when(l_itr2.getMethod()).thenReturn(l_itrMethod2);
-        Mockito.when(l_itr2.getStatus()).thenReturn(ITestResult.FAILURE);
-        Mockito.when(l_itr2.getParameters()).thenReturn(new Object[] { "1_3" });
-        Mockito.when(l_itrMethod2.getConstructorOrMethod()).thenReturn(l_com2);
-        Mockito.when(l_com2.getMethod()).thenReturn(l_myTestWithOneArg2);
+        ITestResult l_itr2 = MockTestTools.generateTestResultMock(l_myTestWithOneArg2, new Object[] { "1_3" }, ITestResult.FAILURE);
 
         assertThat("We should be able to continue with the phase group",
                 PhasedTestManager.scenarioStateDecision(l_itr2),
@@ -1872,14 +1948,7 @@ public class PhasedTestManagerTests {
         final Method l_myTestWithOneArg3 = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
                 String.class);
 
-        ITestResult l_itr3 = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod3 = Mockito.mock(ITestNGMethod.class);
-        ConstructorOrMethod l_com3 = Mockito.mock(ConstructorOrMethod.class);
-
-        Mockito.when(l_itr3.getMethod()).thenReturn(l_itrMethod3);
-        Mockito.when(l_itr3.getParameters()).thenReturn(new Object[] { "1_3" });
-        Mockito.when(l_itrMethod3.getConstructorOrMethod()).thenReturn(l_com3);
-        Mockito.when(l_com3.getMethod()).thenReturn(l_myTestWithOneArg3);
+        ITestResult l_itr3 = MockTestTools.generateTestResultMock(l_myTestWithOneArg3, new Object[] { "1_3" });
 
         assertThat("We should be able to continue with the phase group",
                 PhasedTestManager.scenarioStateDecision(l_itr3),
@@ -1887,20 +1956,14 @@ public class PhasedTestManagerTests {
     }
 
     @Test
-    public void testStandardReportName_default() throws SecurityException {
+    public void testStandardReportName_default() throws SecurityException, NoSuchMethodException {
 
         assertThat(PhasedSeries_H_ShuffledClassWithError.class.getSimpleName(),
                 equalTo("PhasedSeries_H_ShuffledClassWithError"));
 
-        ITestResult l_itr = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
-
-        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
-        Mockito.when(l_itrMethod.getRealClass()).thenReturn(PhasedSeries_H_ShuffledClassWithError.class);
-        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
-        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "Q" });
-        Mockito.when(l_itrMethod.getQualifiedName()).thenReturn(
-                "com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClassWithError.step3");
+        final Method l_myTestWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
+                String.class);
+        ITestResult l_itr = MockTestTools.generateTestResultMock(l_myTestWithOneArg, new Object[] { "Q" });
 
         assertThat("We should be able to continue with the phase group",
                 PhasedTestManager.fetchTestNameForReport(l_itr), equalTo("Q"));
@@ -1939,17 +2002,11 @@ public class PhasedTestManagerTests {
 
     @Test
     public void testPhasedReportElements_StandardReportName_ScenarioName()
-            throws SecurityException {
+            throws SecurityException, NoSuchMethodException {
+        final Method l_myTest = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
+                String.class);
 
-        ITestResult l_itr = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
-
-        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
-        Mockito.when(l_itrMethod.getRealClass()).thenReturn(PhasedSeries_H_ShuffledClassWithError.class);
-        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
-        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "Q" });
-        Mockito.when(l_itrMethod.getQualifiedName()).thenReturn(
-                "com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClassWithError.step3");
+        ITestResult l_itr = MockTestTools.generateTestResultMock(l_myTest, new Object[] { "Q" });
 
         assertThat("We should get the correct value for the SCENARIO_NAME",
                 PhasedReportElements.SCENARIO_NAME.fetchElement(l_itr),
@@ -1958,17 +2015,11 @@ public class PhasedTestManagerTests {
 
     @Test
     public void testPhasedReportElements_StandardReportName_Phase()
-            throws SecurityException {
+            throws SecurityException, NoSuchMethodException {
+        final Method l_myTest = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
+                String.class);
 
-        ITestResult l_itr = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
-
-        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
-        Mockito.when(l_itrMethod.getRealClass()).thenReturn(PhasedSeries_H_ShuffledClassWithError.class);
-        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
-        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "Q" });
-        Mockito.when(l_itrMethod.getQualifiedName()).thenReturn(
-                "com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClassWithError.step3");
+        ITestResult l_itr = MockTestTools.generateTestResultMock(l_myTest, new Object[] { "Q" });
 
         assertThat("We should get the correct value for the SCENARIO_NAME",
                 PhasedReportElements.PHASE.fetchElement(l_itr), equalTo(Phases.getCurrentPhase().toString()));
@@ -1976,17 +2027,12 @@ public class PhasedTestManagerTests {
 
     @Test
     public void testPhasedReportElements_StandardReportName_PhaseGROUP()
-            throws SecurityException {
+            throws SecurityException, NoSuchMethodException {
 
-        ITestResult l_itr = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
+        final Method l_myTest = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
+                String.class);
 
-        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
-        Mockito.when(l_itrMethod.getRealClass()).thenReturn(PhasedSeries_H_ShuffledClassWithError.class);
-        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
-        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "Q" });
-        Mockito.when(l_itrMethod.getQualifiedName()).thenReturn(
-                "com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClassWithError.step3");
+        ITestResult l_itr = MockTestTools.generateTestResultMock(l_myTest, new Object[] { "Q" });
 
         assertThat("We should get the correct value for the SCENARIO_NAME",
                 PhasedReportElements.PHASE_GROUP.fetchElement(l_itr), equalTo("Q"));
@@ -1994,41 +2040,27 @@ public class PhasedTestManagerTests {
 
     @Test
     public void testPhasedReportElements_StandardReportName_DataProviders()
-            throws SecurityException {
+            throws SecurityException, NoSuchMethodException {
+        final Method l_myTest = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
+                String.class);
 
-        ITestResult l_itr = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
-
-        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
-        Mockito.when(l_itrMethod.getRealClass()).thenReturn(PhasedSeries_H_ShuffledClassWithError.class);
-        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
-        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "Q", "A", "T" });
-        Mockito.when(l_itrMethod.getQualifiedName()).thenReturn(
-                "com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClassWithError.step3");
+        ITestResult l_itr = MockTestTools.generateTestResultMock(l_myTest, new Object[] { "Q", "A", "T" });
 
         assertThat("We should get the correct value for the SCENARIO_NAME",
                 PhasedReportElements.DATA_PROVIDERS.fetchElement(l_itr), equalTo("A_T"));
     }
 
     @Test
-    public void testStandardReportName_configured() throws SecurityException {
+    public void testStandardReportName_configured() throws SecurityException, NoSuchMethodException {
 
         PhasedTestManager.MergedReportData.configureMergedReportName(
                 new LinkedHashSet<>(Collections.singletonList(PhasedReportElements.SCENARIO_NAME)),
                 new LinkedHashSet<>(Collections.singletonList(PhasedReportElements.PHASE)));
 
-        assertThat(PhasedSeries_H_ShuffledClassWithError.class.getSimpleName(),
-                equalTo("PhasedSeries_H_ShuffledClassWithError"));
+        final Method l_myTest = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
+                String.class);
 
-        ITestResult l_itr = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
-
-        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
-        Mockito.when(l_itrMethod.getRealClass()).thenReturn(PhasedSeries_H_ShuffledClassWithError.class);
-        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
-        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "Q" });
-        Mockito.when(l_itrMethod.getQualifiedName()).thenReturn(
-                "com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClassWithError.step3");
+        ITestResult l_itr = MockTestTools.generateTestResultMock(l_myTest, new Object[] { "Q" });
 
         assertThat("We should be able to continue with the phase group",
                 PhasedTestManager.fetchTestNameForReport(l_itr),
@@ -2043,24 +2075,16 @@ public class PhasedTestManagerTests {
     }
 
     @Test
-    public void testStandardReportName_configured2() throws SecurityException {
+    public void testStandardReportName_configured2() throws SecurityException, NoSuchMethodException {
 
         PhasedTestManager.MergedReportData.configureMergedReportName(
                 new LinkedHashSet<>(Collections.singletonList(PhasedReportElements.SCENARIO_NAME)), new LinkedHashSet<>(
                         Arrays.asList(PhasedReportElements.DATA_PROVIDERS, PhasedReportElements.PHASE)));
 
-        assertThat(PhasedSeries_H_ShuffledClassWithError.class.getSimpleName(),
-                equalTo("PhasedSeries_H_ShuffledClassWithError"));
+        final Method l_myTest = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
+                String.class);
 
-        ITestResult l_itr = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
-
-        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
-        Mockito.when(l_itrMethod.getRealClass()).thenReturn(PhasedSeries_H_ShuffledClassWithError.class);
-        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
-        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "Q", "uo", "Vadis" });
-        Mockito.when(l_itrMethod.getQualifiedName()).thenReturn(
-                "com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClassWithError.step3");
+        ITestResult l_itr = MockTestTools.generateTestResultMock(l_myTest, new Object[] { "Q", "uo", "Vadis" });
 
         Phases.CONSUMER.activate();
 
@@ -2070,24 +2094,16 @@ public class PhasedTestManagerTests {
     }
 
     @Test
-    public void testStandardReportName_DP_configured() throws SecurityException {
+    public void testStandardReportName_DP_configured() throws SecurityException, NoSuchMethodException {
 
         PhasedTestManager.MergedReportData.configureMergedReportName(
                 new LinkedHashSet<>(Collections.singletonList(PhasedReportElements.SCENARIO_NAME)),
                 new LinkedHashSet<>(Collections.singletonList(PhasedReportElements.PHASE)));
 
-        assertThat(PhasedSeries_H_ShuffledClassWithError.class.getSimpleName(),
-                equalTo("PhasedSeries_H_ShuffledClassWithError"));
+        final Method l_myTest = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
+                String.class);
 
-        ITestResult l_itr = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
-
-        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
-        Mockito.when(l_itrMethod.getRealClass()).thenReturn(PhasedSeries_H_ShuffledClassWithError.class);
-        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
-        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "Q", "A", "T" });
-        Mockito.when(l_itrMethod.getQualifiedName()).thenReturn(
-                "com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClassWithError.step3");
+        ITestResult l_itr = MockTestTools.generateTestResultMock(l_myTest, new Object[] { "Q", "A", "T" });
 
         assertThat("We should be able to continue with the phase group",
                 PhasedTestManager.fetchTestNameForReport(l_itr),
@@ -2108,23 +2124,17 @@ public class PhasedTestManagerTests {
      *
      */
     @Test
-    public void testFetchDurationTime_HW() {
+    public void testFetchDurationTime_HW() throws NoSuchMethodException {
 
-        ITestResult l_itr1 = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
-        Mockito.when(l_itrMethod.getRealClass()).thenReturn(PhasedSeries_H_ShuffledClassWithError.class);
+        final Method l_myTest = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step2",
+                String.class);
 
-        Mockito.when(l_itr1.getMethod()).thenReturn(l_itrMethod);
-        Mockito.when(l_itr1.getParameters()).thenReturn(new Object[] { "Q" });
+        ITestResult l_itr1 = MockTestTools.generateTestResultMock(l_myTest, new Object[] { "Q" }, ITestResult.SUCCESS, 3L, 5L);
 
-        Mockito.when(l_itr1.getStartMillis()).thenReturn((long) 3);
-        Mockito.when(l_itr1.getEndMillis()).thenReturn((long) 5);
+        final Method l_myTest2 = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
+                String.class);
 
-        ITestResult l_itr2 = Mockito.mock(ITestResult.class);
-        Mockito.when(l_itr2.getMethod()).thenReturn(l_itrMethod);
-        Mockito.when(l_itr2.getParameters()).thenReturn(new Object[] { "Q" });
-        Mockito.when(l_itr2.getStartMillis()).thenReturn((long) 7);
-        Mockito.when(l_itr2.getEndMillis()).thenReturn((long) 11);
+        ITestResult l_itr2 = MockTestTools.generateTestResultMock(l_myTest2, new Object[] { "Q" }, ITestResult.SUCCESS, 7L, 11L);
 
         List<ITestResult> l_resultList = Arrays.asList(l_itr2, l_itr1);
 
@@ -2161,19 +2171,16 @@ public class PhasedTestManagerTests {
      *
      */
     @Test
-    public void testFetchDurationTime_Negative2() {
+    public void testFetchDurationTime_Negative2() throws NoSuchMethodException {
+        final Method l_myTest = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step2",
+                String.class);
 
-        ITestResult l_itr1 = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
+        ITestResult l_itr1 = MockTestTools.generateTestResultMock(l_myTest, new Object[] { "Q" });
 
-        Mockito.when(l_itr1.getMethod()).thenReturn(l_itrMethod);
-        Mockito.when(l_itrMethod.getRealClass()).thenReturn(PhasedSeries_H_ShuffledClassWithError.class);
-        Mockito.when(l_itr1.getParameters()).thenReturn(new Object[] { "Q" });
+        final Method l_myTest2 = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
+                String.class);
 
-        ITestResult l_itr2 = Mockito.mock(ITestResult.class);
-        Mockito.when(l_itr2.getMethod()).thenReturn(l_itrMethod);
-        Mockito.when(l_itrMethod.getRealClass()).thenReturn(PhasedSeries_H_ShuffledClassWithError.class);
-        Mockito.when(l_itr2.getParameters()).thenReturn(new Object[] { "U" });
+        ITestResult l_itr2 = MockTestTools.generateTestResultMock(l_myTest2, new Object[] { "U" });
 
         List<ITestResult> l_resultList = Arrays.asList(l_itr2, l_itr1);
 
@@ -2183,82 +2190,72 @@ public class PhasedTestManagerTests {
     }
 
     /**
-     * Testing caase where the list is from different phased scenarios
+     * Testing caase where the list is from different classes
      *
      * Author : gandomi
      *
      *
      */
     @Test
-    public void testFetchDurationTime_Negative3() {
+    public void testFetchDurationTime_Negative3() throws NoSuchMethodException {
 
-        ITestResult l_itr1 = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod1 = Mockito.mock(ITestNGMethod.class);
+        final Method l_myTest = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step2",
+                String.class);
 
-        Mockito.when(l_itr1.getMethod()).thenReturn(l_itrMethod1);
-        Mockito.when(l_itrMethod1.getRealClass()).thenReturn(PhasedSeries_H_ShuffledClassWithError.class);
-        Mockito.when(l_itr1.getParameters()).thenReturn(new Object[] { "Q" });
+        ITestResult l_itr1 = MockTestTools.generateTestResultMock(l_myTest, new Object[] { "Q" });
 
-        ITestResult l_itr2 = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod2 = Mockito.mock(ITestNGMethod.class);
-        Mockito.when(l_itr2.getMethod()).thenReturn(l_itrMethod2);
-        Mockito.when(l_itrMethod2.getRealClass()).thenReturn(PhasedSeries_H_ShuffledClass.class);
-        Mockito.when(l_itr2.getParameters()).thenReturn(new Object[] { "Q" });
+        final Method l_myTest2 = PhasedSeries_H_ShuffledClass.class.getMethod("step3",
+                String.class);
+
+        ITestResult l_itr2 = MockTestTools.generateTestResultMock(l_myTest2, new Object[] { "Q" });
 
         List<ITestResult> l_resultList = Arrays.asList(l_itr2, l_itr1);
 
         assertThrows(IllegalArgumentException.class,
                 () -> PhasedTestManager.fetchDurationMillis(l_resultList));
-
     }
+
 
     @Test
     public void testStepName()
-            throws SecurityException, IllegalArgumentException {
+            throws SecurityException, IllegalArgumentException, NoSuchMethodException {
 
-        ITestResult l_itr1 = Mockito.mock(ITestResult.class);
+        final Method l_myTest = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step2",
+                String.class);
 
-        Mockito.when(l_itr1.getName()).thenReturn("myTest");
-        Mockito.when(l_itr1.getParameters()).thenReturn(new Object[] { "Q" });
+        ITestResult l_itr1 = MockTestTools.generateTestResultMock(l_myTest, new Object[] { "Q" });
 
         assertThat("We should have the correct name", PhasedTestManager.fetchPhasedStepName(l_itr1),
-                equalTo("Q_myTest"));
+                equalTo("Q_step2"));
     }
 
     @Test
     public void testStepName_DP()
-            throws SecurityException, IllegalArgumentException {
+            throws SecurityException, IllegalArgumentException, NoSuchMethodException {
 
-        ITestResult l_itr1 = Mockito.mock(ITestResult.class);
+        final Method l_myTest = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step2",
+                String.class);
 
-        Mockito.when(l_itr1.getName()).thenReturn("myTest");
-        Mockito.when(l_itr1.getParameters()).thenReturn(new Object[] { "Q", "A" });
+        ITestResult l_itr1 = MockTestTools.generateTestResultMock(l_myTest, new Object[] { "Q", "A" });
 
         assertThat("We should have the correct name", PhasedTestManager.fetchPhasedStepName(l_itr1),
-                equalTo("Q__A_myTest"));
+                equalTo("Q__A_step2"));
     }
 
     @Test
     public void testStepName_Negative() throws SecurityException,
             IllegalArgumentException, NoSuchMethodException {
 
-        final Method l_myTestWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
+        final Method l_myTest = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
                 String.class);
 
-        ITestResult l_itr = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
-        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
-
-        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
-        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
-        Mockito.when(l_com.getMethod()).thenReturn(l_myTestWithOneArg);
-        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] {});
+        ITestResult l_itr = MockTestTools.generateTestResultMock(l_myTest, new Object[] {});
 
         assertThrows(IllegalArgumentException.class, () -> PhasedTestManager.fetchPhasedStepName(l_itr));
     }
 
     @Test
-    public void testCreateNewException() {
+    public void testCreateNewException() throws NoSuchMethodException {
 
         final String l_originalMessage = "Original Message";
         AssertionError l_originalAssertionError = new AssertionError(l_originalMessage);
@@ -2670,6 +2667,8 @@ public class PhasedTestManagerTests {
                 Matchers.not(equalTo(l_originalMessage)));
 
         assertThat("The message must have the correct value", l_ptce.getMessage(), equalTo(l_newMessage));
+
+        PhasedTestConfigurationException l_ptce2 = new PhasedTestConfigurationException();
     }
 
     @Test
@@ -2693,18 +2692,18 @@ public class PhasedTestManagerTests {
         assertThat("By default we do not have We should now be in merge report results",
                 !PhasedTestManager.isMergedReportsActivated());
 
-        System.setProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS, "true");
+        ConfigValueHandler.PROP_MERGE_STEP_RESULTS.activate("true");
 
         PhasedTestManager.applyMergeReportChoice();
 
         assertThat("We should now be in merge report results", PhasedTestManager.isMergedReportsActivated());
         Assert.assertTrue(
-                Boolean.getBoolean(PhasedTestManager.PROP_MERGE_STEP_RESULTS));
+                Boolean.getBoolean(ConfigValueHandler.PROP_MERGE_STEP_RESULTS.systemName));
 
-        System.setProperty(PhasedTestManager.PROP_MERGE_STEP_RESULTS, "FALSE");
+        ConfigValueHandler.PROP_MERGE_STEP_RESULTS.activate("FALSE");
 
         Assert.assertFalse(
-                Boolean.getBoolean(PhasedTestManager.PROP_MERGE_STEP_RESULTS));
+                Boolean.getBoolean(ConfigValueHandler.PROP_MERGE_STEP_RESULTS.systemName));
 
         assertThat("We should still not have de-activated the  merge report results",
                 PhasedTestManager.isMergedReportsActivated());
@@ -2720,16 +2719,8 @@ public class PhasedTestManagerTests {
         final Method l_myTestWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step3",
                 String.class);
 
-        ITestResult l_itr = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
-        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
-
-        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
-        //Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
-        Mockito.when(l_itr.getParameters())
-                .thenReturn(new Object[] { PhasedTestManager.STD_PHASED_GROUP_PREFIX + "0_6" });
-        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
-        Mockito.when(l_com.getMethod()).thenReturn(l_myTestWithOneArg);
+        ITestResult l_itr = MockTestTools.generateTestResultMock(l_myTestWithOneArg,
+                new Object[] { PhasedTestManager.STD_PHASED_GROUP_PREFIX + "0_6" });
 
         //Testing as consumer
         Phases.CONSUMER.activate();
@@ -2778,17 +2769,9 @@ public class PhasedTestManagerTests {
     @Test
     public void tesFetchFromPhaseGroup() throws NoSuchMethodException, SecurityException {
 
-        ITestResult l_itr = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
-        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
-
-        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
-        //Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
-        Mockito.when(l_itr.getParameters())
-                .thenReturn(new Object[] { PhasedTestManager.STD_PHASED_GROUP_PREFIX + "0_6" });
-        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
-        Mockito.when(l_com.getMethod())
-                .thenReturn(PhasedSeries_H_ShuffledClass.class.getMethod("step2", String.class));
+        ITestResult l_itr = MockTestTools.generateTestResultMock(
+                PhasedSeries_H_ShuffledClass.class.getMethod("step2", String.class),
+                new Object[] { PhasedTestManager.STD_PHASED_GROUP_PREFIX + "0_6" });
 
         Phases.CONSUMER.activate();
         assertThat("We should have 0 steps before", PhasedTestManager.fetchNrOfStepsBeforePhaseChange(l_itr),
@@ -2811,16 +2794,8 @@ public class PhasedTestManagerTests {
     @Test
     public void tesFetchFromPhaseGroup_negative() throws NoSuchMethodException, SecurityException {
 
-        ITestResult l_itr = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
-        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
-
-        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
-        //Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
-        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "0_6" });
-        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
-        Mockito.when(l_com.getMethod())
-                .thenReturn(PhasedSeries_H_ShuffledClass.class.getMethod("step2", String.class));
+        ITestResult l_itr = MockTestTools.generateTestResultMock(
+                PhasedSeries_H_ShuffledClass.class.getMethod("step2", String.class), new Object[] { "0_6" });
 
         Phases.CONSUMER.activate();
         assertThrows(PhasedTestException.class,
@@ -2893,6 +2868,21 @@ public class PhasedTestManagerTests {
         assertThat("We should by default be passed", x.isPassed());
         assertThat("We should by default have the 0 duration", x.getDuration(), Matchers.equalTo(0L));
         assertThat("The default failed step should be correct", x.getFailedStep(), Matchers.equalTo("NA"));
+        assertThat("We should no steps yet", x.getStepNr(), Matchers.equalTo(0));
+    }
+
+    /**
+     * This is the case when we have started the test, but that the synchronize has not yet been activated
+     */
+    @Test
+    public void testDefaultScenarioContextData_inAction() {
+
+        PhasedTestManager.ScenarioContextData x = new PhasedTestManager.ScenarioContextData();
+
+        assertThat("We should by default be passed", x.isPassed());
+        assertThat("We should by default have the 0 duration", x.getDuration(), Matchers.equalTo(0L));
+        assertThat("The default failed step should be correct", x.getFailedStep(), Matchers.equalTo("NA"));
+        assertThat("We should no steps yet", x.getStepNr(), Matchers.equalTo(0));
     }
 
     @Test
@@ -2904,17 +2894,8 @@ public class PhasedTestManagerTests {
         //Define previous step
         final Method l_myTestBeforeWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step1",
                 String.class);
-        ITestResult l_itr = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
-        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
-
-        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
-        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SUCCESS);
-        Mockito.when(l_itr.getEndMillis()).thenReturn(14L);
-        Mockito.when(l_itr.getStartMillis()).thenReturn(1L);
-        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "0_1" });
-        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
-        Mockito.when(l_com.getMethod()).thenReturn(l_myTestBeforeWithOneArg);
+        ITestResult l_itr = MockTestTools.generateTestResultMock(l_myTestBeforeWithOneArg, new Object[] { "0_1" }, ITestResult.SUCCESS, 1L,
+                14L);
 
         x.synchronizeState(l_itr);
 
@@ -2922,6 +2903,30 @@ public class PhasedTestManagerTests {
         assertThat("We should by default have the 0 duration", x.getDuration(), Matchers.equalTo(15L));
         assertThat("The failed step should not have changed failed step should be correct", x.getFailedStep(),
                 Matchers.equalTo("NA"));
+        assertThat("We should have included a step number", x.getStepNr(), Matchers.equalTo(1));
+
+    }
+
+    @Test
+    public void testScenarioContextData_synchronizeStateTwice() throws NoSuchMethodException {
+        PhasedTestManager.ScenarioContextData l_first = new PhasedTestManager.ScenarioContextData();
+        l_first.setPassed(true);
+        l_first.setDuration(2);
+        l_first.setStepNr(1);
+
+        //Define previous step
+        final Method l_myTestBeforeWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step1",
+                String.class);
+        ITestResult l_itr = MockTestTools.generateTestResultMock(l_myTestBeforeWithOneArg, new Object[] { "0_1" }, ITestResult.SUCCESS, 1L,
+                14L);
+
+        l_first.synchronizeState(l_itr);
+
+        assertThat("We should be passed", l_first.isPassed());
+        assertThat("We should by default have the 0 duration", l_first.getDuration(), Matchers.equalTo(15L));
+        assertThat("The failed step should not have changed failed step should be correct", l_first.getFailedStep(),
+                Matchers.equalTo("NA"));
+        assertThat("We should have included a step number", l_first.getStepNr(), Matchers.equalTo(2));
 
     }
 
@@ -2934,17 +2939,8 @@ public class PhasedTestManagerTests {
         //Define previous step
         final Method l_myTestBeforeWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step1",
                 String.class);
-        ITestResult l_itr = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
-        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
-
-        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
-        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.FAILURE);
-        Mockito.when(l_itr.getEndMillis()).thenReturn(14L);
-        Mockito.when(l_itr.getStartMillis()).thenReturn(1L);
-        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "0_1" });
-        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
-        Mockito.when(l_com.getMethod()).thenReturn(l_myTestBeforeWithOneArg);
+        ITestResult l_itr = MockTestTools.generateTestResultMock(l_myTestBeforeWithOneArg, new Object[] { "0_1" }, ITestResult.FAILURE, 1L,
+                14L);
 
         l_scenarioContext.synchronizeState(l_itr);
         String l_failedStep = ClassPathParser.fetchFullName(l_itr);
@@ -2953,6 +2949,7 @@ public class PhasedTestManagerTests {
         assertThat("We should by default have the 0 duration", l_scenarioContext.getDuration(), Matchers.equalTo(15L));
         assertThat("The failed step should not have changed failed step should be correct",
                 l_scenarioContext.getFailedStep(), Matchers.equalTo(l_failedStep));
+        assertThat("We should have included a step number", l_scenarioContext.getStepNr(), Matchers.equalTo(1));
 
     }
 
@@ -2970,17 +2967,8 @@ public class PhasedTestManagerTests {
         //Define previous step
         final Method l_myTestBeforeWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step2",
                 String.class);
-        ITestResult l_itr = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
-        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
-
-        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
-        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SKIP);
-        Mockito.when(l_itr.getEndMillis()).thenReturn(14L);
-        Mockito.when(l_itr.getStartMillis()).thenReturn(1L);
-        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "0_1" });
-        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
-        Mockito.when(l_com.getMethod()).thenReturn(l_myTestBeforeWithOneArg);
+        ITestResult l_itr = MockTestTools.generateTestResultMock(l_myTestBeforeWithOneArg, new Object[] { "0_1" }, ITestResult.SKIP, 1L,
+                14L);
 
         l_scenarioContext.synchronizeState(l_itr);
         String l_failedStep = ClassPathParser.fetchFullName(l_itr);
@@ -3003,17 +2991,12 @@ public class PhasedTestManagerTests {
         //Define previous step
         final Method l_myTestBeforeWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step2",
                 String.class);
-        ITestResult l_itr = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
-        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
+        Object[] args = { "0_1" };
+        int testResult = ITestResult.SKIP;
+        long startMillis = 1L;
+        long endMillis = 14L;
 
-        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
-        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SKIP);
-        Mockito.when(l_itr.getEndMillis()).thenReturn(14L);
-        Mockito.when(l_itr.getStartMillis()).thenReturn(1L);
-        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "0_1" });
-        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
-        Mockito.when(l_com.getMethod()).thenReturn(l_myTestBeforeWithOneArg);
+        ITestResult l_itr = MockTestTools.generateTestResultMock(l_myTestBeforeWithOneArg, args, testResult, startMillis, endMillis);
 
         l_scenarioContext.synchronizeState(l_itr);
         String l_failedStep = ClassPathParser.fetchFullName(l_itr);
@@ -3032,30 +3015,21 @@ public class PhasedTestManagerTests {
         //Define previous step
         final Method l_myTestBeforeWithOneArg = PhasedSeries_H_ShuffledClassWithError.class.getMethod("step2",
                 String.class);
-        ITestResult l_itr = Mockito.mock(ITestResult.class);
-        ITestNGMethod l_itrMethod = Mockito.mock(ITestNGMethod.class);
-        ConstructorOrMethod l_com = Mockito.mock(ConstructorOrMethod.class);
 
-        Mockito.when(l_itr.getMethod()).thenReturn(l_itrMethod);
-        Mockito.when(l_itr.getStatus()).thenReturn(ITestResult.SKIP);
+        ITestResult l_itr = MockTestTools.generateTestResultMock(l_myTestBeforeWithOneArg, new Object[] { "0_1" },
+                ITestResult.SKIP, 1L, 14L);
+
         Mockito.when(l_itr.getThrowable()).thenReturn(new AssertionError("kjhsqdksj"));
-        Mockito.when(l_itr.getEndMillis()).thenReturn(14L);
-        Mockito.when(l_itr.getStartMillis()).thenReturn(1L);
-        Mockito.when(l_itr.getParameters()).thenReturn(new Object[] { "0_1" });
-        Mockito.when(l_itrMethod.getConstructorOrMethod()).thenReturn(l_com);
-        Mockito.when(l_com.getMethod()).thenReturn(l_myTestBeforeWithOneArg);
 
         l_scenarioContext.synchronizeState(l_itr);
         String l_failedStep = ClassPathParser.fetchFullName(l_itr);
 
         assertThat("We should be failed", !l_scenarioContext.isPassed());
         assertThat("We should by default have the 0 duration", l_scenarioContext.getDuration(), Matchers.equalTo(13L));
-
+        assertThat("We should have included a step number", l_scenarioContext.getStepNr(), Matchers.equalTo(1));
         //TODO seems useless
         assertThat("The failed step should not have changed failed step should be correct",
                 l_scenarioContext.getFailedStep(), Matchers.equalTo(l_scenarioContext.getFailedStep()));
-
-
 
     }
 
@@ -3207,6 +3181,29 @@ public class PhasedTestManagerTests {
     }
 
     @Test
+    public void testFetchNieNr() throws NoSuchMethodException {
+        String l_className = TestShuffled_eventPassedAsExecutionVariable.class.getTypeName();
+        Method l_method = TestShuffled_eventPassedAsExecutionVariable.class.getMethod("step1",String.class);
+        String l_dataProvider = PhasedTestManager.STD_PHASED_GROUP_NIE_PREFIX+"3";
+        ITestResult l_itr = MockTestTools.generateTestResultMock(l_method, new Object[]{l_dataProvider});
+
+        assertThat("We should have correctly extracted the number for the index",PhasedTestManager.asynchronousExtractIndex(l_itr), Matchers.equalTo(3));
+
+        //PhasedTestManager.getScenarioContext().put(l_scenarioName, new P)
+
+    }
+
+    @Test
+    public void testFetchNieNr_SingleGroup() throws NoSuchMethodException {
+        String l_className = TestSINGLEWithEvent_eventAsExecProperty.class.getTypeName();
+        Method l_method = TestSINGLEWithEvent_eventAsExecProperty.class.getMethod("step1",String.class);
+        String l_dataProvider = PhasedTestManager.STD_PHASED_GROUP_SINGLE;
+        ITestResult l_itr = MockTestTools.generateTestResultMock(l_method, new Object[]{l_dataProvider});
+
+        assertThat("We should have correctly extracted the number for the index",PhasedTestManager.asynchronousExtractIndex(l_itr), Matchers.equalTo(-1));
+    }
+
+    @Test
     public void addTestForMergedReportData() {
         assertThat(PhasedTestManager.MergedReportData.prefix,notNullValue());
         assertThat(PhasedTestManager.MergedReportData.suffix,notNullValue());
@@ -3216,5 +3213,4 @@ public class PhasedTestManagerTests {
         assertThat(PhasedTestManager.MergedReportData.prefix,notNullValue());
         assertThat(PhasedTestManager.MergedReportData.suffix,notNullValue());
     }
-
 }

@@ -33,8 +33,6 @@ public class PhasedSeries_D_SingleNoPhase {
         System.out.println("step2 " + val);
         String l_fetchedValue = PhasedTestManager.consumeFromStep("step1");
         PhasedTestManager.produceInStep(l_fetchedValue + "B");
-        
-
     }
 
     @Test

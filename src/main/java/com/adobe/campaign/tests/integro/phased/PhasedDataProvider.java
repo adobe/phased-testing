@@ -31,8 +31,8 @@ public class PhasedDataProvider {
     }
     
     @DataProvider(name = PhasedDataProvider.DEFAULT)
-    public Object[][] defaultDP() {
-        return new Object[][]{{PhasedDataProvider.DEFAULT}};
+    public Object[] defaultDP(Method m) {
+        return PhasedTestManager.fetchProvidersStandard(m);
     }
 
 }

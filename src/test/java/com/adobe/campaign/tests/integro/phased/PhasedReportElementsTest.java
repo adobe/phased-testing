@@ -12,6 +12,7 @@
 package com.adobe.campaign.tests.integro.phased;
 
 import com.adobe.campaign.tests.integro.phased.samples.PhasedReportElementsSample;
+import com.adobe.campaign.tests.integro.phased.utils.ConfigValueHandler;
 import com.adobe.campaign.tests.integro.phased.utils.TestTools;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,25 +26,31 @@ import org.testng.IHookable;
 import org.testng.ITestListener;
 import org.testng.ITestResult;
 import org.testng.TestNG;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 public class PhasedReportElementsTest implements IConfigurable, IHookable {
 
   private final SimpleListener listener = new SimpleListener();
 
+  @BeforeMethod
+  @AfterMethod
+  public void cleanup() {
+    ConfigValueHandler.resetAllValues();
+  }
+
   @Override
   public void run(IConfigureCallBack callBack, ITestResult testResult) {
-    System.setProperty(PhasedTestManager.PROP_SELECTED_PHASE, "PRODUCER");
+    ConfigValueHandler.PROP_SELECTED_PHASE.activate("PRODUCER");
     callBack.runConfigurationMethod(testResult);
-    System.clearProperty(PhasedTestManager.PROP_SELECTED_PHASE);
   }
 
   @Override
   public void run(IHookCallBack callBack, ITestResult testResult) {
-    System.setProperty(PhasedTestManager.PROP_SELECTED_PHASE, "PRODUCER");
+    ConfigValueHandler.PROP_SELECTED_PHASE.activate("PRODUCER");
     callBack.runTestMethod(testResult);
-    System.clearProperty(PhasedTestManager.PROP_SELECTED_PHASE);
   }
 
   @BeforeClass
