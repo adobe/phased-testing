@@ -420,49 +420,37 @@ public class PhasedTestListener
     @Override
     public void transform(ITestAnnotation annotation, Class testClass, Constructor testConstructor,
             Method testMethod) {
-        if (testClass != null) {
-
-            //inject the selector by PRODUCER
-            if (PhasedTestManager.isTestsSelectedByProducerMode() && PhasedTestManager.fetchExecutedPhasedClasses()
-                    .contains(testClass.getTypeName())) {
-                //Create new group array
-                Set<String> l_newArrayString = new HashSet<>(Arrays.asList(annotation.getGroups()));
-                l_newArrayString.add(PhasedTestManager.STD_GROUP_SELECT_TESTS_BY_PRODUCER);
-                String[] l_newGroupArray = new String[l_newArrayString.size()];
-                annotation.setGroups(l_newArrayString.toArray(l_newGroupArray));
-            }
-
-            if (PhasedTestManager.isPhasedTest(testClass)) {
-                if (Phases.NON_PHASED.isSelected()) {
-                    annotation.setDataProvider(
-                            ConfigValueHandler.PHASED_TEST_NONPHASED_LEGACY.is("true") ? PhasedDataProvider.SINGLE : PhasedDataProvider.DEFAULT);
-
-                } else {
-                    annotation.setDataProvider(PhasedTestManager.isPhasedTestShuffledMode(
-                            testClass) ? PhasedDataProvider.SHUFFLED : PhasedDataProvider.SINGLE);
-            }
-
-                annotation.setDataProviderClass(PhasedDataProvider.class);
-            }
-
-        }
-
-        //Managing Phased tests on method level
-        if (testMethod == null) {
+        if (testClass == null && testMethod==null) {
             return;
         }
-        if (PhasedTestManager.isPhasedTest(testMethod)) {
+
+        Class l_currentClass = testClass != null ? testClass : testMethod.getDeclaringClass();
+
+
+        //inject the selector by PRODUCER
+        if (PhasedTestManager.isTestsSelectedByProducerMode() && PhasedTestManager.fetchExecutedPhasedClasses()
+                .contains(l_currentClass.getTypeName())) {
+            //Create new group array
+            Set<String> l_newArrayString = new HashSet<>(Arrays.asList(annotation.getGroups()));
+            l_newArrayString.add(PhasedTestManager.STD_GROUP_SELECT_TESTS_BY_PRODUCER);
+            String[] l_newGroupArray = new String[l_newArrayString.size()];
+            annotation.setGroups(l_newArrayString.toArray(l_newGroupArray));
+        }
+
+        if (PhasedTestManager.isPhasedTest(l_currentClass)) {
             if (Phases.NON_PHASED.isSelected()) {
                 annotation.setDataProvider(
                         ConfigValueHandler.PHASED_TEST_NONPHASED_LEGACY.is("true") ? PhasedDataProvider.SINGLE : PhasedDataProvider.DEFAULT);
 
             } else {
                 annotation.setDataProvider(PhasedTestManager.isPhasedTestShuffledMode(
-                        testMethod) ? PhasedDataProvider.SHUFFLED : PhasedDataProvider.SINGLE);
-        }
+                        l_currentClass) ? PhasedDataProvider.SHUFFLED : PhasedDataProvider.SINGLE);
+            }
+
             annotation.setDataProviderClass(PhasedDataProvider.class);
         }
     }
+
 
     private static Stream<ITestResult> mergedStreamOfAllResults(ITestContext context) {
         return Stream.concat(context.getFailedTests().getAllResults().stream(),
