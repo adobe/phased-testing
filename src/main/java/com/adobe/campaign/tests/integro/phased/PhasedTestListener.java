@@ -122,10 +122,13 @@ public class PhasedTestListener
 
             //Cases 1,2,4,5
             //Disable retrying of phased tests
+            /*
             if (ConfigValueHandler.PROP_DISABLE_RETRY.is("true")) {
-                log.info("{} Disabling Retry for phased Tests.", PhasedTestManager.PHASED_TEST_LOG_PREFIX);
+                log.debug("{} Disabling Retry for phased Test {}.", PhasedTestManager.PHASED_TEST_LOG_PREFIX, ClassPathParser.fetchFullName(l_method));
                 result.getMethod().setRetryAnalyzerClass(DisabledRetryAnalyzer.class);
             }
+
+             */
 
             final String l_dataProvider = PhasedTestManager.concatenateParameterArray(result.getParameters());
 
@@ -467,6 +470,11 @@ public class PhasedTestListener
 
         Map<Class<?>, List<String>> l_classMethodMap = new HashMap<>();
         Set<Class> l_phasedClasses = new HashSet<>();
+
+        if (ConfigValueHandler.PROP_DISABLE_RETRY.is("true")) {
+            log.debug("{} Disabling Retry for phased Tests.", PhasedTestManager.PHASED_TEST_LOG_PREFIX);
+            list.stream().filter(l -> PhasedTestManager.isPhasedTest(l.getMethod().getRealClass())).forEach(i -> i.getMethod().setRetryAnalyzerClass(DisabledRetryAnalyzer.class));
+        }
 
         for (Method lt_method : list.stream()
                 .map(mi -> mi.getMethod().getConstructorOrMethod().getMethod()).filter(f -> PhasedTestManager.isPhasedTest(f))
