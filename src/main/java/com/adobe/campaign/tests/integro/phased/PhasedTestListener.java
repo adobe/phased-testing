@@ -296,7 +296,7 @@ public class PhasedTestListener
                                 Collectors.toList()));
 
         for (Entry<String, List<ITestResult>> each : l_phasedScenarios.entrySet()) {
-            log.info(PhasedTestManager.PHASED_TEST_LOG_PREFIX + "Reducing Report for " + each);
+            log.info("{} Reducing Report for {}",PhasedTestManager.PHASED_TEST_LOG_PREFIX, each);
 
             //When the phase test scenario was not a success
             if (PhasedTestManager.getScenarioContext().get(each.getKey()).isPassed()) {
@@ -468,7 +468,7 @@ public class PhasedTestListener
         }
 
         for (Method lt_method : list.stream()
-                .map(mi -> mi.getMethod().getConstructorOrMethod().getMethod()).filter(f -> PhasedTestManager.isPhasedTest(f))
+                .map(mi -> mi.getMethod().getConstructorOrMethod().getMethod()).filter(PhasedTestManager::isPhasedTest)
                 .collect(Collectors.toList())) {
             l_phasedClasses.add(lt_method.getDeclaringClass());
             //Method lt_method = lt_testNGMethod.getConstructorOrMethod().getMethod();

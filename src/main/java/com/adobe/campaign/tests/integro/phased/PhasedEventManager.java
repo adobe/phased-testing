@@ -52,7 +52,7 @@ public class PhasedEventManager {
 
     protected static enum EventMode {START, END};
 
-    static Map<String, NonInterruptiveEvent> events = new HashMap<String, NonInterruptiveEvent>();
+    static Map<String, NonInterruptiveEvent> events = new HashMap<>();
 
 
     private static List<PhasedEventLogEntry> eventLogs = new ArrayList();
