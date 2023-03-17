@@ -500,7 +500,7 @@ public final class PhasedTestManager {
             } else {
                 l_importCacheFile = new File(GeneralTestUtils.fetchCacheDirectory(STD_STORE_DIR), STD_STORE_FILE);
                 log.warn("{} The system property {} not set. Fetching Phased Test data from {}.",
-                        PHASED_TEST_LOG_PREFIX, PhasedTestConfigValueHandler.PROP_PHASED_DATA_PATH.fetchValue(), l_importCacheFile.getPath());
+                        PHASED_TEST_LOG_PREFIX, PhasedTestConfigValueHandler.PROP_PHASED_DATA_PATH.systemName, l_importCacheFile.getPath());
             }
         } else {
             log.info("{} Fetching cache through DataBroker.", PHASED_TEST_LOG_PREFIX);
