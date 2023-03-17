@@ -11,8 +11,6 @@
  */
 package com.adobe.campaign.tests.integro.phased;
 
-import com.adobe.campaign.tests.integro.phased.utils.PhasedTestConfigValueHandler;
-
 import java.util.Arrays;
 
 public enum Phases {

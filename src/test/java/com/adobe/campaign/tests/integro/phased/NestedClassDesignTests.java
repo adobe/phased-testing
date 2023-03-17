@@ -16,7 +16,6 @@ import com.adobe.campaign.tests.integro.phased.data.nested.PhasedSeries_J_Recipi
 import com.adobe.campaign.tests.integro.phased.data.nested.PhasedSeries_N_BeforePhase_BeforeSuite;
 import com.adobe.campaign.tests.integro.phased.data.nested.PhasedSeries_N_NestedContainer;
 import com.adobe.campaign.tests.integro.phased.data.nested.PhasedSeries_N_Simple_BeforeSuite;
-import com.adobe.campaign.tests.integro.phased.utils.PhasedTestConfigValueHandler;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 import com.adobe.campaign.tests.integro.phased.utils.TestTools;
 import org.testng.ITestContext;

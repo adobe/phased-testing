@@ -18,7 +18,6 @@ import com.adobe.campaign.tests.integro.phased.data.events.TestSINGLEWithEvent_e
 import com.adobe.campaign.tests.integro.phased.data.events.TestSINGLEWithEvent_eventAsExecProperty;
 import com.adobe.campaign.tests.integro.phased.data.events.TestShuffled_eventPassedAsExecutionVariable;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
-import com.adobe.campaign.tests.integro.phased.utils.PhasedTestConfigValueHandler;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 import com.adobe.campaign.tests.integro.phased.utils.MockTestTools;
 import org.hamcrest.Matchers;
@@ -31,7 +30,10 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.testng.asserts.SoftAssert;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.util.*;
 
@@ -270,13 +272,12 @@ public class PhasedTestManagerTests {
     }
 
     /**
-     * Testing that when the property {@value PhasedTestConfigValueHandler#PROP_PHASED_DATA_PATH#value} is set, that path is
+     * Testing {@code PROP_PHASED_DATA_PATH} that when the property {@value PhasedTestConfigValueHandler#PROP_PHASED_DATA_PATH.systemName} is set, that path is
      * used.
      *
      * Author : gandomi
      *
      */
-    // ({@value PhasedTestManager#PROP_PHASED_DATA_PATH} is set, that path is
     @Test
     public void exportingData_UsingSystemValues() throws IOException {
         PhasedTestManager.produceInStep("Hello");

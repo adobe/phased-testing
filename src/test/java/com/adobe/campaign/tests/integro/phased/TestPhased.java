@@ -12,12 +12,11 @@
 package com.adobe.campaign.tests.integro.phased;
 
 import com.adobe.campaign.tests.integro.phased.data.*;
-import com.adobe.campaign.tests.integro.phased.data.nested.PhasedSeries_J_RecipientClass.PhasedSeries_J_ShuffledClassInAClass;
 import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledDP;
 import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledDPSimple;
 import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledNoArgs;
 import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledWrongArgs;
-import com.adobe.campaign.tests.integro.phased.utils.PhasedTestConfigValueHandler;
+import com.adobe.campaign.tests.integro.phased.data.nested.PhasedSeries_J_RecipientClass.PhasedSeries_J_ShuffledClassInAClass;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 import com.adobe.campaign.tests.integro.phased.utils.TestTools;
 import org.hamcrest.Matchers;

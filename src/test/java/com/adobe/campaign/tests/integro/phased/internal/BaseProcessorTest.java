@@ -12,7 +12,7 @@
 package com.adobe.campaign.tests.integro.phased.internal;
 
 import com.adobe.campaign.tests.integro.phased.Phases;
-import com.adobe.campaign.tests.integro.phased.utils.PhasedTestConfigValueHandler;
+import com.adobe.campaign.tests.integro.phased.PhasedTestConfigValueHandler;
 import org.testng.IHookCallBack;
 import org.testng.IHookable;
 import org.testng.ITestResult;

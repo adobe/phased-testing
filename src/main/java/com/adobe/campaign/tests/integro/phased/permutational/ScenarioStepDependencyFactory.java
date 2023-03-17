@@ -13,7 +13,7 @@ package com.adobe.campaign.tests.integro.phased.permutational;
 
 import com.adobe.campaign.tests.integro.phased.PhasedTestConfigurationException;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
-import com.adobe.campaign.tests.integro.phased.utils.PhasedTestConfigValueHandler;
+import com.adobe.campaign.tests.integro.phased.PhasedTestConfigValueHandler;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.MethodCallExpr;

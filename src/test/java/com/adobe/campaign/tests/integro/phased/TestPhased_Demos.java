@@ -12,9 +12,7 @@
 package com.adobe.campaign.tests.integro.phased;
 
 import com.adobe.campaign.tests.integro.phased.demo.DemoShuffled;
-//import demo.ShoppingBasket2;
 import com.adobe.campaign.tests.integro.phased.demo.ShoppingBasket2;
-import com.adobe.campaign.tests.integro.phased.utils.PhasedTestConfigValueHandler;
 import com.adobe.campaign.tests.integro.phased.utils.TestTools;
 import org.testng.TestListenerAdapter;
 import org.testng.TestNG;

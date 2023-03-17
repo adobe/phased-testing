@@ -12,7 +12,7 @@
 package com.adobe.campaign.tests.integro.phased;
 
 import com.adobe.campaign.tests.integro.phased.samples.PhasedReportElementsSample;
-import com.adobe.campaign.tests.integro.phased.utils.PhasedTestConfigValueHandler;
+import com.adobe.campaign.tests.integro.phased.PhasedTestConfigValueHandler;
 import com.adobe.campaign.tests.integro.phased.utils.TestTools;
 import java.util.ArrayList;
 import java.util.HashMap;
