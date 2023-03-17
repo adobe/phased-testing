@@ -33,7 +33,7 @@ public class ClassPathParserTests {
     @BeforeMethod
     @AfterMethod
     private void reset() {
-        ConfigValueHandler.resetAllValues();
+        PhasedTestConfigValueHandler.resetAllValues();
     }
 
     @Test
@@ -167,7 +167,7 @@ public class ClassPathParserTests {
 
     @Test
     public void testFetchClassFileConfigured() throws SecurityException {
-        ConfigValueHandler.PHASED_TEST_SOURCE_LOCATION.activate("/src/test/java/com");
+        PhasedTestConfigValueHandler.PHASED_TEST_SOURCE_LOCATION.activate("/src/test/java/com");
 
         //Fetch File for Class
         assertThat("We should have correctly found the file that is not null",

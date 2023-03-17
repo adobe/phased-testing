@@ -106,7 +106,7 @@ public final class ClassPathParser {
             className = className.substring(0,className.lastIndexOf('$'));
         }
 
-        final String l_rootPath = (new File("")).getAbsolutePath() + ConfigValueHandler.PHASED_TEST_SOURCE_LOCATION.fetchValue();
+        final String l_rootPath = (new File("")).getAbsolutePath() + PhasedTestConfigValueHandler.PHASED_TEST_SOURCE_LOCATION.fetchValue();
         final String l_filePath = l_rootPath + "/" + className.replace('.', '/') + ".java";
         return new File(l_filePath);
     }

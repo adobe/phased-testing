@@ -12,7 +12,7 @@
 package com.adobe.campaign.tests.integro.phased;
 
 import com.adobe.campaign.tests.integro.phased.data.permutational.SimplePermutationTest;
-import com.adobe.campaign.tests.integro.phased.utils.ConfigValueHandler;
+import com.adobe.campaign.tests.integro.phased.utils.PhasedTestConfigValueHandler;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 import com.adobe.campaign.tests.integro.phased.utils.TestTools;
 import org.testng.ITestContext;
@@ -40,7 +40,7 @@ public class OrderingStepsTests {
     public void resetVariables() {
 
         PhasedTestManager.clearCache();
-        ConfigValueHandler.resetAllValues();
+        PhasedTestConfigValueHandler.resetAllValues();
 
         PhasedTestManager.deactivateMergedReports();
         PhasedTestManager.deactivateTestSelectionByProducerMode();
@@ -69,7 +69,7 @@ public class OrderingStepsTests {
 
     @Test
     public void testNonPhased() {
-        ConfigValueHandler.PHASED_TEST_DETECT_ORDER.activate("true");
+        PhasedTestConfigValueHandler.PHASED_TEST_DETECT_ORDER.activate("true");
         //Activate Merge
         PhasedTestManager.activateMergedReports();
 
@@ -116,7 +116,7 @@ public class OrderingStepsTests {
 
     @Test
     public void testPhasedProducer() {
-        ConfigValueHandler.PHASED_TEST_DETECT_ORDER.activate("true");
+        PhasedTestConfigValueHandler.PHASED_TEST_DETECT_ORDER.activate("true");
         //Activate Merge
         PhasedTestManager.activateMergedReports();
 
@@ -166,7 +166,7 @@ public class OrderingStepsTests {
 
     @Test
     public void testPhasedFullMonty() {
-        ConfigValueHandler.PHASED_TEST_DETECT_ORDER.activate("true");
+        PhasedTestConfigValueHandler.PHASED_TEST_DETECT_ORDER.activate("true");
         //Activate Merge
         PhasedTestManager.activateMergedReports();
 

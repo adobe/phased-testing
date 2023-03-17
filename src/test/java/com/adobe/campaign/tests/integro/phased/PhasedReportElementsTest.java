@@ -12,7 +12,7 @@
 package com.adobe.campaign.tests.integro.phased;
 
 import com.adobe.campaign.tests.integro.phased.samples.PhasedReportElementsSample;
-import com.adobe.campaign.tests.integro.phased.utils.ConfigValueHandler;
+import com.adobe.campaign.tests.integro.phased.utils.PhasedTestConfigValueHandler;
 import com.adobe.campaign.tests.integro.phased.utils.TestTools;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,18 +38,18 @@ public class PhasedReportElementsTest implements IConfigurable, IHookable {
   @BeforeMethod
   @AfterMethod
   public void cleanup() {
-    ConfigValueHandler.resetAllValues();
+    PhasedTestConfigValueHandler.resetAllValues();
   }
 
   @Override
   public void run(IConfigureCallBack callBack, ITestResult testResult) {
-    ConfigValueHandler.PROP_SELECTED_PHASE.activate("PRODUCER");
+    PhasedTestConfigValueHandler.PROP_SELECTED_PHASE.activate("PRODUCER");
     callBack.runConfigurationMethod(testResult);
   }
 
   @Override
   public void run(IHookCallBack callBack, ITestResult testResult) {
-    ConfigValueHandler.PROP_SELECTED_PHASE.activate("PRODUCER");
+    PhasedTestConfigValueHandler.PROP_SELECTED_PHASE.activate("PRODUCER");
     callBack.runTestMethod(testResult);
   }
 

@@ -11,7 +11,7 @@
  */
 package com.adobe.campaign.tests.integro.phased;
 
-import com.adobe.campaign.tests.integro.phased.utils.ConfigValueHandler;
+import com.adobe.campaign.tests.integro.phased.utils.PhasedTestConfigValueHandler;
 
 import java.util.Arrays;
 
@@ -34,7 +34,7 @@ public enum Phases {
      *
      */
     public static Phases getCurrentPhase() {
-        return fetchCorrespondingPhase(ConfigValueHandler.PROP_SELECTED_PHASE.fetchValue());
+        return fetchCorrespondingPhase(PhasedTestConfigValueHandler.PROP_SELECTED_PHASE.fetchValue());
     }
 
     /**
@@ -90,7 +90,7 @@ public enum Phases {
      *
      */
     void activate() {
-        ConfigValueHandler.PROP_SELECTED_PHASE.activate(this.name());
+        PhasedTestConfigValueHandler.PROP_SELECTED_PHASE.activate(this.name());
     }
 
     /**

@@ -12,7 +12,7 @@
 package com.adobe.campaign.tests.integro.phased;
 
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
-import com.adobe.campaign.tests.integro.phased.utils.ConfigValueHandler;
+import com.adobe.campaign.tests.integro.phased.utils.PhasedTestConfigValueHandler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.testng.ITestResult;
@@ -45,8 +45,8 @@ public class PhasedEventManager {
             return in_method.getDeclaredAnnotation(PhaseEvent.class).eventClasses()[0];
         } else if (PhasedTestManager.isPhasedTest(in_method) && (in_method.getDeclaringClass().getDeclaredAnnotation(PhasedTest.class).eventClasses().length > 0)) {
             return in_method.getDeclaringClass().getDeclaredAnnotation(PhasedTest.class).eventClasses()[0];
-        } else if (ConfigValueHandler.EVENTS_NONINTERRUPTIVE.isSet()) {
-            return ConfigValueHandler.EVENTS_NONINTERRUPTIVE.fetchValue();
+        } else if (PhasedTestConfigValueHandler.EVENTS_NONINTERRUPTIVE.isSet()) {
+            return PhasedTestConfigValueHandler.EVENTS_NONINTERRUPTIVE.fetchValue();
         }
         return null;
     }

@@ -11,7 +11,6 @@
  */
 package com.adobe.campaign.tests.integro.phased;
 
-import com.adobe.campaign.tests.integro.phased.data.PhasedTestShuffledWithoutCanShuffle;
 import com.adobe.campaign.tests.integro.phased.data.PhasedTestShuffledWithoutCanShuffleNested;
 import com.adobe.campaign.tests.integro.phased.data.events.*;
 import com.adobe.campaign.tests.integro.phased.utils.*;
@@ -38,7 +37,7 @@ public class TestPhasedNonInterruptive {
     @AfterMethod
     public void resetVariables() {
 
-        ConfigValueHandler.resetAllValues();
+        PhasedTestConfigValueHandler.resetAllValues();
 
         PhasedEventManager.resetEvents();
 
@@ -212,13 +211,13 @@ public class TestPhasedNonInterruptive {
         assertThat("We should correctly extract the event from the method",
                 PhasedEventManager.fetchApplicableEvent(l_methodWithNoEventSet), nullValue());
 
-        ConfigValueHandler.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent2.class.getTypeName());
+        PhasedTestConfigValueHandler.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent2.class.getTypeName());
         assertThat("We should correctly extract the event from the method",
                 PhasedEventManager.fetchEvent(l_itr2),
                 equalTo(MyNonInterruptiveEvent2.class.getTypeName()));
 
         //Case 3  Event Declared on PhasedTest
-        ConfigValueHandler.EVENTS_NONINTERRUPTIVE.reset();
+        PhasedTestConfigValueHandler.EVENTS_NONINTERRUPTIVE.reset();
         Method l_methodWithEventDefinedOnPhasedTest = TestSINGLEWithEvent_eventConfiguredOnPhasedTestAnnotation.class.getMethod("step2", String.class);
         ITestResult l_itr3 = MockTestTools.generateTestResultMock(l_methodWithEventDefinedOnPhasedTest, new Object[]{"D"});
 
@@ -241,7 +240,7 @@ public class TestPhasedNonInterruptive {
         assertThat("We should correctly extract the event from the method",
                 PhasedEventManager.fetchApplicableEvent(l_methodWithEvent), equalTo(MyNonInterruptiveEvent.class.getTypeName()));
 
-        ConfigValueHandler.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent2.class.getTypeName());
+        PhasedTestConfigValueHandler.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent2.class.getTypeName());
 
         assertThat("The Event annotation should have presedence here",
                 PhasedEventManager.fetchApplicableEvent(l_methodWithEvent), equalTo(MyNonInterruptiveEvent.class.getTypeName()));
@@ -258,7 +257,7 @@ public class TestPhasedNonInterruptive {
         Method l_methodWithEventDefinedOnPhasedTest = TestSINGLEWithEvent_eventConfiguredOnPhasedTestAnnotation.class.getMethod("step2", String.class);
         ITestResult l_itr3 = MockTestTools.generateTestResultMock(l_methodWithEventDefinedOnPhasedTest, new Object[]{"D"});
 
-        ConfigValueHandler.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent2.class.getTypeName());
+        PhasedTestConfigValueHandler.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent2.class.getTypeName());
 
         assertThat("We should correctly extract the event from the Phased Test annotation",
                 PhasedEventManager.fetchApplicableEvent(l_methodWithEventDefinedOnPhasedTest), equalTo(MyNonInterruptiveEvent.class.getTypeName()));
@@ -288,7 +287,7 @@ public class TestPhasedNonInterruptive {
         String l_phaseGroup = PhasedTestManager.STD_PHASED_GROUP_NIE_PREFIX + "1";
         ITestResult l_itr1 = MockTestTools.generateTestResultMock(l_methodWithEvent, new Object[]{ l_phaseGroup });
 
-        ConfigValueHandler.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
+        PhasedTestConfigValueHandler.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
 
         PhasedTestManager.getMethodMap().put(ClassPathParser.fetchFullName(l_methodWithEvent), new MethodMapping(TestShuffled_eventPassedAsExecutionVariable.class, 3, 3, 1));
 
@@ -314,7 +313,7 @@ public class TestPhasedNonInterruptive {
                 PhasedEventManager.fetchApplicableEvent(l_methodWithEvent),
                 equalTo(MyNonInterruptiveEvent.class.getTypeName()));
 
-        ConfigValueHandler.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent2.class.getTypeName());
+        PhasedTestConfigValueHandler.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent2.class.getTypeName());
 
         assertThat("The vent should not change since we have specified it on the Phased Test",
                 PhasedEventManager.fetchApplicableEvent(l_methodWithEvent),
@@ -433,7 +432,7 @@ public class TestPhasedNonInterruptive {
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
         Phases.ASYNCHRONOUS.activate();
-        ConfigValueHandler.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
+        PhasedTestConfigValueHandler.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
         myTestNG.run();
 
         assertThat("The correct phase must have been selected", Phases.getCurrentPhase(), equalTo(Phases.ASYNCHRONOUS));
@@ -505,7 +504,7 @@ public class TestPhasedNonInterruptive {
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
         Phases.ASYNCHRONOUS.activate();
-        ConfigValueHandler.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
+        PhasedTestConfigValueHandler.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
         myTestNG.run();
 
         assertThat("The correct phase must have been selected", Phases.getCurrentPhase(), equalTo(Phases.ASYNCHRONOUS));
@@ -576,7 +575,7 @@ public class TestPhasedNonInterruptive {
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
         Phases.ASYNCHRONOUS.activate();
-        ConfigValueHandler.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
+        PhasedTestConfigValueHandler.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
 
         myTestNG.run();
 
@@ -617,7 +616,7 @@ public class TestPhasedNonInterruptive {
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
         Phases.ASYNCHRONOUS.activate();
-        ConfigValueHandler.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
+        PhasedTestConfigValueHandler.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
 
         myTestNG.run();
 
@@ -659,8 +658,8 @@ public class TestPhasedNonInterruptive {
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
         Phases.ASYNCHRONOUS.activate();
-        ConfigValueHandler.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
-        ConfigValueHandler.PHASED_TEST_DETECT_ORDER.activate("true");
+        PhasedTestConfigValueHandler.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
+        PhasedTestConfigValueHandler.PHASED_TEST_DETECT_ORDER.activate("true");
 
         myTestNG.run();
 
@@ -699,7 +698,7 @@ public class TestPhasedNonInterruptive {
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
         Phases.ASYNCHRONOUS.activate();
-        ConfigValueHandler.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
+        PhasedTestConfigValueHandler.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
 
         assertThat("The after phase should not yet have been updated", TestShuffled_eventConfiguredAfter.originalValue, Matchers.equalTo(0));
         myTestNG.run();
