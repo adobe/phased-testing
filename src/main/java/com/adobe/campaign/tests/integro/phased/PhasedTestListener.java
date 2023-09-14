@@ -11,12 +11,13 @@
  */
 package com.adobe.campaign.tests.integro.phased;
 
+import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestConfigurationException;
+import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestException;
 import com.adobe.campaign.tests.integro.phased.internal.PhaseProcessorFactory;
 import com.adobe.campaign.tests.integro.phased.permutational.ScenarioStepDependencies;
 import com.adobe.campaign.tests.integro.phased.permutational.ScenarioStepDependencyFactory;
 import com.adobe.campaign.tests.integro.phased.permutational.StepDependencies;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
-import com.adobe.campaign.tests.integro.phased.PhasedTestConfigValueHandler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.testng.*;
@@ -55,12 +56,12 @@ public class PhasedTestListener
 
         // *** Import DataBroker ***
         String l_phasedDataBrokerClass = null;
-        if (PhasedTestConfigValueHandler.PROP_PHASED_TEST_DATABROKER.isSet()) {
-            l_phasedDataBrokerClass = PhasedTestConfigValueHandler.PROP_PHASED_TEST_DATABROKER.fetchValue();
+        if (ConfigValueHandlerPhased.PROP_PHASED_TEST_DATABROKER.isSet()) {
+            l_phasedDataBrokerClass = ConfigValueHandlerPhased.PROP_PHASED_TEST_DATABROKER.fetchValue();
         } else if (suites.get(0).getAllParameters()
-                .containsKey(PhasedTestConfigValueHandler.PROP_PHASED_TEST_DATABROKER.systemName)) {
+                .containsKey(ConfigValueHandlerPhased.PROP_PHASED_TEST_DATABROKER.systemName)) {
             l_phasedDataBrokerClass = suites.get(0)
-                    .getParameter(PhasedTestConfigValueHandler.PROP_PHASED_TEST_DATABROKER.systemName);
+                    .getParameter(ConfigValueHandlerPhased.PROP_PHASED_TEST_DATABROKER.systemName);
         } else if (!Phases.NON_PHASED.isSelected()) {
             log.info("{} No PhasedDataBroker set. Using the file system path {}/{} instead ",
                     PhasedTestManager.PHASED_TEST_LOG_PREFIX, PhasedTestManager.STD_STORE_DIR,
@@ -434,7 +435,7 @@ public class PhasedTestListener
         if (PhasedTestManager.isPhasedTest(l_currentClass)) {
             if (Phases.NON_PHASED.isSelected()) {
                 annotation.setDataProvider(
-                        PhasedTestConfigValueHandler.PHASED_TEST_NONPHASED_LEGACY.is("true") ? PhasedDataProvider.SINGLE : PhasedDataProvider.DEFAULT);
+                        ConfigValueHandlerPhased.PHASED_TEST_NONPHASED_LEGACY.is("true") ? PhasedDataProvider.SINGLE : PhasedDataProvider.DEFAULT);
 
             } else {
                 annotation.setDataProvider(PhasedTestManager.isPhasedTestShuffledMode(
@@ -462,7 +463,7 @@ public class PhasedTestListener
         Map<Class<?>, List<String>> l_classMethodMap = new HashMap<>();
         Set<Class> l_phasedClasses = new HashSet<>();
 
-        if (PhasedTestConfigValueHandler.PROP_DISABLE_RETRY.is("true")) {
+        if (ConfigValueHandlerPhased.PROP_DISABLE_RETRY.is("true")) {
             log.debug("{} Disabling Retry for phased Tests.", PhasedTestManager.PHASED_TEST_LOG_PREFIX);
             list.stream().filter(l -> PhasedTestManager.isPhasedTest(l.getMethod().getRealClass())).forEach(i -> i.getMethod().setRetryAnalyzerClass(DisabledRetryAnalyzer.class));
         }
@@ -506,7 +507,7 @@ public class PhasedTestListener
         }
 
         //If the property PHASED.TESTS.DETECT.ORDER not set, we follow the standard TestNG order
-        if (PhasedTestConfigValueHandler.PHASED_TEST_DETECT_ORDER.is("false")) {
+        if (ConfigValueHandlerPhased.PHASED_TEST_DETECT_ORDER.is("false")) {
             log.info("{} Generating Phased Providers", PhasedTestManager.PHASED_TEST_LOG_PREFIX);
             //NIA
             PhasedTestManager.generatePhasedProviders(l_classMethodMap, Phases.getCurrentPhase());

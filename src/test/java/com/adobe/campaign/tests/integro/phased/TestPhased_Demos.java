@@ -31,7 +31,7 @@ public class TestPhased_Demos {
     public void resetVariables() {
 
         PhasedTestManager.clearCache();
-        PhasedTestConfigValueHandler.resetAllValues();
+        ConfigValueHandlerPhased.resetAllValues();
 
         PhasedTestManager.deactivateMergedReports();
         PhasedTestManager.MergedReportData.resetReport();

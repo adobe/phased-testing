@@ -11,7 +11,7 @@
  */
 package com.adobe.campaign.tests.integro.phased.utils;
 
-import com.adobe.campaign.tests.integro.phased.PhasedTestConfigValueHandler;
+import com.adobe.campaign.tests.integro.phased.ConfigValueHandlerPhased;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -24,12 +24,12 @@ public class TestConfigValueHandler {
     @BeforeMethod
     @AfterMethod
     public void resetValues() {
-        PhasedTestConfigValueHandler.EVENTS_NONINTERRUPTIVE.reset();
+        ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.reset();
     }
 
     @Test
     public void testValuesForNonInterruptiveEvent() {
-        PhasedTestConfigValueHandler eventItem = PhasedTestConfigValueHandler.EVENTS_NONINTERRUPTIVE;
+        ConfigValueHandlerPhased eventItem = ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE;
 
         assertThat("By default the list of NIE should be empty",eventItem.systemName, equalTo("PHASED.EVENTS.NONINTERRUPTIVE"));
         assertThat("By default the list of NIE should be empty",eventItem.defaultValue, isEmptyOrNullString());
@@ -39,7 +39,7 @@ public class TestConfigValueHandler {
     @Test
     public void testSettingValues() {
 
-        PhasedTestConfigValueHandler eventItem = PhasedTestConfigValueHandler.EVENTS_NONINTERRUPTIVE;
+        ConfigValueHandlerPhased eventItem = ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE;
 
         assertThat("The value should not be set yet", !eventItem.isSet());
         assertThat("By default the list of NIE should be empty",eventItem.fetchValue(), equalTo(eventItem.defaultValue));
@@ -56,7 +56,7 @@ public class TestConfigValueHandler {
     @Test
     public void testReSettingValues() {
 
-        PhasedTestConfigValueHandler eventItem = PhasedTestConfigValueHandler.EVENTS_NONINTERRUPTIVE;
+        ConfigValueHandlerPhased eventItem = ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE;
 
         String l_parameterValue = "MyValue";
         eventItem.activate(l_parameterValue);
@@ -71,7 +71,7 @@ public class TestConfigValueHandler {
     @Test
     public void testReSettingAllValues() {
 
-        PhasedTestConfigValueHandler eventItem = PhasedTestConfigValueHandler.EVENTS_NONINTERRUPTIVE;
+        ConfigValueHandlerPhased eventItem = ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE;
 
         String l_parameterValue = "MyValue";
         eventItem.activate(l_parameterValue);
@@ -85,7 +85,7 @@ public class TestConfigValueHandler {
 
     @Test
     public void testEqualsIgnoreCase() {
-        PhasedTestConfigValueHandler eventItem = PhasedTestConfigValueHandler.PHASED_TEST_NONPHASED_LEGACY;
+        ConfigValueHandlerPhased eventItem = ConfigValueHandlerPhased.PHASED_TEST_NONPHASED_LEGACY;
 
         assertThat("We should correctly have the value 'false'", eventItem.is("false"));
 

@@ -11,6 +11,8 @@
  */
 package com.adobe.campaign.tests.integro.phased;
 
+import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestConfigurationException;
+import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestException;
 import com.adobe.campaign.tests.integro.phased.permutational.ScenarioStepDependencies;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
@@ -44,7 +46,7 @@ public final class PhasedTestManager {
     private static final Logger log = LogManager.getLogger();
 
     public static final String DEFAULT_CACHE_DIR = "phased_output";
-    public static final String STD_CACHE_DIR = PhasedTestConfigValueHandler.PROP_OUTPUT_DIR.fetchValue();
+    public static final String STD_CACHE_DIR = ConfigValueHandlerPhased.PROP_OUTPUT_DIR.fetchValue();
     public static final String STD_STORE_DIR = "phased_tests";
     public static final String STD_STORE_FILE = "phaseData.properties";
 
@@ -80,7 +82,7 @@ public final class PhasedTestManager {
 
     static Boolean selectTestsByProducerMode = Boolean.FALSE;
 
-    static final String SCENARIO_CONTEXT_PREFIX = PhasedTestConfigValueHandler.PROP_SCENARIO_EXPORTED_PREFIX.fetchValue();
+    static final String SCENARIO_CONTEXT_PREFIX = ConfigValueHandlerPhased.PROP_SCENARIO_EXPORTED_PREFIX.fetchValue();
 
     public static class MergedReportData {
 
@@ -406,8 +408,8 @@ public final class PhasedTestManager {
     public static File fetchExportFile() {
         File l_exportCacheFile;
 
-        if (PhasedTestConfigValueHandler.PROP_PHASED_DATA_PATH.isSet() ) {
-            return new File(PhasedTestConfigValueHandler.PROP_PHASED_DATA_PATH.fetchValue());
+        if (ConfigValueHandlerPhased.PROP_PHASED_DATA_PATH.isSet() ) {
+            return new File(ConfigValueHandlerPhased.PROP_PHASED_DATA_PATH.fetchValue());
         } else {
             return new File(GeneralTestUtils.fetchCacheDirectory(STD_STORE_DIR), STD_STORE_FILE);
         }
@@ -494,13 +496,13 @@ public final class PhasedTestManager {
 
         if (dataBroker == null) {
 
-            if (PhasedTestConfigValueHandler.PROP_PHASED_DATA_PATH.isSet()) {
-                l_importCacheFile = new File(PhasedTestConfigValueHandler.PROP_PHASED_DATA_PATH.fetchValue());
+            if (ConfigValueHandlerPhased.PROP_PHASED_DATA_PATH.isSet()) {
+                l_importCacheFile = new File(ConfigValueHandlerPhased.PROP_PHASED_DATA_PATH.fetchValue());
 
             } else {
                 l_importCacheFile = new File(GeneralTestUtils.fetchCacheDirectory(STD_STORE_DIR), STD_STORE_FILE);
                 log.warn("{} The system property {} not set. Fetching Phased Test data from {}.",
-                        PHASED_TEST_LOG_PREFIX, PhasedTestConfigValueHandler.PROP_PHASED_DATA_PATH.systemName, l_importCacheFile.getPath());
+                        PHASED_TEST_LOG_PREFIX, ConfigValueHandlerPhased.PROP_PHASED_DATA_PATH.systemName, l_importCacheFile.getPath());
             }
         } else {
             log.info("{} Fetching cache through DataBroker.", PHASED_TEST_LOG_PREFIX);
@@ -1441,11 +1443,11 @@ public final class PhasedTestManager {
      */
     static void applyMergeReportChoice() {
         //Activating merge results if the value is set in the system properties
-        if (PhasedTestConfigValueHandler.PROP_MERGE_STEP_RESULTS.is("true")) {
+        if (ConfigValueHandlerPhased.PROP_MERGE_STEP_RESULTS.is("true")) {
             activateMergedReports();
         }
 
-        if (PhasedTestConfigValueHandler.PROP_MERGE_STEP_RESULTS.is("false")) {
+        if (ConfigValueHandlerPhased.PROP_MERGE_STEP_RESULTS.is("false")) {
             deactivateMergedReports();
         }
     }

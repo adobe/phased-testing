@@ -12,6 +12,7 @@
 package com.adobe.campaign.tests.integro.phased;
 
 import com.adobe.campaign.tests.integro.phased.data.befaft.*;
+import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestConfigurationException;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 import com.adobe.campaign.tests.integro.phased.utils.TestTools;
 import org.hamcrest.Matchers;
@@ -38,7 +39,7 @@ public class TestPhased_BEFORE_AFTER {
     public void resetVariables() {
 
         PhasedTestManager.clearCache();
-        PhasedTestConfigValueHandler.resetAllValues();
+        ConfigValueHandlerPhased.resetAllValues();
 
         PhasedTestManager.deactivateMergedReports();
         PhasedTestManager.MergedReportData.resetReport();

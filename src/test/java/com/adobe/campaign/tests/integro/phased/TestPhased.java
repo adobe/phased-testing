@@ -17,6 +17,8 @@ import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledDP
 import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledNoArgs;
 import com.adobe.campaign.tests.integro.phased.data.dp.PhasedSeries_L_ShuffledWrongArgs;
 import com.adobe.campaign.tests.integro.phased.data.nested.PhasedSeries_J_RecipientClass.PhasedSeries_J_ShuffledClassInAClass;
+import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestConfigurationException;
+import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestException;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 import com.adobe.campaign.tests.integro.phased.utils.TestTools;
 import org.hamcrest.Matchers;
@@ -46,7 +48,7 @@ public class TestPhased {
 
         PhasedTestManager.clearCache();
 
-        PhasedTestConfigValueHandler.resetAllValues();
+        ConfigValueHandlerPhased.resetAllValues();
 
         PhasedTestManager.deactivateMergedReports();
         PhasedTestManager.deactivateTestSelectionByProducerMode();
@@ -133,7 +135,7 @@ public class TestPhased {
         myTest.setXmlClasses(Arrays.asList(new XmlClass(PhasedSeries_D_SingleNoPhase.class)));
 
         Phases.PRODUCER.activate();
-        PhasedTestConfigValueHandler.PHASED_TEST_NONPHASED_LEGACY.activate("false");
+        ConfigValueHandlerPhased.PHASED_TEST_NONPHASED_LEGACY.activate("false");
 
         myTestNG.run();
 
@@ -245,7 +247,7 @@ public class TestPhased {
         XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Phased Tests");
 
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(PhasedSeries_B_NoInActive.class)));
-        PhasedTestConfigValueHandler.PHASED_TEST_NONPHASED_LEGACY.activate("true");
+        ConfigValueHandlerPhased.PHASED_TEST_NONPHASED_LEGACY.activate("true");
         myTestNG.run();
 
         assertThat("We should have no executed methods of phased Tests",
@@ -316,7 +318,7 @@ public class TestPhased {
         myTest.setXmlClasses(Arrays.asList(new XmlClass(PhasedSeries_H_SingleClass.class),
                 new XmlClass(NormalSeries_A.class)));
 
-        PhasedTestConfigValueHandler.PROP_SELECTED_PHASE.activate("conSumer");
+        ConfigValueHandlerPhased.PROP_SELECTED_PHASE.activate("conSumer");
 
         Properties phasedCache = PhasedTestManager.phasedCache;
         phasedCache.put("com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_SingleClass.step2("
@@ -641,7 +643,7 @@ public class TestPhased {
         // Add package to test
 
         Phases.PRODUCER.activate();
-        PhasedTestConfigValueHandler.PROP_MERGE_STEP_RESULTS.activate("false");
+        ConfigValueHandlerPhased.PROP_MERGE_STEP_RESULTS.activate("false");
 
         myTestNG.run();
 
@@ -1112,7 +1114,7 @@ public class TestPhased {
         // Add package to test
 
         Phases.PRODUCER.activate();
-        PhasedTestConfigValueHandler.PROP_MERGE_STEP_RESULTS.activate("false");
+        ConfigValueHandlerPhased.PROP_MERGE_STEP_RESULTS.activate("false");
 
         myTestNG.run();
 
@@ -1648,7 +1650,7 @@ public class TestPhased {
         // Define suites
         XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG, "Automated Suite Phased Testing");
         Map<String, String> l_myparameters = new HashMap<>();
-        l_myparameters.put(PhasedTestConfigValueHandler.PROP_PHASED_TEST_DATABROKER.systemName,
+        l_myparameters.put(ConfigValueHandlerPhased.PROP_PHASED_TEST_DATABROKER.systemName,
                 PhasedDataBrokerTestImplementation.class.getTypeName());
         mySuite.setParameters(l_myparameters);
 
@@ -1695,7 +1697,7 @@ public class TestPhased {
         // Define suites
         XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG, "Automated Suite Phased Testing");
         Map<String, String> l_myparameters = new HashMap<>();
-        l_myparameters.put(PhasedTestConfigValueHandler.PROP_PHASED_TEST_DATABROKER.systemName, NormalSeries_A.class.getTypeName());
+        l_myparameters.put(ConfigValueHandlerPhased.PROP_PHASED_TEST_DATABROKER.systemName, NormalSeries_A.class.getTypeName());
         mySuite.setParameters(l_myparameters);
 
         // Add listeners
@@ -1707,7 +1709,7 @@ public class TestPhased {
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(PhasedSeries_E_FullMonty.class)));
 
         Phases.PRODUCER.activate();
-        PhasedTestConfigValueHandler.PROP_PHASED_TEST_DATABROKER.activate(PhasedDataBrokerTestImplementation.class.getTypeName());
+        ConfigValueHandlerPhased.PROP_PHASED_TEST_DATABROKER.activate(PhasedDataBrokerTestImplementation.class.getTypeName());
 
         myTestNG.run();
 
@@ -1742,7 +1744,7 @@ public class TestPhased {
         // Define suites
         XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG, "Automated Suite Phased Testing");
         Map<String, String> l_myparameters = new HashMap<>();
-        l_myparameters.put(PhasedTestConfigValueHandler.PROP_PHASED_TEST_DATABROKER.systemName, NormalSeries_A.class.getTypeName());
+        l_myparameters.put(ConfigValueHandlerPhased.PROP_PHASED_TEST_DATABROKER.systemName, NormalSeries_A.class.getTypeName());
         mySuite.setParameters(l_myparameters);
 
         // Add listeners
@@ -1822,7 +1824,7 @@ public class TestPhased {
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(PhasedSeries_H_SingleClass.class)));
 
         Phases.PRODUCER.activate();
-        PhasedTestConfigValueHandler.PROP_MERGE_STEP_RESULTS.activate("true");
+        ConfigValueHandlerPhased.PROP_MERGE_STEP_RESULTS.activate("true");
 
         myTestNG.run();
 
@@ -2199,7 +2201,7 @@ public class TestPhased {
         // Add package to test
 
         Phases.PRODUCER.activate();
-        PhasedTestConfigValueHandler.PROP_MERGE_STEP_RESULTS.activate("true");
+        ConfigValueHandlerPhased.PROP_MERGE_STEP_RESULTS.activate("true");
 
         myTestNG.run();
 
@@ -2973,7 +2975,7 @@ public class TestPhased {
         // Add package to test
 
         Phases.PRODUCER.activate();
-        PhasedTestConfigValueHandler.PROP_MERGE_STEP_RESULTS.activate("true");
+        ConfigValueHandlerPhased.PROP_MERGE_STEP_RESULTS.activate("true");
 
         myTestNG.run();
 

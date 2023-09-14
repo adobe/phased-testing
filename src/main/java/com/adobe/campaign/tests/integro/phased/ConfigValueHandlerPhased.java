@@ -11,12 +11,9 @@
  */
 package com.adobe.campaign.tests.integro.phased;
 
-import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
-import com.adobe.campaign.tests.integro.phased.Phases;
-
 import java.util.Arrays;
 
-public enum PhasedTestConfigValueHandler {
+public enum ConfigValueHandlerPhased {
     PROP_SELECTED_PHASE("PHASED.TESTS.PHASE", Phases.NON_PHASED.name(), false),
     EVENTS_NONINTERRUPTIVE("PHASED.EVENTS.NONINTERRUPTIVE",null, false),
     PROP_PHASED_TEST_DATABROKER("PHASED.TESTS.DATABROKER", null, false),
@@ -33,7 +30,7 @@ public enum PhasedTestConfigValueHandler {
     public final String defaultValue;
     public final boolean requiredValue;
 
-    PhasedTestConfigValueHandler(String in_propertyName, String in_defaultValue, boolean in_requiredValue) {
+    ConfigValueHandlerPhased(String in_propertyName, String in_defaultValue, boolean in_requiredValue) {
         systemName =in_propertyName;
         defaultValue=in_defaultValue;
         requiredValue=in_requiredValue;
@@ -66,7 +63,7 @@ public enum PhasedTestConfigValueHandler {
      * Resets all of the values
      */
     public static void resetAllValues() {
-        Arrays.stream(values()).forEach(PhasedTestConfigValueHandler::reset);
+        Arrays.stream(values()).forEach(ConfigValueHandlerPhased::reset);
     }
 
     /**

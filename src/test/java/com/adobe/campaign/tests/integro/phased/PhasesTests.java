@@ -26,7 +26,7 @@ public class PhasesTests {
     @BeforeClass
     public void cleanCache() {
         PhasedTestManager.clearCache();
-        PhasedTestConfigValueHandler.resetAllValues();
+        ConfigValueHandlerPhased.resetAllValues();
     }
 
     @AfterMethod
@@ -37,7 +37,7 @@ public class PhasesTests {
     
     @Test
     public void testSetPhase() {
-        assertThat("We should have no phase value", System.getProperty(PhasedTestConfigValueHandler.PROP_SELECTED_PHASE.name()),Matchers.nullValue());
+        assertThat("We should have no phase value", System.getProperty(ConfigValueHandlerPhased.PROP_SELECTED_PHASE.name()),Matchers.nullValue());
         Phases.PRODUCER.activate();
         
         assertThat("We should have the correct phase", Phases.PRODUCER.isSelected());
@@ -73,7 +73,7 @@ public class PhasesTests {
         assertThat("We should find the correct state CONSUMER",
                 Phases.fetchCorrespondingPhase("conSumer"), is(equalTo(Phases.CONSUMER)));
 
-        PhasedTestConfigValueHandler.PROP_SELECTED_PHASE.activate("PRODuCER");
+        ConfigValueHandlerPhased.PROP_SELECTED_PHASE.activate("PRODuCER");
         assertThat("We should now have the state Producer for the PhasedTestStates",
                 Phases.getCurrentPhase(), is(equalTo(Phases.PRODUCER)));
 
@@ -82,7 +82,7 @@ public class PhasesTests {
         assertThat("We should find the correct state ASYNCHRONOUS_EVENT",
                 Phases.fetchCorrespondingPhase("asYnChronous"), is(equalTo(Phases.ASYNCHRONOUS)));
 
-        PhasedTestConfigValueHandler.PROP_SELECTED_PHASE.activate(Phases.ASYNCHRONOUS.name());
+        ConfigValueHandlerPhased.PROP_SELECTED_PHASE.activate(Phases.ASYNCHRONOUS.name());
         assertThat("We should now have the state Producer for the PhasedTestStates",
                 Phases.getCurrentPhase(), is(equalTo(Phases.ASYNCHRONOUS)));
 

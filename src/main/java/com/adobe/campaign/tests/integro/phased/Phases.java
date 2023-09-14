@@ -32,7 +32,7 @@ public enum Phases {
      *
      */
     public static Phases getCurrentPhase() {
-        return fetchCorrespondingPhase(PhasedTestConfigValueHandler.PROP_SELECTED_PHASE.fetchValue());
+        return fetchCorrespondingPhase(ConfigValueHandlerPhased.PROP_SELECTED_PHASE.fetchValue());
     }
 
     /**
@@ -88,7 +88,7 @@ public enum Phases {
      *
      */
     void activate() {
-        PhasedTestConfigValueHandler.PROP_SELECTED_PHASE.activate(this.name());
+        ConfigValueHandlerPhased.PROP_SELECTED_PHASE.activate(this.name());
     }
 
     /**

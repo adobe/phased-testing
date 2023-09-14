@@ -39,7 +39,7 @@ public class OrderingStepsTests {
     public void resetVariables() {
 
         PhasedTestManager.clearCache();
-        PhasedTestConfigValueHandler.resetAllValues();
+        ConfigValueHandlerPhased.resetAllValues();
 
         PhasedTestManager.deactivateMergedReports();
         PhasedTestManager.deactivateTestSelectionByProducerMode();
@@ -68,7 +68,7 @@ public class OrderingStepsTests {
 
     @Test
     public void testNonPhased() {
-        PhasedTestConfigValueHandler.PHASED_TEST_DETECT_ORDER.activate("true");
+        ConfigValueHandlerPhased.PHASED_TEST_DETECT_ORDER.activate("true");
         //Activate Merge
         PhasedTestManager.activateMergedReports();
 
@@ -115,7 +115,7 @@ public class OrderingStepsTests {
 
     @Test
     public void testPhasedProducer() {
-        PhasedTestConfigValueHandler.PHASED_TEST_DETECT_ORDER.activate("true");
+        ConfigValueHandlerPhased.PHASED_TEST_DETECT_ORDER.activate("true");
         //Activate Merge
         PhasedTestManager.activateMergedReports();
 
@@ -165,7 +165,7 @@ public class OrderingStepsTests {
 
     @Test
     public void testPhasedFullMonty() {
-        PhasedTestConfigValueHandler.PHASED_TEST_DETECT_ORDER.activate("true");
+        ConfigValueHandlerPhased.PHASED_TEST_DETECT_ORDER.activate("true");
         //Activate Merge
         PhasedTestManager.activateMergedReports();
 

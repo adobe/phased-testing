@@ -11,6 +11,8 @@
  */
 package com.adobe.campaign.tests.integro.phased;
 
+import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestConfigurationException;
+import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestException;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -44,8 +46,8 @@ public class PhasedEventManager {
             return in_method.getDeclaredAnnotation(PhaseEvent.class).eventClasses()[0];
         } else if (PhasedTestManager.isPhasedTest(in_method) && (in_method.getDeclaringClass().getDeclaredAnnotation(PhasedTest.class).eventClasses().length > 0)) {
             return in_method.getDeclaringClass().getDeclaredAnnotation(PhasedTest.class).eventClasses()[0];
-        } else if (PhasedTestConfigValueHandler.EVENTS_NONINTERRUPTIVE.isSet()) {
-            return PhasedTestConfigValueHandler.EVENTS_NONINTERRUPTIVE.fetchValue();
+        } else if (ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.isSet()) {
+            return ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.fetchValue();
         }
         return null;
     }

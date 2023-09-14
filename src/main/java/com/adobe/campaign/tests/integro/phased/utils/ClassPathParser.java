@@ -16,7 +16,7 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-import com.adobe.campaign.tests.integro.phased.PhasedTestConfigValueHandler;
+import com.adobe.campaign.tests.integro.phased.ConfigValueHandlerPhased;
 import org.testng.ITestResult;
 
 public final class ClassPathParser {
@@ -107,7 +107,7 @@ public final class ClassPathParser {
             className = className.substring(0,className.lastIndexOf('$'));
         }
 
-        final String l_rootPath = (new File("")).getAbsolutePath() + PhasedTestConfigValueHandler.PHASED_TEST_SOURCE_LOCATION.fetchValue();
+        final String l_rootPath = (new File("")).getAbsolutePath() + ConfigValueHandlerPhased.PHASED_TEST_SOURCE_LOCATION.fetchValue();
         final String l_filePath = l_rootPath + "/" + className.replace('.', '/') + ".java";
         return new File(l_filePath);
     }

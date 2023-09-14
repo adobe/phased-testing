@@ -14,7 +14,7 @@ package com.adobe.campaign.tests.integro.phased.internal;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
-import com.adobe.campaign.tests.integro.phased.PhasedTestConfigurationException;
+import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestConfigurationException;
 import com.adobe.campaign.tests.integro.phased.internal.samples.PhasesSample;
 import java.lang.reflect.Method;
 import org.testng.annotations.Test;
