@@ -28,8 +28,8 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
-          java-version: 8.0.275+1
-          distribution: liberica
+          java-version: 11
+          distribution: temurin
 
       # Set up dependency cache
       - name: Cache local Maven repository
