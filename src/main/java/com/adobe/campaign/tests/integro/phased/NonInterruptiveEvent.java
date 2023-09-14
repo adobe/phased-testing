@@ -11,9 +11,7 @@
  */
 package com.adobe.campaign.tests.integro.phased;
 
-import java.util.Date;
-import java.util.Map;
-import java.util.TreeMap;
+import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestingEventException;
 
 public abstract class NonInterruptiveEvent implements Runnable {
 

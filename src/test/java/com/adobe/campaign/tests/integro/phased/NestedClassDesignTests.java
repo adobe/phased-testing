@@ -16,7 +16,6 @@ import com.adobe.campaign.tests.integro.phased.data.nested.PhasedSeries_J_Recipi
 import com.adobe.campaign.tests.integro.phased.data.nested.PhasedSeries_N_BeforePhase_BeforeSuite;
 import com.adobe.campaign.tests.integro.phased.data.nested.PhasedSeries_N_NestedContainer;
 import com.adobe.campaign.tests.integro.phased.data.nested.PhasedSeries_N_Simple_BeforeSuite;
-import com.adobe.campaign.tests.integro.phased.utils.ConfigValueHandler;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 import com.adobe.campaign.tests.integro.phased.utils.TestTools;
 import org.testng.ITestContext;
@@ -41,7 +40,7 @@ public class NestedClassDesignTests {
     public void resetVariables() {
 
         PhasedTestManager.clearCache();
-        ConfigValueHandler.resetAllValues();
+        ConfigValueHandlerPhased.resetAllValues();
 
         PhasedTestManager.deactivateMergedReports();
         PhasedTestManager.MergedReportData.resetReport();
@@ -202,7 +201,7 @@ public class NestedClassDesignTests {
         // Add package to test
 
         Phases.PRODUCER.activate();
-        ConfigValueHandler.PROP_MERGE_STEP_RESULTS.activate("true");
+        ConfigValueHandlerPhased.PROP_MERGE_STEP_RESULTS.activate("true");
 
         myTestNG.run();
 
@@ -291,7 +290,7 @@ public class NestedClassDesignTests {
         // Add package to test
 
         Phases.PRODUCER.activate();
-        ConfigValueHandler.PROP_MERGE_STEP_RESULTS.activate("true");
+        ConfigValueHandlerPhased.PROP_MERGE_STEP_RESULTS.activate("true");
 
         myTestNG.run();
 
@@ -343,7 +342,7 @@ public class NestedClassDesignTests {
 
         // Add package to test
         Phases.PRODUCER.activate();
-        ConfigValueHandler.PROP_MERGE_STEP_RESULTS.activate("true");
+        ConfigValueHandlerPhased.PROP_MERGE_STEP_RESULTS.activate("true");
 
         myTestNG.run();
 

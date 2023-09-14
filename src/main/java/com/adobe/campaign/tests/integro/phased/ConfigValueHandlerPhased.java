@@ -9,14 +9,11 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package com.adobe.campaign.tests.integro.phased.utils;
-
-import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
-import com.adobe.campaign.tests.integro.phased.Phases;
+package com.adobe.campaign.tests.integro.phased;
 
 import java.util.Arrays;
 
-public enum ConfigValueHandler {
+public enum ConfigValueHandlerPhased {
     PROP_SELECTED_PHASE("PHASED.TESTS.PHASE", Phases.NON_PHASED.name(), false),
     EVENTS_NONINTERRUPTIVE("PHASED.EVENTS.NONINTERRUPTIVE",null, false),
     PROP_PHASED_TEST_DATABROKER("PHASED.TESTS.DATABROKER", null, false),
@@ -33,7 +30,7 @@ public enum ConfigValueHandler {
     public final String defaultValue;
     public final boolean requiredValue;
 
-    ConfigValueHandler(String in_propertyName, String in_defaultValue, boolean in_requiredValue) {
+    ConfigValueHandlerPhased(String in_propertyName, String in_defaultValue, boolean in_requiredValue) {
         systemName =in_propertyName;
         defaultValue=in_defaultValue;
         requiredValue=in_requiredValue;
@@ -66,7 +63,7 @@ public enum ConfigValueHandler {
      * Resets all of the values
      */
     public static void resetAllValues() {
-        Arrays.stream(values()).forEach(ConfigValueHandler::reset);
+        Arrays.stream(values()).forEach(ConfigValueHandlerPhased::reset);
     }
 
     /**

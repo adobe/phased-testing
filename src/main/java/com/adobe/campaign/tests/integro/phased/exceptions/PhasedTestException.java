@@ -9,10 +9,32 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package com.adobe.campaign.tests.integro.phased;
+/**
+ * 
+ */
+package com.adobe.campaign.tests.integro.phased.exceptions;
 
-public class PhasedTestingEventException extends RuntimeException {
-    public PhasedTestingEventException(String message) {
-        super(message);
+/**
+ *
+ *
+ * Author : gandomi
+ *
+ */
+public class PhasedTestException extends RuntimeException {
+
+    public PhasedTestException(String string) {
+        super(string);
     }
+
+    public PhasedTestException(String string, Throwable e) {
+        super(string,e);
+    }
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 5403505332132282642L;
+    
+    
+
 }
