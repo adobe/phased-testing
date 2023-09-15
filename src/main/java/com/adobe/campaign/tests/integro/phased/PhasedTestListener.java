@@ -11,12 +11,13 @@
  */
 package com.adobe.campaign.tests.integro.phased;
 
+import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestConfigurationException;
+import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestException;
 import com.adobe.campaign.tests.integro.phased.internal.PhaseProcessorFactory;
 import com.adobe.campaign.tests.integro.phased.permutational.ScenarioStepDependencies;
 import com.adobe.campaign.tests.integro.phased.permutational.ScenarioStepDependencyFactory;
 import com.adobe.campaign.tests.integro.phased.permutational.StepDependencies;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
-import com.adobe.campaign.tests.integro.phased.utils.ConfigValueHandler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.testng.*;
@@ -55,12 +56,12 @@ public class PhasedTestListener
 
         // *** Import DataBroker ***
         String l_phasedDataBrokerClass = null;
-        if (ConfigValueHandler.PROP_PHASED_TEST_DATABROKER.isSet()) {
-            l_phasedDataBrokerClass = ConfigValueHandler.PROP_PHASED_TEST_DATABROKER.fetchValue();
+        if (ConfigValueHandlerPhased.PROP_PHASED_TEST_DATABROKER.isSet()) {
+            l_phasedDataBrokerClass = ConfigValueHandlerPhased.PROP_PHASED_TEST_DATABROKER.fetchValue();
         } else if (suites.get(0).getAllParameters()
-                .containsKey(ConfigValueHandler.PROP_PHASED_TEST_DATABROKER.systemName)) {
+                .containsKey(ConfigValueHandlerPhased.PROP_PHASED_TEST_DATABROKER.systemName)) {
             l_phasedDataBrokerClass = suites.get(0)
-                    .getParameter(ConfigValueHandler.PROP_PHASED_TEST_DATABROKER.systemName);
+                    .getParameter(ConfigValueHandlerPhased.PROP_PHASED_TEST_DATABROKER.systemName);
         } else if (!Phases.NON_PHASED.isSelected()) {
             log.info("{} No PhasedDataBroker set. Using the file system path {}/{} instead ",
                     PhasedTestManager.PHASED_TEST_LOG_PREFIX, PhasedTestManager.STD_STORE_DIR,
@@ -121,12 +122,6 @@ public class PhasedTestListener
         if (PhasedTestManager.isPhasedTest(l_method)) {
 
             //Cases 1,2,4,5
-            //Disable retrying of phased tests
-            if (ConfigValueHandler.PROP_DISABLE_RETRY.is("true")) {
-                log.info("{} Disabling Retry for phased Tests.", PhasedTestManager.PHASED_TEST_LOG_PREFIX);
-                result.getMethod().setRetryAnalyzerClass(DisabledRetryAnalyzer.class);
-            }
-
             final String l_dataProvider = PhasedTestManager.concatenateParameterArray(result.getParameters());
 
             PhasedTestManager.storePhasedContext(ClassPathParser.fetchFullName(l_method), l_dataProvider);
@@ -302,7 +297,7 @@ public class PhasedTestListener
                                 Collectors.toList()));
 
         for (Entry<String, List<ITestResult>> each : l_phasedScenarios.entrySet()) {
-            log.info(PhasedTestManager.PHASED_TEST_LOG_PREFIX + "Reducing Report for " + each);
+            log.info("{} Reducing Report for {}",PhasedTestManager.PHASED_TEST_LOG_PREFIX, each);
 
             //When the phase test scenario was not a success
             if (PhasedTestManager.getScenarioContext().get(each.getKey()).isPassed()) {
@@ -420,49 +415,37 @@ public class PhasedTestListener
     @Override
     public void transform(ITestAnnotation annotation, Class testClass, Constructor testConstructor,
             Method testMethod) {
-        if (testClass != null) {
-
-            //inject the selector by PRODUCER
-            if (PhasedTestManager.isTestsSelectedByProducerMode() && PhasedTestManager.fetchExecutedPhasedClasses()
-                    .contains(testClass.getTypeName())) {
-                //Create new group array
-                Set<String> l_newArrayString = new HashSet<>(Arrays.asList(annotation.getGroups()));
-                l_newArrayString.add(PhasedTestManager.STD_GROUP_SELECT_TESTS_BY_PRODUCER);
-                String[] l_newGroupArray = new String[l_newArrayString.size()];
-                annotation.setGroups(l_newArrayString.toArray(l_newGroupArray));
-            }
-
-            if (PhasedTestManager.isPhasedTest(testClass)) {
-                if (Phases.NON_PHASED.isSelected()) {
-                    annotation.setDataProvider(
-                            ConfigValueHandler.PHASED_TEST_NONPHASED_LEGACY.is("true") ? PhasedDataProvider.SINGLE : PhasedDataProvider.DEFAULT);
-
-                } else {
-                    annotation.setDataProvider(PhasedTestManager.isPhasedTestShuffledMode(
-                            testClass) ? PhasedDataProvider.SHUFFLED : PhasedDataProvider.SINGLE);
-            }
-
-                annotation.setDataProviderClass(PhasedDataProvider.class);
-            }
-
-        }
-
-        //Managing Phased tests on method level
-        if (testMethod == null) {
+        if (testClass == null && testMethod==null) {
             return;
         }
-        if (PhasedTestManager.isPhasedTest(testMethod)) {
+
+        Class l_currentClass = testClass != null ? testClass : testMethod.getDeclaringClass();
+
+
+        //inject the selector by PRODUCER
+        if (PhasedTestManager.isTestsSelectedByProducerMode() && PhasedTestManager.fetchExecutedPhasedClasses()
+                .contains(l_currentClass.getTypeName())) {
+            //Create new group array
+            Set<String> l_newArrayString = new HashSet<>(Arrays.asList(annotation.getGroups()));
+            l_newArrayString.add(PhasedTestManager.STD_GROUP_SELECT_TESTS_BY_PRODUCER);
+            String[] l_newGroupArray = new String[l_newArrayString.size()];
+            annotation.setGroups(l_newArrayString.toArray(l_newGroupArray));
+        }
+
+        if (PhasedTestManager.isPhasedTest(l_currentClass)) {
             if (Phases.NON_PHASED.isSelected()) {
                 annotation.setDataProvider(
-                        ConfigValueHandler.PHASED_TEST_NONPHASED_LEGACY.is("true") ? PhasedDataProvider.SINGLE : PhasedDataProvider.DEFAULT);
+                        ConfigValueHandlerPhased.PHASED_TEST_NONPHASED_LEGACY.is("true") ? PhasedDataProvider.SINGLE : PhasedDataProvider.DEFAULT);
 
             } else {
                 annotation.setDataProvider(PhasedTestManager.isPhasedTestShuffledMode(
-                        testMethod) ? PhasedDataProvider.SHUFFLED : PhasedDataProvider.SINGLE);
-        }
+                        l_currentClass) ? PhasedDataProvider.SHUFFLED : PhasedDataProvider.SINGLE);
+            }
+
             annotation.setDataProviderClass(PhasedDataProvider.class);
         }
     }
+
 
     private static Stream<ITestResult> mergedStreamOfAllResults(ITestContext context) {
         return Stream.concat(context.getFailedTests().getAllResults().stream(),
@@ -480,8 +463,13 @@ public class PhasedTestListener
         Map<Class<?>, List<String>> l_classMethodMap = new HashMap<>();
         Set<Class> l_phasedClasses = new HashSet<>();
 
+        if (ConfigValueHandlerPhased.PROP_DISABLE_RETRY.is("true")) {
+            log.debug("{} Disabling Retry for phased Tests.", PhasedTestManager.PHASED_TEST_LOG_PREFIX);
+            list.stream().filter(l -> PhasedTestManager.isPhasedTest(l.getMethod().getRealClass())).forEach(i -> i.getMethod().setRetryAnalyzerClass(DisabledRetryAnalyzer.class));
+        }
+
         for (Method lt_method : list.stream()
-                .map(mi -> mi.getMethod().getConstructorOrMethod().getMethod()).filter(f -> PhasedTestManager.isPhasedTest(f))
+                .map(mi -> mi.getMethod().getConstructorOrMethod().getMethod()).filter(PhasedTestManager::isPhasedTest)
                 .collect(Collectors.toList())) {
             l_phasedClasses.add(lt_method.getDeclaringClass());
             //Method lt_method = lt_testNGMethod.getConstructorOrMethod().getMethod();
@@ -519,7 +507,7 @@ public class PhasedTestListener
         }
 
         //If the property PHASED.TESTS.DETECT.ORDER not set, we follow the standard TestNG order
-        if (ConfigValueHandler.PHASED_TEST_DETECT_ORDER.is("false")) {
+        if (ConfigValueHandlerPhased.PHASED_TEST_DETECT_ORDER.is("false")) {
             log.info("{} Generating Phased Providers", PhasedTestManager.PHASED_TEST_LOG_PREFIX);
             //NIA
             PhasedTestManager.generatePhasedProviders(l_classMethodMap, Phases.getCurrentPhase());

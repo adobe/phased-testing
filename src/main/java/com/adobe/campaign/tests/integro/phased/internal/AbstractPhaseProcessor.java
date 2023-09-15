@@ -11,7 +11,7 @@
  */
 package com.adobe.campaign.tests.integro.phased.internal;
 
-import com.adobe.campaign.tests.integro.phased.PhasedTestConfigurationException;
+import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestConfigurationException;
 import com.adobe.campaign.tests.integro.phased.Phases;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
 import java.lang.annotation.Annotation;

@@ -11,7 +11,7 @@
  */
 package com.adobe.campaign.tests.integro.phased.internal;
 
-import com.adobe.campaign.tests.integro.phased.PhasedTestConfigurationException;
+import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestConfigurationException;
 import com.adobe.campaign.tests.integro.phased.internal.samples.PhasesSample;
 import java.lang.reflect.Method;
 

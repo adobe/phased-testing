@@ -12,30 +12,23 @@
 package com.adobe.campaign.tests.integro.phased.utils;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
 import static org.hamcrest.Matchers.nullValue;
 import static org.testng.Assert.assertThrows;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Properties;
 
 import org.hamcrest.Matchers;
 import org.mockito.Mockito;
-import org.testng.ITestNGMethod;
-import org.testng.ITestResult;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import org.testng.internal.ConstructorOrMethod;
 
-import com.adobe.campaign.tests.integro.phased.PhasedTestException;
+import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestException;
 import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
-import com.adobe.campaign.tests.integro.phased.PhasedTestManagerTests;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_SingleClass;
 
 public class GeneralTestUtilsTests {
     private static final String TEST_CACHE_DIR = "testCache";

@@ -17,8 +17,9 @@ import com.adobe.campaign.tests.integro.phased.data.dp.*;
 import com.adobe.campaign.tests.integro.phased.data.events.TestSINGLEWithEvent_eventAsAnnotation;
 import com.adobe.campaign.tests.integro.phased.data.events.TestSINGLEWithEvent_eventAsExecProperty;
 import com.adobe.campaign.tests.integro.phased.data.events.TestShuffled_eventPassedAsExecutionVariable;
+import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestConfigurationException;
+import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestException;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
-import com.adobe.campaign.tests.integro.phased.utils.ConfigValueHandler;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 import com.adobe.campaign.tests.integro.phased.utils.MockTestTools;
 import org.hamcrest.Matchers;
@@ -31,7 +32,10 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.testng.asserts.SoftAssert;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.util.*;
 
@@ -44,7 +48,7 @@ public class PhasedTestManagerTests {
     @BeforeClass
     public void cleanCache() {
         PhasedTestManager.clearCache();
-        ConfigValueHandler.resetAllValues();
+        ConfigValueHandlerPhased.resetAllValues();
 
         PhasedTestManager.deactivateMergedReports();
         PhasedTestManager.MergedReportData.resetReport();
@@ -270,13 +274,12 @@ public class PhasedTestManagerTests {
     }
 
     /**
-     * Testing that when the property {@value ConfigValueHandler#PROP_PHASED_DATA_PATH#value} is set, that path is
+     * Testing {@code PROP_PHASED_DATA_PATH} that when the property {@value ConfigValueHandlerPhased#PROP_PHASED_DATA_PATH.systemName} is set, that path is
      * used.
      *
      * Author : gandomi
      *
      */
-    // ({@value PhasedTestManager#PROP_PHASED_DATA_PATH} is set, that path is
     @Test
     public void exportingData_UsingSystemValues() throws IOException {
         PhasedTestManager.produceInStep("Hello");
@@ -285,7 +288,7 @@ public class PhasedTestManagerTests {
                 .createEmptyCacheFile(GeneralTestUtils.createCacheDirectory("phased2"), "newFile.properties");
         assertThat("The new file should be empty", !l_newFile.exists());
 
-        ConfigValueHandler.PROP_PHASED_DATA_PATH.activate(l_newFile.getPath());
+        ConfigValueHandlerPhased.PROP_PHASED_DATA_PATH.activate(l_newFile.getPath());
 
         File l_phasedTestFile = PhasedTestManager.exportPhaseData();
 
@@ -325,7 +328,7 @@ public class PhasedTestManagerTests {
                 GeneralTestUtils.createCacheDirectory("testingTheFetchExportFile"), "newFile.properties");
         assertThat("The new file should be empty", !l_newFile.exists());
 
-        ConfigValueHandler.PROP_PHASED_DATA_PATH.activate(l_newFile.getPath());
+        ConfigValueHandlerPhased.PROP_PHASED_DATA_PATH.activate(l_newFile.getPath());
 
         assertThat(PhasedTestManager.fetchExportFile().getAbsolutePath(),
                 equalTo(l_newFile.getAbsolutePath()));
@@ -595,7 +598,7 @@ public class PhasedTestManagerTests {
         assertThat("The old file should now be empty", !l_phasedTestData.exists());
 
         PhasedTestManager.clearCache();
-        ConfigValueHandler.PROP_PHASED_DATA_PATH.activate(l_newFile.getPath());
+        ConfigValueHandlerPhased.PROP_PHASED_DATA_PATH.activate(l_newFile.getPath());
         Properties l_phasedTestdata = PhasedTestManager.importPhaseData();
 
         assertThat("We should find our property", l_phasedTestdata, Matchers.notNullValue());
@@ -2692,18 +2695,18 @@ public class PhasedTestManagerTests {
         assertThat("By default we do not have We should now be in merge report results",
                 !PhasedTestManager.isMergedReportsActivated());
 
-        ConfigValueHandler.PROP_MERGE_STEP_RESULTS.activate("true");
+        ConfigValueHandlerPhased.PROP_MERGE_STEP_RESULTS.activate("true");
 
         PhasedTestManager.applyMergeReportChoice();
 
         assertThat("We should now be in merge report results", PhasedTestManager.isMergedReportsActivated());
         Assert.assertTrue(
-                Boolean.getBoolean(ConfigValueHandler.PROP_MERGE_STEP_RESULTS.systemName));
+                Boolean.getBoolean(ConfigValueHandlerPhased.PROP_MERGE_STEP_RESULTS.systemName));
 
-        ConfigValueHandler.PROP_MERGE_STEP_RESULTS.activate("FALSE");
+        ConfigValueHandlerPhased.PROP_MERGE_STEP_RESULTS.activate("FALSE");
 
         Assert.assertFalse(
-                Boolean.getBoolean(ConfigValueHandler.PROP_MERGE_STEP_RESULTS.systemName));
+                Boolean.getBoolean(ConfigValueHandlerPhased.PROP_MERGE_STEP_RESULTS.systemName));
 
         assertThat("We should still not have de-activated the  merge report results",
                 PhasedTestManager.isMergedReportsActivated());

@@ -12,9 +12,7 @@
 package com.adobe.campaign.tests.integro.phased;
 
 import com.adobe.campaign.tests.integro.phased.demo.DemoShuffled;
-//import demo.ShoppingBasket2;
 import com.adobe.campaign.tests.integro.phased.demo.ShoppingBasket2;
-import com.adobe.campaign.tests.integro.phased.utils.ConfigValueHandler;
 import com.adobe.campaign.tests.integro.phased.utils.TestTools;
 import org.testng.TestListenerAdapter;
 import org.testng.TestNG;
@@ -33,7 +31,7 @@ public class TestPhased_Demos {
     public void resetVariables() {
 
         PhasedTestManager.clearCache();
-        ConfigValueHandler.resetAllValues();
+        ConfigValueHandlerPhased.resetAllValues();
 
         PhasedTestManager.deactivateMergedReports();
         PhasedTestManager.MergedReportData.resetReport();
