@@ -11,17 +11,10 @@
  */
 package com.adobe.campaign.tests.integro.phased;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.testng.Assert.assertThrows;
-
-import java.io.File;
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-
 import com.adobe.campaign.tests.integro.phased.data.befaft.*;
-import com.adobe.campaign.tests.integro.phased.utils.ConfigValueHandler;
+import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestConfigurationException;
+import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
+import com.adobe.campaign.tests.integro.phased.utils.TestTools;
 import org.hamcrest.Matchers;
 import org.testng.ITestContext;
 import org.testng.TestListenerAdapter;
@@ -32,15 +25,21 @@ import org.testng.xml.XmlClass;
 import org.testng.xml.XmlSuite;
 import org.testng.xml.XmlTest;
 
-import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
-import com.adobe.campaign.tests.integro.phased.utils.TestTools;
+import java.io.File;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.testng.Assert.assertThrows;
 
 public class TestPhased_BEFORE_AFTER {
     @BeforeMethod
     public void resetVariables() {
 
         PhasedTestManager.clearCache();
-        ConfigValueHandler.resetAllValues();
+        ConfigValueHandlerPhased.resetAllValues();
 
         PhasedTestManager.deactivateMergedReports();
         PhasedTestManager.MergedReportData.resetReport();

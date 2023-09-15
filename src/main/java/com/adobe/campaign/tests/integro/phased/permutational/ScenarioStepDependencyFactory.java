@@ -11,9 +11,9 @@
  */
 package com.adobe.campaign.tests.integro.phased.permutational;
 
-import com.adobe.campaign.tests.integro.phased.PhasedTestConfigurationException;
+import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestConfigurationException;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
-import com.adobe.campaign.tests.integro.phased.utils.ConfigValueHandler;
+import com.adobe.campaign.tests.integro.phased.ConfigValueHandlerPhased;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.MethodCallExpr;
@@ -50,7 +50,7 @@ public class ScenarioStepDependencyFactory {
         } catch (FileNotFoundException e) {
             throw new PhasedTestConfigurationException(
                     "The class " + in_class.getTypeName() + " could not be found in the given directory "
-                            + ConfigValueHandler.PHASED_TEST_SOURCE_LOCATION
+                            + ConfigValueHandlerPhased.PHASED_TEST_SOURCE_LOCATION
                             + "you can configure this by setting the execution property PHASED.TESTS.CODE.ROOT", e);
         }
 

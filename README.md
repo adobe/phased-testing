@@ -567,6 +567,8 @@ For now, we do not know how parallel execution will work with phased tests. So i
 For now, we have not come around to deciding how retry should work in the case of phased tests. By default, we deactivate them on the phased tests unless the user specifically chooses to activate them by setting the system property `PHASED.TESTS.RETRY.DISABLED` to false. 
 
 ## Release Notes
+### Up-Coming
+* Renaming ConfigValueHandler to PhasedTest
 ### 8.0.0
 * [Non-Interrupted Events](#Shuffled---Non-Interruptive)
 * [#112](https://github.com/adobe/phased-testing/issues/112) Technical : Extracted the execution properties to the class ConfigValueHandler.

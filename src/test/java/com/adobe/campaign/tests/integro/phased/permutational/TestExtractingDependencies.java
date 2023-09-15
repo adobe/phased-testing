@@ -11,9 +11,9 @@
  */
 package com.adobe.campaign.tests.integro.phased.permutational;
 
-import com.adobe.campaign.tests.integro.phased.PhasedTestConfigurationException;
+import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestConfigurationException;
 import com.adobe.campaign.tests.integro.phased.data.permutational.*;
-import com.adobe.campaign.tests.integro.phased.utils.ConfigValueHandler;
+import com.adobe.campaign.tests.integro.phased.ConfigValueHandlerPhased;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.ITestNGMethod;
@@ -34,7 +34,7 @@ public class TestExtractingDependencies {
     @BeforeMethod
     @AfterMethod
     public void prepareEnvironment() {
-        ConfigValueHandler.resetAllValues();
+        ConfigValueHandlerPhased.resetAllValues();
     }
 
     @Test
@@ -308,7 +308,7 @@ public class TestExtractingDependencies {
             throws NoSuchMethodException, SecurityException, IOException {
 
         Class<ProducerConsumerWithBeforeClass> l_testClass = ProducerConsumerWithBeforeClass.class;
-        ConfigValueHandler.PHASED_TEST_SOURCE_LOCATION.activate("/nonExistingDirectory");
+        ConfigValueHandlerPhased.PHASED_TEST_SOURCE_LOCATION.activate("/nonExistingDirectory");
 
         Assert.assertThrows(PhasedTestConfigurationException.class,
                 () -> ScenarioStepDependencyFactory.listMethodCalls(l_testClass));
