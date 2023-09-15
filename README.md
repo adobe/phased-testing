@@ -98,7 +98,7 @@ The following dependency needs to be added to your pom file:
  <dependency>
     <groupId>com.adobe.campaign.tests.phased</groupId>
     <artifactId>phased-testing-testng</artifactId>
-    <version>8.0.0</version>
+    <version>8.11.1</version>
 </dependency>
 ```
 
