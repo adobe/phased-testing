@@ -582,7 +582,7 @@ For now, we have not come around to deciding how retry should work in the case o
   * We continue as before, where we select the order alphabetically.
   * Whenever the system property, PHASED.TESTS.DETECT.ORDER is set, the steps are executed in the order the way we declared in the code. By default, we expect the coe to be in maven where the tests are in the directory src/test/java. However, this can be overriden by setting the eecution property PHASED.TESTS.CODE.ROOT (#5)
 * [#116](https://github.com/adobe/phased-testing/issues/116) We are now removing the explicite "SingleRun" mode. 
-  * All Phased Tests without a @PhaseEvent anotation next to a step are now considered as "Shuffled".
+  * All Phased Tests without a @PhaseEvent annotation next to a step are now considered as "Shuffled".
   * Any Phased Test with a @PhaseEvent annotation is a Singe Run test.
   * We have now deprecated the @PhasedTest "canShuffle" attribute.
 
