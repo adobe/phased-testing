@@ -35,7 +35,7 @@ public @interface PhasedTest {
     /**
      * Lets us know if the phased test can shuffle
      *
-     * @deprecated From now on by default a phased test will shuffle, unless you set a @PaseEvent annotation on one of
+     * @deprecated From now on by default a phased test will shuffle, unless you set a @PhaseEvent annotation on one of
      * the steps. In that case the Phased test will be considered as a Single Run Phased test.
      */
     @Deprecated

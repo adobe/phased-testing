@@ -863,7 +863,7 @@ public final class PhasedTestManager {
      * @return True if the test class is a SingleRun Phase Test scenario
      */
     static boolean isPhasedTestSingleMode(Class<?> in_class) {
-        //TODO in 8.0.2 to be removed
+        //TODO in 8.11.3 to be removed -  make public
         //return isPhasedTest(in_class) && (isPhasedTestWithEvent(in_class)
         return isPhasedTest(in_class) && (isPhasedTestWithEvent(in_class) || !in_class.getAnnotation(PhasedTest.class).canShuffle());
     }
