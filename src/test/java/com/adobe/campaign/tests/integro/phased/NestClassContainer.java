@@ -9,37 +9,26 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-/**
- *
- */
 package com.adobe.campaign.tests.integro.phased;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+import org.testng.annotations.Test;
 
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+public class NestClassContainer {
 
-@Retention(RUNTIME)
-@Target({ ElementType.METHOD, ElementType.TYPE })
-/**
- * A PhasedTest Step in a class means that the class itself is a PhasedTest
- *
- * Author : gandomi
- *
- */
-public @interface PhasedTest {
+    @Test
+    public static class TestClass1 {
 
-    boolean executeInactive() default true;
+        public void testC1_m1() {
+            System.out.println("Should not execute");
+        }
+    }
 
-    /**
-     * Lets us know if the phased test can shuffle
-     *
-     * @deprecated From now on by default a phased test will shuffle, unless you set a @PhaseEvent annotation on one of
-     * the steps. In that case the Phased test will be considered as a Single Run Phased test.
-     */
-    @Deprecated
-    boolean canShuffle() default true;
+    @Test
+    public static class TestClass2 {
 
-    String[] eventClasses() default {};
+        public void testC2_m1() {
+            System.out.println("Should execute");
+        }
+    }
+
 }

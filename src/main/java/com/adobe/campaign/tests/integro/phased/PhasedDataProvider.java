@@ -24,6 +24,13 @@ public class PhasedDataProvider {
     public Object[][] shuffledMode(Method m) {
         return PhasedTestManager.fetchProvidersShuffled(m);
     }
+
+    @DataProvider(name = "temp")
+    public Object[][] shuffleGroups(Method m) {
+
+        return new Object[][] { { "ONE" }, { "TWO" } };
+        //return PhasedTestManager.fetchProvidersShuffled(m);
+    }
     
     @DataProvider(name = SINGLE)
     public Object[] singleRunMode(Method m) {
