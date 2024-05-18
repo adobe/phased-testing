@@ -11,7 +11,7 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class EventInjectorListener implements IAnnotationTransformer, IMethodInterceptor, IDataProviderListener {
+public class EventInjectorListener implements IMethodInterceptor {
     private static final Logger log = LogManager.getLogger();
 
 
@@ -25,15 +25,5 @@ public class EventInjectorListener implements IAnnotationTransformer, IMethodInt
                 Collectors.toList());
     }
 
-    @Override
-    public void transform(ITestAnnotation annotation, Class testClass, Constructor testConstructor, Method testMethod) {
-        IAnnotationTransformer.super.transform(annotation, testClass, testConstructor, testMethod);
-    }
 
-    @Override
-    public void beforeDataProviderExecution(IDataProviderMethod dataProviderMethod, ITestNGMethod method,
-            ITestContext iTestContext) {
-
-        IDataProviderListener.super.beforeDataProviderExecution(dataProviderMethod, method, iTestContext);
-    }
 }

@@ -13,6 +13,10 @@ package com.adobe.campaign.tests.integro.phased;
 
 import java.lang.reflect.Method;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.testng.ITestContext;
+import org.testng.ITestNGMethod;
 import org.testng.annotations.DataProvider;
 
 public class PhasedDataProvider {
@@ -24,11 +28,17 @@ public class PhasedDataProvider {
     public Object[][] shuffledMode(Method m) {
         return PhasedTestManager.fetchProvidersShuffled(m);
     }
+    protected static Logger log = LogManager.getLogger();
 
     @DataProvider(name = "temp")
-    public Object[][] shuffleGroups(Method m) {
+    public Object[][] shuffleGroups(ITestNGMethod tm) {
 
-        return new Object[][] { { "ONE" }, { "TWO" } };
+        log.info(tm.getTestClass().getRealClass().getTypeName());
+        if (tm.getTestClass().getRealClass().getTypeName().equals("com.adobe.campaign.tests.integro.phased.events.data.PhasedChild2")) {
+            return new Object[][] { { "three" } };
+        } else {
+            return new Object[][] { { "ONE" }, { "TWO" } };
+        }
         //return PhasedTestManager.fetchProvidersShuffled(m);
     }
     
