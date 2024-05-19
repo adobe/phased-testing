@@ -1,11 +1,14 @@
 package com.adobe.campaign.tests.integro.phased.events.data;
 
 import com.adobe.campaign.tests.integro.phased.PhasedDataProvider;
+import com.adobe.campaign.tests.integro.phased.PhasedTest;
 import com.adobe.campaign.tests.integro.phased.events.PhasedParent;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-@Test(groups = "aaa", dataProvider = "temp", dataProviderClass = PhasedDataProvider.class)
+//@Test(groups = "aaa", dataProvider = "MUTATIONAL", dataProviderClass = PhasedDataProvider.class)
+@PhasedTest
+@Test
 public class PhasedChild2 extends PhasedParent {
 
     public void step1(String phaseGroup) {

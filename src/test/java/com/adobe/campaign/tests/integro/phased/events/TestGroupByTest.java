@@ -1,6 +1,9 @@
 package com.adobe.campaign.tests.integro.phased.events;
 
+import com.adobe.campaign.tests.integro.phased.ConfigValueHandlerPhased;
+import com.adobe.campaign.tests.integro.phased.MutationListener;
 import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
+import com.adobe.campaign.tests.integro.phased.Phases;
 import com.adobe.campaign.tests.integro.phased.utils.TestTools;
 import org.testng.TestListenerAdapter;
 import org.testng.TestNG;
@@ -26,11 +29,14 @@ public class TestGroupByTest {
         TestNG myTestNG = TestTools.createTestNG();
         TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
 
+        ConfigValueHandlerPhased.PROP_SELECTED_PHASE.activate(Phases.PRODUCER.name());
+
         // Define suites
         XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG, "Automated Suite Phased Testing");
 
         // Add listeners
-        mySuite.addListener(EventInjectorListener.class.getTypeName());
+        //mySuite.addListener(EventInjectorListener.class.getTypeName());
+        mySuite.addListener(MutationListener.class.getTypeName());
 
         // Create an instance of XmlTest and assign a name for it.
         XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Repetetive Phased Tests Producer");

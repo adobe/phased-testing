@@ -19,6 +19,7 @@ import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 import com.adobe.campaign.tests.integro.phased.utils.StackTraceManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.testng.ITestNGMethod;
 import org.testng.ITestResult;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -57,7 +58,6 @@ public final class PhasedTestManager {
     static final String STD_PHASED_GROUP_NIE_PREFIX = "phased-shuffledGroupNIE_";
 
     public static final String STD_MERGE_STEP_ERROR_PREFIX = "Phased Error: Failure in step ";
-
 
     /**
      * The different states a step can assume in a scenario
@@ -523,6 +523,13 @@ public final class PhasedTestManager {
      */
     public static Object[][] fetchProvidersShuffled(Method in_method) {
         return fetchProvidersShuffled(in_method, Phases.getCurrentPhase());
+    }
+
+    public static Object[][] fetchProvidersShuffled(ITestNGMethod tm) {
+        //log.info("{} - {} - {}",tm.getRealClass().getTypeName(), tm.getTestClass().getRealClass().getMethods()[0].getName(), tm.getRealClass().getMethods()[0].getDeclaringClass());
+        //log.info("{} - {} - {}",tm.getRealClass().getTypeName(), tm.getTestClass().getRealClass().getMethods()[1].getName(), tm.getRealClass().getMethods()[1].getDeclaringClass());
+
+        return fetchProvidersShuffled(tm.getTestClass().getRealClass().getMethods()[0]);
     }
 
     /**

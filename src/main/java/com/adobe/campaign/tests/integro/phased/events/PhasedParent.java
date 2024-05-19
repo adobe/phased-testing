@@ -12,7 +12,7 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 
 @PhasedTest
-@Test
+@Test(dataProvider = "MUTATIONAL", dataProviderClass = PhasedDataProvider.class)
 public abstract class PhasedParent {
 
 

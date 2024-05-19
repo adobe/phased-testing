@@ -23,6 +23,7 @@ public class PhasedDataProvider {
     public static final String SHUFFLED = "phased-data-provider-shuffled";
     public static final String SINGLE = "phased-data-provider-single";
     public static final String DEFAULT = "phased-default";
+    public static final String MUTATIONAL = "MUTATIONAL";
 
     @DataProvider(name = SHUFFLED)
     public Object[][] shuffledMode(Method m) {
@@ -30,16 +31,19 @@ public class PhasedDataProvider {
     }
     protected static Logger log = LogManager.getLogger();
 
-    @DataProvider(name = "temp")
+    @DataProvider(name = "MUTATIONAL")
     public Object[][] shuffleGroups(ITestNGMethod tm) {
 
+        //PhasedTestManager.fetchProvidersShuffled(m);
+
         log.info(tm.getTestClass().getRealClass().getTypeName());
+        /*
         if (tm.getTestClass().getRealClass().getTypeName().equals("com.adobe.campaign.tests.integro.phased.events.data.PhasedChild2")) {
             return new Object[][] { { "three" } };
         } else {
             return new Object[][] { { "ONE" }, { "TWO" } };
-        }
-        //return PhasedTestManager.fetchProvidersShuffled(m);
+        }*/
+        return PhasedTestManager.fetchProvidersShuffled(tm);
     }
     
     @DataProvider(name = SINGLE)
