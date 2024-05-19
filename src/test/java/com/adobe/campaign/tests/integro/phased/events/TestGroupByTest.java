@@ -22,6 +22,7 @@ public class TestGroupByTest {
 
     @Test
     public void testNewOrder() {
+
         //Activate Merge
         PhasedTestManager.activateMergedReports();
 

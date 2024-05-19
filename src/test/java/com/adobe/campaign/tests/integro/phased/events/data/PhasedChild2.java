@@ -8,7 +8,7 @@ import org.testng.annotations.Test;
 
 //@Test(groups = "aaa", dataProvider = "MUTATIONAL", dataProviderClass = PhasedDataProvider.class)
 @PhasedTest
-@Test
+@Test(groups = "aaa")
 public class PhasedChild2 extends PhasedParent {
 
     public void step1(String phaseGroup) {

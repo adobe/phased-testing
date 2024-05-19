@@ -1395,19 +1395,32 @@ public final class PhasedTestManager {
         if (isPhasedTestShuffledMode(in_testResult) && Phases.getCurrentPhase()
                 .hasSplittingEvent()) {
 
-            final String l_phaseGroup = in_testResult.getParameters()[0].toString();
+            final String in_phaseGroup = in_testResult.getParameters()[0].toString();
 
-            if (!l_phaseGroup.startsWith(STD_PHASED_GROUP_PREFIX)) {
-                throw new PhasedTestException("The phase group of this test does not seem correct: " + l_phaseGroup);
-            }
-
-            String l_numberString = l_phaseGroup.substring(STD_PHASED_GROUP_PREFIX.length(),
-                    l_phaseGroup.indexOf("_", STD_PHASED_GROUP_PREFIX.length()));
-            return Integer.valueOf(l_numberString);
+            return fetchStepsBeforePhase(in_phaseGroup);
         } else {
 
             return 1;
         }
+    }
+
+    /**
+     * Given a string representing the phase group, returns the number of steps planned before a phase change
+     * <p>
+     * Author : gandomi
+     *
+     * @param in_phaseGroup A phaseGroup string
+     * @return The number of steps planned before a phase change. If we are non-phased we return 0
+     */
+    public static Integer fetchStepsBeforePhase(String in_phaseGroup) {
+        if (!in_phaseGroup.startsWith(STD_PHASED_GROUP_PREFIX)) {
+            throw new PhasedTestException("The phase group of this test does not seem correct: " + in_phaseGroup);
+        }
+
+        String l_numberString = in_phaseGroup.substring(STD_PHASED_GROUP_PREFIX.length(),
+                in_phaseGroup.indexOf("_", STD_PHASED_GROUP_PREFIX.length()));
+
+        return Integer.valueOf(l_numberString);
     }
 
     /**
