@@ -53,6 +53,6 @@ public class TestGroupByTest {
 
         assertThat("We should have 2 successful method of phased Tests",
                 (int) tla.getPassedTests().size(),
-                is(equalTo(4)));
+                is(equalTo(5)));
     }
 }

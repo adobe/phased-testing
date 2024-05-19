@@ -29,9 +29,9 @@ public abstract class PhasedParent {
         Class l_executingClass = this.getClass();
 
 
-       // ScenarioStepDependencies l_scenarioDependencies = ScenarioStepDependencyFactory.listMethodCalls(l_executingClass);
+        Map<String, ScenarioStepDependencies> l_scenarioDependencies = PhasedTestManager.getStepDependencie();
         //List<StepDependencies> stepOrder = l_scenarioDependencies.fetchExecutionOrderList();
-
+        List<StepDependencies> l_orderList = l_scenarioDependencies.get(l_executingClass.getTypeName()).fetchExecutionOrderList();
         //Assert.assertEquals(l_executingClass.getTypeName(), "com.adobe.campaign.tests.integro.phased.events.data.PhasedChild");
         //Arrays.stream(itx.getAllTestMethods()).
 
@@ -39,11 +39,13 @@ public abstract class PhasedParent {
         System.out.println(nrOfSteps);
         //for (Method stepMethod : l_executingClass.getDeclaredMethods()) {
         //for (StepDependencies stepOrdering : stepOrder) {
+
         for (int i = 0; i < nrOfSteps; i++) {
             try {
                 //String lt_currentStepName = stepOrder.get(i).getStepName();
                 //Method stepMethod = Arrays.stream(l_executingClass.getMethods()).filter(m -> m.getName().equals(lt_currentStepName)).findFirst().get();
-                Method stepMethod = l_executingClass.getDeclaredMethods()[i];
+                String stepName = l_orderList.get(i).getStepName();
+                Method stepMethod = Arrays.stream(l_executingClass.getDeclaredMethods()).filter(dm -> dm.getName().equals(stepName)).findFirst().get();
                 Object ourInstance = l_executingClass.getDeclaredConstructor().newInstance();
                 stepMethod.invoke(ourInstance, phaseGroup);
             } catch (IllegalAccessException e) {

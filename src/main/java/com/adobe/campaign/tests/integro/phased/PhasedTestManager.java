@@ -28,11 +28,14 @@ import java.io.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 public final class PhasedTestManager {
+
+    private static Map<String, ScenarioStepDependencies> stepDependencie;
 
     private PhasedTestManager() {
         //Utility class. Defeat instantiation.
@@ -58,6 +61,15 @@ public final class PhasedTestManager {
     static final String STD_PHASED_GROUP_NIE_PREFIX = "phased-shuffledGroupNIE_";
 
     public static final String STD_MERGE_STEP_ERROR_PREFIX = "Phased Error: Failure in step ";
+
+    public static Map<String, ScenarioStepDependencies> getStepDependencie() {
+        return stepDependencie;
+    }
+
+    public static void setStepDependencie(
+            Map<String, ScenarioStepDependencies> stepDependencie) {
+        PhasedTestManager.stepDependencie = stepDependencie;
+    }
 
     /**
      * The different states a step can assume in a scenario
@@ -672,7 +684,8 @@ public final class PhasedTestManager {
             Map<String, ScenarioStepDependencies> in_scenarioDependencies, Phases in_phaseState) {
         methodMap = new HashMap<>();
 
-        for (Entry<Class<?>, List<String>> entry : in_classMethodMap.entrySet()) {
+        for (Entry<Class<?>, List<String>> entry : in_classMethodMap.entrySet().stream().filter(e -> !Modifier.isAbstract(e.getKey().getModifiers())).collect(
+                Collectors.toList())) {
 
             List<String> lt_methodList =
                     in_scenarioDependencies == null ? entry.getValue() : in_scenarioDependencies.get(
