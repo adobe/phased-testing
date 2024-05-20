@@ -9,27 +9,32 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package com.adobe.campaign.tests.integro.phased.events.data;
+package com.adobe.campaign.tests.integro.phased.data.permutational;
 
-import com.adobe.campaign.tests.integro.phased.PhasedDataProvider;
 import com.adobe.campaign.tests.integro.phased.PhasedTest;
-import com.adobe.campaign.tests.integro.phased.events.PhasedParent;
+import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-//@Test(groups = "aaa", dataProvider = "MUTATIONAL", dataProviderClass = PhasedDataProvider.class)
+import static org.testng.Assert.assertEquals;
+
+@Test
 @PhasedTest
-@Test(groups = "aaa")
-public class PhasedChild1 extends PhasedParent {
+public class SimpleNonProduceConsumeTest {
+    public static int value = 0;
 
-    public void step1(String phaseGroup) {
-        System.out.println("Executing step1 with"+phaseGroup);
-        Assert.assertEquals(1,1);
+    public void zzzz(String val) {
+        Assert.assertEquals(value, 0);
+        value+=11;
     }
 
-    public void step2(String phaseGroup) {
-        System.out.println("Executing step2 with"+phaseGroup);
-
-        Assert.assertEquals(1,1);
+    public void yyyyy(String val) {
+        Assert.assertEquals(value, 11);
+        value+=13;
     }
+
+    public void xxxxx(String val) {
+        Assert.assertEquals(value, 24);
+    }
+
 }
