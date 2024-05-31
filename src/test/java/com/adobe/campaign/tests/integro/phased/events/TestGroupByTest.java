@@ -15,7 +15,10 @@ import com.adobe.campaign.tests.integro.phased.ConfigValueHandlerPhased;
 import com.adobe.campaign.tests.integro.phased.MutationListener;
 import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
 import com.adobe.campaign.tests.integro.phased.Phases;
+import com.adobe.campaign.tests.integro.phased.events.data.simple1.PhasedChild1;
+import com.adobe.campaign.tests.integro.phased.events.data.simple1.PhasedChild2;
 import com.adobe.campaign.tests.integro.phased.utils.TestTools;
+import org.hamcrest.Matchers;
 import org.testng.TestListenerAdapter;
 import org.testng.TestNG;
 import org.testng.annotations.Test;
@@ -24,6 +27,7 @@ import org.testng.xml.XmlSuite;
 import org.testng.xml.XmlTest;
 
 import java.util.Collections;
+import java.util.stream.Collectors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -65,5 +69,14 @@ public class TestGroupByTest {
         assertThat("We should have 2 successful method of phased Tests",
                 (int) tla.getPassedTests().size(),
                 is(equalTo(5)));
+
+        assertThat("We should have no executions for the phased group 0",
+                tla.getPassedTests().stream().filter(m -> m.getInstanceName().equals(PhasedChild1.class.getTypeName())).collect(Collectors.toList()).size(),
+                Matchers.equalTo(2));
+
+        assertThat("We should have no executions for the phased group 0",
+                tla.getPassedTests().stream().filter(m -> m.getInstanceName().equals(PhasedChild2.class.getTypeName())).collect(Collectors.toList()).size(),
+                Matchers.equalTo(3));
+
     }
 }
