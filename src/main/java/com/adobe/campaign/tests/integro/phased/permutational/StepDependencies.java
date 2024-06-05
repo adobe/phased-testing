@@ -20,7 +20,12 @@ public class StepDependencies {
     private boolean configMethod = false;
     private int stepLine = DEFAULT_LINE_LOCATION;
 
-
+    @Override
+    public int hashCode() {
+        int result = getStepLine();
+        result = 31 * result + getStepName().hashCode();
+        return result;
+    }
 
     public enum Relations{DEPENDS_ON, INDEPENDANT, DEPENDED_ON_BY, INTERDEPENDANT};
     private Set<String> produceSet;
@@ -121,5 +126,45 @@ public class StepDependencies {
         }
 
         return Relations.INTERDEPENDANT;
+    }
+
+    public enum Categories {INDEPENDANT, PRODUCER_ONLY, PRODUCER_CONSUMER, CONSUMER_ONLY}
+
+    /**
+     * Returns the category of the step
+     * @return a Category
+     */
+    Categories getCategory() {
+        if (this.getConsumeSet().isEmpty() && this.getProduceSet().isEmpty()) {
+            //INDEPENDANT
+            return Categories.INDEPENDANT;
+
+        } else if (this.getConsumeSet().isEmpty()) {
+            //PRODUCER_ONLY
+            return Categories.PRODUCER_ONLY;
+        } else if (this.getProduceSet().isEmpty()) {
+            //CONSUMER_ONLY
+            return Categories.CONSUMER_ONLY;
+        } else {
+            //PRODUCER_CONSUMER
+            return Categories.PRODUCER_CONSUMER;
+        }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        StepDependencies that = (StepDependencies) o;
+
+        if (getStepLine() != that.getStepLine()) {
+            return false;
+        }
+        return getStepName().equals(that.getStepName());
     }
 }

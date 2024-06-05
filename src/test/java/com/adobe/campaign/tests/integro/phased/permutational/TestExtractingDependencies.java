@@ -11,9 +11,11 @@
  */
 package com.adobe.campaign.tests.integro.phased.permutational;
 
-import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestConfigurationException;
-import com.adobe.campaign.tests.integro.phased.data.permutational.*;
 import com.adobe.campaign.tests.integro.phased.ConfigValueHandlerPhased;
+import com.adobe.campaign.tests.integro.phased.data.permutational.*;
+import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestConfigurationException;
+import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
+import org.hamcrest.Matchers;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.ITestNGMethod;
@@ -24,6 +26,9 @@ import org.testng.internal.ConstructorOrMethod;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -312,6 +317,144 @@ public class TestExtractingDependencies {
 
         Assert.assertThrows(PhasedTestConfigurationException.class,
                 () -> ScenarioStepDependencyFactory.listMethodCalls(l_testClass));
+    }
+
+    @Test
+    public void testGroupingOfDependencies() {
+        //Simple
+        ScenarioStepDependencies dependenciesSimple = ScenarioStepDependencyFactory.listMethodCalls(
+                MixingEmptyAndProduceTests.class);
+
+        Map<StepDependencies.Categories, List<StepDependencies>> l_groupedDependencies = dependenciesSimple.fetchCategorizations();
+
+        assertThat("We should have a value", l_groupedDependencies, Matchers.notNullValue());
+        assertThat("We should have two categories", l_groupedDependencies.keySet(),
+                containsInAnyOrder(StepDependencies.Categories.INDEPENDANT,
+                        StepDependencies.Categories.PRODUCER_ONLY,
+                        StepDependencies.Categories.CONSUMER_ONLY));
+
+        ScenarioStepDependencies dependencies2 = ScenarioStepDependencyFactory.listMethodCalls(
+                SimplePermutationTest.class);
+
+        assertThat("Should now have ProducerConsumer",dependencies2.fetchCategorizations().keySet(), containsInAnyOrder(
+                StepDependencies.Categories.PRODUCER_ONLY,
+                StepDependencies.Categories.CONSUMER_ONLY, StepDependencies.Categories.PRODUCER_CONSUMER));
+
+    }
+
+    @Test
+    public void testCreatingPermutations_simple() {
+        ScenarioStepDependencies dependencies = new ScenarioStepDependencies("a.b.c.D");
+        List<StepDependencies> l_steps = new ArrayList<>();
+        l_steps.add(new StepDependencies("z"));
+
+        l_steps.add(new StepDependencies("y"));
+        List<List<StepDependencies>> allPermutations = GeneralTestUtils.generatePermutations(l_steps, 0);
+        assertThat("We should have 2 permutations", allPermutations.size(), equalTo(2));
+        int l_locationOfZ = allPermutations.get(0).indexOf(new StepDependencies("z"));
+        assertThat("The location of Z in the second list should not be the same", allPermutations.get(1).indexOf(new StepDependencies("z")),
+                not(equalTo(l_locationOfZ)));
+    }
+
+    @Test
+    public void testCreatingPermutations_single() {
+        List<StepDependencies> l_steps = new ArrayList<>();
+        l_steps.add(new StepDependencies("z"));
+
+        List<List<StepDependencies>> allPermutations = GeneralTestUtils.generatePermutations(l_steps, 0);
+        assertThat("We should have only 1 permutation", allPermutations.size(), equalTo(1));
+        assertThat("We should have only 1 permutation", allPermutations.get(0).size(), equalTo(1));
+
+        assertThat("We should only have our entry", allPermutations.get(0).get(0), Matchers.equalTo(new StepDependencies("z")));
+    }
+
+    @Test
+    public void testCreatingPermutations_empty() {
+        List<StepDependencies> l_steps = new ArrayList<>();
+
+        List<List<StepDependencies>> allPermutations = GeneralTestUtils.generatePermutations(l_steps, 0);
+        assertThat("We should have only 1 permutation", allPermutations.size(), equalTo(0));
+
+        List<List<StepDependencies>> allPermutationsNull = GeneralTestUtils.generatePermutations(null, 0);
+        assertThat("We should have only 1 permutation", allPermutations.size(), equalTo(0));
+    }
+
+    @Test
+    public void testCreatingSimplePermutations() {
+        ScenarioStepDependencies l_scenarioSteps = new ScenarioStepDependencies("MyScenario");
+        l_scenarioSteps.addStep("a");
+        l_scenarioSteps.addStep("b");
+
+        l_scenarioSteps.getStepDependencies().get("a").setConfigMethod(false);
+        l_scenarioSteps.getStepDependencies().get("a").setStepLine(10);
+        l_scenarioSteps.getStepDependencies().get("a").produce("k1");
+
+        l_scenarioSteps.getStepDependencies().get("b").setConfigMethod(false);
+        l_scenarioSteps.getStepDependencies().get("b").setStepLine(15);
+        l_scenarioSteps.getStepDependencies().get("b").produce("k2");
+
+        var stepCombinations = l_scenarioSteps.fetchPermutations();
+        assertThat("we should have a value", stepCombinations, Matchers.notNullValue());
+        assertThat("We should have two permutations", stepCombinations.keySet(),hasSize(2));
+        assertThat("We should have the correct keys for permutations",
+                stepCombinations.keySet(), Matchers.containsInAnyOrder("ab_1-2","ba_2-2"));
+        assertThat("The value for ab should be correct", stepCombinations.get("ab_1-2"), Matchers.equalTo(
+                Arrays.asList(l_scenarioSteps.getStepDependencies().get("a"), l_scenarioSteps.getStepDependencies().get("b"))));
+        assertThat("The value for ab should be correct", stepCombinations.get("ba_2-2"), Matchers.equalTo(
+                Arrays.asList(l_scenarioSteps.getStepDependencies().get("b"), l_scenarioSteps.getStepDependencies().get("a"))));
+    }
+
+    @Test
+    public void testCreatingSimplePermutationsProducerConsumer() {
+        ScenarioStepDependencies l_scenarioSteps = new ScenarioStepDependencies("MyScenario");
+        l_scenarioSteps.addStep("a");
+        l_scenarioSteps.addStep("b");
+        l_scenarioSteps.addStep("c");
+        l_scenarioSteps.addStep("d");
+
+        l_scenarioSteps.getStepDependencies().get("a").setConfigMethod(false);
+        l_scenarioSteps.getStepDependencies().get("a").setStepLine(10);
+        l_scenarioSteps.getStepDependencies().get("a").produce("k1");
+
+        l_scenarioSteps.getStepDependencies().get("b").setConfigMethod(false);
+        l_scenarioSteps.getStepDependencies().get("b").setStepLine(15);
+        l_scenarioSteps.getStepDependencies().get("b").produce("k2");
+
+        l_scenarioSteps.getStepDependencies().get("c").setConfigMethod(false);
+        l_scenarioSteps.getStepDependencies().get("c").setStepLine(25);
+        l_scenarioSteps.getStepDependencies().get("c").consume("k1");
+
+        l_scenarioSteps.getStepDependencies().get("d").setConfigMethod(false);
+        l_scenarioSteps.getStepDependencies().get("d").setStepLine(35);
+        l_scenarioSteps.getStepDependencies().get("d").consume("k2");
+
+
+        assertThat("We should have two permutations",l_scenarioSteps.fetchPermutations().keySet(),hasSize(4));
+        
+        
+    }
+
+    @Test
+    public void testCreatingSimplePermutationsConsumer() {
+        ScenarioStepDependencies l_scenarioSteps = new ScenarioStepDependencies("MyScenario");
+        l_scenarioSteps.addStep("a");
+        l_scenarioSteps.addStep("b");
+        l_scenarioSteps.addStep("c");
+
+        l_scenarioSteps.getStepDependencies().get("a").setConfigMethod(false);
+        l_scenarioSteps.getStepDependencies().get("a").setStepLine(10);
+        l_scenarioSteps.getStepDependencies().get("a").produce("k1");
+
+        l_scenarioSteps.getStepDependencies().get("b").setConfigMethod(false);
+        l_scenarioSteps.getStepDependencies().get("b").setStepLine(15);
+        l_scenarioSteps.getStepDependencies().get("b").consume("k2");
+
+        l_scenarioSteps.getStepDependencies().get("c").setConfigMethod(false);
+        l_scenarioSteps.getStepDependencies().get("c").setStepLine(25);
+        l_scenarioSteps.getStepDependencies().get("c").consume("k1");
+
+
+        assertThat("We should have two permutations",l_scenarioSteps.fetchPermutations().keySet(),hasSize(2));
     }
 
 }

@@ -14,6 +14,7 @@ package com.adobe.campaign.tests.integro.phased.utils;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -180,4 +181,28 @@ public final class GeneralTestUtils {
             .collect(Collectors.toList());
     }
 
+    public static <T> List<List<T>> generatePermutations(List<T> in_listOfSteps) {
+        return generatePermutations(in_listOfSteps, 0);
+    }
+
+
+    public static <T> List<List<T>> generatePermutations(List<T> in_listOfSteps, int currentIndex) {
+
+        List<List<T>> allPermutations = new ArrayList<>();
+
+        if (in_listOfSteps == null || in_listOfSteps.isEmpty()) {
+            return allPermutations;
+        }
+
+        if (currentIndex == in_listOfSteps.size() - 1) {
+            allPermutations.add(new ArrayList<>(in_listOfSteps));
+        } else {
+            for (int i = currentIndex; i < in_listOfSteps.size(); i++) {
+                Collections.swap(in_listOfSteps, currentIndex, i);
+                allPermutations.addAll(generatePermutations(in_listOfSteps, currentIndex + 1));
+                Collections.swap(in_listOfSteps, currentIndex, i);
+            }
+        }
+        return allPermutations;
+    }
 }

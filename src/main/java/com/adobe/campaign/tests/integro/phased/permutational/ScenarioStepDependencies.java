@@ -11,6 +11,8 @@
  */
 package com.adobe.campaign.tests.integro.phased.permutational;
 
+import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -22,6 +24,8 @@ public class ScenarioStepDependencies {
         this.setScenarioName(in_scenarioName);
         this.setStepDependencies(new HashMap<>());
     }
+
+    ;
 
     public Map<String, StepDependencies> getStepDependencies() {
         return stepDependencies;
@@ -55,8 +59,8 @@ public class ScenarioStepDependencies {
     /**
      * This method adds a "produce" dependency entry for a given step
      *
-     * @param stepName The name of the step
-     * @param in_key   The key that is produced
+     * @param stepName  The name of the step
+     * @param in_key    The key that is produced
      * @param in_lineNr The line number of the occurence
      */
     public void putProduce(String stepName, String in_key, int in_lineNr) {
@@ -74,7 +78,7 @@ public class ScenarioStepDependencies {
     private void initializeStep(String stepName) {
         int l_lastStep = this.fetchLastStepPosition();
         if (!stepDependencies.containsKey(stepName)) {
-            stepDependencies.put(stepName, new StepDependencies(stepName, l_lastStep+1));
+            stepDependencies.put(stepName, new StepDependencies(stepName, l_lastStep + 1));
         }
     }
 
@@ -93,8 +97,8 @@ public class ScenarioStepDependencies {
     /**
      * This method adds a "consume" dependency entry for a given step
      *
-     * @param stepName The name of the step
-     * @param in_key   The key that is consumed
+     * @param stepName  The name of the step
+     * @param in_key    The key that is consumed
      * @param in_lineNr The line number of the occurence
      */
     public void putConsume(String stepName, String in_key, int in_lineNr) {
@@ -105,14 +109,15 @@ public class ScenarioStepDependencies {
     }
 
     /**
-     * Returns a list of step dependencies ordered by line numbers. In this method we only consder the tests
+     * Returns a list of step dependencies ordered by line numbers. In this method we only consider the tests
      *
      * @return A list of dependencies sorted by their line numbers
      */
     public List<StepDependencies> fetchExecutionOrderList() {
 
         List<StepDependencies> lr_orderedSteps = new ArrayList<>();
-        lr_orderedSteps.addAll(stepDependencies.values().stream().filter(f -> !f.isConfigMethod()).collect(Collectors.toSet()));
+        lr_orderedSteps.addAll(
+                stepDependencies.values().stream().filter(f -> !f.isConfigMethod()).collect(Collectors.toSet()));
 
         lr_orderedSteps.sort(Comparator.comparing(StepDependencies::getStepLine));
 
@@ -142,6 +147,7 @@ public class ScenarioStepDependencies {
 
     /**
      * Returns the step with the largest line number
+     *
      * @return the step with the largest line number. Null if empty
      */
     public StepDependencies fetchLastStep() {
@@ -154,6 +160,7 @@ public class ScenarioStepDependencies {
 
     /**
      * Returns the location of the last step in the file.
+     *
      * @return the line number of the last step
      */
     public int fetchLastStepPosition() {
@@ -162,4 +169,69 @@ public class ScenarioStepDependencies {
         }
         return fetchLastStep().getStepLine();
     }
+
+    /**
+     * This method calculated the possible permutations this scenario can have
+     *
+     * @return a map containing the permutations and their order
+     */
+    public Map<String, List<StepDependencies>> fetchPermutations() {
+        Map<String, List<StepDependencies>> lr_permutations = new HashMap<>();
+
+        //List<StepDependencies> l_lineDependencies = this.fetchExecutionOrderList();
+        Map<StepDependencies.Categories, List<StepDependencies>> resultCategorizations = fetchCategorizations();
+
+        List<List<StepDependencies>> l_producers = GeneralTestUtils.generatePermutations(
+                resultCategorizations.get(StepDependencies.Categories.PRODUCER_ONLY));
+
+        List<List<StepDependencies>> l_prodCons = GeneralTestUtils.generatePermutations(
+                resultCategorizations.get(StepDependencies.Categories.PRODUCER_CONSUMER));
+
+        List<List<StepDependencies>> l_consumers = GeneralTestUtils.generatePermutations(
+                resultCategorizations.get(StepDependencies.Categories.CONSUMER_ONLY));
+
+        int l_maxSize = Math.max(l_producers.size(), Math.max(l_prodCons.size(), l_consumers.size()));
+        int l_maxPerm = (l_producers.size() > 0 ? l_producers.size() : 1) * (l_prodCons.size() > 0 ? l_prodCons.size() : 1)
+                * (l_consumers.size() > 0 ? l_consumers.size() : 1);
+
+        for (int i=0; i<l_maxSize; i++) {
+            List<StepDependencies> l_scenario = new ArrayList<>();
+
+
+            if (i < l_producers.size()) {
+                l_scenario.addAll(l_producers.get(i));
+            }
+            if (i < l_prodCons.size()) {
+                l_scenario.addAll(l_prodCons.get(i));
+            }
+            if (i < l_consumers.size()) {
+                l_scenario.addAll(l_consumers.get(i));
+            }
+            List<String> lt_stepNames = l_scenario.stream().map(StepDependencies::getStepName).collect(Collectors.toList());
+
+
+            String lt_key = String.join("", lt_stepNames) + "_"+  i+"-"+l_maxPerm;
+
+            lr_permutations.put(lt_key, l_scenario);
+        }
+
+        return lr_permutations;
+
+    }
+
+    /**
+     * This method creates a mapping based on the categorizations of the steps
+     *
+     * @return a map containing the categories and the steps that belong to them
+     */
+    public Map<StepDependencies.Categories, List<StepDependencies>> fetchCategorizations() {
+        Map<StepDependencies.Categories, List<StepDependencies>> lr_categorizations = new HashMap<>();
+        this.getStepDependencies().values().stream().filter(f -> !f.isConfigMethod()).forEach(f -> {
+            lr_categorizations.computeIfAbsent(f.getCategory(), k -> new ArrayList<>()).add(f);
+        });
+
+        return lr_categorizations;
+    }
+
+
 }
