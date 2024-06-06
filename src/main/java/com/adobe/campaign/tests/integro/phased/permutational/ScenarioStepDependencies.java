@@ -194,15 +194,20 @@ public class ScenarioStepDependencies {
         //Create permutations
         List<List<StepDependencies>> l_scenarioPermutations = GeneralTestUtils.outerJoinListOfLists(l_producers, l_prodCons);
         l_scenarioPermutations = GeneralTestUtils.outerJoinListOfLists(l_scenarioPermutations, l_consumers);
-
-        //Find the locations of the independant steps
-        List<StepDependencies> l_indies = resultCategorizations.get(StepDependencies.Categories.INDEPENDANT);
-        List<StepDependencies> l_orderList = this.fetchExecutionOrderList();
-        Map<Integer, StepDependencies> l_indiesMap = l_indies.stream().collect(Collectors.toMap(l -> l_orderList.indexOf(l), l -> l));
-
-        //Inject the independant steps into the permutations
         List<List<StepDependencies>> finalL_scenarioPermutations = l_scenarioPermutations;
-        l_indiesMap.forEach((k,v) -> finalL_scenarioPermutations.forEach(l -> l.add(k, v)));
+
+        //Managing independent steps
+
+        if (resultCategorizations.get(StepDependencies.Categories.INDEPENDANT) != null) {
+            List<StepDependencies> l_indies = resultCategorizations.get(StepDependencies.Categories.INDEPENDANT);
+            //Find the locations of the independant steps
+            List<StepDependencies> l_orderList = this.fetchExecutionOrderList();
+            Map<Integer, StepDependencies> l_indiesMap = l_indies.stream()
+                    .collect(Collectors.toMap(l -> l_orderList.indexOf(l), l -> l));
+
+            //Inject the independant steps into the permutations
+            l_indiesMap.forEach((k, v) -> finalL_scenarioPermutations.forEach(l -> l.add(k, v)));
+        }
 
         l_scenarioPermutations.stream().collect(Collectors.toMap(l -> String.join("", l.stream().map(StepDependencies::getShortName).collect(
                 Collectors.toList())), l -> l));
