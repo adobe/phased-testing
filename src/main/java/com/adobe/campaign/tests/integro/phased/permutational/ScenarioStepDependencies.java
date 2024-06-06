@@ -179,6 +179,7 @@ public class ScenarioStepDependencies {
         Map<String, List<StepDependencies>> lr_permutations = new HashMap<>();
 
         //List<StepDependencies> l_lineDependencies = this.fetchExecutionOrderList();
+        //Extract groups of steps based on their relative
         Map<StepDependencies.Categories, List<StepDependencies>> resultCategorizations = fetchCategorizations();
 
         List<List<StepDependencies>> l_producers = GeneralTestUtils.generatePermutations(
@@ -190,33 +191,29 @@ public class ScenarioStepDependencies {
         List<List<StepDependencies>> l_consumers = GeneralTestUtils.generatePermutations(
                 resultCategorizations.get(StepDependencies.Categories.CONSUMER_ONLY));
 
-        int l_maxSize = Math.max(l_producers.size(), Math.max(l_prodCons.size(), l_consumers.size()));
-        int l_maxPerm = (l_producers.size() > 0 ? l_producers.size() : 1) * (l_prodCons.size() > 0 ? l_prodCons.size() : 1)
-                * (l_consumers.size() > 0 ? l_consumers.size() : 1);
+        //Create permutations
+        List<List<StepDependencies>> l_scenarioPermutations = GeneralTestUtils.outerJoinListOfLists(l_producers, l_prodCons);
+        l_scenarioPermutations = GeneralTestUtils.outerJoinListOfLists(l_scenarioPermutations, l_consumers);
 
-        for (int i=0; i<l_maxSize; i++) {
-            List<StepDependencies> l_scenario = new ArrayList<>();
+        //Find the locations of the independant steps
+        List<StepDependencies> l_indies = resultCategorizations.get(StepDependencies.Categories.INDEPENDANT);
+        List<StepDependencies> l_orderList = this.fetchExecutionOrderList();
+        Map<Integer, StepDependencies> l_indiesMap = l_indies.stream().collect(Collectors.toMap(l -> l_orderList.indexOf(l), l -> l));
 
+        //Inject the independant steps into the permutations
+        List<List<StepDependencies>> finalL_scenarioPermutations = l_scenarioPermutations;
+        l_indiesMap.forEach((k,v) -> finalL_scenarioPermutations.forEach(l -> l.add(k, v)));
 
-            if (i < l_producers.size()) {
-                l_scenario.addAll(l_producers.get(i));
-            }
-            if (i < l_prodCons.size()) {
-                l_scenario.addAll(l_prodCons.get(i));
-            }
-            if (i < l_consumers.size()) {
-                l_scenario.addAll(l_consumers.get(i));
-            }
-            List<String> lt_stepNames = l_scenario.stream().map(StepDependencies::getStepName).collect(Collectors.toList());
+        l_scenarioPermutations.stream().collect(Collectors.toMap(l -> String.join("", l.stream().map(StepDependencies::getShortName).collect(
+                Collectors.toList())), l -> l));
 
+        for (int i = 0; i < l_scenarioPermutations.size(); i++) {
+            String lt_key = String.join("", l_scenarioPermutations.get(i).stream().map(StepDependencies::getShortName).collect(
+                    Collectors.toList())) + "_" + (i + 1) + "-" + l_scenarioPermutations.size();
 
-            String lt_key = String.join("", lt_stepNames) + "_"+  i+"-"+l_maxPerm;
-
-            lr_permutations.put(lt_key, l_scenario);
+            lr_permutations.put(lt_key, l_scenarioPermutations.get(i));
         }
-
         return lr_permutations;
-
     }
 
     /**

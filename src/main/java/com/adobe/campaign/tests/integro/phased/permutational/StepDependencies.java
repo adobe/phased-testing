@@ -19,18 +19,10 @@ public class StepDependencies {
     protected static final int DEFAULT_LINE_LOCATION = -113;
     private boolean configMethod = false;
     private int stepLine = DEFAULT_LINE_LOCATION;
-
-    @Override
-    public int hashCode() {
-        int result = getStepLine();
-        result = 31 * result + getStepName().hashCode();
-        return result;
-    }
-
-    public enum Relations{DEPENDS_ON, INDEPENDANT, DEPENDED_ON_BY, INTERDEPENDANT};
     private Set<String> produceSet;
-    private String stepName;
 
+    ;
+    private String stepName;
     private Set<String> consumeSet;
 
     public StepDependencies(String in_stepName) {
@@ -78,7 +70,7 @@ public class StepDependencies {
      * @param in_key The key being produced
      */
     public void produce(String in_key) {
-        produceConsume(produceSet,in_key);
+        produceConsume(produceSet, in_key);
     }
 
     /**
@@ -87,7 +79,7 @@ public class StepDependencies {
      * @param in_key The key being consumed
      */
     public void consume(String in_key) {
-        produceConsume(consumeSet,in_key);
+        produceConsume(consumeSet, in_key);
     }
 
     private void produceConsume(Set<String> in_produceConsume, String in_key) {
@@ -106,6 +98,7 @@ public class StepDependencies {
      *     <li><span class="strong">INDEPENDANT</span>: when there is no dependency between this step and the provided one.</li>
      *     <li><span class="strong">CIRCULAR</span>: When the two steps are inter-dependant.</li>
      * </ul>
+     *
      * @param in_step The step with which we should compare our step
      * @return The relationship of type ${{@link Relations}}
      */
@@ -128,10 +121,9 @@ public class StepDependencies {
         return Relations.INTERDEPENDANT;
     }
 
-    public enum Categories {INDEPENDANT, PRODUCER_ONLY, PRODUCER_CONSUMER, CONSUMER_ONLY}
-
     /**
      * Returns the category of the step
+     *
      * @return a Category
      */
     Categories getCategory() {
@@ -151,6 +143,17 @@ public class StepDependencies {
         }
     }
 
+    /**
+     * Returns the short name of the step. This involves concatenating the first and last character of the stap name
+     *
+     * @return a shortname for the step
+     */
+    public String getShortName() {
+
+        return getStepName().charAt(0) + ((getStepName().length() > 1) ? getStepName().substring(
+                getStepName().length() - 1) : "");
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -167,4 +170,15 @@ public class StepDependencies {
         }
         return getStepName().equals(that.getStepName());
     }
+
+    @Override
+    public int hashCode() {
+        int result = getStepLine();
+        result = 31 * result + getStepName().hashCode();
+        return result;
+    }
+
+    public enum Relations {DEPENDS_ON, INDEPENDANT, DEPENDED_ON_BY, INTERDEPENDANT}
+
+    public enum Categories {INDEPENDANT, PRODUCER_ONLY, PRODUCER_CONSUMER, CONSUMER_ONLY}
 }

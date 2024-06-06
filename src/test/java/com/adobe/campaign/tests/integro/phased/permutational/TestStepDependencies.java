@@ -296,7 +296,7 @@ public class TestStepDependencies {
         assertThat("step2 & step1 are independant",
                 dependencies.getStep("step2").fetchRelation(dependencies.getStep("step1")),
                 equalTo(StepDependencies.Relations.INDEPENDANT));
-/*
+        /*
         assertThat("step2 & step3 are independant",
                 dependencies.getStep("step2").fetchRelation(dependencies.getStep("step3")),
                 equalTo(StepDependencies.Relations.INDEPENDANT));
@@ -318,5 +318,18 @@ public class TestStepDependencies {
                 equalTo(StepDependencies.Relations.INDEPENDANT));
 
  */
+    }
+
+    @Test
+    public void testGetShortName() {
+        StepDependencies dependency = new StepDependencies("aD");
+        assertThat("We should have the correct short name", dependency.getShortName(), equalTo("aD"));
+
+        StepDependencies dependency3chars = new StepDependencies("aFD");
+        assertThat("We should have the correct short name", dependency3chars.getShortName(), equalTo("aD"));
+
+        StepDependencies dependency1char = new StepDependencies("a");
+        assertThat("We should have the correct short name", dependency1char.getShortName(), equalTo("a"));
+        
     }
 }

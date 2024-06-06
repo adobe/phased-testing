@@ -205,4 +205,27 @@ public final class GeneralTestUtils {
         }
         return allPermutations;
     }
+
+    public static <T>  List<List<T>> outerJoinListOfLists(List<List<T>> in_listLeft, List<List<T>> in_listRight) {
+        if (in_listLeft == null || in_listRight == null) {
+            throw new IllegalArgumentException("The given lists cannot be null");
+        }
+
+        List<List<T>> lr_result = new ArrayList<>();
+
+        if (in_listLeft.isEmpty() || in_listRight.isEmpty()) {
+            return in_listLeft.isEmpty() ? in_listRight : in_listLeft;
+        }
+
+        for (List<T> l_list1Entry : in_listLeft) {
+            for (List<T> l_list2Entry : in_listRight) {
+                List<T> l_newEntry = new ArrayList<>();
+                l_newEntry.addAll(l_list1Entry);
+                l_newEntry.addAll(l_list2Entry);
+                lr_result.add(l_newEntry);
+            }
+        }
+
+        return lr_result;
+    }
 }

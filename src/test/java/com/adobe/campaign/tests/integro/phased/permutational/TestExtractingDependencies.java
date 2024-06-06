@@ -336,9 +336,10 @@ public class TestExtractingDependencies {
         ScenarioStepDependencies dependencies2 = ScenarioStepDependencyFactory.listMethodCalls(
                 SimplePermutationTest.class);
 
-        assertThat("Should now have ProducerConsumer",dependencies2.fetchCategorizations().keySet(), containsInAnyOrder(
-                StepDependencies.Categories.PRODUCER_ONLY,
-                StepDependencies.Categories.CONSUMER_ONLY, StepDependencies.Categories.PRODUCER_CONSUMER));
+        assertThat("Should now have ProducerConsumer", dependencies2.fetchCategorizations().keySet(),
+                containsInAnyOrder(
+                        StepDependencies.Categories.PRODUCER_ONLY,
+                        StepDependencies.Categories.CONSUMER_ONLY, StepDependencies.Categories.PRODUCER_CONSUMER));
 
     }
 
@@ -352,7 +353,8 @@ public class TestExtractingDependencies {
         List<List<StepDependencies>> allPermutations = GeneralTestUtils.generatePermutations(l_steps, 0);
         assertThat("We should have 2 permutations", allPermutations.size(), equalTo(2));
         int l_locationOfZ = allPermutations.get(0).indexOf(new StepDependencies("z"));
-        assertThat("The location of Z in the second list should not be the same", allPermutations.get(1).indexOf(new StepDependencies("z")),
+        assertThat("The location of Z in the second list should not be the same",
+                allPermutations.get(1).indexOf(new StepDependencies("z")),
                 not(equalTo(l_locationOfZ)));
     }
 
@@ -365,7 +367,8 @@ public class TestExtractingDependencies {
         assertThat("We should have only 1 permutation", allPermutations.size(), equalTo(1));
         assertThat("We should have only 1 permutation", allPermutations.get(0).size(), equalTo(1));
 
-        assertThat("We should only have our entry", allPermutations.get(0).get(0), Matchers.equalTo(new StepDependencies("z")));
+        assertThat("We should only have our entry", allPermutations.get(0).get(0),
+                Matchers.equalTo(new StepDependencies("z")));
     }
 
     @Test
@@ -395,13 +398,15 @@ public class TestExtractingDependencies {
 
         var stepCombinations = l_scenarioSteps.fetchPermutations();
         assertThat("we should have a value", stepCombinations, Matchers.notNullValue());
-        assertThat("We should have two permutations", stepCombinations.keySet(),hasSize(2));
+        assertThat("We should have two permutations", stepCombinations.keySet(), hasSize(2));
         assertThat("We should have the correct keys for permutations",
-                stepCombinations.keySet(), Matchers.containsInAnyOrder("ab_1-2","ba_2-2"));
+                stepCombinations.keySet(), Matchers.containsInAnyOrder("ab_1-2", "ba_2-2"));
         assertThat("The value for ab should be correct", stepCombinations.get("ab_1-2"), Matchers.equalTo(
-                Arrays.asList(l_scenarioSteps.getStepDependencies().get("a"), l_scenarioSteps.getStepDependencies().get("b"))));
+                Arrays.asList(l_scenarioSteps.getStepDependencies().get("a"),
+                        l_scenarioSteps.getStepDependencies().get("b"))));
         assertThat("The value for ab should be correct", stepCombinations.get("ba_2-2"), Matchers.equalTo(
-                Arrays.asList(l_scenarioSteps.getStepDependencies().get("b"), l_scenarioSteps.getStepDependencies().get("a"))));
+                Arrays.asList(l_scenarioSteps.getStepDependencies().get("b"),
+                        l_scenarioSteps.getStepDependencies().get("a"))));
     }
 
     @Test
@@ -428,10 +433,28 @@ public class TestExtractingDependencies {
         l_scenarioSteps.getStepDependencies().get("d").setStepLine(35);
         l_scenarioSteps.getStepDependencies().get("d").consume("k2");
 
+        var stepCombinations = l_scenarioSteps.fetchPermutations();
 
-        assertThat("We should have two permutations",l_scenarioSteps.fetchPermutations().keySet(),hasSize(4));
-        
-        
+        assertThat("We should have two permutations", stepCombinations.keySet(), hasSize(4));
+
+        assertThat("We should have the correct keys for permutations",
+                stepCombinations.keySet(),
+                Matchers.containsInAnyOrder(Matchers.startsWith("abcd"), Matchers.startsWith("abdc"),
+                        Matchers.startsWith("bacd"), Matchers.startsWith("badc")));
+
+        assertThat("We should have the correct keys for permutations",
+                stepCombinations.keySet(),
+                Matchers.containsInAnyOrder(Matchers.endsWith("_1-4"), Matchers.endsWith("_2-4"),
+                        Matchers.endsWith("_3-4"), Matchers.endsWith("_4-4")));
+
+        String l_key = stepCombinations.keySet().stream().filter(f -> f.startsWith("badc")).findFirst().get();
+
+        assertThat("The value for ab should be correct", stepCombinations.get(l_key), Matchers.equalTo(
+                Arrays.asList(l_scenarioSteps.getStepDependencies().get("b"),
+                        l_scenarioSteps.getStepDependencies().get("a"),
+                        l_scenarioSteps.getStepDependencies().get("d"),
+                        l_scenarioSteps.getStepDependencies().get("c"))));
+
     }
 
     @Test
@@ -453,8 +476,129 @@ public class TestExtractingDependencies {
         l_scenarioSteps.getStepDependencies().get("c").setStepLine(25);
         l_scenarioSteps.getStepDependencies().get("c").consume("k1");
 
+        var stepCombinations = l_scenarioSteps.fetchPermutations();
 
-        assertThat("We should have two permutations",l_scenarioSteps.fetchPermutations().keySet(),hasSize(2));
+        assertThat("We should have two permutations", stepCombinations.keySet(), hasSize(2));
+
+        assertThat("We should have the correct keys for permutations",
+                stepCombinations.keySet(),
+                Matchers.containsInAnyOrder(Matchers.startsWith("abc"), Matchers.startsWith("acb")));
+
+        assertThat("We should have the correct keys for permutations",
+                stepCombinations.keySet(),
+                Matchers.containsInAnyOrder(Matchers.endsWith("_1-2"), Matchers.endsWith("_2-2")));
+
+        String l_key = stepCombinations.keySet().stream().filter(f -> f.startsWith("acb")).findFirst().get();
+
+        assertThat("The value for ab should be correct", stepCombinations.get(l_key), Matchers.equalTo(
+                Arrays.asList(l_scenarioSteps.getStepDependencies().get("a"),
+                        l_scenarioSteps.getStepDependencies().get("c"),
+                        l_scenarioSteps.getStepDependencies().get("b"))));
+    }
+
+    @Test
+    public void testCreatingPermutations_indies() {
+        ScenarioStepDependencies l_scenarioSteps = new ScenarioStepDependencies("MyScenario");
+        l_scenarioSteps.addStep("a");
+        l_scenarioSteps.addStep("b");
+        l_scenarioSteps.addStep("c");
+        l_scenarioSteps.addStep("d");
+
+        l_scenarioSteps.getStepDependencies().get("a").setConfigMethod(false);
+        l_scenarioSteps.getStepDependencies().get("a").setStepLine(10);
+        l_scenarioSteps.getStepDependencies().get("a").produce("k1");
+
+        l_scenarioSteps.getStepDependencies().get("b").setConfigMethod(false);
+        l_scenarioSteps.getStepDependencies().get("b").setStepLine(15);
+        l_scenarioSteps.getStepDependencies().get("b");
+
+        l_scenarioSteps.getStepDependencies().get("c").setConfigMethod(false);
+        l_scenarioSteps.getStepDependencies().get("c").setStepLine(25);
+        l_scenarioSteps.getStepDependencies().get("c").consume("k1");
+
+        l_scenarioSteps.getStepDependencies().get("d").setConfigMethod(false);
+        l_scenarioSteps.getStepDependencies().get("d").setStepLine(35);
+        l_scenarioSteps.getStepDependencies().get("d").consume("k1");
+
+        var stepCombinations = l_scenarioSteps.fetchPermutations();
+
+        assertThat("We should have two permutations", stepCombinations.keySet(), hasSize(2));
+
+        assertThat("We should have the correct keys for permutations",
+                stepCombinations.keySet(),
+                Matchers.containsInAnyOrder(Matchers.startsWith("abdc"), Matchers.startsWith("abcd")));
+
+        assertThat("We should have the correct keys for permutations",
+                stepCombinations.keySet(),
+                Matchers.containsInAnyOrder(Matchers.endsWith("_1-2"), Matchers.endsWith("_2-2")));
+
+        String l_key = stepCombinations.keySet().stream().filter(f -> f.startsWith("abdc")).findFirst().get();
+
+        assertThat("The value for ab should be correct", stepCombinations.get(l_key), Matchers.equalTo(
+                Arrays.asList(l_scenarioSteps.getStepDependencies().get("a"),
+                        l_scenarioSteps.getStepDependencies().get("b"),
+                        l_scenarioSteps.getStepDependencies().get("d"),
+                        l_scenarioSteps.getStepDependencies().get("c"))));
+    }
+
+    @Test
+    public void testOuterJoinListOfLists() {
+        List<List<String>> l_list1 = new ArrayList<>();
+        l_list1.add(Arrays.asList("a", "b"));
+        l_list1.add(Arrays.asList("c", "d"));
+
+        List<List<String>> l_list2 = new ArrayList<>();
+        l_list2.add(Arrays.asList("1", "2"));
+        l_list2.add(Arrays.asList("3", "4"));
+
+        List<List<String>> l_result = GeneralTestUtils.outerJoinListOfLists(l_list1, l_list2);
+
+        assertThat("We should have 4 entries", l_result, hasSize(4));
+        assertThat("We should have the correct entries", l_result, containsInAnyOrder(
+                Arrays.asList("a", "b", "1", "2"),
+                Arrays.asList("a", "b", "3", "4"),
+                Arrays.asList("c", "d", "1", "2"),
+                Arrays.asList("c", "d", "3", "4")
+        ));
+    }
+
+    @Test
+    public void testOuterJoinListOfListsOneIsEmpty() {
+        List<List<String>> l_list1 = new ArrayList<>();
+        l_list1.add(Arrays.asList("a", "b"));
+        l_list1.add(Arrays.asList("c", "d"));
+
+        List<List<String>> l_list2 = new ArrayList<>();
+
+        List<List<String>> l_result = GeneralTestUtils.outerJoinListOfLists(l_list1, l_list2);
+
+        assertThat("We should have 4 entries", l_result, hasSize(2));
+        assertThat("We should have the correct entries", l_result, containsInAnyOrder(
+                Arrays.asList("a", "b"),
+                Arrays.asList("c", "d")
+        ));
+
+        List<List<String>> l_result2 = GeneralTestUtils.outerJoinListOfLists(l_list2, l_list1);
+
+        assertThat("We should have 4 entries", l_result2, hasSize(2));
+        assertThat("We should have the correct entries", l_result2, containsInAnyOrder(
+                Arrays.asList("a", "b"),
+                Arrays.asList("c", "d")
+        ));
+
+        List<List<String>> l_result3 = GeneralTestUtils.outerJoinListOfLists(l_list2, l_list2);
+
+        assertThat("We should have 4 entries", l_result3, hasSize(0));
+    }
+
+    @Test
+    public void testOuterJoinListOfLists_negativeNull() {
+
+        Assert.assertThrows(IllegalArgumentException.class,
+                () -> GeneralTestUtils.outerJoinListOfLists(null, new ArrayList<>()));
+        Assert.assertThrows(IllegalArgumentException.class,
+                () -> GeneralTestUtils.outerJoinListOfLists(new ArrayList<>(), null));
+        Assert.assertThrows(IllegalArgumentException.class, () -> GeneralTestUtils.outerJoinListOfLists(null, null));
     }
 
 }
