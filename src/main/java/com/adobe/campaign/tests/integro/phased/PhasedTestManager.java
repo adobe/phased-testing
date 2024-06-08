@@ -14,6 +14,7 @@ package com.adobe.campaign.tests.integro.phased;
 import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestConfigurationException;
 import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestException;
 import com.adobe.campaign.tests.integro.phased.permutational.ScenarioStepDependencies;
+import com.adobe.campaign.tests.integro.phased.permutational.StepDependencies;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 import com.adobe.campaign.tests.integro.phased.utils.StackTraceManager;
@@ -35,7 +36,7 @@ import java.util.stream.Collectors;
 
 public final class PhasedTestManager {
 
-    private static Map<String, ScenarioStepDependencies> stepDependencie;
+    private static Map<String, ScenarioStepDependencies> stepDependencies;
 
     private PhasedTestManager() {
         //Utility class. Defeat instantiation.
@@ -57,18 +58,20 @@ public final class PhasedTestManager {
     //Values for the DataProvider used in both Shuffled and Single run phases
     static final String STD_PHASED_GROUP_PREFIX = "phased-shuffledGroup_";
     static final String STD_PHASED_GROUP_SINGLE = "phased-singleRun";
+    public static final String STD_PHASED_PERMUTATIONAL_PREFIX = "PERMUTATIONAL_";
+
 
     static final String STD_PHASED_GROUP_NIE_PREFIX = "phased-shuffledGroupNIE_";
 
     public static final String STD_MERGE_STEP_ERROR_PREFIX = "Phased Error: Failure in step ";
 
-    public static Map<String, ScenarioStepDependencies> getStepDependencie() {
-        return stepDependencie;
+    public static Map<String, ScenarioStepDependencies> getStepDependencies() {
+        return stepDependencies;
     }
 
-    public static void setStepDependencie(
-            Map<String, ScenarioStepDependencies> stepDependencie) {
-        PhasedTestManager.stepDependencie = stepDependencie;
+    public static void setStepDependencies(
+            Map<String, ScenarioStepDependencies> stepDependencies) {
+        PhasedTestManager.stepDependencies = stepDependencies;
     }
 
     /**
@@ -538,8 +541,6 @@ public final class PhasedTestManager {
     }
 
     public static Object[][] fetchProvidersShuffled(ITestNGMethod tm) {
-        //log.info("{} - {} - {}",tm.getRealClass().getTypeName(), tm.getTestClass().getRealClass().getMethods()[0].getName(), tm.getRealClass().getMethods()[0].getDeclaringClass());
-        //log.info("{} - {} - {}",tm.getRealClass().getTypeName(), tm.getTestClass().getRealClass().getMethods()[1].getName(), tm.getRealClass().getMethods()[1].getDeclaringClass());
 
         return fetchProvidersShuffled(tm.getTestClass().getRealClass().getMethods()[0]);
     }
@@ -558,22 +559,35 @@ public final class PhasedTestManager {
     public static Object[][] fetchProvidersShuffled(Method in_method, Phases in_phasedState) {
 
         final MethodMapping l_methodMapping = methodMap.get(ClassPathParser.fetchFullName(in_method));
-        Object[][] l_objectArrayPhased = new Object[l_methodMapping.nrOfProviders][1];
+        int l_nrOfProviders = l_methodMapping.nrOfProviders;
+        Object[][] l_objectArrayPhased;
 
+        if (in_phasedState.equals(Phases.PERMUTATIONAL)) {
+            Map<String, List<StepDependencies>> l_permutations = getStepDependencies().get(l_methodMapping.declaredClass.getTypeName()).fetchPermutations();
+            l_nrOfProviders = l_permutations.size();
+            l_objectArrayPhased = new Object[l_nrOfProviders][1];
+            int i = 0;
+            for (Entry<String, List<StepDependencies>> entry : l_permutations.entrySet()) {
+                l_objectArrayPhased[i][0] = entry.getKey();
+                i++;
+            }
 
-        for (int rows = 0; rows < l_methodMapping.nrOfProviders; rows++) {
+        } else {
+            l_objectArrayPhased= new Object[l_nrOfProviders][1];
+            for (int rows = 0; rows < l_nrOfProviders; rows++) {
 
-            int lt_nrBeforePhase = in_phasedState.equals(Phases.PRODUCER) ? (l_methodMapping.totalClassMethods
-                    - rows) : rows;
+                int lt_nrBeforePhase = in_phasedState.equals(Phases.PRODUCER) ? (l_methodMapping.totalClassMethods
+                        - rows) : rows;
 
-            int lt_nrAfterPhase = l_methodMapping.totalClassMethods - lt_nrBeforePhase;
+                int lt_nrAfterPhase = l_methodMapping.totalClassMethods - lt_nrBeforePhase;
 
-            if (in_phasedState.hasSplittingEvent()) {
-                l_objectArrayPhased[rows][0] = STD_PHASED_GROUP_PREFIX + lt_nrBeforePhase
-                        + "_"
-                        + lt_nrAfterPhase;
-            } else {
-                l_objectArrayPhased[rows][0] = STD_PHASED_GROUP_NIE_PREFIX + (rows+1);
+                if (in_phasedState.hasSplittingEvent()) {
+                    l_objectArrayPhased[rows][0] = STD_PHASED_GROUP_PREFIX + lt_nrBeforePhase
+                            + "_"
+                            + lt_nrAfterPhase;
+                } else if (Phases.ASYNCHRONOUS.isSelected()) {
+                    l_objectArrayPhased[rows][0] = STD_PHASED_GROUP_NIE_PREFIX + (rows + 1);
+                }
             }
         }
 

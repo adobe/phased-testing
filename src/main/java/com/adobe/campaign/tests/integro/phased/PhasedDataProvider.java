@@ -37,12 +37,7 @@ public class PhasedDataProvider {
         //PhasedTestManager.fetchProvidersShuffled(m);
 
         log.info(tm.getTestClass().getRealClass().getTypeName());
-        /*
-        if (tm.getTestClass().getRealClass().getTypeName().equals("com.adobe.campaign.tests.integro.phased.events.data.PhasedChild2")) {
-            return new Object[][] { { "three" } };
-        } else {
-            return new Object[][] { { "ONE" }, { "TWO" } };
-        }*/
+
         return PhasedTestManager.fetchProvidersShuffled(tm);
     }
     

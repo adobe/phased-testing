@@ -8,15 +8,15 @@ import org.testng.annotations.Test;
 @PhasedTest
 @Test(groups = "aaa")
 public class MultipleProducerConsumer extends PhasedParent {
-    public void ccccc(Object param) {
+    public void ccccc(String param) {
         PhasedTestManager.produce("keyA","bbbbValue");
     }
 
-    public void bbbbb(Object param) {
+    public void bbbbb(String param) {
         PhasedTestManager.produce("keyB","bbbbValue");
     }
 
-    public void aaaaa(Object param) {
+    public void aaaaa(String param) {
         PhasedTestManager.consume("keyB");
 
         PhasedTestManager.consume("keyA");

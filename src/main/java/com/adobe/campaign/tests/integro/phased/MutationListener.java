@@ -163,14 +163,14 @@ public class MutationListener
          */
 
             //Generate scenario step dependencies
-        PhasedTestManager.setStepDependencie(l_phasedClasses.stream()
+        PhasedTestManager.setStepDependencies(l_phasedClasses.stream()
                     .map(ScenarioStepDependencyFactory::listMethodCalls).collect(Collectors.toMap(ScenarioStepDependencies::getScenarioName, Function.identity())));
 
 
             //if (Phases.getCurrentPhase().hasSplittingEvent()) {
             log.info("{} Generating Phased Providers", PhasedTestManager.PHASED_TEST_LOG_PREFIX);
             //NIA
-            PhasedTestManager.generatePhasedProviders(l_classMethodMap, PhasedTestManager.getStepDependencie(),
+            PhasedTestManager.generatePhasedProviders(l_classMethodMap, PhasedTestManager.getStepDependencies(),
                     Phases.getCurrentPhase());
             //}
 
@@ -185,7 +185,7 @@ public class MutationListener
                     m.getMethod().getConstructorOrMethod().getDeclaringClass())).collect(
                     Collectors.toList());
 
-            for (ScenarioStepDependencies lt_sd : PhasedTestManager.getStepDependencie().values()) {
+            for (ScenarioStepDependencies lt_sd : PhasedTestManager.getStepDependencies().values()) {
                 for (StepDependencies lt_methodName : lt_sd.fetchExecutionOrderList()) {
                     l_phasedDependencyMethods.stream()
                             .filter(m -> m.getMethod().getConstructorOrMethod().getName()

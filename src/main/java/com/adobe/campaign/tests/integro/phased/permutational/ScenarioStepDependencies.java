@@ -11,6 +11,7 @@
  */
 package com.adobe.campaign.tests.integro.phased.permutational;
 
+import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 
 import java.util.*;
@@ -213,7 +214,8 @@ public class ScenarioStepDependencies {
                 Collectors.toList())), l -> l));
 
         for (int i = 0; i < l_scenarioPermutations.size(); i++) {
-            String lt_key = String.join("", l_scenarioPermutations.get(i).stream().map(StepDependencies::getShortName).collect(
+            String lt_key = PhasedTestManager.STD_PHASED_PERMUTATIONAL_PREFIX
+                    +String.join("", l_scenarioPermutations.get(i).stream().map(StepDependencies::getShortName).collect(
                     Collectors.toList())) + "_" + (i + 1) + "-" + l_scenarioPermutations.size();
 
             lr_permutations.put(lt_key, l_scenarioPermutations.get(i));

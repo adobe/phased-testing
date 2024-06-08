@@ -19,6 +19,9 @@ import com.adobe.campaign.tests.integro.phased.data.events.TestSINGLEWithEvent_e
 import com.adobe.campaign.tests.integro.phased.data.events.TestShuffled_eventPassedAsExecutionVariable;
 import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestConfigurationException;
 import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestException;
+import com.adobe.campaign.tests.integro.phased.mutational.data.permutational.MultipleProducerConsumer;
+import com.adobe.campaign.tests.integro.phased.permutational.ScenarioStepDependencies;
+import com.adobe.campaign.tests.integro.phased.permutational.ScenarioStepDependencyFactory;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 import com.adobe.campaign.tests.integro.phased.utils.MockTestTools;
@@ -38,6 +41,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -914,6 +919,46 @@ public class PhasedTestManagerTests {
         assertThat(l_providerC[0][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_NIE_PREFIX + "1"));
         assertThat(l_providerC[1][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_NIE_PREFIX + "2"));
         assertThat(l_providerC[2][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_NIE_PREFIX + "3"));
+
+    }
+
+    //Permutational
+    @Test
+    public void testCreateDataProviderData_permutational() throws SecurityException, NoSuchMethodException {
+        Phases l_currentPhase = Phases.PERMUTATIONAL;
+        Map<Class<?>, List<String>> l_myMap = new HashMap<>();
+
+        Method method1 = MultipleProducerConsumer.class.getMethod("ccccc", String.class);
+        Method method2 = MultipleProducerConsumer.class.getMethod("bbbbb", String.class);
+        Method method3 = MultipleProducerConsumer.class.getMethod("aaaaa", String.class);
+
+        l_myMap.put(MultipleProducerConsumer.class,
+                Arrays.asList(ClassPathParser.fetchFullName(method1), ClassPathParser.fetchFullName(method2),
+                        ClassPathParser.fetchFullName(method3)));
+
+        ScenarioStepDependencies l_scenario =  ScenarioStepDependencyFactory.listMethodCalls(MultipleProducerConsumer.class);
+        PhasedTestManager.setStepDependencies(Collections.singletonMap(l_scenario.getScenarioName(), l_scenario));
+
+        Map<String, MethodMapping> l_result = PhasedTestManager.generatePhasedProviders(l_myMap,
+                l_currentPhase);
+
+        assertThat("we need to have the expected key", l_result.containsKey(ClassPathParser.fetchFullName(method1)));
+        assertThat("The first method should have three entries", l_result.get(ClassPathParser.fetchFullName(method1)).nrOfProviders, equalTo(3));
+
+        assertThat("The second method should have three entries", l_result.get(ClassPathParser.fetchFullName(method2)).nrOfProviders, equalTo(3));
+
+        assertThat("The third method should have three entries", l_result.get(ClassPathParser.fetchFullName(method3)).totalClassMethods,
+                equalTo(3));
+
+        Object[][] l_providerPerm = PhasedTestManager.fetchProvidersShuffled(method1, l_currentPhase);
+
+        assertThat(l_providerPerm.length, equalTo(2));
+
+        List<String> l_providers = Arrays.asList((String) l_providerPerm[0][0],(String) l_providerPerm[1][0]);
+
+        assertThat(l_providers, Matchers.containsInAnyOrder(Matchers.startsWith("PERMUTATIONAL_bbccaa"), Matchers.startsWith("PERMUTATIONAL_ccbbaa")));
+
+        assertThat(l_providers, Matchers.containsInAnyOrder(Matchers.endsWith("_1-2"), Matchers.endsWith("_2-2")));
 
     }
 

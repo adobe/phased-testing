@@ -14,12 +14,10 @@ package com.adobe.campaign.tests.integro.phased.events;
 import com.adobe.campaign.tests.integro.phased.PhasedDataProvider;
 import com.adobe.campaign.tests.integro.phased.PhasedTest;
 import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
+import com.adobe.campaign.tests.integro.phased.Phases;
 import com.adobe.campaign.tests.integro.phased.permutational.ScenarioStepDependencies;
-import com.adobe.campaign.tests.integro.phased.permutational.ScenarioStepDependencyFactory;
 import com.adobe.campaign.tests.integro.phased.permutational.StepDependencies;
-import org.testng.Assert;
-import org.testng.ITestContext;
-import org.testng.ITestResult;
+import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
 import org.testng.annotations.Test;
 
 import java.lang.reflect.InvocationTargetException;
@@ -27,8 +25,6 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @PhasedTest
 @Test(dataProvider = "MUTATIONAL", dataProviderClass = PhasedDataProvider.class)
@@ -40,13 +36,13 @@ public abstract class PhasedParent {
         Class l_executingClass = this.getClass();
 
 
-        Map<String, ScenarioStepDependencies> l_scenarioDependencies = PhasedTestManager.getStepDependencie();
+        Map<String, ScenarioStepDependencies> l_scenarioDependencies = PhasedTestManager.getStepDependencies();
         //List<StepDependencies> stepOrder = l_scenarioDependencies.fetchExecutionOrderList();
-        List<StepDependencies> l_orderList = l_scenarioDependencies.get(l_executingClass.getTypeName()).fetchExecutionOrderList();
-        //Assert.assertEquals(l_executingClass.getTypeName(), "com.adobe.campaign.tests.integro.phased.events.data.PhasedChild");
-        //Arrays.stream(itx.getAllTestMethods()).
 
-        var nrOfSteps = PhasedTestManager.fetchStepsBeforePhase(phaseGroup);
+        List<StepDependencies> l_orderList = Phases.getCurrentPhase().equals(Phases.PERMUTATIONAL) ? l_scenarioDependencies.get(l_executingClass.getTypeName()).fetchPermutations().get(phaseGroup) : l_scenarioDependencies.get(l_executingClass.getTypeName()).fetchExecutionOrderList();
+
+
+        var nrOfSteps = Phases.getCurrentPhase().hasSplittingEvent() ? PhasedTestManager.fetchStepsBeforePhase(phaseGroup) : l_orderList.size();
         System.out.println(nrOfSteps);
         //for (Method stepMethod : l_executingClass.getDeclaredMethods()) {
         //for (StepDependencies stepOrdering : stepOrder) {
@@ -58,6 +54,10 @@ public abstract class PhasedParent {
                 //Method stepMethod = Arrays.stream(l_executingClass.getMethods()).filter(m -> m.getName().equals(lt_currentStepName)).findFirst().get();
                 String stepName = l_orderList.get(i).getStepName();
                 Method stepMethod = Arrays.stream(l_executingClass.getDeclaredMethods()).filter(dm -> dm.getName().equals(stepName)).findFirst().get();
+
+                PhasedTestManager.storePhasedContext(ClassPathParser.fetchFullName(stepMethod), phaseGroup);
+
+
                 Object ourInstance = l_executingClass.getDeclaredConstructor().newInstance();
                 stepMethod.invoke(ourInstance, phaseGroup);
             } catch (IllegalAccessException e) {
