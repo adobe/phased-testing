@@ -12,6 +12,7 @@
 package com.adobe.campaign.tests.integro.phased.permutational;
 
 import com.adobe.campaign.tests.integro.phased.ConfigValueHandlerPhased;
+import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
 import com.adobe.campaign.tests.integro.phased.data.permutational.*;
 import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestConfigurationException;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
@@ -44,7 +45,7 @@ public class TestExtractingDependencies {
 
     @Test
     public void testFetchExtractingProduceConsume()
-            throws NoSuchMethodException, SecurityException, IOException {
+            throws SecurityException {
 
         Class<SimpleProducerConsumer> l_testClass = SimpleProducerConsumer.class;
 
@@ -400,13 +401,17 @@ public class TestExtractingDependencies {
         assertThat("we should have a value", stepCombinations, Matchers.notNullValue());
         assertThat("We should have two permutations", stepCombinations.keySet(), hasSize(2));
         assertThat("We should have the correct keys for permutations",
-                stepCombinations.keySet(), Matchers.containsInAnyOrder("ab_1-2", "ba_2-2"));
-        assertThat("The value for ab should be correct", stepCombinations.get("ab_1-2"), Matchers.equalTo(
-                Arrays.asList(l_scenarioSteps.getStepDependencies().get("a"),
-                        l_scenarioSteps.getStepDependencies().get("b"))));
-        assertThat("The value for ab should be correct", stepCombinations.get("ba_2-2"), Matchers.equalTo(
-                Arrays.asList(l_scenarioSteps.getStepDependencies().get("b"),
-                        l_scenarioSteps.getStepDependencies().get("a"))));
+                stepCombinations.keySet(),
+                Matchers.containsInAnyOrder(PhasedTestManager.STD_PHASED_PERMUTATIONAL_PREFIX + "ab_1-2",
+                        PhasedTestManager.STD_PHASED_PERMUTATIONAL_PREFIX + "ba_2-2"));
+        assertThat("The value for ab should be correct",
+                stepCombinations.get(PhasedTestManager.STD_PHASED_PERMUTATIONAL_PREFIX + "ab_1-2"), Matchers.equalTo(
+                        Arrays.asList(l_scenarioSteps.getStepDependencies().get("a"),
+                                l_scenarioSteps.getStepDependencies().get("b"))));
+        assertThat("The value for ab should be correct",
+                stepCombinations.get(PhasedTestManager.STD_PHASED_PERMUTATIONAL_PREFIX + "ba_2-2"), Matchers.equalTo(
+                        Arrays.asList(l_scenarioSteps.getStepDependencies().get("b"),
+                                l_scenarioSteps.getStepDependencies().get("a"))));
     }
 
     @Test
@@ -439,15 +444,18 @@ public class TestExtractingDependencies {
 
         assertThat("We should have the correct keys for permutations",
                 stepCombinations.keySet(),
-                Matchers.containsInAnyOrder(Matchers.startsWith("abcd"), Matchers.startsWith("abdc"),
-                        Matchers.startsWith("bacd"), Matchers.startsWith("badc")));
+                Matchers.containsInAnyOrder(
+                        Matchers.startsWith(PhasedTestManager.STD_PHASED_PERMUTATIONAL_PREFIX + "abcd"),
+                        Matchers.startsWith(PhasedTestManager.STD_PHASED_PERMUTATIONAL_PREFIX + "abdc"),
+                        Matchers.startsWith(PhasedTestManager.STD_PHASED_PERMUTATIONAL_PREFIX + "bacd"),
+                        Matchers.startsWith(PhasedTestManager.STD_PHASED_PERMUTATIONAL_PREFIX + "badc")));
 
         assertThat("We should have the correct keys for permutations",
                 stepCombinations.keySet(),
                 Matchers.containsInAnyOrder(Matchers.endsWith("_1-4"), Matchers.endsWith("_2-4"),
                         Matchers.endsWith("_3-4"), Matchers.endsWith("_4-4")));
 
-        String l_key = stepCombinations.keySet().stream().filter(f -> f.startsWith("badc")).findFirst().get();
+        String l_key = stepCombinations.keySet().stream().filter(f -> f.startsWith(PhasedTestManager.STD_PHASED_PERMUTATIONAL_PREFIX+"badc")).findFirst().get();
 
         assertThat("The value for ab should be correct", stepCombinations.get(l_key), Matchers.equalTo(
                 Arrays.asList(l_scenarioSteps.getStepDependencies().get("b"),
@@ -482,13 +490,15 @@ public class TestExtractingDependencies {
 
         assertThat("We should have the correct keys for permutations",
                 stepCombinations.keySet(),
-                Matchers.containsInAnyOrder(Matchers.startsWith("abc"), Matchers.startsWith("acb")));
+                Matchers.containsInAnyOrder(
+                        Matchers.startsWith(PhasedTestManager.STD_PHASED_PERMUTATIONAL_PREFIX + "abc"),
+                        Matchers.startsWith(PhasedTestManager.STD_PHASED_PERMUTATIONAL_PREFIX + "acb")));
 
         assertThat("We should have the correct keys for permutations",
                 stepCombinations.keySet(),
                 Matchers.containsInAnyOrder(Matchers.endsWith("_1-2"), Matchers.endsWith("_2-2")));
 
-        String l_key = stepCombinations.keySet().stream().filter(f -> f.startsWith("acb")).findFirst().get();
+        String l_key = stepCombinations.keySet().stream().filter(f -> f.startsWith(PhasedTestManager.STD_PHASED_PERMUTATIONAL_PREFIX+"acb")).findFirst().get();
 
         assertThat("The value for ab should be correct", stepCombinations.get(l_key), Matchers.equalTo(
                 Arrays.asList(l_scenarioSteps.getStepDependencies().get("a"),
@@ -526,13 +536,17 @@ public class TestExtractingDependencies {
 
         assertThat("We should have the correct keys for permutations",
                 stepCombinations.keySet(),
-                Matchers.containsInAnyOrder(Matchers.startsWith("abdc"), Matchers.startsWith("abcd")));
+                Matchers.containsInAnyOrder(
+                        Matchers.startsWith(PhasedTestManager.STD_PHASED_PERMUTATIONAL_PREFIX + "abdc"),
+                        Matchers.startsWith(PhasedTestManager.STD_PHASED_PERMUTATIONAL_PREFIX + "abcd")));
 
         assertThat("We should have the correct keys for permutations",
                 stepCombinations.keySet(),
                 Matchers.containsInAnyOrder(Matchers.endsWith("_1-2"), Matchers.endsWith("_2-2")));
 
-        String l_key = stepCombinations.keySet().stream().filter(f -> f.startsWith("abdc")).findFirst().get();
+        String l_key = stepCombinations.keySet().stream()
+                .filter(f -> f.startsWith(PhasedTestManager.STD_PHASED_PERMUTATIONAL_PREFIX + "abdc")).findFirst()
+                .get();
 
         assertThat("The value for ab should be correct", stepCombinations.get(l_key), Matchers.equalTo(
                 Arrays.asList(l_scenarioSteps.getStepDependencies().get("a"),
