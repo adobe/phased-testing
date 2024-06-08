@@ -63,11 +63,11 @@
             <plugin>
                 <groupId>com.mycila</groupId>
                 <artifactId>license-maven-plugin</artifactId>
-                <version>4.1</version>
+                <version>4.5</version>
                 <configuration>
                     <licenseSets>
                         <licenseSet>
-                            <header>${license.dir}/licenseHeader</header>
+                            <header>${license.dir}/LicenseHeader</header>
                             <excludes>
                                 <exclude>**/README</exclude>
                                 <exclude>sonar-project.properties</exclude>
