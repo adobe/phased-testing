@@ -8,7 +8,9 @@
  */
 package com.adobe.campaign.tests.integro.phased.permutational;
 
+import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestException;
 import org.hamcrest.Matchers;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.util.*;
@@ -381,7 +383,6 @@ public class TestStepDependencies {
     @Test
     public void testFetchPossibleExecutableSteps() {
         ScenarioStepDependencies dependencies = new ScenarioStepDependencies("Shopping");
-
         dependencies.putProduce("login", "authentication");
         dependencies.putProduce("searchProduct", "product");
         dependencies.putProduce("putProductInBasket", "basket");
@@ -409,6 +410,66 @@ public class TestStepDependencies {
                 dependencies.fetchHonorSet(new HashSet<>(Arrays.asList("product", "authentication", "basket"))),
                 containsInAnyOrder(dependencies.getStep("login"), dependencies.getStep("searchProduct"),
                         dependencies.getStep("putProductInBasket"), dependencies.getStep("checkout")));
+    }
+
+    @Test
+    public void createCopyConstructorForScenarioStepDependencies() {
+        ScenarioStepDependencies dependencies = new ScenarioStepDependencies("Shopping");
+        dependencies.putProduce("login", "authentication");
+        dependencies.putProduce("searchProduct", "product");
+        dependencies.putProduce("putProductInBasket", "basket");
+        dependencies.putConsume("putProductInBasket", "product");
+        dependencies.putConsume("checkout", "authentication");
+        dependencies.putConsume("checkout", "product");
+        dependencies.putConsume("checkout", "basket");
+
+        ScenarioStepDependencies copy = new ScenarioStepDependencies(dependencies);
+
+        assertThat("The scenario name should be the same", copy.getScenarioName(), equalTo("Shopping"));
+        assertThat("The number of steps should be the same", copy.getStepDependencies().size(), equalTo(dependencies.getStepDependencies().size()));
+        for (String stepName : dependencies.getStepDependencies().keySet()) {
+            assertThat("The step should be the same", copy.getStep(stepName), equalTo(dependencies.getStep(stepName)));
+        }
+    }
+
+    @Test
+    public void testRemovingStep() {
+        ScenarioStepDependencies dependencies = new ScenarioStepDependencies("Shopping");
+        dependencies.putProduce("searchProduct", "product");
+        dependencies.putProduce("putProductInBasket", "basket");
+        dependencies.putConsume("putProductInBasket", "product");
+        dependencies.putConsume("checkout", "product");
+        dependencies.putConsume("checkout", "basket");
+        StepDependencies stepToRemove = dependencies.getStep("checkout");
+        assertThat("We should remove the correct step", dependencies.removeStep(stepToRemove), Matchers.equalTo(stepToRemove));
+        assertThat("The step should be removed", dependencies.getStepDependencies().size(), equalTo(2));
+
+        assertThat("The step should be removed", dependencies.getStepDependencies().keySet(),
+                containsInAnyOrder("searchProduct", "putProductInBasket"));
+    }
+
+    @Test
+    public void testRemovingStep_negativeNonExistingStep() {
+        ScenarioStepDependencies dependencies = new ScenarioStepDependencies("Shopping");
+        dependencies.putConsume("checkout", "product");
+        dependencies.putConsume("checkout", "basket");
+        assertThat("We should be able to remove a step",dependencies.removeStep(new StepDependencies("borg")), Matchers.nullValue());
+
+    }
+
+    @Test
+    public void testRemovingStep_negativeEmptyScenario() {
+        ScenarioStepDependencies dependencies = new ScenarioStepDependencies("Shopping");
+
+        assertThat("We should be able to remove a step",dependencies.removeStep(new StepDependencies("borg")), Matchers.nullValue());
+
+    }
+
+    @Test
+    public void testRemovingStep_negativeNull() {
+        ScenarioStepDependencies dependencies = new ScenarioStepDependencies("Shopping");
+        Assert.assertThrows(PhasedTestException.class, () -> dependencies.removeStep(null));
+
     }
 
 }

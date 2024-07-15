@@ -52,7 +52,7 @@ All code pushed onto the repository must pass te following quality gates:
 These validations are done automatically through github actions.
 
 ### Java Version
-Since our current users are still in java 8 the code needs to be able to compile in that version.
+Since our current users are still in java 11 the code needs to be able to compile in that version.
 
 ## Security Issues
 

@@ -33,6 +33,12 @@ public class StepDependencies {
         setStepLine(in_stepLine);
     }
 
+    public StepDependencies(StepDependencies stepDependency) {
+        this(stepDependency.getStepName(), stepDependency.getStepLine());
+        this.produceSet = new HashSet<>(stepDependency.getProduceSet());
+        this.consumeSet = new HashSet<>(stepDependency.getConsumeSet());
+    }
+
     public Set<String> getConsumeSet() {
         return consumeSet;
     }

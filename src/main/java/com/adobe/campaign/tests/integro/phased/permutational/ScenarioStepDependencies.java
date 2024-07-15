@@ -9,6 +9,7 @@
 package com.adobe.campaign.tests.integro.phased.permutational;
 
 import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
+import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestException;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 
 import java.util.*;
@@ -23,7 +24,15 @@ public class ScenarioStepDependencies {
         this.setStepDependencies(new HashMap<>());
     }
 
-    ;
+    // Copy constructor
+    public ScenarioStepDependencies(ScenarioStepDependencies original) {
+        this.scenarioName = original.scenarioName;
+        this.stepDependencies = new HashMap<>();
+        for (Map.Entry<String, StepDependencies> entry : original.stepDependencies.entrySet()) {
+            this.stepDependencies.put(entry.getKey(), new StepDependencies(entry.getValue()));
+        }
+    }
+
 
     public Map<String, StepDependencies> getStepDependencies() {
         return stepDependencies;
@@ -242,5 +251,17 @@ public class ScenarioStepDependencies {
     public Set<StepDependencies> fetchHonorSet(HashSet<String> in_dependencies) {
         return this.getStepDependencies().values().stream().filter(f -> f.canRunWithDependencies(in_dependencies))
                 .collect(Collectors.toSet());
+    }
+
+    /**
+     * This method removes a step from the scenario dependencies
+     * @param in_stepDependency
+     * @return the removed step, null if it does not exist
+     */
+    public StepDependencies removeStep(StepDependencies in_stepDependency) {
+        if (in_stepDependency == null) {
+            throw new PhasedTestException("We cannot remove a null value from the scenario dependencies");
+        }
+        return this.getStepDependencies().remove(in_stepDependency.getStepName());
     }
 }
