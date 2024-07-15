@@ -175,6 +175,19 @@ public class StepDependencies {
         return result;
     }
 
+    /**
+     * Given a set of dependencies, this method checks if the step can run. We see which dependencies are consumed, and if the dependencies are in the given set we return true. If we do not consume any dependencies then
+     * @param in_setOfDependencies a set of dependencies
+     * @return true if all the dependencies we consume can be found in the provided set
+     */
+    public boolean canRunWithDependencies(HashSet<String> in_setOfDependencies) {
+        if (this.getConsumeSet().isEmpty()) {
+            return true;
+        } else {
+            return in_setOfDependencies.containsAll(this.getConsumeSet());
+        }
+    }
+
     public enum Relations {DEPENDS_ON, INDEPENDANT, DEPENDED_ON_BY, INTERDEPENDANT}
 
     public enum Categories {INDEPENDANT, PRODUCER_ONLY, PRODUCER_CONSUMER, CONSUMER_ONLY}

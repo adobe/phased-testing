@@ -329,4 +329,86 @@ public class TestStepDependencies {
         assertThat("We should have the correct short name", dependency1char.getShortName(), equalTo("a"));
         
     }
+
+    //For permutations, we need the following
+    // Remove a step
+    // Fetch a set of steps that consume a set of data
+    // Copy constructor
+    @Test
+    public void testCanExecuteWithDependencies() {
+        StepDependencies step3 = new StepDependencies("Step1");
+        step3.consume("a");
+
+        assertThat("Step 3 should be able to execute if we have provided the data 'a'", step3.canRunWithDependencies(new HashSet<>(Arrays.asList("a"))));
+        assertThat("Step 3 should not be able to execute if we have provided the data 'b'", !step3.canRunWithDependencies(new HashSet<>(Arrays.asList("b"))));
+        assertThat("Step 3 should be not able to execute if we no provided data", !step3.canRunWithDependencies(new HashSet<>()));
+
+    }
+
+    @Test
+    public void testCanExecuteWithDependenciesProducer() {
+        StepDependencies step3 = new StepDependencies("Step1");
+        step3.produce("b");
+
+        assertThat("Step 3 should be able to execute if we have provided the data 'a'", step3.canRunWithDependencies(new HashSet<>(Arrays.asList("a"))));
+        assertThat("Step 3 should be able to execute if we have provided the data 'b'", step3.canRunWithDependencies(new HashSet<>(Arrays.asList("b"))));
+        assertThat("Step 3 should be able to execute if we have provided no data", step3.canRunWithDependencies(new HashSet<>()));
+
+    }
+
+    @Test
+    public void testCanExecuteWithIndependant() {
+        StepDependencies step3 = new StepDependencies("Step1");
+
+        assertThat("Step 3 should be able to execute if we have provided the data 'a'", step3.canRunWithDependencies(new HashSet<>(Arrays.asList("a"))));
+        assertThat("Step 3 should be able to execute if we have provided the data 'b'", step3.canRunWithDependencies(new HashSet<>(Arrays.asList("b"))));
+        assertThat("Step 3 should be able to execute if we have provided no data", step3.canRunWithDependencies(new HashSet<>()));
+
+    }
+
+    @Test
+    public void testCanExecuteWithDependenciesProducerConsumer() {
+        StepDependencies step3 = new StepDependencies("Step1");
+        step3.produce("a");
+        step3.consume("b");
+
+        assertThat("Step 3 should be able to execute if we have provided the data 'b'", step3.canRunWithDependencies(new HashSet<>(Arrays.asList("b"))));
+        assertThat("Step 3 should be not able to execute if we have provided the data 'a'", !step3.canRunWithDependencies(new HashSet<>(Arrays.asList("a"))));
+        assertThat("Step 3 should not be able to execute if we have provided no data", !step3.canRunWithDependencies(new HashSet<>()));
+
+    }
+
+    @Test
+    public void testFetchPossibleExecutableSteps() {
+        ScenarioStepDependencies dependencies = new ScenarioStepDependencies("Shopping");
+
+        dependencies.putProduce("login", "authentication");
+        dependencies.putProduce("searchProduct", "product");
+        dependencies.putProduce("putProductInBasket", "basket");
+        dependencies.putConsume("putProductInBasket", "product");
+        dependencies.putConsume("checkout", "authentication");
+        dependencies.putConsume("checkout", "product");
+        dependencies.putConsume("checkout", "basket");
+
+        assertThat("We should have 4 steps", dependencies.getStepDependencies().keySet().size(), equalTo(4));
+
+        assertThat("Only the login and search product steps should honor an empty set of dependencies",
+                dependencies.fetchHonorSet(new HashSet<>()),
+                containsInAnyOrder(dependencies.getStep("login"), dependencies.getStep("searchProduct")));
+
+        assertThat("Only the login and search product steps should honor the set of dependencies 'authentication'",
+                dependencies.fetchHonorSet(new HashSet<>(Arrays.asList("authentication"))),
+                containsInAnyOrder(dependencies.getStep("login"), dependencies.getStep("searchProduct")));
+
+        assertThat("All steps except the checkout step should honor the set of dependencies 'product'",
+                dependencies.fetchHonorSet(new HashSet<>(Arrays.asList("product"))),
+                containsInAnyOrder(dependencies.getStep("login"), dependencies.getStep("searchProduct"),
+                        dependencies.getStep("putProductInBasket")));
+
+        assertThat("Given all dependencies, all steps should be honored",
+                dependencies.fetchHonorSet(new HashSet<>(Arrays.asList("product", "authentication", "basket"))),
+                containsInAnyOrder(dependencies.getStep("login"), dependencies.getStep("searchProduct"),
+                        dependencies.getStep("putProductInBasket"), dependencies.getStep("checkout")));
+    }
+
 }

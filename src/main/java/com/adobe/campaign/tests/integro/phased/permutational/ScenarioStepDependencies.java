@@ -234,5 +234,13 @@ public class ScenarioStepDependencies {
         return lr_categorizations;
     }
 
-
+    /**
+     * This method fetches the set of steps that honor the given set of dependencies.
+     * @param in_dependencies a set of keys that are the dependencies consumed by the steps
+     * @return a set of seps that honor the given set of dependencies
+     */
+    public Set<StepDependencies> fetchHonorSet(HashSet<String> in_dependencies) {
+        return this.getStepDependencies().values().stream().filter(f -> f.canRunWithDependencies(in_dependencies))
+                .collect(Collectors.toSet());
+    }
 }
