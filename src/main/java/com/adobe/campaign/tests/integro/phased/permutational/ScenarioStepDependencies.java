@@ -153,6 +153,16 @@ public class ScenarioStepDependencies {
     }
 
     /**
+     * This method adds a step to the end of the scenario dependencies.
+     * @param in_step The step to be added
+     */
+    public void addStep(StepDependencies in_step) {
+        int l_lastStep = this.fetchLastStepPosition();
+        in_step.setStepLine(l_lastStep + 1);
+        this.stepDependencies.put(in_step.getStepName(), in_step);
+    }
+
+    /**
      * Returns the step with the largest line number
      *
      * @return the step with the largest line number. Null if empty
@@ -264,4 +274,5 @@ public class ScenarioStepDependencies {
         }
         return this.getStepDependencies().remove(in_stepDependency.getStepName());
     }
+
 }

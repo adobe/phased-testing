@@ -472,4 +472,33 @@ public class TestStepDependencies {
 
     }
 
+    @Test
+    public void testRemoveAndAddStep() {
+        ScenarioStepDependencies dependencies = new ScenarioStepDependencies("Shopping");
+        dependencies.putProduce("login", "authentication");
+        dependencies.putProduce("searchProduct", "product");
+        dependencies.putProduce("putProductInBasket", "basket");
+        dependencies.putConsume("putProductInBasket", "product");
+        dependencies.putConsume("checkout", "authentication");
+        dependencies.putConsume("checkout", "product");
+        dependencies.putConsume("checkout", "basket");
+
+        ScenarioStepDependencies dependenciesNew = new ScenarioStepDependencies("Shopping");
+        dependenciesNew.putProduce("login", "authentication");
+        dependenciesNew.putProduce("searchProduct", "product");
+        dependenciesNew.putProduce("putProductInBasket", "basket");
+        dependenciesNew.putConsume("putProductInBasket", "product");
+
+        assertThat("We should have 4 steps in one", dependencies.getStepDependencies().keySet().size(), equalTo(4));
+        assertThat("We should have 3 steps in the other", dependenciesNew.getStepDependencies().keySet().size(), equalTo(3));
+        StepDependencies l_stepToMove = dependencies.removeStep(dependencies.getStep("checkout"));
+        dependenciesNew.addStep(l_stepToMove);
+        int l_oldLastStepLocation = dependenciesNew.fetchLastStepPosition();
+
+        assertThat("We should have 3 steps in the old one", dependencies.getStepDependencies().keySet().size(), equalTo(3));
+        assertThat("We should now have 4 steps in the other", dependenciesNew.getStepDependencies().keySet().size(), equalTo(4));
+
+        assertThat("The step should be the same", dependenciesNew.getStep("checkout"), equalTo(l_stepToMove));
+
+    }
 }
