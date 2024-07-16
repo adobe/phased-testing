@@ -9,8 +9,6 @@
 package com.adobe.campaign.tests.integro.phased.permutational;
 
 import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
-import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestException;
-import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -80,7 +78,7 @@ public class ScenarioStepDependencies {
     /**
      * Initializes a step entry when the step is new
      *
-     * @param stepName
+     * @param stepName A name of a step
      */
     private void initializeStep(String stepName) {
         int l_lastStep = this.fetchLastStepPosition();
@@ -152,15 +150,6 @@ public class ScenarioStepDependencies {
         //this.stepDependencies.put(in_stepName, new StepDependencies(in_stepName));
     }
 
-    /**
-     * This method adds a step to the end of the scenario dependencies.
-     * @param in_step The step to be added
-     */
-    public void addStep(StepDependencies in_step) {
-        int l_lastStep = this.fetchLastStepPosition();
-        in_step.setStepLine(l_lastStep + 1);
-        this.stepDependencies.put(in_step.getStepName(), in_step);
-    }
 
     /**
      * Returns the step with the largest line number
@@ -187,44 +176,10 @@ public class ScenarioStepDependencies {
         return fetchLastStep().getStepLine();
     }
 
-    /**
-     * This method calculated the possible permutations this scenario can have
-     *
-     * @return a map containing the permutations and their order
-     */
-    public Map<String, List<StepDependencies>> fetchPermutations() {
+
+    private static Map<String, List<StepDependencies>> generatePermutationsMap(
+            List<List<StepDependencies>> l_scenarioPermutations) {
         Map<String, List<StepDependencies>> lr_permutations = new HashMap<>();
-
-        //List<StepDependencies> l_lineDependencies = this.fetchExecutionOrderList();
-        //Extract groups of steps based on their relative
-        Map<StepDependencies.Categories, List<StepDependencies>> resultCategorizations = fetchCategorizations();
-
-        List<List<StepDependencies>> l_producers = GeneralTestUtils.generatePermutations(
-                resultCategorizations.get(StepDependencies.Categories.PRODUCER_ONLY));
-
-        List<List<StepDependencies>> l_prodCons = GeneralTestUtils.generatePermutations(
-                resultCategorizations.get(StepDependencies.Categories.PRODUCER_CONSUMER));
-
-        List<List<StepDependencies>> l_consumers = GeneralTestUtils.generatePermutations(
-                resultCategorizations.get(StepDependencies.Categories.CONSUMER_ONLY));
-
-        //Create permutations
-        List<List<StepDependencies>> l_scenarioPermutations = GeneralTestUtils.outerJoinListOfLists(l_producers, l_prodCons);
-        l_scenarioPermutations = GeneralTestUtils.outerJoinListOfLists(l_scenarioPermutations, l_consumers);
-        List<List<StepDependencies>> finalL_scenarioPermutations = l_scenarioPermutations;
-
-        //Managing independent steps
-
-        if (resultCategorizations.get(StepDependencies.Categories.INDEPENDANT) != null) {
-            List<StepDependencies> l_indies = resultCategorizations.get(StepDependencies.Categories.INDEPENDANT);
-            //Find the locations of the independant steps
-            List<StepDependencies> l_orderList = this.fetchExecutionOrderList();
-            Map<Integer, StepDependencies> l_indiesMap = l_indies.stream()
-                    .collect(Collectors.toMap(l -> l_orderList.indexOf(l), l -> l));
-
-            //Inject the independant steps into the permutations
-            l_indiesMap.forEach((k, v) -> finalL_scenarioPermutations.forEach(l -> l.add(k, v)));
-        }
 
         l_scenarioPermutations.stream().collect(Collectors.toMap(l -> String.join("", l.stream().map(StepDependencies::getShortName).collect(
                 Collectors.toList())), l -> l));
@@ -237,6 +192,46 @@ public class ScenarioStepDependencies {
             lr_permutations.put(lt_key, l_scenarioPermutations.get(i));
         }
         return lr_permutations;
+    }
+
+    /**
+     * This method calculated the possible permutations this scenario can have
+     *
+     * @return a map containing the permutations and their order
+     */
+    public Map<String, List<StepDependencies>> fetchScenarioPermutations() {
+        var lr_permutationsMap = new HashMap<String, StepDependencies>();
+
+        //Fetch the permutations
+        List<List<StepDependencies>> l_scenarioPermutations = new ArrayList<>();
+        fetchScenarioPermutations(new HashSet<>(), new ArrayList<StepDependencies>(), new ArrayList<StepDependencies>(this.stepDependencies.values()), l_scenarioPermutations);
+
+        return generatePermutationsMap(l_scenarioPermutations);
+    }
+
+    protected void fetchScenarioPermutations(HashSet<String> in_dependencies, List<StepDependencies> in_currentScenario, List<StepDependencies> in_baseScenario, List<List<StepDependencies>> in_permutations) {
+        //Fetch the steps that can run with the current dependencies
+        Set<StepDependencies> l_honorSet = in_baseScenario.stream().filter(f -> f.canRunWithDependencies(in_dependencies))
+                .collect(Collectors.toSet());
+
+        //If there are no steps that can run with the current dependencies we add the scenario to the list
+        if (l_honorSet.isEmpty()) {
+            //in_currentScenario.setScenarioName(in_currentScenario.fe);
+            in_permutations.add(in_currentScenario);
+        } else {
+            //For each step that can run with the current dependencies we create a new scenario
+            for (StepDependencies l_step : l_honorSet) {
+                List<StepDependencies> l_oldScenario = new ArrayList<>(in_baseScenario);
+
+                List<StepDependencies> l_newScenario = new ArrayList<StepDependencies>(in_currentScenario);
+                var newStep = l_oldScenario.remove(l_step);
+                l_newScenario.add(l_step);
+
+                HashSet<String> l_newDependencies = new HashSet<>(in_dependencies);
+                l_newDependencies.addAll(l_step.getProduceSet());
+                fetchScenarioPermutations(l_newDependencies, l_newScenario, l_oldScenario, in_permutations);
+            }
+        }
     }
 
     /**
@@ -253,26 +248,5 @@ public class ScenarioStepDependencies {
         return lr_categorizations;
     }
 
-    /**
-     * This method fetches the set of steps that honor the given set of dependencies.
-     * @param in_dependencies a set of keys that are the dependencies consumed by the steps
-     * @return a set of seps that honor the given set of dependencies
-     */
-    public Set<StepDependencies> fetchHonorSet(HashSet<String> in_dependencies) {
-        return this.getStepDependencies().values().stream().filter(f -> f.canRunWithDependencies(in_dependencies))
-                .collect(Collectors.toSet());
-    }
-
-    /**
-     * This method removes a step from the scenario dependencies
-     * @param in_stepDependency
-     * @return the removed step, null if it does not exist
-     */
-    public StepDependencies removeStep(StepDependencies in_stepDependency) {
-        if (in_stepDependency == null) {
-            throw new PhasedTestException("We cannot remove a null value from the scenario dependencies");
-        }
-        return this.getStepDependencies().remove(in_stepDependency.getStepName());
-    }
 
 }

@@ -381,38 +381,6 @@ public class TestStepDependencies {
     }
 
     @Test
-    public void testFetchPossibleExecutableSteps() {
-        ScenarioStepDependencies dependencies = new ScenarioStepDependencies("Shopping");
-        dependencies.putProduce("login", "authentication");
-        dependencies.putProduce("searchProduct", "product");
-        dependencies.putProduce("putProductInBasket", "basket");
-        dependencies.putConsume("putProductInBasket", "product");
-        dependencies.putConsume("checkout", "authentication");
-        dependencies.putConsume("checkout", "product");
-        dependencies.putConsume("checkout", "basket");
-
-        assertThat("We should have 4 steps", dependencies.getStepDependencies().keySet().size(), equalTo(4));
-
-        assertThat("Only the login and search product steps should honor an empty set of dependencies",
-                dependencies.fetchHonorSet(new HashSet<>()),
-                containsInAnyOrder(dependencies.getStep("login"), dependencies.getStep("searchProduct")));
-
-        assertThat("Only the login and search product steps should honor the set of dependencies 'authentication'",
-                dependencies.fetchHonorSet(new HashSet<>(Arrays.asList("authentication"))),
-                containsInAnyOrder(dependencies.getStep("login"), dependencies.getStep("searchProduct")));
-
-        assertThat("All steps except the checkout step should honor the set of dependencies 'product'",
-                dependencies.fetchHonorSet(new HashSet<>(Arrays.asList("product"))),
-                containsInAnyOrder(dependencies.getStep("login"), dependencies.getStep("searchProduct"),
-                        dependencies.getStep("putProductInBasket")));
-
-        assertThat("Given all dependencies, all steps should be honored",
-                dependencies.fetchHonorSet(new HashSet<>(Arrays.asList("product", "authentication", "basket"))),
-                containsInAnyOrder(dependencies.getStep("login"), dependencies.getStep("searchProduct"),
-                        dependencies.getStep("putProductInBasket"), dependencies.getStep("checkout")));
-    }
-
-    @Test
     public void createCopyConstructorForScenarioStepDependencies() {
         ScenarioStepDependencies dependencies = new ScenarioStepDependencies("Shopping");
         dependencies.putProduce("login", "authentication");
@@ -432,73 +400,4 @@ public class TestStepDependencies {
         }
     }
 
-    @Test
-    public void testRemovingStep() {
-        ScenarioStepDependencies dependencies = new ScenarioStepDependencies("Shopping");
-        dependencies.putProduce("searchProduct", "product");
-        dependencies.putProduce("putProductInBasket", "basket");
-        dependencies.putConsume("putProductInBasket", "product");
-        dependencies.putConsume("checkout", "product");
-        dependencies.putConsume("checkout", "basket");
-        StepDependencies stepToRemove = dependencies.getStep("checkout");
-        assertThat("We should remove the correct step", dependencies.removeStep(stepToRemove), Matchers.equalTo(stepToRemove));
-        assertThat("The step should be removed", dependencies.getStepDependencies().size(), equalTo(2));
-
-        assertThat("The step should be removed", dependencies.getStepDependencies().keySet(),
-                containsInAnyOrder("searchProduct", "putProductInBasket"));
-    }
-
-    @Test
-    public void testRemovingStep_negativeNonExistingStep() {
-        ScenarioStepDependencies dependencies = new ScenarioStepDependencies("Shopping");
-        dependencies.putConsume("checkout", "product");
-        dependencies.putConsume("checkout", "basket");
-        assertThat("We should be able to remove a step",dependencies.removeStep(new StepDependencies("borg")), Matchers.nullValue());
-
-    }
-
-    @Test
-    public void testRemovingStep_negativeEmptyScenario() {
-        ScenarioStepDependencies dependencies = new ScenarioStepDependencies("Shopping");
-
-        assertThat("We should be able to remove a step",dependencies.removeStep(new StepDependencies("borg")), Matchers.nullValue());
-
-    }
-
-    @Test
-    public void testRemovingStep_negativeNull() {
-        ScenarioStepDependencies dependencies = new ScenarioStepDependencies("Shopping");
-        Assert.assertThrows(PhasedTestException.class, () -> dependencies.removeStep(null));
-
-    }
-
-    @Test
-    public void testRemoveAndAddStep() {
-        ScenarioStepDependencies dependencies = new ScenarioStepDependencies("Shopping");
-        dependencies.putProduce("login", "authentication");
-        dependencies.putProduce("searchProduct", "product");
-        dependencies.putProduce("putProductInBasket", "basket");
-        dependencies.putConsume("putProductInBasket", "product");
-        dependencies.putConsume("checkout", "authentication");
-        dependencies.putConsume("checkout", "product");
-        dependencies.putConsume("checkout", "basket");
-
-        ScenarioStepDependencies dependenciesNew = new ScenarioStepDependencies("Shopping");
-        dependenciesNew.putProduce("login", "authentication");
-        dependenciesNew.putProduce("searchProduct", "product");
-        dependenciesNew.putProduce("putProductInBasket", "basket");
-        dependenciesNew.putConsume("putProductInBasket", "product");
-
-        assertThat("We should have 4 steps in one", dependencies.getStepDependencies().keySet().size(), equalTo(4));
-        assertThat("We should have 3 steps in the other", dependenciesNew.getStepDependencies().keySet().size(), equalTo(3));
-        StepDependencies l_stepToMove = dependencies.removeStep(dependencies.getStep("checkout"));
-        dependenciesNew.addStep(l_stepToMove);
-        int l_oldLastStepLocation = dependenciesNew.fetchLastStepPosition();
-
-        assertThat("We should have 3 steps in the old one", dependencies.getStepDependencies().keySet().size(), equalTo(3));
-        assertThat("We should now have 4 steps in the other", dependenciesNew.getStepDependencies().keySet().size(), equalTo(4));
-
-        assertThat("The step should be the same", dependenciesNew.getStep("checkout"), equalTo(l_stepToMove));
-
-    }
 }

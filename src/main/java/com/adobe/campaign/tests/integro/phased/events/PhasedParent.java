@@ -36,7 +36,7 @@ public abstract class PhasedParent {
         Map<String, ScenarioStepDependencies> l_scenarioDependencies = PhasedTestManager.getStepDependencies();
         //List<StepDependencies> stepOrder = l_scenarioDependencies.fetchExecutionOrderList();
 
-        List<StepDependencies> l_orderList = Phases.getCurrentPhase().equals(Phases.PERMUTATIONAL) ? l_scenarioDependencies.get(l_executingClass.getTypeName()).fetchPermutations().get(phaseGroup) : l_scenarioDependencies.get(l_executingClass.getTypeName()).fetchExecutionOrderList();
+        List<StepDependencies> l_orderList = Phases.getCurrentPhase().equals(Phases.PERMUTATIONAL) ? l_scenarioDependencies.get(l_executingClass.getTypeName()).fetchScenarioPermutations().get(phaseGroup) : l_scenarioDependencies.get(l_executingClass.getTypeName()).fetchExecutionOrderList();
 
 
         var nrOfSteps = Phases.getCurrentPhase().hasSplittingEvent() ? PhasedTestManager.fetchStepsBeforePhase(phaseGroup) : l_orderList.size();

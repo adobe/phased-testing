@@ -560,7 +560,7 @@ public final class PhasedTestManager {
         Object[][] l_objectArrayPhased;
 
         if (in_phasedState.equals(Phases.PERMUTATIONAL)) {
-            Map<String, List<StepDependencies>> l_permutations = getStepDependencies().get(l_methodMapping.declaredClass.getTypeName()).fetchPermutations();
+            Map<String, List<StepDependencies>> l_permutations = getStepDependencies().get(l_methodMapping.declaredClass.getTypeName()).fetchScenarioPermutations();
             l_nrOfProviders = l_permutations.size();
             l_objectArrayPhased = new Object[l_nrOfProviders][1];
             int i = 0;

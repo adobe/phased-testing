@@ -13,6 +13,7 @@ import com.adobe.campaign.tests.integro.phased.MutationListener;
 import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
 import com.adobe.campaign.tests.integro.phased.Phases;
 import com.adobe.campaign.tests.integro.phased.mutational.data.permutational.MultipleProducerConsumer;
+import com.adobe.campaign.tests.integro.phased.mutational.data.permutational.ShoppingCartDemo;
 import com.adobe.campaign.tests.integro.phased.mutational.data.simple1.PhasedChild1;
 import com.adobe.campaign.tests.integro.phased.mutational.data.simple1.PhasedChild2;
 import com.adobe.campaign.tests.integro.phased.utils.TestTools;
@@ -148,6 +149,42 @@ public class TestGroupByTest {
         assertThat("We should have 2 successful method of phased Tests",
                 (int) tla.getPassedTests().size(),
                 is(equalTo(2)));
+
+
+    }
+
+    @Test
+    public void testPermutationalDemo() {
+        //Activate Merge
+        PhasedTestManager.activateMergedReports();
+
+        // Rampup
+        TestNG myTestNG = TestTools.createTestNG();
+        TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
+
+        ConfigValueHandlerPhased.PROP_SELECTED_PHASE.activate(Phases.PERMUTATIONAL.name());
+
+        // Define suites
+        XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG, "Automated Suite Phased Testing");
+
+        // Add listeners
+        //mySuiteC.addListener(EventInjectorListener.class.getTypeName());
+        mySuite.addListener(MutationListener.class.getTypeName());
+
+        // Create an instance of XmlTest and assign a name for it.
+        XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Permutational Tests ");
+
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(ShoppingCartDemo.class)));
+
+        // Add package to test
+
+        myTestNG.run();
+
+        assertThat("We should have 2 successful method of phased Tests",
+                (int) tla.getPassedTests().size(),
+                is(equalTo(3)));
+
+        int x = 0;
 
 
     }
