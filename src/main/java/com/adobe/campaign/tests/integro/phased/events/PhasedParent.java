@@ -40,7 +40,7 @@ public abstract class PhasedParent {
 
 
         var nrOfSteps = Phases.getCurrentPhase().hasSplittingEvent() ? PhasedTestManager.fetchStepsBeforePhase(phaseGroup) : l_orderList.size();
-        System.out.println(nrOfSteps);
+        System.out.println(nrOfSteps+" - " + phaseGroup);
         //for (Method stepMethod : l_executingClass.getDeclaredMethods()) {
         //for (StepDependencies stepOrdering : stepOrder) {
 
