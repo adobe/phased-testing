@@ -10,6 +10,7 @@ package com.adobe.campaign.tests.integro.phased;
 
 import com.adobe.campaign.tests.integro.phased.events.PhasedParent;
 import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestConfigurationException;
+import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestDefinitionException;
 import com.adobe.campaign.tests.integro.phased.internal.PhaseProcessorFactory;
 import com.adobe.campaign.tests.integro.phased.permutational.ScenarioStepDependencies;
 import com.adobe.campaign.tests.integro.phased.permutational.ScenarioStepDependencyFactory;
@@ -183,6 +184,10 @@ public class MutationListener
                     Collectors.toList());
 
             for (ScenarioStepDependencies lt_sd : PhasedTestManager.getStepDependencies().values()) {
+                if (!lt_sd.isExecutable()) {
+                    throw new PhasedTestDefinitionException("The scenario " + lt_sd.getScenarioName()
+                            + " is not executable. This is probably due to steps that consume a  resource that is not produced.");
+                }
                 for (StepDependencies lt_methodName : lt_sd.fetchExecutionOrderList()) {
                     l_phasedDependencyMethods.stream()
                             .filter(m -> m.getMethod().getConstructorOrMethod().getName()

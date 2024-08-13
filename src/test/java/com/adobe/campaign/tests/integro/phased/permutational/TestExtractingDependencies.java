@@ -12,6 +12,7 @@ import com.adobe.campaign.tests.integro.phased.ConfigValueHandlerPhased;
 import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
 import com.adobe.campaign.tests.integro.phased.data.permutational.*;
 import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestConfigurationException;
+import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestDefinitionException;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 import org.hamcrest.Matchers;
 import org.mockito.Mockito;
@@ -470,9 +471,11 @@ public class TestExtractingDependencies {
 
     }
 
+
+
     //This should throw an error #105
-    @Test(enabled = false)
-    public void testCreatingSimplePermutationsConsumer() {
+    @Test
+    public void testIncompatibleTests() {
         ScenarioStepDependencies l_scenarioSteps = new ScenarioStepDependencies("MyScenario");
         l_scenarioSteps.addStep("a");
         l_scenarioSteps.addStep("b");
@@ -490,26 +493,20 @@ public class TestExtractingDependencies {
         l_scenarioSteps.getStepDependencies().get("c").setStepLine(25);
         l_scenarioSteps.getStepDependencies().get("c").consume("k1");
 
-        var stepCombinations = l_scenarioSteps.fetchScenarioPermutations();
+        assertThat("We should detect that this scenario is not viable", !l_scenarioSteps.isExecutable());
 
-        assertThat("We should have two permutations", stepCombinations.keySet(), hasSize(2));
+        l_scenarioSteps.getStepDependencies().get("a").produce("k2");
+        assertThat("We should detect that this scenario is now viable", l_scenarioSteps.isExecutable());
+    }
 
-        assertThat("We should have the correct keys for permutations",
-                stepCombinations.keySet(),
-                Matchers.containsInAnyOrder(
-                        Matchers.startsWith(PhasedTestManager.STD_PHASED_PERMUTATIONAL_PREFIX + "abc"),
-                        Matchers.startsWith(PhasedTestManager.STD_PHASED_PERMUTATIONAL_PREFIX + "acb")));
+    @Test
+    public void testIncompatibleTests_empty() {
+        ScenarioStepDependencies l_scenarioSteps = new ScenarioStepDependencies("MyScenario");
+        l_scenarioSteps.addStep("a");
+        l_scenarioSteps.addStep("b");
+        l_scenarioSteps.addStep("c");
 
-        assertThat("We should have the correct keys for permutations",
-                stepCombinations.keySet(),
-                Matchers.containsInAnyOrder(Matchers.endsWith("_1-2"), Matchers.endsWith("_2-2")));
-
-        String l_key = stepCombinations.keySet().stream().filter(f -> f.startsWith(PhasedTestManager.STD_PHASED_PERMUTATIONAL_PREFIX+"acb")).findFirst().get();
-
-        assertThat("The value for ab should be correct", stepCombinations.get(l_key), Matchers.equalTo(
-                Arrays.asList(l_scenarioSteps.getStepDependencies().get("a"),
-                        l_scenarioSteps.getStepDependencies().get("c"),
-                        l_scenarioSteps.getStepDependencies().get("b"))));
+        assertThat("We should detect that this scenario is viable", l_scenarioSteps.isExecutable());
     }
 
     @Test

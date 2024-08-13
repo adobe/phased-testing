@@ -163,27 +163,37 @@ public class PhasedEventManager {
      * @param in_testResult A result object for a test containing the annotation {@link PhaseEvent}
      * @return An event that can be executed with this method. Null if no event is applicable
      */
-    public static String fetchEvent(ITestResult in_testResult) {
+    protected static String fetchEvent(ITestResult in_testResult) {
         Method l_currentMethod = in_testResult.getMethod().getConstructorOrMethod().getMethod();
+        //l_currentMethod.getParameters()
+        //Use Phase Context instead
+        String l_currentShuffleGroup = in_testResult.getParameters()[0].toString();
 
-        if (PhasedTestManager.isPhasedTestSingleMode(l_currentMethod)) {
+        return fetchEvent(l_currentMethod, l_currentShuffleGroup);
+    }
+
+    /**
+     * Extracts the event for a given method. The choice of the event is based on where the event is declared.
+     * @param in_currentMethod A result object for a test containing the annotation {@link PhaseEvent}
+     * @param in_currentShuffleGroup The current shuffle group
+     * @return An event that can be executed with this method. Null if no event is applicable
+     */
+    protected static String fetchEvent(Method in_currentMethod, String in_currentShuffleGroup) {
+        if (PhasedTestManager.isPhasedTestSingleMode(in_currentMethod)) {
             //Check if the current method is subject to event
-            if (l_currentMethod.isAnnotationPresent(PhaseEvent.class)) {
-                return fetchApplicableEvent(l_currentMethod);
+            if (in_currentMethod.isAnnotationPresent(PhaseEvent.class)) {
+                return fetchApplicableEvent(in_currentMethod);
             } else {
                 return null;
             }
         } else {
 
-            //Use Phase Context instead
-            //String l_currentShuffleGroup = in_testResult.getParameters()[0].toString();
+            int l_currentShuffleGroupNr = PhasedTestManager.asynchronousExtractIndex(in_currentShuffleGroup, true);
 
-            int l_currentShuffleGroupNr = PhasedTestManager.asynchronousExtractIndex(in_testResult);
-
-            int l_currentStep = PhasedTestManager.getMethodMap().get(ClassPathParser.fetchFullName(l_currentMethod)).methodOrderInExecution;
+            int l_currentStep = PhasedTestManager.getMethodMap().get(ClassPathParser.fetchFullName(in_currentMethod)).methodOrderInExecution;
 
             if (l_currentStep  == l_currentShuffleGroupNr) {
-                return fetchApplicableEvent(l_currentMethod);
+                return fetchApplicableEvent(in_currentMethod);
             }
             return null;
         }

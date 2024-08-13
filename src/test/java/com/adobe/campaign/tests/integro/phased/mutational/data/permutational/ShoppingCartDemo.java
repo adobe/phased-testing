@@ -25,6 +25,6 @@ public class ShoppingCartDemo extends PhasedParent {
         PhasedTestManager.consume("authToken");
 
         PhasedTestManager.consume("cart");
-        PhasedTestManager.consume("basket");
+        PhasedTestManager.consume("product");
     }
 }

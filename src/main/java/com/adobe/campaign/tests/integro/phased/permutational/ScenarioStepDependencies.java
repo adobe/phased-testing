@@ -216,6 +216,7 @@ public class ScenarioStepDependencies {
 
         //If there are no steps that can run with the current dependencies we add the scenario to the list
         if (l_honorSet.isEmpty()) {
+        //if (in_baseScenario.isEmpty()) {
             //in_currentScenario.setScenarioName(in_currentScenario.fe);
             in_permutations.add(in_currentScenario);
         } else {
@@ -248,5 +249,9 @@ public class ScenarioStepDependencies {
         return lr_categorizations;
     }
 
-
+    public boolean isExecutable() {
+        Set<String> l_produces = this.stepDependencies.values().stream().flatMap(f -> f.getProduceSet().stream()).collect(Collectors.toSet());
+        Set<String> l_consumes = this.stepDependencies.values().stream().flatMap(f -> f.getConsumeSet().stream()).collect(Collectors.toSet());
+        return l_consumes.stream().allMatch(l_produces::contains);
+    }
 }

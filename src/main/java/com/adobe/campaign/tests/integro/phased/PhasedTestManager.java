@@ -1689,23 +1689,28 @@ public final class PhasedTestManager {
      * @return The index of the shuffle group
      */
     public static int asynchronousExtractIndex(ITestResult in_testResult) {
-        String l_currentShuffleGroup = in_testResult.getParameters()[0].toString();
+        return asynchronousExtractIndex(in_testResult.getParameters()[0].toString(), isPhasedTestShuffledMode(in_testResult));
+    }
 
+    /**
+     * Extracts the index of the current shuffle group
+     * @param in_shuffleGroup The shuffle group of the test
+     * @param in_isInShuffleMode Lets ius know if we are in a shuffle Modem or not
+     * @return The index of the shuffle group
+     */
+    public static int asynchronousExtractIndex(String in_shuffleGroup, boolean in_isInShuffleMode) {
         int lr_index = -1;
 
-        if (PhasedTestManager.isPhasedTestShuffledMode(in_testResult)) {
-
+        if (in_isInShuffleMode) {
             try {
-
-                String l_indexString = l_currentShuffleGroup.substring(l_currentShuffleGroup.length() - 1,
-                        l_currentShuffleGroup.length());
-                log.debug("Parsing {} begin : {}, end {}, gives : {}", l_currentShuffleGroup,
-                        l_currentShuffleGroup.length() - 2, l_currentShuffleGroup.length() - 1, l_indexString);
+                String l_indexString = in_shuffleGroup.substring(in_shuffleGroup.length() - 1,
+                        in_shuffleGroup.length());
+                log.debug("Parsing {} begin : {}, end {}, gives : {}", in_shuffleGroup,
+                        in_shuffleGroup.length() - 2, in_shuffleGroup.length() - 1, l_indexString);
                 lr_index = Integer.parseInt(
                         l_indexString);
-
             } catch (NumberFormatException nfe) {
-                throw new PhasedTestException("Problem extracting shuffle group number " + l_currentShuffleGroup, nfe);
+                throw new PhasedTestException("Problem extracting shuffle group number " + in_shuffleGroup, nfe);
             }
         }
         return lr_index;
