@@ -72,6 +72,17 @@ public final class PhasedTestManager {
     }
 
     /**
+     * Returns the method mapping for the given class which as the max number of providers
+     * @param in_className The name of the class
+     * @param in_methodMap The method map
+     * @return The key of the method mapping with the max number of providers
+     */
+    protected static String fetchMappingKeyWithMaxProviders(String in_className, Map<String, MethodMapping> in_methodMap) {
+        return in_methodMap.entrySet().stream().filter(m -> m.getValue().declaredClass.getTypeName().equals(in_className))
+                .max(Comparator.comparingInt(m -> m.getValue().nrOfProviders)).get().getKey();
+    }
+
+    /**
      * The different states a step can assume in a scenario
      * <p>
      * <p>
@@ -534,12 +545,21 @@ public final class PhasedTestManager {
      * @return A two-dimensional array of all the data providers attached to the current step/method
      */
     public static Object[][] fetchProvidersShuffled(Method in_method) {
-        return fetchProvidersShuffled(in_method, Phases.getCurrentPhase());
+        return fetchProvidersShuffled(ClassPathParser.fetchFullName(in_method), Phases.getCurrentPhase());
     }
 
-    public static Object[][] fetchProvidersShuffled(ITestNGMethod tm) {
-
-        return fetchProvidersShuffled(tm.getTestClass().getRealClass().getMethods()[0]);
+    /**
+     * Returns the provider for shuffling tests. In general the values are Shuffle group prefix + Nr of steps before the
+     * Phase Event and the number of steps after the event. This method is called in the context of MutationTests
+     * <p>
+     * Author : gandomi
+     *
+     * @param in_method The step/method for which we want to fond out the data provider
+     * @return A two-dimensional array of all the data providers attached to the current step/method
+     */
+    public static Object[][] fetchProvidersShuffled(ITestNGMethod in_method) {
+        String l_candidateMethod  = fetchMappingKeyWithMaxProviders(in_method.getTestClass().getRealClass().getTypeName(), getMethodMap());
+        return fetchProvidersShuffled(l_candidateMethod, Phases.getCurrentPhase());
     }
 
     /**
@@ -548,14 +568,14 @@ public final class PhasedTestManager {
      * <p>
      * Author : gandomi
      *
-     * @param in_method The full name of the method used for identifying it in the phase context
+     * @param in_methodFullName The full name of the method used for identifying it in the phase context
      * @param in_phasedState    The phase state for which we should retrieve the parameters. The parameters will be
      *                          different based on the phase.
      * @return A two-dimensional array of all the data providers attached to the current step/method
      */
-    public static Object[][] fetchProvidersShuffled(Method in_method, Phases in_phasedState) {
+    public static Object[][] fetchProvidersShuffled(String in_methodFullName, Phases in_phasedState) {
 
-        final MethodMapping l_methodMapping = methodMap.get(ClassPathParser.fetchFullName(in_method));
+        final MethodMapping l_methodMapping = methodMap.get(in_methodFullName);
         int l_nrOfProviders = l_methodMapping.nrOfProviders;
         Object[][] l_objectArrayPhased;
 
@@ -594,7 +614,7 @@ public final class PhasedTestManager {
         //Merge
         Object[][] lr_dataProviders = dataProvidersCrossJoin(l_objectArrayPhased, l_userDefinedDataProviders);
 
-        log.debug("{} Returning provider for method {}", PhasedTestManager.PHASED_TEST_LOG_PREFIX, ClassPathParser.fetchFullName(in_method));
+        log.debug("{} Returning provider for method {}", PhasedTestManager.PHASED_TEST_LOG_PREFIX, in_methodFullName);
         return lr_dataProviders;
     }
 

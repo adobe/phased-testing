@@ -18,6 +18,7 @@ import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestConfiguratio
 import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestException;
 import com.adobe.campaign.tests.integro.phased.mutational.data.permutational.MultipleProducerConsumer;
 import com.adobe.campaign.tests.integro.phased.mutational.data.permutational.ShoppingCartDemo;
+import com.adobe.campaign.tests.integro.phased.mutational.data.simple1.PhasedChild2;
 import com.adobe.campaign.tests.integro.phased.permutational.ScenarioStepDependencies;
 import com.adobe.campaign.tests.integro.phased.permutational.ScenarioStepDependencyFactory;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
@@ -26,6 +27,7 @@ import com.adobe.campaign.tests.integro.phased.utils.MockTestTools;
 import org.hamcrest.Matchers;
 import org.mockito.Mockito;
 import org.testng.Assert;
+import org.testng.ITestClass;
 import org.testng.ITestNGMethod;
 import org.testng.ITestResult;
 import org.testng.annotations.AfterMethod;
@@ -841,20 +843,20 @@ public class PhasedTestManagerTests {
         assertThat("The third method should have three entries", l_result.get(ClassPathParser.fetchFullName(method3)).totalClassMethods,
                 equalTo(3));
 
-        Object[][] l_providerA = PhasedTestManager.fetchProvidersShuffled(method1, Phases.CONSUMER);
+        Object[][] l_providerA = PhasedTestManager.fetchProvidersShuffled(ClassPathParser.fetchFullName(method1), Phases.CONSUMER);
 
         assertThat(l_providerA[0].length, equalTo(1));
 
         assertThat(l_providerA[0][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "0_3"));
 
-        Object[][] l_providerB = PhasedTestManager.fetchProvidersShuffled(method2, Phases.CONSUMER);
+        Object[][] l_providerB = PhasedTestManager.fetchProvidersShuffled(ClassPathParser.fetchFullName(method2), Phases.CONSUMER);
 
         assertThat(l_providerB[0].length, equalTo(1));
 
         assertThat(l_providerB[0][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "0_3"));
         assertThat(l_providerB[1][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2"));
 
-        Object[][] l_providerC = PhasedTestManager.fetchProvidersShuffled(method3, Phases.CONSUMER);
+        Object[][] l_providerC = PhasedTestManager.fetchProvidersShuffled(ClassPathParser.fetchFullName(method3), Phases.CONSUMER);
 
         assertThat(l_providerC[0].length, equalTo(1));
 
@@ -948,7 +950,7 @@ public class PhasedTestManagerTests {
         assertThat("The third method should have three entries", l_result.get(ClassPathParser.fetchFullName(method3)).totalClassMethods,
                 equalTo(3));
 
-        Object[][] l_providerPerm = PhasedTestManager.fetchProvidersShuffled(method1, l_currentPhase);
+        Object[][] l_providerPerm = PhasedTestManager.fetchProvidersShuffled(ClassPathParser.fetchFullName(method1), l_currentPhase);
 
         assertThat(l_providerPerm.length, equalTo(2));
 
@@ -959,7 +961,6 @@ public class PhasedTestManagerTests {
         assertThat(l_providers, Matchers.containsInAnyOrder(Matchers.endsWith("_1-2"), Matchers.endsWith("_2-2")));
 
     }
-
 
     @Test
     public void testCreateDataProviderData_permutationalShoppingCart() throws SecurityException, NoSuchMethodException {
@@ -991,7 +992,7 @@ public class PhasedTestManagerTests {
         assertThat("The third method should have three entries", l_result.get(ClassPathParser.fetchFullName(method3)).totalClassMethods,
                 equalTo(4));
 
-        Object[][] l_providerPerm = PhasedTestManager.fetchProvidersShuffled(method1, l_currentPhase);
+        Object[][] l_providerPerm = PhasedTestManager.fetchProvidersShuffled(ClassPathParser.fetchFullName(method1), l_currentPhase);
 
         assertThat(l_providerPerm.length, equalTo(3));
 

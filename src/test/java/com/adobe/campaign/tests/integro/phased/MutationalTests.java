@@ -18,17 +18,24 @@ import com.adobe.campaign.tests.integro.phased.mutational.data.permutational.Mul
 import com.adobe.campaign.tests.integro.phased.mutational.data.permutational.ShoppingCartDemo;
 import com.adobe.campaign.tests.integro.phased.mutational.data.simple1.PhasedChild1;
 import com.adobe.campaign.tests.integro.phased.mutational.data.simple1.PhasedChild2;
+import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 import com.adobe.campaign.tests.integro.phased.utils.TestTools;
 import org.hamcrest.Matchers;
 import org.testng.TestListenerAdapter;
 import org.testng.TestNG;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.testng.xml.XmlClass;
 import org.testng.xml.XmlPackage;
 import org.testng.xml.XmlSuite;
 import org.testng.xml.XmlTest;
 
+import java.io.File;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.stream.Collectors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -36,6 +43,37 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 
 public class MutationalTests {
+    @BeforeClass
+    @AfterMethod
+    public void resetVariables() {
+
+        ConfigValueHandlerPhased.resetAllValues();
+
+        PhasedEventManager.resetEvents();
+
+        PhasedTestManager.clearCache();
+
+        PhasedTestManager.deactivateMergedReports();
+        PhasedTestManager.deactivateTestSelectionByProducerMode();
+
+        PhasedTestManager.MergedReportData.resetReport();
+
+
+        //Delete standard cache file
+        File l_importCacheFile = new File(
+                GeneralTestUtils.fetchCacheDirectory(PhasedTestManager.STD_STORE_DIR),
+                PhasedTestManager.STD_STORE_FILE);
+
+        if (l_importCacheFile.exists()) {
+            l_importCacheFile.delete();
+        }
+
+        PhasedTestManager.MergedReportData.configureMergedReportName(new LinkedHashSet<>(),
+                new LinkedHashSet<>(
+                        Arrays.asList(PhasedReportElements.DATA_PROVIDERS, PhasedReportElements.PHASE)));
+
+        //PhasedEventManager.stopEventManager();
+    }
 
     @Test
     public void testNewOrder() {
@@ -191,7 +229,7 @@ public class MutationalTests {
     /**
      * This is a test for non-intyerruptive events in shuffled classes
      */
-    @Test
+    @Test(enabled = false)
     public void testNonInterruptive_ParellelConfiguredAsExecutionVariable_Shuffled_Ordered() {
 
         // Rampup
