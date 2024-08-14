@@ -215,8 +215,8 @@ public class ScenarioStepDependencies {
                 .collect(Collectors.toSet());
 
         //If there are no steps that can run with the current dependencies we add the scenario to the list
-        if (l_honorSet.isEmpty()) {
-        //if (in_baseScenario.isEmpty()) {
+        //if (l_honorSet.isEmpty()) {
+        if (in_baseScenario.isEmpty()) {
             //in_currentScenario.setScenarioName(in_currentScenario.fe);
             in_permutations.add(in_currentScenario);
         } else {

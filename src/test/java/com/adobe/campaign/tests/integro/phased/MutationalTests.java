@@ -6,12 +6,14 @@
  * accordance with the terms of the Adobe license agreement accompanying
  * it.
  */
-package com.adobe.campaign.tests.integro.phased.mutational;
+package com.adobe.campaign.tests.integro.phased;
 
 import com.adobe.campaign.tests.integro.phased.ConfigValueHandlerPhased;
 import com.adobe.campaign.tests.integro.phased.MutationListener;
 import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
 import com.adobe.campaign.tests.integro.phased.Phases;
+import com.adobe.campaign.tests.integro.phased.data.events.MyNonInterruptiveEvent;
+import com.adobe.campaign.tests.integro.phased.mutational.data.nie.TestMutationalShuffled_eventPassedAsExecutionVariable;
 import com.adobe.campaign.tests.integro.phased.mutational.data.permutational.MultipleProducerConsumer;
 import com.adobe.campaign.tests.integro.phased.mutational.data.permutational.ShoppingCartDemo;
 import com.adobe.campaign.tests.integro.phased.mutational.data.simple1.PhasedChild1;
@@ -183,9 +185,48 @@ public class MutationalTests {
         assertThat("We should have 2 successful method of phased Tests",
                 (int) tla.getPassedTests().size(),
                 is(equalTo(3)));
+    }
 
-        int x = 0;
 
+    /**
+     * This is a test for non-intyerruptive events in shuffled classes
+     */
+    @Test
+    public void testNonInterruptive_ParellelConfiguredAsExecutionVariable_Shuffled_Ordered() {
 
+        // Rampup
+        TestNG myTestNG = TestTools.createTestNG();
+        TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
+
+        // Define suites
+        XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG, "Automated Suite Phased Testing");
+
+        // Add listeners
+        mySuite.addListener(MutationListener.class.getTypeName());
+
+        // Create an instance of XmlTest and assign a name for it.
+        XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Shuffled Phased Tests");
+
+        final Class<TestMutationalShuffled_eventPassedAsExecutionVariable> l_testClass = TestMutationalShuffled_eventPassedAsExecutionVariable.class;
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
+
+        Phases.ASYNCHRONOUS.activate();
+        ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
+        ConfigValueHandlerPhased.PHASED_TEST_DETECT_ORDER.activate("true");
+
+        myTestNG.run();
+
+       // assertThat("We should be in non-interruptive mode shuffled", PhasedTestManager.isPhasedTestShuffledMode(l_testClass));
+
+        assertThat("We should have 9 successful methods of phased Tests",
+                (int) tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
+                is(equalTo(9)));
+
+        //Global
+        assertThat("We should have no failed tests", tla.getFailedTests().size(), equalTo(0));
+        assertThat("We should have no skipped tests", tla.getSkippedTests().size(), equalTo(0));
+
+        assertThat("We should have the correct number of events in the logs (1 x phase groups)", PhasedEventManager.getEventLogs().size(),
+                Matchers.equalTo(6));
     }
 }
