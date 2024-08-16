@@ -89,6 +89,21 @@ public final class ClassPathParser {
     }
 
     /**
+     * This method retrieves the Data Providers of a test results.
+     *
+     * Author : gandomi
+     *
+     * @param in_parameterValues
+     *        An array of Object (Usually toString compatible)
+     * @return A String containing the data providers. Empty string if there are
+     *         no data providers
+     *
+     */
+    public static String fetchParameterValues(String in_parameterValues) {
+        return fetchParameterValues(new Object[] { in_parameterValues });
+    }
+
+    /**
      * This method returns the file path of the given class
      *
      * @param className The full class path represented as a String

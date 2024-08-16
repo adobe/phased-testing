@@ -36,6 +36,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -85,7 +86,7 @@ public class MutationalTests {
         TestNG myTestNG = TestTools.createTestNG();
         TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
 
-        ConfigValueHandlerPhased.PROP_SELECTED_PHASE.activate(Phases.PRODUCER.name());
+        Phases.PRODUCER.activate();
 
         // Define suites
         XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG, "Automated Suite Phased Testing");
@@ -124,7 +125,7 @@ public class MutationalTests {
         TestNG myTestNGC = TestTools.createTestNG();
         TestListenerAdapter tlaC = TestTools.fetchTestResultsHandler(myTestNGC);
 
-        ConfigValueHandlerPhased.PROP_SELECTED_PHASE.activate(Phases.PRODUCER.name());
+        Phases.CONSUMER.activate();
 
         // Define suites
         XmlSuite mySuiteC = TestTools.addSuitToTestNGTest(myTestNGC, "Automated Suite Phased Testing");
@@ -144,6 +145,8 @@ public class MutationalTests {
         // Add package to test
 
         myTestNGC.run();
+
+        Map<String, PhasedTestManager.ScenarioContextData> x =PhasedTestManager.getScenarioContext();
 
         assertThat("We should have 2 successful method of phased Tests",
                 (int) tlaC.getPassedTests().size(),

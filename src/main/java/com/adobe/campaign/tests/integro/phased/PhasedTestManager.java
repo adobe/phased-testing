@@ -83,6 +83,17 @@ public final class PhasedTestManager {
     }
 
     /**
+     * This method calculates the number of steps to execute in a scenario
+     * @param in_scenarioName The name of the scenario
+     * @param in_phase The current Phase
+     * @return the number of steps to be executed
+     */
+    public static int nrOfStepsToExecute(String in_scenarioName, Phases in_phase) {
+
+        return 0;
+    }
+
+    /**
      * The different states a step can assume in a scenario
      * <p>
      * <p>
@@ -963,8 +974,25 @@ public final class PhasedTestManager {
      * @return The identity of the scenario
      */
     public static String fetchScenarioName(ITestResult in_testNGResult) {
+        if (MutationManager.isMutational(in_testNGResult)) {
+            return MutationManager.fetchScenarioName(in_testNGResult);
+        }
         return in_testNGResult.getMethod().getConstructorOrMethod().getMethod().getDeclaringClass()
             .getTypeName() + ClassPathParser.fetchParameterValues(in_testNGResult);
+    }
+
+    /**
+     * This method provides an ID for the scenario given the ITestNGResult. This is assembled using the Classname + the
+     * PhaseGroup
+     * <p>
+     * Author : gandomi
+     *
+     * @param in_testMethod A TestNG Test Result object
+     * @return The identity of the scenario
+     */
+    public static String fetchScenarioName(Method in_testMethod, String in_parameter) {
+        return in_testMethod.getDeclaringClass()
+                .getTypeName() + ClassPathParser.fetchParameterValues(in_parameter);
     }
 
     /**
@@ -980,14 +1008,35 @@ public final class PhasedTestManager {
     public static void scenarioStateStore(ITestResult in_testResult) {
 
         final String l_scenarioName = fetchScenarioName(in_testResult);
+        final String l_stepFullName = ClassPathParser.fetchFullName(in_testResult);
+
+        scenarioStateStore(l_scenarioName, l_stepFullName, in_testResult.getStatus(), in_testResult.getStartMillis(),
+                in_testResult.getEndMillis());
+    }
+
+    /**
+     * This method logs the stage result of the Phased Test Group. The key will be the class including the phase test
+     * group. It allows us to know if the test is allowed to continue.
+     * <p>
+     * Once the context is logged as false for a test it remains false
+     * <p>
+     * Author : gandomi
+     *
+     * @param in_scenarioName The sceanrio for which we store the context
+     * @param in_stepFullName The full name of the step
+     * @param in_status       The result of the step
+     * @param in_startMillis  The start time of the step
+     * @param in_endMillis    The end time of the step
+     */
+    public static void scenarioStateStore(String in_scenarioName, String in_stepFullName, int in_status, long in_startMillis, long in_endMillis) {
 
         //TODO move to synchronize state
-        if (scenarioContext.containsKey(l_scenarioName)) {
-            scenarioContext.get(l_scenarioName).synchronizeState(in_testResult);
+        if (scenarioContext.containsKey(in_scenarioName)) {
+            scenarioContext.get(in_scenarioName).synchronizeState(in_stepFullName, in_status, in_startMillis, in_endMillis);
         } else {
             ScenarioContextData l_scenarioContextData = new ScenarioContextData();
-            l_scenarioContextData.synchronizeState(in_testResult);
-            scenarioContext.put(l_scenarioName, l_scenarioContextData);
+            l_scenarioContextData.synchronizeState(in_stepFullName, in_status, in_startMillis, in_endMillis);
+            scenarioContext.put(in_scenarioName, l_scenarioContextData);
         }
     }
 
@@ -1441,7 +1490,7 @@ public final class PhasedTestManager {
 
             final String in_phaseGroup = in_testResult.getParameters()[0].toString();
 
-            return fetchStepsBeforePhase(in_phaseGroup);
+            return fetchShuffledStepCount(in_phaseGroup)[0];
         } else {
 
             return 1;
@@ -1456,15 +1505,18 @@ public final class PhasedTestManager {
      * @param in_phaseGroup A phaseGroup string
      * @return The number of steps planned before a phase change. If we are non-phased we return 0
      */
-    public static Integer fetchStepsBeforePhase(String in_phaseGroup) {
-        if (!in_phaseGroup.startsWith(STD_PHASED_GROUP_PREFIX)) {
+    public static Integer[] fetchShuffledStepCount(String in_phaseGroup) {
+        if (!in_phaseGroup.startsWith(STD_PHASED_GROUP_PREFIX) || in_phaseGroup.contains("__")) {
             throw new PhasedTestException("The phase group of this test does not seem correct: " + in_phaseGroup);
         }
 
-        String l_numberString = in_phaseGroup.substring(STD_PHASED_GROUP_PREFIX.length(),
-                in_phaseGroup.indexOf("_", STD_PHASED_GROUP_PREFIX.length()));
+        if (!in_phaseGroup.substring(STD_PHASED_GROUP_PREFIX.length()).contains("_")) {
+            throw new PhasedTestException("The phase group of this test does not seem correct: " + in_phaseGroup);
+        }
 
-        return Integer.valueOf(l_numberString);
+        String l_numberPart = in_phaseGroup.substring(STD_PHASED_GROUP_PREFIX.length());
+
+        return Arrays.stream(l_numberPart.split("_")).mapToInt(Integer::parseInt).boxed().toArray(Integer[]::new);
     }
 
     /**
@@ -1625,17 +1677,32 @@ public final class PhasedTestManager {
          * @param in_testResult A test result object
          */
         public void synchronizeState(ITestResult in_testResult) {
-            switch (in_testResult.getStatus()) {
+            synchronizeState(ClassPathParser.fetchFullName(in_testResult), in_testResult.getStatus(),
+                    in_testResult.getStartMillis(), in_testResult.getEndMillis());
+        }
+
+        /**
+         * Given a TestResult object we will update the given scenarioContext
+         * <p>
+         * Author : gandomi
+         *
+         * @param in_scenarioName The scenario name
+         * @param in_stepRessult  The result of the step
+         * @param startMillis     The start time of the step
+         * @param endMillis       The end time of the step
+         */
+        public void synchronizeState(String in_scenarioName, int in_stepRessult, long startMillis, long endMillis) {
+            switch (in_stepRessult) {
             case ITestResult.FAILURE:
-                failedStep = ClassPathParser.fetchFullName(in_testResult);
+                failedStep = in_scenarioName;
                 setFailedInPhase(Phases.getCurrentPhase());
             case ITestResult.SKIP:
                 passed = false;
             default:
                 break;
             }
-            duration += (in_testResult.getEndMillis() - in_testResult.getStartMillis());
-            setCurrentStep(ClassPathParser.fetchFullName(in_testResult));
+            duration += (endMillis - startMillis);
+            setCurrentStep(in_scenarioName);
             stepNr++;
         }
 

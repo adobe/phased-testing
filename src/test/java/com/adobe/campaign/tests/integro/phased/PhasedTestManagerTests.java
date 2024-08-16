@@ -27,7 +27,6 @@ import com.adobe.campaign.tests.integro.phased.utils.MockTestTools;
 import org.hamcrest.Matchers;
 import org.mockito.Mockito;
 import org.testng.Assert;
-import org.testng.ITestClass;
 import org.testng.ITestNGMethod;
 import org.testng.ITestResult;
 import org.testng.annotations.AfterMethod;
@@ -41,12 +40,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.*;
 import static org.testng.Assert.assertThrows;
 
 public class PhasedTestManagerTests {
@@ -3302,4 +3298,33 @@ public class PhasedTestManagerTests {
         assertThat(PhasedTestManager.MergedReportData.prefix,notNullValue());
         assertThat(PhasedTestManager.MergedReportData.suffix,notNullValue());
     }
+
+    @Test
+    public void fetchStepsBeforePhase_withValidPhaseGroup() {
+        String phaseGroup = PhasedTestManager.STD_PHASED_GROUP_PREFIX+"2_1";
+        int expectedSteps = 2;
+        assertThat(PhasedTestManager.fetchShuffledStepCount(phaseGroup).length, is(2));
+
+        assertThat(PhasedTestManager.fetchShuffledStepCount(phaseGroup)[0], is(expectedSteps));
+        assertThat(PhasedTestManager.fetchShuffledStepCount(phaseGroup)[1], is(1));
+    }
+
+    @Test(expectedExceptions = PhasedTestException.class)
+    public void fetchStepsBeforePhase_withInvalidPhaseGroup() {
+        String phaseGroup = "INVALID_2_1";
+        PhasedTestManager.fetchShuffledStepCount(phaseGroup);
+    }
+
+    @Test(expectedExceptions = PhasedTestException.class)
+    public void fetchStepsBeforePhase_withNoUnderscoreInPhaseGroup() {
+        String phaseGroup = PhasedTestManager.STD_PHASED_GROUP_PREFIX+"21";
+        PhasedTestManager.fetchShuffledStepCount(phaseGroup);
+    }
+
+    @Test(expectedExceptions = PhasedTestException.class)
+    public void fetchStepsBeforePhase_withNoNumberInPhaseGroup() {
+        String phaseGroup = PhasedTestManager.STD_PHASED_GROUP_PREFIX+"1";
+        PhasedTestManager.fetchShuffledStepCount(phaseGroup);
+    }
+
 }

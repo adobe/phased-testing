@@ -10,14 +10,14 @@ package com.adobe.campaign.tests.integro.phased.mutational.data.nie;
 
 import com.adobe.campaign.tests.integro.phased.PhasedTest;
 import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
-import com.adobe.campaign.tests.integro.phased.events.PhasedParent;
+import com.adobe.campaign.tests.integro.phased.Mutational;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertEquals;
 
 @PhasedTest
 @Test
-public class TestMutationalShuffled_eventPassedAsExecutionVariable extends PhasedParent {
+public class TestMutationalShuffled_eventPassedAsExecutionVariable extends Mutational {
 
     public void step1(String val) {
         System.out.println("step1 " + val);
