@@ -8,16 +8,15 @@
  */
 package com.adobe.campaign.tests.integro.phased.mutational.data.simple1;
 
-import com.adobe.campaign.tests.integro.phased.PhasedDataProvider;
 import com.adobe.campaign.tests.integro.phased.PhasedTest;
-import com.adobe.campaign.tests.integro.phased.events.PhasedParent;
+import com.adobe.campaign.tests.integro.phased.Mutational;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 //@Test(groups = "aaa", dataProvider = "MUTATIONAL", dataProviderClass = PhasedDataProvider.class)
 @PhasedTest
 @Test(groups = "aaa")
-public class PhasedChild1 extends PhasedParent {
+public class PhasedChild1 extends Mutational {
 
     public void step1(String phaseGroup) {
         System.out.println("Executing step1 with"+phaseGroup);

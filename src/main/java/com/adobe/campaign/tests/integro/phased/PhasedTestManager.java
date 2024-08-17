@@ -72,6 +72,28 @@ public final class PhasedTestManager {
     }
 
     /**
+     * Returns the method mapping for the given class which as the max number of providers
+     * @param in_className The name of the class
+     * @param in_methodMap The method map
+     * @return The key of the method mapping with the max number of providers
+     */
+    protected static String fetchMappingKeyWithMaxProviders(String in_className, Map<String, MethodMapping> in_methodMap) {
+        return in_methodMap.entrySet().stream().filter(m -> m.getValue().declaredClass.getTypeName().equals(in_className))
+                .max(Comparator.comparingInt(m -> m.getValue().nrOfProviders)).get().getKey();
+    }
+
+    /**
+     * This method calculates the number of steps to execute in a scenario
+     * @param in_scenarioName The name of the scenario
+     * @param in_phase The current Phase
+     * @return the number of steps to be executed
+     */
+    public static int nrOfStepsToExecute(String in_scenarioName, Phases in_phase) {
+
+        return 0;
+    }
+
+    /**
      * The different states a step can assume in a scenario
      * <p>
      * <p>
@@ -534,12 +556,21 @@ public final class PhasedTestManager {
      * @return A two-dimensional array of all the data providers attached to the current step/method
      */
     public static Object[][] fetchProvidersShuffled(Method in_method) {
-        return fetchProvidersShuffled(in_method, Phases.getCurrentPhase());
+        return fetchProvidersShuffled(ClassPathParser.fetchFullName(in_method), Phases.getCurrentPhase());
     }
 
-    public static Object[][] fetchProvidersShuffled(ITestNGMethod tm) {
-
-        return fetchProvidersShuffled(tm.getTestClass().getRealClass().getMethods()[0]);
+    /**
+     * Returns the provider for shuffling tests. In general the values are Shuffle group prefix + Nr of steps before the
+     * Phase Event and the number of steps after the event. This method is called in the context of MutationTests
+     * <p>
+     * Author : gandomi
+     *
+     * @param in_method The step/method for which we want to fond out the data provider
+     * @return A two-dimensional array of all the data providers attached to the current step/method
+     */
+    public static Object[][] fetchProvidersShuffled(ITestNGMethod in_method) {
+        String l_candidateMethod  = fetchMappingKeyWithMaxProviders(in_method.getTestClass().getRealClass().getTypeName(), getMethodMap());
+        return fetchProvidersShuffled(l_candidateMethod, Phases.getCurrentPhase());
     }
 
     /**
@@ -548,14 +579,14 @@ public final class PhasedTestManager {
      * <p>
      * Author : gandomi
      *
-     * @param in_method The full name of the method used for identifying it in the phase context
+     * @param in_methodFullName The full name of the method used for identifying it in the phase context
      * @param in_phasedState    The phase state for which we should retrieve the parameters. The parameters will be
      *                          different based on the phase.
      * @return A two-dimensional array of all the data providers attached to the current step/method
      */
-    public static Object[][] fetchProvidersShuffled(Method in_method, Phases in_phasedState) {
+    public static Object[][] fetchProvidersShuffled(String in_methodFullName, Phases in_phasedState) {
 
-        final MethodMapping l_methodMapping = methodMap.get(ClassPathParser.fetchFullName(in_method));
+        final MethodMapping l_methodMapping = methodMap.get(in_methodFullName);
         int l_nrOfProviders = l_methodMapping.nrOfProviders;
         Object[][] l_objectArrayPhased;
 
@@ -594,7 +625,7 @@ public final class PhasedTestManager {
         //Merge
         Object[][] lr_dataProviders = dataProvidersCrossJoin(l_objectArrayPhased, l_userDefinedDataProviders);
 
-        log.debug("{} Returning provider for method {}", PhasedTestManager.PHASED_TEST_LOG_PREFIX, ClassPathParser.fetchFullName(in_method));
+        log.debug("{} Returning provider for method {}", PhasedTestManager.PHASED_TEST_LOG_PREFIX, in_methodFullName);
         return lr_dataProviders;
     }
 
@@ -943,8 +974,25 @@ public final class PhasedTestManager {
      * @return The identity of the scenario
      */
     public static String fetchScenarioName(ITestResult in_testNGResult) {
+        if (MutationManager.isMutational(in_testNGResult)) {
+            return MutationManager.fetchScenarioName(in_testNGResult);
+        }
         return in_testNGResult.getMethod().getConstructorOrMethod().getMethod().getDeclaringClass()
             .getTypeName() + ClassPathParser.fetchParameterValues(in_testNGResult);
+    }
+
+    /**
+     * This method provides an ID for the scenario given the ITestNGResult. This is assembled using the Classname + the
+     * PhaseGroup
+     * <p>
+     * Author : gandomi
+     *
+     * @param in_testMethod A TestNG Test Result object
+     * @return The identity of the scenario
+     */
+    public static String fetchScenarioName(Method in_testMethod, String in_parameter) {
+        return in_testMethod.getDeclaringClass()
+                .getTypeName() + ClassPathParser.fetchParameterValues(in_parameter);
     }
 
     /**
@@ -960,14 +1008,35 @@ public final class PhasedTestManager {
     public static void scenarioStateStore(ITestResult in_testResult) {
 
         final String l_scenarioName = fetchScenarioName(in_testResult);
+        final String l_stepFullName = ClassPathParser.fetchFullName(in_testResult);
+
+        scenarioStateStore(l_scenarioName, l_stepFullName, in_testResult.getStatus(), in_testResult.getStartMillis(),
+                in_testResult.getEndMillis());
+    }
+
+    /**
+     * This method logs the stage result of the Phased Test Group. The key will be the class including the phase test
+     * group. It allows us to know if the test is allowed to continue.
+     * <p>
+     * Once the context is logged as false for a test it remains false
+     * <p>
+     * Author : gandomi
+     *
+     * @param in_scenarioName The sceanrio for which we store the context
+     * @param in_stepFullName The full name of the step
+     * @param in_status       The result of the step
+     * @param in_startMillis  The start time of the step
+     * @param in_endMillis    The end time of the step
+     */
+    public static void scenarioStateStore(String in_scenarioName, String in_stepFullName, int in_status, long in_startMillis, long in_endMillis) {
 
         //TODO move to synchronize state
-        if (scenarioContext.containsKey(l_scenarioName)) {
-            scenarioContext.get(l_scenarioName).synchronizeState(in_testResult);
+        if (scenarioContext.containsKey(in_scenarioName)) {
+            scenarioContext.get(in_scenarioName).synchronizeState(in_stepFullName, in_status, in_startMillis, in_endMillis);
         } else {
             ScenarioContextData l_scenarioContextData = new ScenarioContextData();
-            l_scenarioContextData.synchronizeState(in_testResult);
-            scenarioContext.put(l_scenarioName, l_scenarioContextData);
+            l_scenarioContextData.synchronizeState(in_stepFullName, in_status, in_startMillis, in_endMillis);
+            scenarioContext.put(in_scenarioName, l_scenarioContextData);
         }
     }
 
@@ -1421,7 +1490,7 @@ public final class PhasedTestManager {
 
             final String in_phaseGroup = in_testResult.getParameters()[0].toString();
 
-            return fetchStepsBeforePhase(in_phaseGroup);
+            return fetchShuffledStepCount(in_phaseGroup)[0];
         } else {
 
             return 1;
@@ -1436,15 +1505,18 @@ public final class PhasedTestManager {
      * @param in_phaseGroup A phaseGroup string
      * @return The number of steps planned before a phase change. If we are non-phased we return 0
      */
-    public static Integer fetchStepsBeforePhase(String in_phaseGroup) {
-        if (!in_phaseGroup.startsWith(STD_PHASED_GROUP_PREFIX)) {
+    public static Integer[] fetchShuffledStepCount(String in_phaseGroup) {
+        if (!in_phaseGroup.startsWith(STD_PHASED_GROUP_PREFIX) || in_phaseGroup.contains("__")) {
             throw new PhasedTestException("The phase group of this test does not seem correct: " + in_phaseGroup);
         }
 
-        String l_numberString = in_phaseGroup.substring(STD_PHASED_GROUP_PREFIX.length(),
-                in_phaseGroup.indexOf("_", STD_PHASED_GROUP_PREFIX.length()));
+        if (!in_phaseGroup.substring(STD_PHASED_GROUP_PREFIX.length()).contains("_")) {
+            throw new PhasedTestException("The phase group of this test does not seem correct: " + in_phaseGroup);
+        }
 
-        return Integer.valueOf(l_numberString);
+        String l_numberPart = in_phaseGroup.substring(STD_PHASED_GROUP_PREFIX.length());
+
+        return Arrays.stream(l_numberPart.split("_")).mapToInt(Integer::parseInt).boxed().toArray(Integer[]::new);
     }
 
     /**
@@ -1605,17 +1677,32 @@ public final class PhasedTestManager {
          * @param in_testResult A test result object
          */
         public void synchronizeState(ITestResult in_testResult) {
-            switch (in_testResult.getStatus()) {
+            synchronizeState(ClassPathParser.fetchFullName(in_testResult), in_testResult.getStatus(),
+                    in_testResult.getStartMillis(), in_testResult.getEndMillis());
+        }
+
+        /**
+         * Given a TestResult object we will update the given scenarioContext
+         * <p>
+         * Author : gandomi
+         *
+         * @param in_scenarioName The scenario name
+         * @param in_stepRessult  The result of the step
+         * @param startMillis     The start time of the step
+         * @param endMillis       The end time of the step
+         */
+        public void synchronizeState(String in_scenarioName, int in_stepRessult, long startMillis, long endMillis) {
+            switch (in_stepRessult) {
             case ITestResult.FAILURE:
-                failedStep = ClassPathParser.fetchFullName(in_testResult);
+                failedStep = in_scenarioName;
                 setFailedInPhase(Phases.getCurrentPhase());
             case ITestResult.SKIP:
                 passed = false;
             default:
                 break;
             }
-            duration += (in_testResult.getEndMillis() - in_testResult.getStartMillis());
-            setCurrentStep(ClassPathParser.fetchFullName(in_testResult));
+            duration += (endMillis - startMillis);
+            setCurrentStep(in_scenarioName);
             stepNr++;
         }
 
@@ -1689,23 +1776,28 @@ public final class PhasedTestManager {
      * @return The index of the shuffle group
      */
     public static int asynchronousExtractIndex(ITestResult in_testResult) {
-        String l_currentShuffleGroup = in_testResult.getParameters()[0].toString();
+        return asynchronousExtractIndex(in_testResult.getParameters()[0].toString(), isPhasedTestShuffledMode(in_testResult));
+    }
 
+    /**
+     * Extracts the index of the current shuffle group
+     * @param in_shuffleGroup The shuffle group of the test
+     * @param in_isInShuffleMode Lets ius know if we are in a shuffle Modem or not
+     * @return The index of the shuffle group
+     */
+    public static int asynchronousExtractIndex(String in_shuffleGroup, boolean in_isInShuffleMode) {
         int lr_index = -1;
 
-        if (PhasedTestManager.isPhasedTestShuffledMode(in_testResult)) {
-
+        if (in_isInShuffleMode) {
             try {
-
-                String l_indexString = l_currentShuffleGroup.substring(l_currentShuffleGroup.length() - 1,
-                        l_currentShuffleGroup.length());
-                log.debug("Parsing {} begin : {}, end {}, gives : {}", l_currentShuffleGroup,
-                        l_currentShuffleGroup.length() - 2, l_currentShuffleGroup.length() - 1, l_indexString);
+                String l_indexString = in_shuffleGroup.substring(in_shuffleGroup.length() - 1,
+                        in_shuffleGroup.length());
+                log.debug("Parsing {} begin : {}, end {}, gives : {}", in_shuffleGroup,
+                        in_shuffleGroup.length() - 2, in_shuffleGroup.length() - 1, l_indexString);
                 lr_index = Integer.parseInt(
                         l_indexString);
-
             } catch (NumberFormatException nfe) {
-                throw new PhasedTestException("Problem extracting shuffle group number " + l_currentShuffleGroup, nfe);
+                throw new PhasedTestException("Problem extracting shuffle group number " + in_shuffleGroup, nfe);
             }
         }
         return lr_index;

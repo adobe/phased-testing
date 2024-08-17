@@ -8,8 +8,8 @@
  */
 package com.adobe.campaign.tests.integro.phased;
 
-import com.adobe.campaign.tests.integro.phased.events.PhasedParent;
 import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestConfigurationException;
+import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestDefinitionException;
 import com.adobe.campaign.tests.integro.phased.internal.PhaseProcessorFactory;
 import com.adobe.campaign.tests.integro.phased.permutational.ScenarioStepDependencies;
 import com.adobe.campaign.tests.integro.phased.permutational.ScenarioStepDependencyFactory;
@@ -21,6 +21,9 @@ import org.testng.*;
 import org.testng.annotations.IConfigurationAnnotation;
 import org.testng.annotations.ITestAnnotation;
 import org.testng.internal.annotations.DisabledRetryAnalyzer;
+import org.testng.xml.XmlClass;
+import org.testng.xml.XmlSuite;
+import org.testng.xml.XmlTest;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -30,8 +33,63 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class MutationListener
-        implements IAnnotationTransformer, IMethodInterceptor {
+        implements IAnnotationTransformer, IMethodInterceptor, ITestListener, IAlterSuiteListener {
     private static final Logger log = LogManager.getLogger();
+
+    @Override
+    public void alter(List<XmlSuite> suites) {
+        IAlterSuiteListener.super.alter(suites);
+
+        log.debug("{} in alter - current Execution State is : {}", PhasedTestManager.PHASED_TEST_LOG_PREFIX
+                , Phases.getCurrentPhase());
+
+        // *** Import DataBroker ***
+        String l_phasedDataBrokerClass = null;
+        if (ConfigValueHandlerPhased.PROP_PHASED_TEST_DATABROKER.isSet()) {
+            l_phasedDataBrokerClass = ConfigValueHandlerPhased.PROP_PHASED_TEST_DATABROKER.fetchValue();
+        } else if (suites.get(0).getAllParameters()
+                .containsKey(ConfigValueHandlerPhased.PROP_PHASED_TEST_DATABROKER.systemName)) {
+            l_phasedDataBrokerClass = suites.get(0)
+                    .getParameter(ConfigValueHandlerPhased.PROP_PHASED_TEST_DATABROKER.systemName);
+        } else if (!Phases.NON_PHASED.isSelected()) {
+            log.info("{} No PhasedDataBroker set. Using the file system path {}/{} instead ",
+                    PhasedTestManager.PHASED_TEST_LOG_PREFIX, PhasedTestManager.STD_STORE_DIR,
+                    PhasedTestManager.STD_STORE_FILE
+            );
+        }
+
+        if (l_phasedDataBrokerClass != null) {
+            try {
+                PhasedTestManager.setDataBroker(l_phasedDataBrokerClass);
+            } catch (PhasedTestConfigurationException e) {
+                log.error("{} Errors while setting the PhasedDataBroker", PhasedTestManager.PHASED_TEST_LOG_PREFIX, e);
+                throw new TestNGException(e);
+            }
+        }
+
+        // *** import context for consumer ***
+        //The second condition is there for testing purposes. You can bypass the file by filling the Test
+        if (Phases.CONSUMER.isSelected() && PhasedTestManager.getPhasedCache().isEmpty()) {
+            PhasedTestManager.importPhaseData();
+        }
+
+        //Inject the phased tests executed in the previous phase
+        // This is activated when the test group "PHASED_PRODUCED_TESTS" group
+        for (XmlTest lt_xmlTest : suites.get(0).getTests().stream()
+                .filter(t -> t.getIncludedGroups().contains(PhasedTestManager.STD_GROUP_SELECT_TESTS_BY_PRODUCER))
+                .collect(Collectors.toList())) {
+
+            PhasedTestManager.activateTestSelectionByProducerMode();
+
+            //Attach new classes to suite
+            final Set<XmlClass> l_newXMLTests = PhasedTestManager.fetchExecutedPhasedClasses().stream()
+                    .map(XmlClass::new).collect(Collectors.toSet());
+
+            //add the original test classes
+            l_newXMLTests.addAll(lt_xmlTest.getXmlClasses());
+            lt_xmlTest.setXmlClasses(new ArrayList<>(l_newXMLTests));
+        }
+    }
 
     @Override
     public void transform(IConfigurationAnnotation annotation, Class testClass, Constructor testConstructor,
@@ -183,6 +241,10 @@ public class MutationListener
                     Collectors.toList());
 
             for (ScenarioStepDependencies lt_sd : PhasedTestManager.getStepDependencies().values()) {
+                if (!lt_sd.isExecutable()) {
+                    throw new PhasedTestDefinitionException("The scenario " + lt_sd.getScenarioName()
+                            + " is not executable. This is probably due to steps that consume a  resource that is not produced.");
+                }
                 for (StepDependencies lt_methodName : lt_sd.fetchExecutionOrderList()) {
                     l_phasedDependencyMethods.stream()
                             .filter(m -> m.getMethod().getConstructorOrMethod().getName()
@@ -193,9 +255,126 @@ public class MutationListener
             log.info("Lists before have {} methods. After it is {}", list.size(), lr_nonPhasedMethods.size());
 
             //return lr_nonPhasedMethods;
-        return list.stream().filter(l -> l.getMethod().getRealClass().equals(PhasedParent.class)).collect(
+        return list.stream().filter(l -> l.getMethod().getRealClass().equals(Mutational.class)).collect(
                 Collectors.toList());
 
+    }
+
+    @Override
+    public void onTestStart(ITestResult result) {
+        ITestListener.super.onTestStart(result);
+
+        final Method l_method = result.getMethod().getConstructorOrMethod().getMethod();
+
+        //reset context
+
+        if (PhasedTestManager.isPhasedTest(l_method)) {
+
+            //Cases 1,2,4,5
+            final String l_dataProvider = PhasedTestManager.concatenateParameterArray(result.getParameters());
+
+            PhasedTestManager.storePhasedContext(ClassPathParser.fetchFullName(l_method), l_dataProvider);
+
+            switch (PhasedTestManager.scenarioStateDecision(result)) {
+            case SKIP_PREVIOUS_FAILURE:
+                final String skipMessageSKIPFAILURE = PhasedTestManager.PHASED_TEST_LOG_PREFIX
+                        + "Skipping scenario step " + ClassPathParser.fetchFullName(result)
+                        + " due to failure in step " + PhasedTestManager.getScenarioContext()
+                        .get(PhasedTestManager.fetchScenarioName(result)).getFailedStep() + " in Phase "
+                        + PhasedTestManager.getScenarioContext()
+                        .get(PhasedTestManager.fetchScenarioName(result)).getFailedInPhase().name();
+
+                log.info(skipMessageSKIPFAILURE);
+                result.setStatus(ITestResult.SKIP);
+                result.setThrowable(new PhasedStepFailure(skipMessageSKIPFAILURE));
+                break;
+            case SKIP_NORESULT:
+                final String skipMessageNoResult = PhasedTestManager.PHASED_TEST_LOG_PREFIX
+                        + "Skipping scenario step " + ClassPathParser.fetchFullName(result)
+                        + " because the previous steps have not been executed in the previous phase.";
+                log.error(skipMessageNoResult);
+                result.setStatus(ITestResult.SKIP);
+                result.setThrowable(new PhasedStepFailure(skipMessageNoResult));
+                break;
+            case CONFIG_FAILURE:
+            default:
+                //Continue
+            }
+
+            //Managing events
+            //Cases 4 & 5
+            //TODO Move to PhasedParent
+            if (Phases.ASYNCHRONOUS.isSelected()) {
+
+                //Check if there is an event declared
+                String lt_event = PhasedEventManager.fetchEvent(result);
+                if (PhasedEventManager.fetchEvent(result) != null) {
+                    //TODO use PhasedTestManager for fetching full name instead
+                    PhasedEventManager.startEvent(lt_event, ClassPathParser.fetchFullName(result));
+                }
+            }
+        }
+    }
+
+    @Override
+    public void onTestFailure(ITestResult result) {
+        standardPostTestActions(result);
+
+    }
+
+    @Override
+    public void onTestSuccess(ITestResult result) {
+        standardPostTestActions(result);
+    }
+
+    @Override
+    public void onTestSkipped(ITestResult result) {
+        standardPostTestActions(result);
+
+    }
+
+    /**
+     * This method groups all the post test actions, that are common in all cases
+     * <p>
+     * Author : gandomi
+     *
+     * @param result The TestNG result context
+     */
+    protected void standardPostTestActions(ITestResult result) {
+        final Method l_method = result.getMethod().getConstructorOrMethod().getMethod();
+
+        if (PhasedTestManager.isPhasedTest(l_method)) {
+            //TRIM add property check
+            //appendShuffleGroupToName(result);
+          //  PhasedTestManager.scenarioStateStore(result);
+
+            //Cases 4 & 5
+            if (Phases.ASYNCHRONOUS.isSelected()) {
+                PhasedTestManager.getPhasedCache();
+                //Check if there is an event declared
+                String lt_event = PhasedEventManager.fetchEvent(result);
+                if (lt_event != null) {
+                    //TODO use PhasedTestManager for fetching full name instead
+                    PhasedEventManager.finishEvent(lt_event, ClassPathParser.fetchFullName(result));
+                }
+            }
+        }
+    }
+
+
+    @Override
+    public void onFinish(ITestContext context) {
+        ITestListener.super.onFinish(context);
+
+        //Once the tests have finished in producer mode we, need to export the data
+        if (Phases.PRODUCER.isSelected()) {
+            log.info("{} At the end. Exporting data", PhasedTestManager.PHASED_TEST_LOG_PREFIX);
+            PhasedTestManager.exportPhaseData();
+        }
+        log.debug("{} Purging results - Keeping one method per test class",
+                PhasedTestManager.PHASED_TEST_LOG_PREFIX);
+
+        PhasedEventManager.stopEventExecutor();
     }
 }
 
