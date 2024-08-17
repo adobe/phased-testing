@@ -301,6 +301,7 @@ public class MutationListener
                 //Continue
             }
 
+            /*
             //Managing events
             //Cases 4 & 5
             //TODO Move to PhasedParent
@@ -313,6 +314,8 @@ public class MutationListener
                     PhasedEventManager.startEvent(lt_event, ClassPathParser.fetchFullName(result));
                 }
             }
+
+             */
         }
     }
 
@@ -343,6 +346,7 @@ public class MutationListener
     protected void standardPostTestActions(ITestResult result) {
         final Method l_method = result.getMethod().getConstructorOrMethod().getMethod();
 
+        /*
         if (PhasedTestManager.isPhasedTest(l_method)) {
             //TRIM add property check
             //appendShuffleGroupToName(result);
@@ -359,6 +363,8 @@ public class MutationListener
                 }
             }
         }
+
+         */
     }
 
 

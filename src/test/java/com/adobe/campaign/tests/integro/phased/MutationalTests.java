@@ -232,7 +232,7 @@ public class MutationalTests {
     /**
      * This is a test for non-intyerruptive events in shuffled classes
      */
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testNonInterruptive_ParellelConfiguredAsExecutionVariable_Shuffled_Ordered() {
 
         // Rampup
@@ -259,9 +259,9 @@ public class MutationalTests {
 
        // assertThat("We should be in non-interruptive mode shuffled", PhasedTestManager.isPhasedTestShuffledMode(l_testClass));
 
-        assertThat("We should have 9 successful methods of phased Tests",
+        assertThat("We should have 3 successful executions of phased Tests",
                 (int) tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
-                is(equalTo(9)));
+                is(equalTo(3)));
 
         //Global
         assertThat("We should have no failed tests", tla.getFailedTests().size(), equalTo(0));

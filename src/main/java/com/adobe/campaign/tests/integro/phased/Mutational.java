@@ -60,10 +60,29 @@ public abstract class Mutational {
 
                 PhasedTestManager.storePhasedContext(ClassPathParser.fetchFullName(stepMethod), phaseGroup);
 
+                if (Phases.ASYNCHRONOUS.isSelected()) {
+
+                    //Check if there is an event declared
+                    String lt_event = PhasedEventManager.fetchEvent(stepMethod, phaseGroup);
+                    if (lt_event != null) {
+                        //TODO use PhasedTestManager for fetching full name instead
+                        PhasedEventManager.startEvent(lt_event, l_thisScneario);
+                    }
+                }
+
                 Object ourInstance = l_executingClass.getDeclaredConstructor().newInstance();
                 long l_start = System.currentTimeMillis();
                 stepMethod.invoke(ourInstance, phaseGroup);
                 long l_end = System.currentTimeMillis();
+
+                if (Phases.ASYNCHRONOUS.isSelected()) {
+                    //Check if there is an event declared
+                    String lt_event = PhasedEventManager.fetchEvent(stepMethod, phaseGroup);
+                    if (lt_event != null) {
+                        //TODO use PhasedTestManager for fetching full name instead
+                        PhasedEventManager.finishEvent(lt_event, l_thisScneario);
+                    }
+                }
 
 
                 PhasedTestManager.scenarioStateStore(PhasedTestManager.fetchScenarioName(stepMethod, phaseGroup),
