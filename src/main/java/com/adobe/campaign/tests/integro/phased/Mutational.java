@@ -54,7 +54,6 @@ public abstract class Mutational {
                 //Method stepMethod = Arrays.stream(l_executingClass.getMethods()).filter(m -> m.getName().equals(lt_currentStepName)).findFirst().get();
                 String stepName = l_orderList.get(i).getStepName();
                 String stepId = l_executingClass.getTypeName() + "." + stepName+"("+phaseGroup+")";
-                //System.out.println("Executing - " + stepName);
 
                 Method stepMethod = Arrays.stream(l_executingClass.getDeclaredMethods())
                         .filter(dm -> dm.getName().equals(stepName)).findFirst().get();
@@ -76,6 +75,7 @@ public abstract class Mutational {
                 stepMethod.invoke(ourInstance, phaseGroup);
                 long l_end = System.currentTimeMillis();
 
+
                 if (Phases.ASYNCHRONOUS.isSelected()) {
                     //Check if there is an event declared
                     String lt_event = PhasedEventManager.fetchEvent(stepMethod, phaseGroup);
@@ -85,11 +85,8 @@ public abstract class Mutational {
                     }
                 }
 
-
                 PhasedTestManager.scenarioStateStore(PhasedTestManager.fetchScenarioName(stepMethod, phaseGroup),
                         ClassPathParser.fetchFullName(stepMethod), TestResult.SUCCESS,l_start,l_end);
-
-
 
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(e);

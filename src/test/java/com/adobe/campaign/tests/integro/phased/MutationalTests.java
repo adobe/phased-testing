@@ -231,7 +231,7 @@ public class MutationalTests {
     /**
      * This is a test for non-intyerruptive events in shuffled classes
      */
-    @Test(enabled = true)
+    @Test
     public void testNonInterruptive_ParellelConfiguredAsExecutionVariable_Shuffled_Ordered() {
 
         // Rampup
