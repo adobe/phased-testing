@@ -76,7 +76,52 @@ public class MutationalTests {
     }
 
     @Test
-    public void testNewOrder() {
+    public void testDefault() {
+        //PRODUCER
+        //Activate Merge
+        PhasedTestManager.activateMergedReports();
+
+        // Rampup
+        TestNG myTestNG = TestTools.createTestNG();
+        TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
+
+        // Define suites
+        XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG, "Automated Suite Phased Testing");
+
+        // Add listeners
+        //mySuiteC.addListener(EventInjectorListener.class.getTypeName());
+        mySuite.addListener(MutationListener.class.getTypeName());
+
+        // Create an instance of XmlTest and assign a name for it.
+        XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Repetetive Phased Tests Producer");
+
+        final XmlPackage l_testPkg = new XmlPackage("com.adobe.campaign.tests.integro.phased.mutational.data.simple1");
+        myTest.setPackages(Collections.singletonList(l_testPkg));
+
+        myTest.addIncludedGroup("aaa");
+
+        // Add package to test
+
+        myTestNG.run();
+
+        assertThat("We should have 2 successful method of phased Tests",
+                (int) tla.getPassedTests().size(),
+                is(equalTo(2)));
+
+        assertThat("We should have no executions for the phased group 0",
+                tla.getPassedTests().stream().filter(m -> m.getInstanceName().equals(PhasedChild1.class.getTypeName()))
+                        .collect(Collectors.toList()).size(),
+                Matchers.equalTo(1));
+
+        assertThat("We should have no executions for the phased group 0",
+                tla.getPassedTests().stream().filter(m -> m.getInstanceName().equals(PhasedChild2.class.getTypeName()))
+                        .collect(Collectors.toList()).size(),
+                Matchers.equalTo(1));
+    }
+
+
+    @Test
+    public void testInterruptiveEvent() {
         //PRODUCER
         //Activate Merge
         PhasedTestManager.activateMergedReports();
