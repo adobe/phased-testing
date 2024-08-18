@@ -53,12 +53,22 @@ public abstract class Mutational {
                 //String lt_currentStepName = stepOrder.get(i).getStepName();
                 //Method stepMethod = Arrays.stream(l_executingClass.getMethods()).filter(m -> m.getName().equals(lt_currentStepName)).findFirst().get();
                 String stepName = l_orderList.get(i).getStepName();
-                //System.out.println("Executing - " + stepName);
+                String stepId = l_executingClass.getTypeName() + "." + stepName+"("+phaseGroup+")";
 
                 Method stepMethod = Arrays.stream(l_executingClass.getDeclaredMethods())
                         .filter(dm -> dm.getName().equals(stepName)).findFirst().get();
 
                 PhasedTestManager.storePhasedContext(ClassPathParser.fetchFullName(stepMethod), phaseGroup);
+
+                if (Phases.ASYNCHRONOUS.isSelected()) {
+
+                    //Check if there is an event declared
+                    String lt_event = PhasedEventManager.fetchEvent(stepMethod, phaseGroup);
+                    if (lt_event != null) {
+                        //TODO use PhasedTestManager for fetching full name instead
+                        PhasedEventManager.startEvent(lt_event, stepId);
+                    }
+                }
 
                 Object ourInstance = l_executingClass.getDeclaredConstructor().newInstance();
                 long l_start = System.currentTimeMillis();
@@ -66,10 +76,17 @@ public abstract class Mutational {
                 long l_end = System.currentTimeMillis();
 
 
+                if (Phases.ASYNCHRONOUS.isSelected()) {
+                    //Check if there is an event declared
+                    String lt_event = PhasedEventManager.fetchEvent(stepMethod, phaseGroup);
+                    if (lt_event != null) {
+                        //TODO use PhasedTestManager for fetching full name instead
+                        PhasedEventManager.finishEvent(lt_event, stepId);
+                    }
+                }
+
                 PhasedTestManager.scenarioStateStore(PhasedTestManager.fetchScenarioName(stepMethod, phaseGroup),
                         ClassPathParser.fetchFullName(stepMethod), TestResult.SUCCESS,l_start,l_end);
-
-
 
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(e);

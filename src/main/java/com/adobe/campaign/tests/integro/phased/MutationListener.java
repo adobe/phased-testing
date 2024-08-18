@@ -300,66 +300,10 @@ public class MutationListener
             default:
                 //Continue
             }
-
-            //Managing events
-            //Cases 4 & 5
-            //TODO Move to PhasedParent
-            if (Phases.ASYNCHRONOUS.isSelected()) {
-
-                //Check if there is an event declared
-                String lt_event = PhasedEventManager.fetchEvent(result);
-                if (PhasedEventManager.fetchEvent(result) != null) {
-                    //TODO use PhasedTestManager for fetching full name instead
-                    PhasedEventManager.startEvent(lt_event, ClassPathParser.fetchFullName(result));
-                }
-            }
         }
     }
 
-    @Override
-    public void onTestFailure(ITestResult result) {
-        standardPostTestActions(result);
 
-    }
-
-    @Override
-    public void onTestSuccess(ITestResult result) {
-        standardPostTestActions(result);
-    }
-
-    @Override
-    public void onTestSkipped(ITestResult result) {
-        standardPostTestActions(result);
-
-    }
-
-    /**
-     * This method groups all the post test actions, that are common in all cases
-     * <p>
-     * Author : gandomi
-     *
-     * @param result The TestNG result context
-     */
-    protected void standardPostTestActions(ITestResult result) {
-        final Method l_method = result.getMethod().getConstructorOrMethod().getMethod();
-
-        if (PhasedTestManager.isPhasedTest(l_method)) {
-            //TRIM add property check
-            //appendShuffleGroupToName(result);
-          //  PhasedTestManager.scenarioStateStore(result);
-
-            //Cases 4 & 5
-            if (Phases.ASYNCHRONOUS.isSelected()) {
-                PhasedTestManager.getPhasedCache();
-                //Check if there is an event declared
-                String lt_event = PhasedEventManager.fetchEvent(result);
-                if (lt_event != null) {
-                    //TODO use PhasedTestManager for fetching full name instead
-                    PhasedEventManager.finishEvent(lt_event, ClassPathParser.fetchFullName(result));
-                }
-            }
-        }
-    }
 
 
     @Override
@@ -374,7 +318,9 @@ public class MutationListener
         log.debug("{} Purging results - Keeping one method per test class",
                 PhasedTestManager.PHASED_TEST_LOG_PREFIX);
 
-        PhasedEventManager.stopEventExecutor();
+        if (Phases.ASYNCHRONOUS.isSelected()) {
+            PhasedEventManager.stopEventExecutor();
+        }
     }
 }
 

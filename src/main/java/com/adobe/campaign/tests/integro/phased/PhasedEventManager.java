@@ -83,7 +83,7 @@ public class PhasedEventManager {
         NonInterruptiveEvent nie = instantiateClassFromString(in_event);
         logEvent(EventMode.START, in_event, in_onAccountOfStep);
         events.put(in_onAccountOfStep, nie);
-        eventExecutor.submit(nie);
+            eventExecutor.submit(nie);
         while (nie.getState().equals(NonInterruptiveEvent.states.DEFINED)) {
             try {
                 Thread.sleep(1);
@@ -206,6 +206,8 @@ public class PhasedEventManager {
     public static void stopEventExecutor() {
         if (eventExecutor != null)
             eventExecutor.shutdown();
+
+        eventExecutor = null;
     }
 
 
