@@ -54,7 +54,6 @@ public class MutationalTests {
 
         PhasedTestManager.clearCache();
 
-        PhasedTestManager.deactivateMergedReports();
         PhasedTestManager.deactivateTestSelectionByProducerMode();
 
         PhasedTestManager.MergedReportData.resetReport();

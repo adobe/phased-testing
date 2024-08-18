@@ -53,6 +53,7 @@ public abstract class Mutational {
                 //String lt_currentStepName = stepOrder.get(i).getStepName();
                 //Method stepMethod = Arrays.stream(l_executingClass.getMethods()).filter(m -> m.getName().equals(lt_currentStepName)).findFirst().get();
                 String stepName = l_orderList.get(i).getStepName();
+                String stepId = l_executingClass.getTypeName() + "." + stepName+"("+phaseGroup+")";
                 //System.out.println("Executing - " + stepName);
 
                 Method stepMethod = Arrays.stream(l_executingClass.getDeclaredMethods())
@@ -66,7 +67,7 @@ public abstract class Mutational {
                     String lt_event = PhasedEventManager.fetchEvent(stepMethod, phaseGroup);
                     if (lt_event != null) {
                         //TODO use PhasedTestManager for fetching full name instead
-                        PhasedEventManager.startEvent(lt_event, l_thisScneario);
+                        PhasedEventManager.startEvent(lt_event, stepId);
                     }
                 }
 
@@ -80,7 +81,7 @@ public abstract class Mutational {
                     String lt_event = PhasedEventManager.fetchEvent(stepMethod, phaseGroup);
                     if (lt_event != null) {
                         //TODO use PhasedTestManager for fetching full name instead
-                        PhasedEventManager.finishEvent(lt_event, l_thisScneario);
+                        PhasedEventManager.finishEvent(lt_event, stepId);
                     }
                 }
 
