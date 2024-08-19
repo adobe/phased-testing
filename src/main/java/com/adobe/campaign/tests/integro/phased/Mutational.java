@@ -24,9 +24,9 @@ import java.util.Map;
 @Test(dataProvider = "MUTATIONAL", dataProviderClass = PhasedDataProvider.class)
 public abstract class Mutational {
 
-    public void shuffled(String phaseGroup) {
+    public void shuffled(String phaseGroup) throws Throwable {
 
-        String l_thisScneario = this.getClass().getTypeName()+"("+phaseGroup+")";
+        String l_thisScneario = this.getClass().getTypeName() + "(" + phaseGroup + ")";
 
         PhasedTestManager.ScenarioContextData x = PhasedTestManager.getScenarioContext().get(l_thisScneario);
 
@@ -34,17 +34,17 @@ public abstract class Mutational {
 
         Map<String, ScenarioStepDependencies> l_scenarioDependencies = PhasedTestManager.getStepDependencies();
 
-
         List<StepDependencies> l_orderList = Phases.getCurrentPhase()
                 .equals(Phases.PERMUTATIONAL) ? l_scenarioDependencies.get(l_executingClass.getTypeName())
                 .fetchScenarioPermutations().get(phaseGroup) : l_scenarioDependencies.get(
                 l_executingClass.getTypeName()).fetchExecutionOrderList();
 
-      // var nrOfSteps = Phases.getCurrentPhase().hasSplittingEvent() ? PhasedTestManager.fetchShuffledStepCount(
-       //         phaseGroup)[0] : l_orderList.size();
+        // var nrOfSteps = Phases.getCurrentPhase().hasSplittingEvent() ? PhasedTestManager.fetchShuffledStepCount(
+        //         phaseGroup)[0] : l_orderList.size();
 
-        Integer[] l_boundaries = MutationManager.fetchExecutionIndex(l_executingClass.getTypeName(), phaseGroup, Phases.getCurrentPhase() );
-       // System.out.println(nrOfSteps + " - " + phaseGroup);
+        Integer[] l_boundaries = MutationManager.fetchExecutionIndex(l_executingClass.getTypeName(), phaseGroup,
+                Phases.getCurrentPhase());
+        // System.out.println(nrOfSteps + " - " + phaseGroup);
         //for (Method stepMethod : l_executingClass.getDeclaredMethods()) {
         //for (StepDependencies stepOrdering : stepOrder) {
 
@@ -53,7 +53,7 @@ public abstract class Mutational {
                 //String lt_currentStepName = stepOrder.get(i).getStepName();
                 //Method stepMethod = Arrays.stream(l_executingClass.getMethods()).filter(m -> m.getName().equals(lt_currentStepName)).findFirst().get();
                 String stepName = l_orderList.get(i).getStepName();
-                String stepId = l_executingClass.getTypeName() + "." + stepName+"("+phaseGroup+")";
+                String stepId = l_executingClass.getTypeName() + "." + stepName + "(" + phaseGroup + ")";
 
                 Method stepMethod = Arrays.stream(l_executingClass.getDeclaredMethods())
                         .filter(dm -> dm.getName().equals(stepName)).findFirst().get();
@@ -75,7 +75,6 @@ public abstract class Mutational {
                 stepMethod.invoke(ourInstance, phaseGroup);
                 long l_end = System.currentTimeMillis();
 
-
                 if (Phases.ASYNCHRONOUS.isSelected()) {
                     //Check if there is an event declared
                     String lt_event = PhasedEventManager.fetchEvent(stepMethod, phaseGroup);
@@ -86,12 +85,13 @@ public abstract class Mutational {
                 }
 
                 PhasedTestManager.scenarioStateStore(PhasedTestManager.fetchScenarioName(stepMethod, phaseGroup),
-                        ClassPathParser.fetchFullName(stepMethod), TestResult.SUCCESS,l_start,l_end);
+                        ClassPathParser.fetchFullName(stepMethod), TestResult.SUCCESS, l_start, l_end);
 
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(e);
             } catch (InvocationTargetException e) {
-                throw new RuntimeException(e);
+                Throwable targetException = e.getTargetException();
+                throw targetException;
             } catch (InstantiationException e) {
                 throw new RuntimeException(e);
             } catch (NoSuchMethodException e) {

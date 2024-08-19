@@ -9,7 +9,6 @@
 package com.adobe.campaign.tests.integro.phased.mutational.data.erroneous;
 
 import com.adobe.campaign.tests.integro.phased.Mutational;
-import com.adobe.campaign.tests.integro.phased.PhasedDataProvider;
 import com.adobe.campaign.tests.integro.phased.PhasedTest;
 import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
 import org.testng.annotations.Test;
@@ -19,7 +18,7 @@ import static org.testng.Assert.assertFalse;
 
 @Test
 @PhasedTest
-public class IE_SHUFFLED_ERROR1 extends Mutational {
+public class IE_Shuffled_ErrorAssertion1 extends Mutational {
 
     public void step1(String val) {
         System.out.println("step1 " + val);

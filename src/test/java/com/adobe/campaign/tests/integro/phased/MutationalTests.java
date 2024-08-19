@@ -8,11 +8,9 @@
  */
 package com.adobe.campaign.tests.integro.phased;
 
-import com.adobe.campaign.tests.integro.phased.ConfigValueHandlerPhased;
-import com.adobe.campaign.tests.integro.phased.MutationListener;
-import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
-import com.adobe.campaign.tests.integro.phased.Phases;
 import com.adobe.campaign.tests.integro.phased.data.events.MyNonInterruptiveEvent;
+import com.adobe.campaign.tests.integro.phased.mutational.data.erroneous.IE_Shuffled_ErrorAssertion1;
+import com.adobe.campaign.tests.integro.phased.mutational.data.erroneous.IE_Shuffled_ErrorOtherNonAssertive1;
 import com.adobe.campaign.tests.integro.phased.mutational.data.nie.TestMutationalShuffled_eventPassedAsExecutionVariable;
 import com.adobe.campaign.tests.integro.phased.mutational.data.permutational.MultipleProducerConsumer;
 import com.adobe.campaign.tests.integro.phased.mutational.data.permutational.ShoppingCartDemo;
@@ -25,7 +23,6 @@ import org.testng.TestListenerAdapter;
 import org.testng.TestNG;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.testng.xml.XmlClass;
 import org.testng.xml.XmlPackage;
@@ -57,7 +54,6 @@ public class MutationalTests {
         PhasedTestManager.deactivateTestSelectionByProducerMode();
 
         PhasedTestManager.MergedReportData.resetReport();
-
 
         //Delete standard cache file
         File l_importCacheFile = new File(
@@ -119,6 +115,96 @@ public class MutationalTests {
                 Matchers.equalTo(1));
     }
 
+    @Test
+    public void testDefaultWithAssertionError() {
+
+        // Rampup
+        TestNG myTestNG = TestTools.createTestNG();
+        TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
+
+        // Define suites
+        XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG, "Automated Suite Phased Testing");
+
+        // Add listeners
+        //mySuiteC.addListener(EventInjectorListener.class.getTypeName());
+        mySuite.addListener(MutationListener.class.getTypeName());
+
+        // Create an instance of XmlTest and assign a name for it.
+        XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Repetetive Phased Tests Producer");
+
+        var l_testClass = IE_Shuffled_ErrorAssertion1.class;
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
+
+        // Add package to test
+
+        myTestNG.run();
+
+        assertThat("We should have no successful methods of phased Tests",
+                (int) tla.getPassedTests().size(),
+                is(equalTo(0)));
+
+        assertThat("We should have 1 failed method of phased Tests",
+                (int) tla.getFailedTests().size(),
+                is(equalTo(1)));
+
+        assertThat("We should have no skipped methods of phased Tests",
+                (int) tla.getSkippedTests().size(),
+                is(equalTo(0)));
+
+        assertThat("We should have no executions for the phased group 0",
+                tla.getFailedTests().stream().filter(m -> m.getInstanceName().equals(l_testClass.getTypeName()))
+                        .collect(Collectors.toList()).size(),
+                Matchers.equalTo(1));
+
+        assertThat("The exception should be an assertion exception", tla.getFailedTests().get(0).getThrowable(),
+                Matchers.instanceOf(AssertionError.class));
+
+    }
+
+    @Test
+    public void testDefaultWithException() {
+
+        // Rampup
+        TestNG myTestNG = TestTools.createTestNG();
+        TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
+
+        // Define suites
+        XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG, "Automated Suite Phased Testing");
+
+        // Add listeners
+        mySuite.addListener(MutationListener.class.getTypeName());
+
+        // Create an instance of XmlTest and assign a name for it.
+        XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Repetetive Phased Tests Producer");
+
+        var l_testClass = IE_Shuffled_ErrorOtherNonAssertive1.class;
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
+
+        // Add package to test
+
+        myTestNG.run();
+
+        assertThat("We should have no successful methods of phased Tests",
+                (int) tla.getPassedTests().size(),
+                is(equalTo(0)));
+
+        assertThat("We should have 1 failed method of phased Tests",
+                (int) tla.getFailedTests().size(),
+                is(equalTo(1)));
+
+        assertThat("We should have no skipped methods of phased Tests",
+                (int) tla.getSkippedTests().size(),
+                is(equalTo(0)));
+
+        assertThat("We should have no executions for the phased group 0",
+                tla.getFailedTests().stream().filter(m -> m.getInstanceName().equals(l_testClass.getTypeName()))
+                        .collect(Collectors.toList()).size(),
+                Matchers.equalTo(1));
+
+        assertThat("The exception should be an assertion exception", tla.getFailedTests().get(0).getThrowable(),
+                Matchers.instanceOf(IllegalArgumentException.class));
+
+    }
 
     @Test
     public void testInterruptiveEvent() {
@@ -156,11 +242,13 @@ public class MutationalTests {
                 is(equalTo(5)));
 
         assertThat("We should have no executions for the phased group 0",
-                tla.getPassedTests().stream().filter(m -> m.getInstanceName().equals(PhasedChild1.class.getTypeName())).collect(Collectors.toList()).size(),
+                tla.getPassedTests().stream().filter(m -> m.getInstanceName().equals(PhasedChild1.class.getTypeName()))
+                        .collect(Collectors.toList()).size(),
                 Matchers.equalTo(2));
 
         assertThat("We should have no executions for the phased group 0",
-                tla.getPassedTests().stream().filter(m -> m.getInstanceName().equals(PhasedChild2.class.getTypeName())).collect(Collectors.toList()).size(),
+                tla.getPassedTests().stream().filter(m -> m.getInstanceName().equals(PhasedChild2.class.getTypeName()))
+                        .collect(Collectors.toList()).size(),
                 Matchers.equalTo(3));
 
         //Add with consumer
@@ -190,21 +278,22 @@ public class MutationalTests {
 
         myTestNGC.run();
 
-        Map<String, PhasedTestManager.ScenarioContextData> x =PhasedTestManager.getScenarioContext();
+        Map<String, PhasedTestManager.ScenarioContextData> x = PhasedTestManager.getScenarioContext();
 
         assertThat("We should have 2 successful method of phased Tests",
                 (int) tlaC.getPassedTests().size(),
                 is(equalTo(5)));
 
         assertThat("We should have no executions for the phased group 0",
-                tlaC.getPassedTests().stream().filter(m -> m.getInstanceName().equals(PhasedChild1.class.getTypeName())).collect(Collectors.toList()).size(),
+                tlaC.getPassedTests().stream().filter(m -> m.getInstanceName().equals(PhasedChild1.class.getTypeName()))
+                        .collect(Collectors.toList()).size(),
                 Matchers.equalTo(2));
 
         assertThat("We should have no executions for the phased group 0",
-                tlaC.getPassedTests().stream().filter(m -> m.getInstanceName().equals(PhasedChild2.class.getTypeName())).collect(Collectors.toList()).size(),
+                tlaC.getPassedTests().stream().filter(m -> m.getInstanceName().equals(PhasedChild2.class.getTypeName()))
+                        .collect(Collectors.toList()).size(),
                 Matchers.equalTo(3));
     }
-
 
     @Test
     public void testPermutational() {
@@ -236,7 +325,6 @@ public class MutationalTests {
         assertThat("We should have 2 successful method of phased Tests",
                 (int) tla.getPassedTests().size(),
                 is(equalTo(2)));
-
 
     }
 
@@ -272,7 +360,6 @@ public class MutationalTests {
                 is(equalTo(3)));
     }
 
-
     /**
      * This is a test for non-intyerruptive events in shuffled classes
      */
@@ -301,7 +388,7 @@ public class MutationalTests {
 
         myTestNG.run();
 
-       // assertThat("We should be in non-interruptive mode shuffled", PhasedTestManager.isPhasedTestShuffledMode(l_testClass));
+        // assertThat("We should be in non-interruptive mode shuffled", PhasedTestManager.isPhasedTestShuffledMode(l_testClass));
 
         assertThat("We should have 3 successful executions of phased Tests",
                 (int) tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
@@ -311,7 +398,8 @@ public class MutationalTests {
         assertThat("We should have no failed tests", tla.getFailedTests().size(), equalTo(0));
         assertThat("We should have no skipped tests", tla.getSkippedTests().size(), equalTo(0));
 
-        assertThat("We should have the correct number of events in the logs (1 x phase groups)", PhasedEventManager.getEventLogs().size(),
+        assertThat("We should have the correct number of events in the logs (1 x phase groups)",
+                PhasedEventManager.getEventLogs().size(),
                 Matchers.equalTo(6));
     }
 }
