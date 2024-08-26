@@ -1,13 +1,10 @@
 /*
- * MIT License
+ * Copyright 2022 Adobe
+ * All Rights Reserved.
  *
- * © Copyright 2020 Adobe. All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * NOTICE: Adobe permits you to use, modify, and distribute this file in
+ * accordance with the terms of the Adobe license agreement accompanying
+ * it.
  */
 package com.adobe.campaign.tests.integro.phased.permutational;
 
@@ -19,13 +16,10 @@ public class StepDependencies {
     protected static final int DEFAULT_LINE_LOCATION = -113;
     private boolean configMethod = false;
     private int stepLine = DEFAULT_LINE_LOCATION;
-
-
-
-    public enum Relations{DEPENDS_ON, INDEPENDANT, DEPENDED_ON_BY, INTERDEPENDANT};
     private Set<String> produceSet;
-    private String stepName;
 
+    ;
+    private String stepName;
     private Set<String> consumeSet;
 
     public StepDependencies(String in_stepName) {
@@ -37,6 +31,12 @@ public class StepDependencies {
     public StepDependencies(String in_stepName, int in_stepLine) {
         this(in_stepName);
         setStepLine(in_stepLine);
+    }
+
+    public StepDependencies(StepDependencies stepDependency) {
+        this(stepDependency.getStepName(), stepDependency.getStepLine());
+        this.produceSet = new HashSet<>(stepDependency.getProduceSet());
+        this.consumeSet = new HashSet<>(stepDependency.getConsumeSet());
     }
 
     public Set<String> getConsumeSet() {
@@ -73,7 +73,7 @@ public class StepDependencies {
      * @param in_key The key being produced
      */
     public void produce(String in_key) {
-        produceConsume(produceSet,in_key);
+        produceConsume(produceSet, in_key);
     }
 
     /**
@@ -82,7 +82,7 @@ public class StepDependencies {
      * @param in_key The key being consumed
      */
     public void consume(String in_key) {
-        produceConsume(consumeSet,in_key);
+        produceConsume(consumeSet, in_key);
     }
 
     private void produceConsume(Set<String> in_produceConsume, String in_key) {
@@ -101,6 +101,7 @@ public class StepDependencies {
      *     <li><span class="strong">INDEPENDANT</span>: when there is no dependency between this step and the provided one.</li>
      *     <li><span class="strong">CIRCULAR</span>: When the two steps are inter-dependant.</li>
      * </ul>
+     *
      * @param in_step The step with which we should compare our step
      * @return The relationship of type ${{@link Relations}}
      */
@@ -122,4 +123,78 @@ public class StepDependencies {
 
         return Relations.INTERDEPENDANT;
     }
+
+    /**
+     * Returns the category of the step
+     *
+     * @return a Category
+     */
+    Categories getCategory() {
+        if (this.getConsumeSet().isEmpty() && this.getProduceSet().isEmpty()) {
+            //INDEPENDANT
+            return Categories.INDEPENDANT;
+
+        } else if (this.getConsumeSet().isEmpty()) {
+            //PRODUCER_ONLY
+            return Categories.PRODUCER_ONLY;
+        } else if (this.getProduceSet().isEmpty()) {
+            //CONSUMER_ONLY
+            return Categories.CONSUMER_ONLY;
+        } else {
+            //PRODUCER_CONSUMER
+            return Categories.PRODUCER_CONSUMER;
+        }
+    }
+
+    /**
+     * Returns the short name of the step. This involves concatenating the first and last character of the stap name
+     *
+     * @return a shortname for the step
+     */
+    public String getShortName() {
+
+        return getStepName().charAt(0) + ((getStepName().length() > 1) ? getStepName().substring(
+                getStepName().length() - 1) : "");
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        StepDependencies that = (StepDependencies) o;
+
+        if (getStepLine() != that.getStepLine()) {
+            return false;
+        }
+        return getStepName().equals(that.getStepName());
+    }
+
+    @Override
+    public int hashCode() {
+        int result = getStepLine();
+        result = 31 * result + getStepName().hashCode();
+        return result;
+    }
+
+    /**
+     * Given a set of dependencies, this method checks if the step can run. We see which dependencies are consumed, and if the dependencies are in the given set we return true. If we do not consume any dependencies then
+     * @param in_setOfDependencies a set of dependencies
+     * @return true if all the dependencies we consume can be found in the provided set
+     */
+    public boolean canRunWithDependencies(HashSet<String> in_setOfDependencies) {
+        if (this.getConsumeSet().isEmpty()) {
+            return true;
+        } else {
+            return in_setOfDependencies.containsAll(this.getConsumeSet());
+        }
+    }
+
+    public enum Relations {DEPENDS_ON, INDEPENDANT, DEPENDED_ON_BY, INTERDEPENDANT}
+
+    public enum Categories {INDEPENDANT, PRODUCER_ONLY, PRODUCER_CONSUMER, CONSUMER_ONLY}
 }

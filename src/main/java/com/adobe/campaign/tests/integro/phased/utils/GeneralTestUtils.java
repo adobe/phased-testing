@@ -1,19 +1,17 @@
 /*
- * MIT License
+ * Copyright 2022 Adobe
+ * All Rights Reserved.
  *
- * © Copyright 2020 Adobe. All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * NOTICE: Adobe permits you to use, modify, and distribute this file in
+ * accordance with the terms of the Adobe license agreement accompanying
+ * it.
  */
 package com.adobe.campaign.tests.integro.phased.utils;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -180,4 +178,51 @@ public final class GeneralTestUtils {
             .collect(Collectors.toList());
     }
 
+    public static <T> List<List<T>> generatePermutations(List<T> in_listOfSteps) {
+        return generatePermutations(in_listOfSteps, 0);
+    }
+
+
+    public static <T> List<List<T>> generatePermutations(List<T> in_listOfSteps, int currentIndex) {
+
+        List<List<T>> allPermutations = new ArrayList<>();
+
+        if (in_listOfSteps == null || in_listOfSteps.isEmpty()) {
+            return allPermutations;
+        }
+
+        if (currentIndex == in_listOfSteps.size() - 1) {
+            allPermutations.add(new ArrayList<>(in_listOfSteps));
+        } else {
+            for (int i = currentIndex; i < in_listOfSteps.size(); i++) {
+                Collections.swap(in_listOfSteps, currentIndex, i);
+                allPermutations.addAll(generatePermutations(in_listOfSteps, currentIndex + 1));
+                Collections.swap(in_listOfSteps, currentIndex, i);
+            }
+        }
+        return allPermutations;
+    }
+
+    public static <T>  List<List<T>> outerJoinListOfLists(List<List<T>> in_listLeft, List<List<T>> in_listRight) {
+        if (in_listLeft == null || in_listRight == null) {
+            throw new IllegalArgumentException("The given lists cannot be null");
+        }
+
+        List<List<T>> lr_result = new ArrayList<>();
+
+        if (in_listLeft.isEmpty() || in_listRight.isEmpty()) {
+            return in_listLeft.isEmpty() ? in_listRight : in_listLeft;
+        }
+
+        for (List<T> l_list1Entry : in_listLeft) {
+            for (List<T> l_list2Entry : in_listRight) {
+                List<T> l_newEntry = new ArrayList<>();
+                l_newEntry.addAll(l_list1Entry);
+                l_newEntry.addAll(l_list2Entry);
+                lr_result.add(l_newEntry);
+            }
+        }
+
+        return lr_result;
+    }
 }

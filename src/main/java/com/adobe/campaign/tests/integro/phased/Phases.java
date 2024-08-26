@@ -1,20 +1,17 @@
 /*
- * MIT License
+ * Copyright 2022 Adobe
+ * All Rights Reserved.
  *
- * © Copyright 2020 Adobe. All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * NOTICE: Adobe permits you to use, modify, and distribute this file in
+ * accordance with the terms of the Adobe license agreement accompanying
+ * it.
  */
 package com.adobe.campaign.tests.integro.phased;
 
 import java.util.Arrays;
 
 public enum Phases {
-    PRODUCER(true), CONSUMER(true), NON_PHASED(false), ASYNCHRONOUS(false);
+    PRODUCER(true), CONSUMER(true), NON_PHASED(false), ASYNCHRONOUS(false), PERMUTATIONAL(false);
 
     boolean hasSplittingEvent;
 
@@ -23,29 +20,23 @@ public enum Phases {
     }
 
     /**
-     * Returns the Phased Test state in which the current test session is being
-     * executed
-     *
+     * Returns the Phased Test state in which the current test session is being executed
+     * <p>
      * Author : gandomi
      *
      * @return The phase which is currently being executed
-     *
      */
     public static Phases getCurrentPhase() {
         return fetchCorrespondingPhase(ConfigValueHandlerPhased.PROP_SELECTED_PHASE.fetchValue());
     }
 
     /**
-     * We find a corresponding PhasedTest state given a string. If none are
-     * found we return INACTIVE
-     *
+     * We find a corresponding PhasedTest state given a string. If none are found we return INACTIVE
+     * <p>
      * Author : gandomi
      *
-     * @param in_stateValue
-     *        Returns a Phase given a string representation of its value
-     * @return A state corresponding to the given Phased State, if none found we
-     *         return inactive
-     *
+     * @param in_stateValue Returns a Phase given a string representation of its value
+     * @return A state corresponding to the given Phased State, if none found we return inactive
      */
     public static Phases fetchCorrespondingPhase(String in_stateValue) {
         for (Phases lt_ptState : Phases.values()) {
@@ -57,12 +48,22 @@ public enum Phases {
     }
 
     /**
-     * Checks if the current entry is active. I.e. either producer or consumer
+     * Provides an array of Phases that contain a plittingEvent aka PhasedEvent
+     * <p>
+     * Author : gandomi
      *
+     * @return An array of Phases that have a Splitting Event
+     */
+    public static Phases[] fetchPhasesWithEvents() {
+        return Arrays.stream(Phases.values()).filter(p -> p.hasSplittingEvent).toArray(Phases[]::new);
+    }
+
+    /**
+     * Checks if the current entry is active. I.e. either producer or consumer
+     * <p>
      * Author : gandomi
      *
      * @return true if we are the active state
-     *
      */
     public boolean isSelected() {
         return this.equals(getCurrentPhase());
@@ -70,11 +71,10 @@ public enum Phases {
 
     /**
      * Lets us know if the current phase will include a splitting event
-     *
+     * <p>
      * Author : gandomi
      *
      * @return True if the the phase could have a splitting event.
-     *
      */
     public boolean hasSplittingEvent() {
         return this.hasSplittingEvent;
@@ -82,27 +82,11 @@ public enum Phases {
 
     /**
      * Activates the given phase
-     *
+     * <p>
      * Author : gandomi
-     *
-     *
      */
     void activate() {
         ConfigValueHandlerPhased.PROP_SELECTED_PHASE.activate(this.name());
-    }
-
-    /**
-     * Provides an array of Phases that contain a plittingEvent aka PhasedEvent
-     *
-     * Author : gandomi
-     *
-     * @return An array of Phases that have a Splitting Event
-     *
-     */
-    public static Phases[] fetchPhasesWithEvents() {
-        return Arrays.stream(Phases.values())
-            .filter(p -> p.hasSplittingEvent)
-            .toArray(Phases[]::new);
     }
 
 }

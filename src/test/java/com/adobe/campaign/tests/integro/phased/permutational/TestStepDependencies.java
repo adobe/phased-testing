@@ -1,17 +1,16 @@
 /*
- * MIT License
+ * Copyright 2022 Adobe
+ * All Rights Reserved.
  *
- * © Copyright 2020 Adobe. All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * NOTICE: Adobe permits you to use, modify, and distribute this file in
+ * accordance with the terms of the Adobe license agreement accompanying
+ * it.
  */
 package com.adobe.campaign.tests.integro.phased.permutational;
 
+import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestException;
 import org.hamcrest.Matchers;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.util.*;
@@ -296,7 +295,7 @@ public class TestStepDependencies {
         assertThat("step2 & step1 are independant",
                 dependencies.getStep("step2").fetchRelation(dependencies.getStep("step1")),
                 equalTo(StepDependencies.Relations.INDEPENDANT));
-/*
+        /*
         assertThat("step2 & step3 are independant",
                 dependencies.getStep("step2").fetchRelation(dependencies.getStep("step3")),
                 equalTo(StepDependencies.Relations.INDEPENDANT));
@@ -319,4 +318,86 @@ public class TestStepDependencies {
 
  */
     }
+
+    @Test
+    public void testGetShortName() {
+        StepDependencies dependency = new StepDependencies("aD");
+        assertThat("We should have the correct short name", dependency.getShortName(), equalTo("aD"));
+
+        StepDependencies dependency3chars = new StepDependencies("aFD");
+        assertThat("We should have the correct short name", dependency3chars.getShortName(), equalTo("aD"));
+
+        StepDependencies dependency1char = new StepDependencies("a");
+        assertThat("We should have the correct short name", dependency1char.getShortName(), equalTo("a"));
+        
+    }
+
+    //For permutations, we need the following
+    // Remove a step
+    // Fetch a set of steps that consume a set of data
+    // Copy constructor
+    @Test
+    public void testCanExecuteWithDependencies() {
+        StepDependencies step3 = new StepDependencies("Step1");
+        step3.consume("a");
+
+        assertThat("Step 3 should be able to execute if we have provided the data 'a'", step3.canRunWithDependencies(new HashSet<>(Arrays.asList("a"))));
+        assertThat("Step 3 should not be able to execute if we have provided the data 'b'", !step3.canRunWithDependencies(new HashSet<>(Arrays.asList("b"))));
+        assertThat("Step 3 should be not able to execute if we no provided data", !step3.canRunWithDependencies(new HashSet<>()));
+
+    }
+
+    @Test
+    public void testCanExecuteWithDependenciesProducer() {
+        StepDependencies step3 = new StepDependencies("Step1");
+        step3.produce("b");
+
+        assertThat("Step 3 should be able to execute if we have provided the data 'a'", step3.canRunWithDependencies(new HashSet<>(Arrays.asList("a"))));
+        assertThat("Step 3 should be able to execute if we have provided the data 'b'", step3.canRunWithDependencies(new HashSet<>(Arrays.asList("b"))));
+        assertThat("Step 3 should be able to execute if we have provided no data", step3.canRunWithDependencies(new HashSet<>()));
+
+    }
+
+    @Test
+    public void testCanExecuteWithIndependant() {
+        StepDependencies step3 = new StepDependencies("Step1");
+
+        assertThat("Step 3 should be able to execute if we have provided the data 'a'", step3.canRunWithDependencies(new HashSet<>(Arrays.asList("a"))));
+        assertThat("Step 3 should be able to execute if we have provided the data 'b'", step3.canRunWithDependencies(new HashSet<>(Arrays.asList("b"))));
+        assertThat("Step 3 should be able to execute if we have provided no data", step3.canRunWithDependencies(new HashSet<>()));
+
+    }
+
+    @Test
+    public void testCanExecuteWithDependenciesProducerConsumer() {
+        StepDependencies step3 = new StepDependencies("Step1");
+        step3.produce("a");
+        step3.consume("b");
+
+        assertThat("Step 3 should be able to execute if we have provided the data 'b'", step3.canRunWithDependencies(new HashSet<>(Arrays.asList("b"))));
+        assertThat("Step 3 should be not able to execute if we have provided the data 'a'", !step3.canRunWithDependencies(new HashSet<>(Arrays.asList("a"))));
+        assertThat("Step 3 should not be able to execute if we have provided no data", !step3.canRunWithDependencies(new HashSet<>()));
+
+    }
+
+    @Test
+    public void createCopyConstructorForScenarioStepDependencies() {
+        ScenarioStepDependencies dependencies = new ScenarioStepDependencies("Shopping");
+        dependencies.putProduce("login", "authentication");
+        dependencies.putProduce("searchProduct", "product");
+        dependencies.putProduce("putProductInBasket", "basket");
+        dependencies.putConsume("putProductInBasket", "product");
+        dependencies.putConsume("checkout", "authentication");
+        dependencies.putConsume("checkout", "product");
+        dependencies.putConsume("checkout", "basket");
+
+        ScenarioStepDependencies copy = new ScenarioStepDependencies(dependencies);
+
+        assertThat("The scenario name should be the same", copy.getScenarioName(), equalTo("Shopping"));
+        assertThat("The number of steps should be the same", copy.getStepDependencies().size(), equalTo(dependencies.getStepDependencies().size()));
+        for (String stepName : dependencies.getStepDependencies().keySet()) {
+            assertThat("The step should be the same", copy.getStep(stepName), equalTo(dependencies.getStep(stepName)));
+        }
+    }
+
 }

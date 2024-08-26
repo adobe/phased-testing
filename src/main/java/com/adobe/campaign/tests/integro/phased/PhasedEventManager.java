@@ -1,13 +1,10 @@
 /*
- * MIT License
+ * Copyright 2022 Adobe
+ * All Rights Reserved.
  *
- * © Copyright 2020 Adobe. All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * NOTICE: Adobe permits you to use, modify, and distribute this file in
+ * accordance with the terms of the Adobe license agreement accompanying
+ * it.
  */
 package com.adobe.campaign.tests.integro.phased;
 
@@ -86,7 +83,7 @@ public class PhasedEventManager {
         NonInterruptiveEvent nie = instantiateClassFromString(in_event);
         logEvent(EventMode.START, in_event, in_onAccountOfStep);
         events.put(in_onAccountOfStep, nie);
-        eventExecutor.submit(nie);
+            eventExecutor.submit(nie);
         while (nie.getState().equals(NonInterruptiveEvent.states.DEFINED)) {
             try {
                 Thread.sleep(1);
@@ -166,27 +163,37 @@ public class PhasedEventManager {
      * @param in_testResult A result object for a test containing the annotation {@link PhaseEvent}
      * @return An event that can be executed with this method. Null if no event is applicable
      */
-    public static String fetchEvent(ITestResult in_testResult) {
+    protected static String fetchEvent(ITestResult in_testResult) {
         Method l_currentMethod = in_testResult.getMethod().getConstructorOrMethod().getMethod();
+        //l_currentMethod.getParameters()
+        //Use Phase Context instead
+        String l_currentShuffleGroup = in_testResult.getParameters()[0].toString();
 
-        if (PhasedTestManager.isPhasedTestSingleMode(l_currentMethod)) {
+        return fetchEvent(l_currentMethod, l_currentShuffleGroup);
+    }
+
+    /**
+     * Extracts the event for a given method. The choice of the event is based on where the event is declared.
+     * @param in_currentMethod A result object for a test containing the annotation {@link PhaseEvent}
+     * @param in_currentShuffleGroup The current shuffle group
+     * @return An event that can be executed with this method. Null if no event is applicable
+     */
+    protected static String fetchEvent(Method in_currentMethod, String in_currentShuffleGroup) {
+        if (PhasedTestManager.isPhasedTestSingleMode(in_currentMethod)) {
             //Check if the current method is subject to event
-            if (l_currentMethod.isAnnotationPresent(PhaseEvent.class)) {
-                return fetchApplicableEvent(l_currentMethod);
+            if (in_currentMethod.isAnnotationPresent(PhaseEvent.class)) {
+                return fetchApplicableEvent(in_currentMethod);
             } else {
                 return null;
             }
         } else {
 
-            //Use Phase Context instead
-            //String l_currentShuffleGroup = in_testResult.getParameters()[0].toString();
+            int l_currentShuffleGroupNr = PhasedTestManager.asynchronousExtractIndex(in_currentShuffleGroup, true);
 
-            int l_currentShuffleGroupNr = PhasedTestManager.asynchronousExtractIndex(in_testResult);
-
-            int l_currentStep = PhasedTestManager.getMethodMap().get(ClassPathParser.fetchFullName(l_currentMethod)).methodOrderInExecution;
+            int l_currentStep = PhasedTestManager.getMethodMap().get(ClassPathParser.fetchFullName(in_currentMethod)).methodOrderInExecution;
 
             if (l_currentStep  == l_currentShuffleGroupNr) {
-                return fetchApplicableEvent(l_currentMethod);
+                return fetchApplicableEvent(in_currentMethod);
             }
             return null;
         }
@@ -199,6 +206,8 @@ public class PhasedEventManager {
     public static void stopEventExecutor() {
         if (eventExecutor != null)
             eventExecutor.shutdown();
+
+        eventExecutor = null;
     }
 
 

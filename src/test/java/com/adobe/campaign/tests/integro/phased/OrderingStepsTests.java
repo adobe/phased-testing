@@ -1,16 +1,14 @@
 /*
- * MIT License
+ * Copyright 2022 Adobe
+ * All Rights Reserved.
  *
- * © Copyright 2020 Adobe. All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * NOTICE: Adobe permits you to use, modify, and distribute this file in
+ * accordance with the terms of the Adobe license agreement accompanying
+ * it.
  */
 package com.adobe.campaign.tests.integro.phased;
 
+import com.adobe.campaign.tests.integro.phased.data.permutational.SimpleNonProduceConsumeTest;
 import com.adobe.campaign.tests.integro.phased.data.permutational.SimplePermutationTest;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 import com.adobe.campaign.tests.integro.phased.utils.TestTools;
@@ -86,6 +84,53 @@ public class OrderingStepsTests {
         XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Phased : ordering tests");
 
         final Class<SimplePermutationTest> l_testClass = SimplePermutationTest.class;
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
+
+        // Add package to test
+
+        myTestNG.run();
+
+        assertThat("We should have 3 successful method of phased Tests",
+                (int) tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
+                is(equalTo(3)));
+
+        //Global
+        assertThat("We should have no failed tests", tla.getFailedTests().size(), equalTo(0));
+        assertThat("We should have no skipped tests", tla.getSkippedTests().size(), equalTo(0));
+
+        ITestContext context = tla.getTestContexts().get(0);
+
+        assertThat("The Report NOW only have one passed test",
+                context.getPassedTests().getAllResults().size(), is(equalTo(1)));
+
+        assertThat("The Report should also include the same value as the Skipped",
+                context.getSkippedTests().getAllResults().size(), is(equalTo(tla.getSkippedTests().size())));
+
+        assertThat("The Report should also include the same value as the Failed",
+                context.getFailedTests().getAllResults().size(), is(equalTo(tla.getFailedTests().size())));
+
+    }
+
+    @Test
+    public void testNonPhased_lineNr() {
+        ConfigValueHandlerPhased.PHASED_TEST_DETECT_ORDER.activate("true");
+        //Activate Merge
+        PhasedTestManager.activateMergedReports();
+
+        // Rampup
+        TestNG myTestNG = TestTools.createTestNG();
+        TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
+
+        // Define suites
+        XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG, "Automated Suite Phased Testing - Ordering steps");
+
+        // Add listeners
+        mySuite.addListener("com.adobe.campaign.tests.integro.phased.PhasedTestListener");
+
+        // Create an instance of XmlTest and assign a name for it.
+        XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Phased : ordering tests");
+
+        final Class<SimpleNonProduceConsumeTest> l_testClass = SimpleNonProduceConsumeTest.class;
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
         // Add package to test
