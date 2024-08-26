@@ -21,9 +21,7 @@ import org.testng.*;
 import org.testng.annotations.IConfigurationAnnotation;
 import org.testng.annotations.ITestAnnotation;
 import org.testng.internal.annotations.DisabledRetryAnalyzer;
-import org.testng.xml.XmlClass;
 import org.testng.xml.XmlSuite;
-import org.testng.xml.XmlTest;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -38,34 +36,11 @@ public class MutationListener
 
     @Override
     public void alter(List<XmlSuite> suites) {
-        IAlterSuiteListener.super.alter(suites);
-
         log.debug("{} in alter - current Execution State is : {}", PhasedTestManager.PHASED_TEST_LOG_PREFIX
                 , Phases.getCurrentPhase());
 
         // *** Import DataBroker ***
-        String l_phasedDataBrokerClass = null;
-        if (ConfigValueHandlerPhased.PROP_PHASED_TEST_DATABROKER.isSet()) {
-            l_phasedDataBrokerClass = ConfigValueHandlerPhased.PROP_PHASED_TEST_DATABROKER.fetchValue();
-        } else if (suites.get(0).getAllParameters()
-                .containsKey(ConfigValueHandlerPhased.PROP_PHASED_TEST_DATABROKER.systemName)) {
-            l_phasedDataBrokerClass = suites.get(0)
-                    .getParameter(ConfigValueHandlerPhased.PROP_PHASED_TEST_DATABROKER.systemName);
-        } else if (!Phases.NON_PHASED.isSelected()) {
-            log.info("{} No PhasedDataBroker set. Using the file system path {}/{} instead ",
-                    PhasedTestManager.PHASED_TEST_LOG_PREFIX, PhasedTestManager.STD_STORE_DIR,
-                    PhasedTestManager.STD_STORE_FILE
-            );
-        }
-
-        if (l_phasedDataBrokerClass != null) {
-            try {
-                PhasedTestManager.setDataBroker(l_phasedDataBrokerClass);
-            } catch (PhasedTestConfigurationException e) {
-                log.error("{} Errors while setting the PhasedDataBroker", PhasedTestManager.PHASED_TEST_LOG_PREFIX, e);
-                throw new TestNGException(e);
-            }
-        }
+        TestNGFrameworkInterface.importDataBroker(suites);
 
         // *** import context for consumer ***
         //The second condition is there for testing purposes. You can bypass the file by filling the Test
@@ -73,22 +48,8 @@ public class MutationListener
             PhasedTestManager.importPhaseData();
         }
 
-        //Inject the phased tests executed in the previous phase
-        // This is activated when the test group "PHASED_PRODUCED_TESTS" group
-        for (XmlTest lt_xmlTest : suites.get(0).getTests().stream()
-                .filter(t -> t.getIncludedGroups().contains(PhasedTestManager.STD_GROUP_SELECT_TESTS_BY_PRODUCER))
-                .collect(Collectors.toList())) {
-
-            PhasedTestManager.activateTestSelectionByProducerMode();
-
-            //Attach new classes to suite
-            final Set<XmlClass> l_newXMLTests = PhasedTestManager.fetchExecutedPhasedClasses().stream()
-                    .map(XmlClass::new).collect(Collectors.toSet());
-
-            //add the original test classes
-            l_newXMLTests.addAll(lt_xmlTest.getXmlClasses());
-            lt_xmlTest.setXmlClasses(new ArrayList<>(l_newXMLTests));
-        }
+        //Apply Selection by Producer tests
+        TestNGFrameworkInterface.applySelectionByProducer(suites);
     }
 
     @Override
