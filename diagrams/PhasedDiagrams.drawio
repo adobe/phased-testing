@@ -1,6 +1,6 @@
-<mxfile host="Electron" modified="2024-07-12T11:54:26.914Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.5.0 Chrome/112.0.5615.204 Electron/24.5.1 Safari/537.36" etag="Vb3xctiJliu92FGBodVZ" version="21.5.0" type="device" pages="19">
+<mxfile host="Electron" modified="2024-08-27T07:43:38.371Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.5.0 Chrome/112.0.5615.204 Electron/24.5.1 Safari/537.36" etag="LnbUsjvnqhynXUjcUb-W" version="21.5.0" type="device" pages="18">
   <diagram id="aC-T4JbGRuo5PAbJxA2-" name="Normal-Migration">
-    <mxGraphModel dx="1075" dy="878" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1114" dy="824" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -20,7 +20,7 @@
     </mxGraphModel>
   </diagram>
   <diagram name="HL-Change-Scenarios" id="_NJ7zXLjEfUgbl2cblIf">
-    <mxGraphModel dx="1354" dy="912" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1114" dy="824" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="Vn0EonWv-28GtLf7o_Nc-0" />
         <mxCell id="Vn0EonWv-28GtLf7o_Nc-1" parent="Vn0EonWv-28GtLf7o_Nc-0" />
@@ -93,37 +93,8 @@
       </root>
     </mxGraphModel>
   </diagram>
-  <diagram id="x6MRYAXdxMmkBer4NtV1" name="Normal Scenario">
-    <mxGraphModel dx="1114" dy="878" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
-      <root>
-        <mxCell id="eJsysVOHvC-IGzexx3M3-0" />
-        <mxCell id="eJsysVOHvC-IGzexx3M3-1" parent="eJsysVOHvC-IGzexx3M3-0" />
-        <mxCell id="eJsysVOHvC-IGzexx3M3-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="eJsysVOHvC-IGzexx3M3-1" source="eJsysVOHvC-IGzexx3M3-4" target="eJsysVOHvC-IGzexx3M3-5" edge="1">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="eJsysVOHvC-IGzexx3M3-4" value="Search items" style="rounded=0;whiteSpace=wrap;html=1;" parent="eJsysVOHvC-IGzexx3M3-1" vertex="1">
-          <mxGeometry x="70" y="70" width="120" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="eJsysVOHvC-IGzexx3M3-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="eJsysVOHvC-IGzexx3M3-1" source="eJsysVOHvC-IGzexx3M3-5" target="eJsysVOHvC-IGzexx3M3-6" edge="1">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="eJsysVOHvC-IGzexx3M3-5" value="Add item to basket" style="rounded=0;whiteSpace=wrap;html=1;" parent="eJsysVOHvC-IGzexx3M3-1" vertex="1">
-          <mxGeometry x="256" y="70" width="120" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="eJsysVOHvC-IGzexx3M3-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="eJsysVOHvC-IGzexx3M3-1" source="eJsysVOHvC-IGzexx3M3-6" target="eJsysVOHvC-IGzexx3M3-7" edge="1">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="eJsysVOHvC-IGzexx3M3-6" value="Checkout" style="rounded=0;whiteSpace=wrap;html=1;" parent="eJsysVOHvC-IGzexx3M3-1" vertex="1">
-          <mxGeometry x="440" y="70" width="120" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="eJsysVOHvC-IGzexx3M3-7" value="Finish transaction" style="rounded=0;whiteSpace=wrap;html=1;" parent="eJsysVOHvC-IGzexx3M3-1" vertex="1">
-          <mxGeometry x="620" y="70" width="120" height="60" as="geometry" />
-        </mxCell>
-      </root>
-    </mxGraphModel>
-  </diagram>
   <diagram id="46jrGEqxk9gJiDRffuaN" name="Scenarios in Reality">
-    <mxGraphModel dx="1114" dy="878" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+    <mxGraphModel dx="1114" dy="824" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
       <root>
         <mxCell id="UqqZVpDcYdt2ESsGVg10-0" />
         <mxCell id="UqqZVpDcYdt2ESsGVg10-1" parent="UqqZVpDcYdt2ESsGVg10-0" />
@@ -239,7 +210,7 @@
     </mxGraphModel>
   </diagram>
   <diagram id="tt_5l08dZDQMUoRVCTmD" name="Shuffle-H">
-    <mxGraphModel dx="1114" dy="878" grid="1" gridSize="5" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1114" dy="824" grid="1" gridSize="5" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="ugAKQ9cVWX7KweZPlPUd-0" />
         <mxCell id="ugAKQ9cVWX7KweZPlPUd-1" parent="ugAKQ9cVWX7KweZPlPUd-0" />
@@ -349,7 +320,7 @@
     </mxGraphModel>
   </diagram>
   <diagram name="SingleRun-H" id="huOg0HzCiD-NTcIeCLMb">
-    <mxGraphModel dx="1114" dy="878" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1114" dy="824" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="GinrQdB2n_00wVtigIAM-0" />
         <mxCell id="GinrQdB2n_00wVtigIAM-1" parent="GinrQdB2n_00wVtigIAM-0" />
@@ -396,7 +367,7 @@
     </mxGraphModel>
   </diagram>
   <diagram id="bxMxyazmhGE3ja24TmLV" name="General-Process">
-    <mxGraphModel dx="1114" dy="878" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+    <mxGraphModel dx="1114" dy="824" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
       <root>
         <mxCell id="UsSrw4F1aaCF74l8mA1q-0" />
         <mxCell id="UsSrw4F1aaCF74l8mA1q-1" parent="UsSrw4F1aaCF74l8mA1q-0" />
