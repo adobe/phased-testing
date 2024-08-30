@@ -58,7 +58,6 @@ public final class PhasedTestManager {
 
     public static final String STD_MERGE_STEP_ERROR_PREFIX = "Phased Error: Failure in step ";
 
-
     /**
      * The different states a step can assume in a scenario
      * <p>
@@ -865,7 +864,7 @@ public final class PhasedTestManager {
     static boolean isPhasedTestSingleMode(Class<?> in_class) {
         //TODO in 8.11.3 to be removed -  make public
         //return isPhasedTest(in_class) && (isPhasedTestWithEvent(in_class)
-        return isPhasedTest(in_class) && (isPhasedTestWithEvent(in_class) || !in_class.getAnnotation(PhasedTest.class).canShuffle());
+        return isPhasedTest(in_class) && (isPhasedTestWithEvent(in_class) || !in_class.getAnnotation(PhasedTest.class).canShuffle()) || isPhasedTestTargetOfEvent(in_class);
     }
 
     /**
@@ -898,8 +897,8 @@ public final class PhasedTestManager {
      * @return True if the given test scenario is a Shuffled Phased Test scenario
      */
     static boolean isPhasedTestShuffledMode(Class<?> in_class) {
-        //return isPhasedTest(in_class) && in_class.getAnnotation(PhasedTest.class).canShuffle();
-        return isPhasedTest(in_class) && !isPhasedTestWithEvent(in_class) && in_class.getAnnotation(PhasedTest.class).canShuffle();
+        return isPhasedTest(in_class) && !isPhasedTestWithEvent(in_class) && in_class.getAnnotation(PhasedTest.class)
+                .canShuffle() && !isPhasedTestTargetOfEvent(in_class);
     }
 
     /**
@@ -1665,6 +1664,35 @@ public final class PhasedTestManager {
             }
         }
         return lr_index;
+    }
+
+    /**
+     * Lets us know if the given class is the target of an event
+     *
+     * @param in_class A class candidate for an event
+     * @return true if the property  PHASED.EVENTS.NONINTERRUPTIVE.INJECTINTO points to a method in the class
+     */
+    public static boolean isPhasedTestTargetOfEvent(Class in_class) {
+        if (!ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE_TARGET.isSet()) {
+            return false;
+        }
+        return ClassPathParser.elementsCorrespond(in_class,
+                ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE_TARGET.fetchValue());
+    }
+
+    /**
+     * Lets us know if the given method is the target of an event
+     *
+     * @param in_method A method candidate for an event
+     * @return true if the property  PHASED.EVENTS.NONINTERRUPTIVE.INJECTINTO points to the method
+     */
+    public static boolean isPhasedTestTargetOfEvent(Method in_method) {
+        if (!ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE_TARGET.isSet()) {
+            return false;
+        }
+
+        return ClassPathParser.elementsCorrespond(in_method,
+                ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE_TARGET.fetchValue());
     }
 
 }

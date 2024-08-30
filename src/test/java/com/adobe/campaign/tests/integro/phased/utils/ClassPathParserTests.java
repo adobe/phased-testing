@@ -14,8 +14,11 @@ package com.adobe.campaign.tests.integro.phased.utils;
 import com.adobe.campaign.tests.integro.phased.ConfigValueHandlerPhased;
 import com.adobe.campaign.tests.integro.phased.PhasedTestManagerTests;
 import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_SingleClass;
+import com.adobe.campaign.tests.integro.phased.data.events.TestSINGLEWithEvent_eventAsExecProperty;
 import com.adobe.campaign.tests.integro.phased.data.permutational.SimpleProducerConsumerNestedContainer;
+import org.hamcrest.Matchers;
 import org.mockito.Mockito;
+import org.testng.Assert;
 import org.testng.ITestNGMethod;
 import org.testng.ITestResult;
 import org.testng.annotations.AfterMethod;
@@ -27,7 +30,6 @@ import java.lang.reflect.Method;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
-import static org.hamcrest.Matchers.nullValue;
 
 public class ClassPathParserTests {
 
@@ -88,7 +90,7 @@ public class ClassPathParserTests {
     @Test
     public void testStorageMethodWithMultiArgsNotJustStrings() throws SecurityException {
 
-        final Object[] l_parameterValues = new Object[] { "Q", Integer.valueOf("3")};
+        final Object[] l_parameterValues = new Object[] { "Q", Integer.valueOf("3") };
         assertThat("We should have the correct full name",
                 ClassPathParser.fetchParameterValues(l_parameterValues), equalTo("(Q,3)"));
 
@@ -96,11 +98,10 @@ public class ClassPathParserTests {
 
     /**
      * This test tests that we correctly fetch the class file by name of a class
-     *
+     * <p>
      * Author : vinaysha, baubakg
      *
      * @throws SecurityException
-     *
      */
     @Test
     public void testFetchClassFile() throws SecurityException {
@@ -176,9 +177,71 @@ public class ClassPathParserTests {
                 notNullValue());
 
         assertThat("We should have correctly found the file that exists",
-                ClassPathParser.fetchClassFile("adobe.campaign.tests.integro.phased.data.PhasedSeries_H_SingleClass").exists());
+                ClassPathParser.fetchClassFile("adobe.campaign.tests.integro.phased.data.PhasedSeries_H_SingleClass")
+                        .exists());
+    }
 
+    @Test
+    public void testElementsCorrespondSimple() throws NoSuchMethodException {
+        //Case 1: The method corresponds
+        String l_selectedMethodName = "com.adobe.campaign.tests.integro.phased.data.events.TestSINGLEWithEvent_eventAsExecProperty.step1";
 
+        Class l_class = TestSINGLEWithEvent_eventAsExecProperty.class;
+        assertThat("The class should correspond to the selected method",
+                ClassPathParser.elementsCorrespond(l_class, l_selectedMethodName));
+
+        final Method l_method = TestSINGLEWithEvent_eventAsExecProperty.class.getMethod("step1", String.class);
+        assertThat("The method should correspond to the selected method",
+                ClassPathParser.elementsCorrespond(l_method, l_selectedMethodName));
+
+        //Case 2 With #
+        String l_selectedMethodName2 = "TestSINGLEWithEvent_eventAsExecProperty#step1";
+
+        assertThat("The class should correspond to the selected method",
+                ClassPathParser.elementsCorrespond(l_class, l_selectedMethodName2));
+
+        assertThat("The method should correspond to the selected method",
+                ClassPathParser.elementsCorrespond(l_method, l_selectedMethodName2));
+
+        //Case 3 Full with #
+        String l_selectedMethodName3 = "com.adobe.campaign.tests.integro.phased.data.events.TestSINGLEWithEvent_eventAsExecProperty#step1";
+
+        assertThat("The class should correspond to the selected method",
+                ClassPathParser.elementsCorrespond(l_class, l_selectedMethodName3));
+
+        assertThat("The method should correspond to the selected method",
+                ClassPathParser.elementsCorrespond(l_method, l_selectedMethodName3));
+    }
+
+    @Test
+    public void testExtractClassFromElementSelection() throws NoSuchMethodException, ClassNotFoundException {
+        //Case 1: The method corresponds
+        String l_selectedMethodName = "com.adobe.campaign.tests.integro.phased.data.events.TestSINGLEWithEvent_eventAsExecProperty.step1";
+
+        assertThat("The class should correspond to the selected method",
+                ClassPathParser.extractElements("TestSINGLEWithEvent_eventAsExecProperty#step1"),
+                Matchers.arrayContaining(
+                        "TestSINGLEWithEvent_eventAsExecProperty",
+                        "step1"));
+
+        assertThat("The class should correspond to the selected method",
+                ClassPathParser.extractElements(l_selectedMethodName),
+                Matchers.arrayContaining(
+                        "com.adobe.campaign.tests.integro.phased.data.events.TestSINGLEWithEvent_eventAsExecProperty",
+                        "step1"));
+
+        assertThat("The class should correspond to the selected method", ClassPathParser.extractElements(
+                        "com.adobe.campaign.tests.integro.phased.data.events.TestSINGLEWithEvent_eventAsExecProperty"),
+                Matchers.arrayContaining("com.adobe.campaign.tests.integro.phased.data.events",
+                        "TestSINGLEWithEvent_eventAsExecProperty"));
+
+        Assert.assertThrows(IllegalArgumentException.class,
+                () -> ClassPathParser.extractElements("TestSINGLEWithEvent_eventAsExecProperty")
+        );
+
+        // final Method l_method = TestSINGLEWithEvent_eventAsExecProperty.class.getMethod("step1", String.class);
+        // assertThat("The class should correspond to the selected method", ClassPathParser.elementsCorrespond(l_method, l_selectedMethodName));
 
     }
+
 }

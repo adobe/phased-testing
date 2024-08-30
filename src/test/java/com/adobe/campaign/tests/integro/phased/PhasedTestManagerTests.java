@@ -1282,16 +1282,76 @@ public class PhasedTestManagerTests {
 
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testIsInSingleMode_NegativeAsynchronousMethod() throws NoSuchMethodException, SecurityException {
         final Method l_myMethod = TestSINGLEWithEvent_eventAsExecProperty.class.getMethod("step3", String.class);
 
         Phases.ASYNCHRONOUS.activate();
-        assertThat("We should be in Shuffled mode", !PhasedTestManager.isPhasedTestShuffledMode(l_myMethod));
-        assertThat("We should be in Shuffled mode", !PhasedTestManager.isPhasedTestSingleMode(l_myMethod));
-        assertThat("We should be in Shuffled mode", !PhasedTestManager.isPhasedTestSingleMode(l_myMethod));
+        assertThat("We should not be in Shuffled mode", !PhasedTestManager.isPhasedTestShuffledMode(l_myMethod));
+        assertThat("We should be in Shuffled mode", PhasedTestManager.isPhasedTestSingleMode(l_myMethod));
+    }
+
+
+    @Test
+    public void testIsShuffled_butIsSingleSinceAcynhcronousTargetted() throws NoSuchMethodException, SecurityException {
+        Class l_myClass = PhasedSeries_F_Shuffle.class;
+
+        assertThat("We should not be in Shuffled mode", PhasedTestManager.isPhasedTestShuffledMode(l_myClass));
+        assertThat("We should not be in Single mode", !PhasedTestManager.isPhasedTestSingleMode(l_myClass));
+
+        //Activate target event
+        ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE_TARGET.activate(l_myClass.getTypeName()+".step1");
+        assertThat("We should not be in Shuffled mode", !PhasedTestManager.isPhasedTestShuffledMode(l_myClass));
+        assertThat("We should  be in Single mode", PhasedTestManager.isPhasedTestSingleMode(l_myClass));
+
 
     }
+
+    /////// Checking if element is the target of a phase event
+    @Test
+    public void testIsTargetOfEvent() throws NoSuchMethodException, SecurityException {
+        Class l_myClass = PhasedSeries_F_Shuffle.class;
+
+        assertThat("We should be the target of an event", !PhasedTestManager.isPhasedTestTargetOfEvent(l_myClass));
+
+        //Simple
+        ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE_TARGET.activate(l_myClass.getTypeName()+".step1");
+        assertThat("We should be the target of an event", PhasedTestManager.isPhasedTestTargetOfEvent(l_myClass));
+
+        //Simple with #
+        ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE_TARGET.activate(l_myClass.getSimpleName()+"#step1");
+        assertThat("We should be the target of an event", PhasedTestManager.isPhasedTestTargetOfEvent(l_myClass));
+
+        //Simple with .
+        ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE_TARGET.activate(l_myClass.getSimpleName()+".step1");
+        assertThat("We should be the target of an event", PhasedTestManager.isPhasedTestTargetOfEvent(l_myClass));
+
+    }
+
+    @Test
+    public void testIsTargetOfEventMethodLevel() throws NoSuchMethodException, SecurityException {
+        Class l_myClass = PhasedSeries_F_Shuffle.class;
+
+        Method l_targetMethod = l_myClass.getMethod("step1", String.class);
+        Method l_nonTargetedMethod = l_myClass.getMethod("step2", String.class);
+
+
+        assertThat("We should be the target of an event", !PhasedTestManager.isPhasedTestTargetOfEvent(l_targetMethod));
+
+        //Simple
+        ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE_TARGET.activate(l_myClass.getTypeName()+".step1");
+        assertThat("We should be the target of an event", PhasedTestManager.isPhasedTestTargetOfEvent(l_myClass));
+
+        //Simple with #
+        ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE_TARGET.activate(l_myClass.getSimpleName()+"#step1");
+        assertThat("We should be the target of an event", PhasedTestManager.isPhasedTestTargetOfEvent(l_myClass));
+
+        //Simple with .
+        ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE_TARGET.activate(l_myClass.getSimpleName()+".step1");
+        assertThat("We should be the target of an event", PhasedTestManager.isPhasedTestTargetOfEvent(l_myClass));
+
+    }
+
 
     /****** Key Identity Methods *****/
     @Test
