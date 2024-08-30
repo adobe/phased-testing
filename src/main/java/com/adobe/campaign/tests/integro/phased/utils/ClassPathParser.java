@@ -129,7 +129,6 @@ public final class ClassPathParser {
      * @return if the element corresponds to the class
      */
     public static boolean elementsCorrespond(Class in_class, String in_selectedElementName) {
-
         return in_class.getTypeName().endsWith(extractElements(in_selectedElementName)[0]);
     }
 

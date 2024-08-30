@@ -1300,7 +1300,7 @@ public class PhasedTestManagerTests {
         assertThat("We should not be in Single mode", !PhasedTestManager.isPhasedTestSingleMode(l_myClass));
 
         //Activate target event
-        ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE_TARGET.activate(l_myClass.getTypeName()+".step1");
+        ConfigValueHandlerPhased.EVENT_TARGET.activate(l_myClass.getTypeName()+".step1");
         assertThat("We should not be in Shuffled mode", !PhasedTestManager.isPhasedTestShuffledMode(l_myClass));
         assertThat("We should  be in Single mode", PhasedTestManager.isPhasedTestSingleMode(l_myClass));
 
@@ -1315,15 +1315,15 @@ public class PhasedTestManagerTests {
         assertThat("We should be the target of an event", !PhasedTestManager.isPhasedTestTargetOfEvent(l_myClass));
 
         //Simple
-        ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE_TARGET.activate(l_myClass.getTypeName()+".step1");
+        ConfigValueHandlerPhased.EVENT_TARGET.activate(l_myClass.getTypeName()+".step1");
         assertThat("We should be the target of an event", PhasedTestManager.isPhasedTestTargetOfEvent(l_myClass));
 
         //Simple with #
-        ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE_TARGET.activate(l_myClass.getSimpleName()+"#step1");
+        ConfigValueHandlerPhased.EVENT_TARGET.activate(l_myClass.getSimpleName()+"#step1");
         assertThat("We should be the target of an event", PhasedTestManager.isPhasedTestTargetOfEvent(l_myClass));
 
         //Simple with .
-        ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE_TARGET.activate(l_myClass.getSimpleName()+".step1");
+        ConfigValueHandlerPhased.EVENT_TARGET.activate(l_myClass.getSimpleName()+".step1");
         assertThat("We should be the target of an event", PhasedTestManager.isPhasedTestTargetOfEvent(l_myClass));
 
     }
@@ -1339,15 +1339,15 @@ public class PhasedTestManagerTests {
         assertThat("We should be the target of an event", !PhasedTestManager.isPhasedTestTargetOfEvent(l_targetMethod));
 
         //Simple
-        ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE_TARGET.activate(l_myClass.getTypeName()+".step1");
+        ConfigValueHandlerPhased.EVENT_TARGET.activate(l_myClass.getTypeName()+".step1");
         assertThat("We should be the target of an event", PhasedTestManager.isPhasedTestTargetOfEvent(l_myClass));
 
         //Simple with #
-        ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE_TARGET.activate(l_myClass.getSimpleName()+"#step1");
+        ConfigValueHandlerPhased.EVENT_TARGET.activate(l_myClass.getSimpleName()+"#step1");
         assertThat("We should be the target of an event", PhasedTestManager.isPhasedTestTargetOfEvent(l_myClass));
 
         //Simple with .
-        ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE_TARGET.activate(l_myClass.getSimpleName()+".step1");
+        ConfigValueHandlerPhased.EVENT_TARGET.activate(l_myClass.getSimpleName()+".step1");
         assertThat("We should be the target of an event", PhasedTestManager.isPhasedTestTargetOfEvent(l_myClass));
 
     }

@@ -1673,11 +1673,11 @@ public final class PhasedTestManager {
      * @return true if the property  PHASED.EVENTS.NONINTERRUPTIVE.INJECTINTO points to a method in the class
      */
     public static boolean isPhasedTestTargetOfEvent(Class in_class) {
-        if (!ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE_TARGET.isSet()) {
+        if (!ConfigValueHandlerPhased.EVENT_TARGET.isSet()) {
             return false;
         }
         return ClassPathParser.elementsCorrespond(in_class,
-                ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE_TARGET.fetchValue());
+                ConfigValueHandlerPhased.EVENT_TARGET.fetchValue());
     }
 
     /**
@@ -1687,12 +1687,12 @@ public final class PhasedTestManager {
      * @return true if the property  PHASED.EVENTS.NONINTERRUPTIVE.INJECTINTO points to the method
      */
     public static boolean isPhasedTestTargetOfEvent(Method in_method) {
-        if (!ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE_TARGET.isSet()) {
+        if (!ConfigValueHandlerPhased.EVENT_TARGET.isSet()) {
             return false;
         }
 
         return ClassPathParser.elementsCorrespond(in_method,
-                ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE_TARGET.fetchValue());
+                ConfigValueHandlerPhased.EVENT_TARGET.fetchValue());
     }
 
 }

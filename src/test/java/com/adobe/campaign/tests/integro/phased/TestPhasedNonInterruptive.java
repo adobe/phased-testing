@@ -337,7 +337,7 @@ public class TestPhasedNonInterruptive {
     public void testExtractEventForTargettedEvent() throws NoSuchMethodException {
         Method l_targettedMethodWithoutEvent = PhasedSeries_F_Shuffle.class.getMethod("step2", String.class);
         ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
-        ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE_TARGET.activate(ClassPathParser.fetchFullName(l_targettedMethodWithoutEvent));
+        ConfigValueHandlerPhased.EVENT_TARGET.activate(ClassPathParser.fetchFullName(l_targettedMethodWithoutEvent));
 
         assertThat("We should correctly extract the event from the method",
                 PhasedEventManager.fetchApplicableEvent(l_targettedMethodWithoutEvent),
@@ -683,7 +683,7 @@ public class TestPhasedNonInterruptive {
 
         Phases.ASYNCHRONOUS.activate();
         ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
-        ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE_TARGET.activate(PhasedTestShuffledWithoutCanShuffleNested.PhasedTestShuffledWithoutCanShuffleNestedInner.class.getTypeName()+"#step3");
+        ConfigValueHandlerPhased.EVENT_TARGET.activate(PhasedTestShuffledWithoutCanShuffleNested.PhasedTestShuffledWithoutCanShuffleNestedInner.class.getTypeName()+"#step3");
 
         myTestNG.run();
 

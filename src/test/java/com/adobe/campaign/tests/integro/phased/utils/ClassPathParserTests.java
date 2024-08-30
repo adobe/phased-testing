@@ -15,6 +15,7 @@ import com.adobe.campaign.tests.integro.phased.ConfigValueHandlerPhased;
 import com.adobe.campaign.tests.integro.phased.PhasedTestManagerTests;
 import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_SingleClass;
 import com.adobe.campaign.tests.integro.phased.data.events.TestSINGLEWithEvent_eventAsExecProperty;
+import com.adobe.campaign.tests.integro.phased.data.nested.PhasedSeries_N_NestedContainer;
 import com.adobe.campaign.tests.integro.phased.data.permutational.SimpleProducerConsumerNestedContainer;
 import org.hamcrest.Matchers;
 import org.mockito.Mockito;
@@ -190,7 +191,7 @@ public class ClassPathParserTests {
         assertThat("The class should correspond to the selected method",
                 ClassPathParser.elementsCorrespond(l_class, l_selectedMethodName));
 
-        final Method l_method = TestSINGLEWithEvent_eventAsExecProperty.class.getMethod("step1", String.class);
+        final Method l_method = l_class.getMethod("step1", String.class);
         assertThat("The method should correspond to the selected method",
                 ClassPathParser.elementsCorrespond(l_method, l_selectedMethodName));
 
@@ -205,6 +206,38 @@ public class ClassPathParserTests {
 
         //Case 3 Full with #
         String l_selectedMethodName3 = "com.adobe.campaign.tests.integro.phased.data.events.TestSINGLEWithEvent_eventAsExecProperty#step1";
+
+        assertThat("The class should correspond to the selected method",
+                ClassPathParser.elementsCorrespond(l_class, l_selectedMethodName3));
+
+        assertThat("The method should correspond to the selected method",
+                ClassPathParser.elementsCorrespond(l_method, l_selectedMethodName3));
+    }
+
+    @Test
+    public void testElementsCorrespondNested() throws NoSuchMethodException {
+        //Case 1: The method corresponds
+        String l_selectedMethodName = "com.adobe.campaign.tests.integro.phased.data.nested.PhasedSeries_N_NestedContainer$PhasedSeries_N_ShuffledClassWithError.step2";
+
+        Class l_class = PhasedSeries_N_NestedContainer.PhasedSeries_N_ShuffledClassWithError.class;
+        assertThat("The class should correspond to the selected method",
+                ClassPathParser.elementsCorrespond(l_class, l_selectedMethodName));
+
+        final Method l_method = l_class.getMethod("step2", String.class);
+        assertThat("The method should correspond to the selected method",
+                ClassPathParser.elementsCorrespond(l_method, l_selectedMethodName));
+
+        //Case 2 With #
+        String l_selectedMethodName2 = "PhasedSeries_N_NestedContainer$PhasedSeries_N_ShuffledClassWithError.step2";
+
+        assertThat("The class should correspond to the selected method",
+                ClassPathParser.elementsCorrespond(l_class, l_selectedMethodName2));
+
+        assertThat("The method should correspond to the selected method",
+                ClassPathParser.elementsCorrespond(l_method, l_selectedMethodName2));
+
+        //Case 3 Full with #
+        String l_selectedMethodName3 = "com.adobe.campaign.tests.integro.phased.data.nested.PhasedSeries_N_NestedContainer$PhasedSeries_N_ShuffledClassWithError#step2";;
 
         assertThat("The class should correspond to the selected method",
                 ClassPathParser.elementsCorrespond(l_class, l_selectedMethodName3));
