@@ -8,6 +8,7 @@
  */
 package com.adobe.campaign.tests.integro.phased;
 
+import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_F_Shuffle;
 import com.adobe.campaign.tests.integro.phased.data.PhasedTestShuffledWithoutCanShuffleNested;
 import com.adobe.campaign.tests.integro.phased.data.events.*;
 import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestConfigurationException;
@@ -205,15 +206,19 @@ public class TestPhasedNonInterruptive {
                 PhasedEventManager.fetchApplicableEvent(l_methodWithEvent), equalTo(MyNonInterruptiveEvent.class.getTypeName()));
 
         //Case 2 Event Declared as Exec property
+
         Method l_methodWithNoEventSet = TestSINGLEWithEvent_eventAsExecProperty.class.getMethod("step2", String.class);
         ITestResult l_itr2 = MockTestTools.generateTestResultMock(l_methodWithNoEventSet, new Object[]{"D"});
-        assertThat("We should correctly extract the event from the method",
+        assertThat("We should have no event set for this method at this stage",
                 PhasedEventManager.fetchApplicableEvent(l_methodWithNoEventSet), nullValue());
 
         ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent2.class.getTypeName());
         assertThat("We should correctly extract the event from the method",
                 PhasedEventManager.fetchEvent(l_itr2),
                 equalTo(MyNonInterruptiveEvent2.class.getTypeName()));
+
+        assertThat("We should correctly extract the event from the method",
+                PhasedEventManager.fetchApplicableEvent(l_methodWithNoEventSet), equalTo(MyNonInterruptiveEvent2.class.getTypeName()));
 
         //Case 3  Event Declared on PhasedTest
         ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.reset();
@@ -323,6 +328,23 @@ public class TestPhasedNonInterruptive {
         assertThat("We should correctly extract the event from the method",
                 PhasedEventManager.fetchEvent(l_itr1),
                 equalTo(MyNonInterruptiveEvent.class.getTypeName()));
+    }
+
+    @Test
+    public void testExtractEventForTargettedEvent() throws NoSuchMethodException {
+        Method l_targettedMethodWithoutEvent = PhasedSeries_F_Shuffle.class.getMethod("step2", String.class);
+        ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
+        ConfigValueHandlerPhased.EVENT_TARGET.activate(ClassPathParser.fetchFullName(l_targettedMethodWithoutEvent));
+
+        assertThat("We should correctly extract the event from the method",
+                PhasedEventManager.fetchApplicableEvent(l_targettedMethodWithoutEvent),
+                equalTo(MyNonInterruptiveEvent.class.getTypeName()));
+
+        Method l_nonTargettedMethodWithoutEvent = PhasedSeries_F_Shuffle.class.getMethod("step1", String.class);
+
+        assertThat("We should correctly extract the event from the method",
+                PhasedEventManager.fetchApplicableEvent(l_nonTargettedMethodWithoutEvent),
+                Matchers.nullValue());
     }
 
 
@@ -631,6 +653,49 @@ public class TestPhasedNonInterruptive {
 
         assertThat("We should have the correct number of events in the logs (1 x phase groups)", PhasedEventManager.getEventLogs().size(),
                 Matchers.equalTo(6));
+    }
+
+
+    /**
+     * This is a test for non-intyerruptive events in shuffled classes. Using the legacy annotations
+     */
+    @Test
+    public void testNonInterruptive_ParellelConfiguredAsExecutionVariableTargetted_Shuffled() {
+
+        // Rampup
+        TestNG myTestNG = TestTools.createTestNG();
+        TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
+
+        // Define suites
+        XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG, "Automated Suite Phased Testing");
+
+        // Add listeners
+        mySuite.addListener("com.adobe.campaign.tests.integro.phased.PhasedTestListener");
+
+        // Create an instance of XmlTest and assign a name for it.
+        XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Shuffled Phased Tests");
+
+        final Class<PhasedTestShuffledWithoutCanShuffleNested.PhasedTestShuffledWithoutCanShuffleNestedInner> l_testClass = PhasedTestShuffledWithoutCanShuffleNested.PhasedTestShuffledWithoutCanShuffleNestedInner.class;
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
+
+        Phases.ASYNCHRONOUS.activate();
+        ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
+        ConfigValueHandlerPhased.EVENT_TARGET.activate(PhasedTestShuffledWithoutCanShuffleNested.PhasedTestShuffledWithoutCanShuffleNestedInner.class.getTypeName()+"#step3");
+
+        myTestNG.run();
+
+        assertThat("We should be in non-interruptive mode shuffled", !PhasedTestManager.isPhasedTestShuffledMode(l_testClass));
+
+        assertThat("We should have 3 successful methods of phased Tests",
+                (int) tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
+                is(equalTo(3)));
+
+        //Global
+        assertThat("We should have no failed tests", tla.getFailedTests().size(), equalTo(0));
+        assertThat("We should have no skipped tests", tla.getSkippedTests().size(), equalTo(0));
+
+        assertThat("We should have the correct number of events in the logs (1 x phase groups)", PhasedEventManager.getEventLogs().size(),
+                Matchers.equalTo(2));
     }
 
 

@@ -39,10 +39,43 @@ public class PhasedEventManager {
      * @return The event that is declared on the method. Null if there is no event declared for the method
      */
     public static String fetchApplicableEvent(Method in_method) {
-        if (in_method.isAnnotationPresent(PhaseEvent.class) && (in_method.getDeclaredAnnotation(PhaseEvent.class).eventClasses().length > 0)) {
+        if (!PhasedTestManager.isPhasedTest(in_method) ) {
+            return null;
+        }
+/*
+        if (in_method.isAnnotationPresent(PhaseEvent.class) && (
+                in_method.getDeclaredAnnotation(PhaseEvent.class).eventClasses().length > 0)) {
             return in_method.getDeclaredAnnotation(PhaseEvent.class).eventClasses()[0];
-        } else if (PhasedTestManager.isPhasedTest(in_method) && (in_method.getDeclaringClass().getDeclaredAnnotation(PhasedTest.class).eventClasses().length > 0)) {
+        }
+
+*/
+        if (PhasedTestManager.isPhasedTestWithEvent(in_method.getDeclaringClass())) {
+            if (in_method.isAnnotationPresent(PhaseEvent.class)) {
+                //if the event is declared on the Event annotation it gets precedence
+                if (in_method.getDeclaredAnnotation(PhaseEvent.class).eventClasses().length > 0) {
+                    return in_method.getDeclaredAnnotation(PhaseEvent.class).eventClasses()[0];
+                } else if (in_method.getDeclaringClass().getDeclaredAnnotation(PhasedTest.class).eventClasses().length
+                        > 0) {
+                    return in_method.getDeclaringClass().getDeclaredAnnotation(PhasedTest.class).eventClasses()[0];
+                } else {
+                    return ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.fetchValue();
+                }
+            } else {
+                return null;
+            }
+            //Otherwise it is the event on the class
+            //otherwise it is the passed event
+            /*
+            return in_method.getDeclaredAnnotation(PhaseEvent.class).eventClasses().length > 0 ?
+                    in_method.getDeclaredAnnotation(PhaseEvent.class).eventClasses()[0] :
+                    ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.fetchValue();
+
+             */
+        }
+        else if (in_method.getDeclaringClass().getDeclaredAnnotation(PhasedTest.class).eventClasses().length > 0) {
             return in_method.getDeclaringClass().getDeclaredAnnotation(PhasedTest.class).eventClasses()[0];
+        } else if (ConfigValueHandlerPhased.EVENT_TARGET.isSet()) {
+            return PhasedTestManager.isPhasedTestTargetOfEvent(in_method) ? ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.fetchValue() : null;
         } else if (ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.isSet()) {
             return ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.fetchValue();
         }
@@ -83,7 +116,7 @@ public class PhasedEventManager {
         NonInterruptiveEvent nie = instantiateClassFromString(in_event);
         logEvent(EventMode.START, in_event, in_onAccountOfStep);
         events.put(in_onAccountOfStep, nie);
-            eventExecutor.submit(nie);
+        eventExecutor.submit(nie);
         while (nie.getState().equals(NonInterruptiveEvent.states.DEFINED)) {
             try {
                 Thread.sleep(1);
@@ -181,11 +214,8 @@ public class PhasedEventManager {
     protected static String fetchEvent(Method in_currentMethod, String in_currentShuffleGroup) {
         if (PhasedTestManager.isPhasedTestSingleMode(in_currentMethod)) {
             //Check if the current method is subject to event
-            if (in_currentMethod.isAnnotationPresent(PhaseEvent.class)) {
-                return fetchApplicableEvent(in_currentMethod);
-            } else {
-                return null;
-            }
+            return fetchApplicableEvent(in_currentMethod);
+
         } else {
 
             int l_currentShuffleGroupNr = PhasedTestManager.asynchronousExtractIndex(in_currentShuffleGroup, true);

@@ -2,7 +2,7 @@
 [![unit-tests](https://github.com/adobe/phased-testing/actions/workflows/onPushSimpleTest.yml/badge.svg)](https://github.com/adobe/phased-testing/actions/workflows/onPushSimpleTest.yml) 
 [![codecov](https://codecov.io/gh/adobe/phased-testing/branch/main/graph/badge.svg?token=GSi0gUlqq5)](https://codecov.io/gh/adobe/phased-testing)
 [![javadoc](https://javadoc.io/badge2/com.adobe.campaign.tests.phased/phased-testing-testng/javadoc.svg)](https://javadoc.io/doc/com.adobe.campaign.tests.phased/phased-testing-testng)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=adobe_phased-testing&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=adobe_phased-testing)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=adobe_phased-testing&metric=alert_status&branch=main)](https://sonarcloud.io/summary/new_code?id=adobe_phased-testing&branch=main)
 
 Phased Testing has been created to address the issues related to Event Based Testing. Event Based Testing is a notion where tests adapt to external events, and allow you to simulate how your product reacts to an external event. 
 
@@ -342,6 +342,26 @@ This works for both Shuffled and Single-Run tests. If we want to run all tests w
 
 You can also add it as a property in your testng definition file.
 
+#### Targeting an Event to a Specific Step
+As of version 8.11.2, we can inject an event to a specific step of a Phased Scenario. This is done by:
+* Declaring an event by setting the variable `PHASED.EVENTS.NONINTERRUPTIVE`.
+* Identifying the step on which an event will occur. This is done by setting the variable `PHASED.EVENTS.TARGET`.
+
+The step should point to a method. For method `step1` in the class `a.b.c.ScenarioA` you can set:
+* `a.b.c.ScenarioA.step1`
+* `ScenarioA#step1`
+* `ScenarioA.step1`
+
+In the case of nested tests, for method `step1` in the class `a.b.c.ScenarioA`, and sub-class `NestedClassB` you need to use the `$` notation. It will look like:
+* `a.b.c.ScenarioA$NestedClassB.step1`
+* `ScenarioA$NestedClassB#step1`
+* `ScenarioA$NestedClassB.step1`
+
+Here is an example of running a specific event for a specific test:
+
+```mvn clean test -DPHASED.EVENTS.NONINTERRUPTIVE=com.adobe.campaign.tests.integro.phased.data.events.MyNonInterruptiveEvent -DPHASED.EVENTS.TARGET=ScenarioA$NestedClassB#step1 ```
+
+
 ### Before- and After-Phase Actions
 We have introduced the possibility of defining Before and After Phases. This means that you can state if a method can be invoked before or after the phased tests are executed. These methods are only activated when we are in a Phase, and will not run when executed when we execute the scenarios in Non-Phased mode. 
 
@@ -567,6 +587,10 @@ For now, we do not know how parallel execution will work with phased tests. So i
 For now, we have not come around to deciding how retry should work in the case of phased tests. By default, we deactivate them on the phased tests unless the user specifically chooses to activate them by setting the system property `PHASED.TESTS.RETRY.DISABLED` to false. 
 
 ## Release Notes
+
+### 8.11.2
+* [#178 Allowing the injection in any step of a scenario](https://github.com/adobe/bridgeService/issues/178). We can now inject an event into a step in an arbitrary phased test. This is done by setting the syetm property PHASED.EVENTS.TARGET. This way you can inject the event into that step.
+
 
 ### 8.11.1
 * Renaming ConfigValueHandler to ConfigValueHandlerPhased

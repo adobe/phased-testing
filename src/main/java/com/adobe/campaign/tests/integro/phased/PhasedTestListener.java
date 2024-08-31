@@ -155,7 +155,7 @@ public class PhasedTestListener
 
                 //Check if there is an event declared
                 String lt_event = PhasedEventManager.fetchEvent(result);
-                if (PhasedEventManager.fetchEvent(result) != null) {
+                if (lt_event != null) {
                     //TODO use PhasedTestManager for fetching full name instead
                     PhasedEventManager.startEvent(lt_event, ClassPathParser.fetchFullName(result));
                 }

@@ -1,10 +1,13 @@
 /*
- * Copyright 2022 Adobe
- * All Rights Reserved.
+ * MIT License
  *
- * NOTICE: Adobe permits you to use, modify, and distribute this file in
- * accordance with the terms of the Adobe license agreement accompanying
- * it.
+ * © Copyright 2020 Adobe. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 package com.adobe.campaign.tests.integro.phased;
 
@@ -927,7 +930,7 @@ public final class PhasedTestManager {
     static boolean isPhasedTestSingleMode(Class<?> in_class) {
         //TODO in 8.11.3 to be removed -  make public
         //return isPhasedTest(in_class) && (isPhasedTestWithEvent(in_class)
-        return isPhasedTest(in_class) && (isPhasedTestWithEvent(in_class) || !in_class.getAnnotation(PhasedTest.class).canShuffle());
+        return isPhasedTest(in_class) && (isPhasedTestWithEvent(in_class) || !in_class.getAnnotation(PhasedTest.class).canShuffle()) || isPhasedTestTargetOfEvent(in_class);
     }
 
     /**
@@ -960,8 +963,8 @@ public final class PhasedTestManager {
      * @return True if the given test scenario is a Shuffled Phased Test scenario
      */
     static boolean isPhasedTestShuffledMode(Class<?> in_class) {
-        //return isPhasedTest(in_class) && in_class.getAnnotation(PhasedTest.class).canShuffle();
-        return isPhasedTest(in_class) && !isPhasedTestWithEvent(in_class) && in_class.getAnnotation(PhasedTest.class).canShuffle();
+        return isPhasedTest(in_class) && !isPhasedTestWithEvent(in_class) && in_class.getAnnotation(PhasedTest.class)
+                .canShuffle() && !isPhasedTestTargetOfEvent(in_class);
     }
 
     /**
@@ -1801,6 +1804,35 @@ public final class PhasedTestManager {
             }
         }
         return lr_index;
+    }
+
+    /**
+     * Lets us know if the given class is the target of an event
+     *
+     * @param in_class A class candidate for an event
+     * @return true if the property  PHASED.EVENTS.NONINTERRUPTIVE.INJECTINTO points to a method in the class
+     */
+    public static boolean isPhasedTestTargetOfEvent(Class in_class) {
+        if (!ConfigValueHandlerPhased.EVENT_TARGET.isSet()) {
+            return false;
+        }
+        return ClassPathParser.elementsCorrespond(in_class,
+                ConfigValueHandlerPhased.EVENT_TARGET.fetchValue());
+    }
+
+    /**
+     * Lets us know if the given method is the target of an event
+     *
+     * @param in_method A method candidate for an event
+     * @return true if the property  PHASED.EVENTS.NONINTERRUPTIVE.INJECTINTO points to the method
+     */
+    public static boolean isPhasedTestTargetOfEvent(Method in_method) {
+        if (!ConfigValueHandlerPhased.EVENT_TARGET.isSet()) {
+            return false;
+        }
+
+        return ClassPathParser.elementsCorrespond(in_method,
+                ConfigValueHandlerPhased.EVENT_TARGET.fetchValue());
     }
 
 }

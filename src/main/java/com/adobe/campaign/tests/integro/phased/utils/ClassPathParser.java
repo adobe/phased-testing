@@ -133,4 +133,44 @@ public final class ClassPathParser {
         return (in_class.getDeclaringClass() == null) ? fetchClassFile(in_class.getTypeName()) : fetchClassFile(
                 in_class.getDeclaringClass().getTypeName());
     }
+
+    /**
+     * Lets us know if the given class corresponds to the selected method/class
+     * @param in_class The current class to assess
+     * @param in_selectedElementName the selected element
+     * @return if the element corresponds to the class
+     */
+    public static boolean elementsCorrespond(Class in_class, String in_selectedElementName) {
+        return in_class.getTypeName().endsWith(extractElements(in_selectedElementName)[0]);
+    }
+
+    /**
+     * Lets us know if the given method corresponds to the selected method/class
+     * @param in_method The current class to assess
+     * @param in_selectedElementName the selected element
+     * @return if the element corresponds to the class
+     */
+    public static boolean elementsCorrespond(Method in_method, String in_selectedElementName) {
+        String[] l_elements = extractElements(in_selectedElementName);
+
+        return elementsCorrespond(in_method.getDeclaringClass(), in_selectedElementName) && in_method.getName().equals(l_elements[1]);
+    }
+
+    /**
+     * Given a string representing a class or a
+     * @param l_selectedMethodName
+     * @return
+     */
+    public static String[] extractElements(String l_selectedMethodName) {
+        if (l_selectedMethodName.contains("#")) {
+            return l_selectedMethodName.split("#");
+        }
+
+        int lioDot = l_selectedMethodName.lastIndexOf('.');
+
+        if (lioDot == -1) {
+            throw new IllegalArgumentException("The selected method name is not valid, or is of a bad format. Please include a full reference to a step name");
+        }
+        return new String []{l_selectedMethodName.substring(0,lioDot),l_selectedMethodName.substring(lioDot+1)};
+    }
 }
