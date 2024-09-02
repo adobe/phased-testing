@@ -69,10 +69,14 @@
                         <licenseSet>
                             <header>${license.dir}/LicenseHeader</header>
                             <excludes>
-                                <exclude>**/README</exclude>
-                                <exclude>sonar-project.properties</exclude>
                                 <exclude>phased_output/**</exclude>
                                 <exclude>ac_test_output/**</exclude>
+                                <exclude>**/*.md</exclude>
+                                <exclude>**/*.txt</exclude>
+                                <exclude>**/*.properties</exclude>
+                                <exclude>LICENSE_DATA/**</exclude>
+                                <exclude>${license.dir}/**</exclude>
+                                <exclude>**/*.drawio</exclude>
                             </excludes>
                         </licenseSet>
                     </licenseSets>
@@ -165,12 +169,12 @@
                                 <pluginExecution>
                                     <pluginExecutionFilter>
                                         <groupId>
-                                            com.mycila.maven-license-plugin 
+                                            com.mycila.maven-license-plugin
                                         </groupId>
                                         <artifactId>
-                                            maven-license-plugin 
+                                            maven-license-plugin
                                         </artifactId>
-                                        <versionRange> [4.1,) 
+                                        <versionRange> [4.1,)
                                         </versionRange>
                                         <goals>
                                             <goal>format</goal>
