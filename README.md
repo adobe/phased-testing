@@ -35,11 +35,12 @@ Examples of events are:
     * [Local Execution](#local-execution)
     * [Non-Interruptive Events](#non-interruptive-events)
       * [Writing a Non-Interruptive Event](#writing-a-non-interruptive-event)
+        * [Performing Event Cleanup Actions](#performing-event-cleanup-actions)
       * [Binding an Event to a Scenario](#binding-an-event-to-a-scenario)
-      * [Attaching an Event using the PhaseEvent Annotation](#attaching-an-event-using-the-phaseevent-annotation)
-      * [Attaching an Event using the PhasedTest Annotation](#attaching-an-event-using-the-phasedtest-annotation)
-      * [Attaching an Event to the Test Suite](#attaching-an-event-to-the-test-suite)
-      * [Targeting an Event to a Specific Step](#targeting-an-event-to-a-specific-step)
+        * [Attaching an Event using the PhaseEvent Annotation](#attaching-an-event-using-the-phaseevent-annotation)
+        * [Attaching an Event using the PhasedTest Annotation](#attaching-an-event-using-the-phasedtest-annotation)
+        * [Attaching an Event to the Test Suite](#attaching-an-event-to-the-test-suite)
+        * [Targeting an Event to a Specific Step](#targeting-an-event-to-a-specific-step)
     * [Before- and After-Phase Actions](#before--and-after-phase-actions)
     * [Nested Design Pattern](#nested-design-pattern)
   * [Running a Phased Test](#running-a-phased-test)
@@ -297,7 +298,7 @@ As you can see we have to implement three methods:
 
 In order to define these event you will need to implement these methods, as you who are defining the event have the best knowledge on how these event will work.
 
-##### Performing Event Cleaner Actions
+##### Performing Event Cleanup Actions
 At times the simple execution of an event is not sufficient. We need to perform an event counter action to reset the system to a stable state. For this we allow you to define post step actions for an event. This means that after an event has been finished, we perform an additional set of actions before the next step is executed. To make use of this you need to override the method `runPostStepActions` in your event. The framework will then execute this action right before the next step is triggered.
 
 ```java
@@ -626,8 +627,8 @@ For now, we have not come around to deciding how retry should work in the case o
 ## Release Notes
 
 ### 8.11.2
-* [#178 Allowing the injection in any step of a scenario](https://github.com/adobe/bridgeService/issues/178). We can now inject an event into a step in an arbitrary phased test. This is done by setting the syetm property PHASED.EVENTS.TARGET. This way you can inject the event into that step.
-
+* **(new feature)** [#178 Allowing the injection in any step of a scenario](https://github.com/adobe/bridgeService/issues/178). We can now inject an event into a step in an arbitrary phased test. This is done by setting the syetm property PHASED.EVENTS.TARGET. This way you can inject the event into that step.
+* **(new feature)** [#198 Adding Post Step Event actions](https://github.com/adobe/bridgeService/issues/198). We allow you to define post-step actions in the context of an event. Please refer to the chapter [Performing Event Cleanup Actions](#performing-event-cleanup-actions).
 
 ### 8.11.1
 * Renaming ConfigValueHandler to ConfigValueHandlerPhased
