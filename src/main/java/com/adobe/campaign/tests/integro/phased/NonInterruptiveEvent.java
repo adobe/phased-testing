@@ -59,4 +59,12 @@ public abstract class NonInterruptiveEvent implements Runnable {
         return state;
     }
 
+    /**
+     * Override this method to execute actions after the step subject to the event has been completed
+     * @return true if the post step actions were successful
+     */
+    public boolean runPostStepActions() {
+        return true;
+    }
+
 }

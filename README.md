@@ -297,6 +297,17 @@ As you can see we have to implement three methods:
 
 In order to define these event you will need to implement these methods, as you who are defining the event have the best knowledge on how these event will work.
 
+##### Performing Event Cleaner Actions
+At times the simple execution of an event is not sufficient. We need to perform an event counter action to reset the system to a stable state. For this we allow you to define post step actions for an event. This means that after an event has been finished, we perform an additional set of actions before the next step is executed. To make use of this you need to override the method `runPostStepActions` in your event. The framework will then execute this action right before the next step is triggered.
+
+```java
+@Override
+public boolean runPostStepActions() {
+        // Perform actions
+        return true; //Return true if the actions were successful
+        }
+```
+
 #### Binding an Event to a Scenario
 In order for your scenario to interact with an event you will need to declare it. This can be done in three ways (in order of precedence) :
 * Phased Event Annotation
@@ -305,7 +316,7 @@ In order for your scenario to interact with an event you will need to declare it
 
 If you have the event declared in more than one level (for example on both the PhasedEvent and the PhasedTest annotation), it is the value with more precedence which is taken into account.
 
-#### Attaching an Event using the PhaseEvent Annotation
+##### Attaching an Event using the PhaseEvent Annotation
 The mode is only applicable to Single Run execution modes.
 
 In the case of single run scenarios, we can specify which phase event should be triggered on the annotation itself. This is by setting the `eventClasses` attribute for the `@PhaseEvent` annotation.
@@ -334,7 +345,7 @@ public class SingleRunScenarioWithEvent {
 }
 ```
 
-#### Attaching an Event using the PhasedTest Annotation
+##### Attaching an Event using the PhasedTest Annotation
 In this case we expect us to specify if a scenario is only subject to the same event. This will be done at the `@PhasedTest` annotation using the attribute `eventClasses`. When set we only use the specified event.
 
 ```Java
@@ -359,7 +370,7 @@ public class ShuffledScenarioWithEvent {
 }
 ```
 
-#### Attaching an Event to the Test Suite
+##### Attaching an Event to the Test Suite
 In this case, we state that all scenarios should be using the same Event. We can activate this mode by setting the environment variable `PHASED.EVENTS.NONINTERRUPTIVE` to the event class.
 
 This works for both Shuffled and Single-Run tests. If we want to run all tests with the event `com.adobe.campaign.tests.integro.phased.data.events.MyNonInterruptiveEvent`, we enter:
@@ -368,7 +379,7 @@ This works for both Shuffled and Single-Run tests. If we want to run all tests w
 
 You can also add it as a property in your testng definition file.
 
-#### Targeting an Event to a Specific Step
+##### Targeting an Event to a Specific Step
 As of version 8.11.2, we can inject an event to a specific step of a Phased Scenario. This is done by:
 * Declaring an event by setting the variable `PHASED.EVENTS.NONINTERRUPTIVE`.
 * Identifying the step on which an event will occur. This is done by setting the variable `PHASED.EVENTS.TARGET`.
