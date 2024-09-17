@@ -14,6 +14,7 @@ public abstract class NonInterruptiveEvent implements Runnable {
 
     /**
      * Starts the non-interruptive event
+     * returns true if the event was successfully started
      */
     public abstract boolean startEvent();
 
@@ -27,7 +28,6 @@ public abstract class NonInterruptiveEvent implements Runnable {
      * Waits until the event has concluded
      * @return true if it successfully finished
      */
-    //
     public abstract boolean waitTillFinished();
 
     public enum states {DEFINED , STARTED, FAILURE, FINISHED};

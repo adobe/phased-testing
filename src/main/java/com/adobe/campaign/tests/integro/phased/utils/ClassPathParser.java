@@ -157,20 +157,20 @@ public final class ClassPathParser {
     }
 
     /**
-     * Given a string representing a class or a
-     * @param l_selectedMethodName
-     * @return
+     * Given a string representing a step/method. This method is used to targeting steps with events
+     * @param in_selectedMethodName The full step name
+     * @return An array containing the class and the step names. If no method can be distinguished, we return just the class.
      */
-    public static String[] extractElements(String l_selectedMethodName) {
-        if (l_selectedMethodName.contains("#")) {
-            return l_selectedMethodName.split("#");
+    public static String[] extractElements(String in_selectedMethodName) {
+        if (in_selectedMethodName.contains("#")) {
+            return in_selectedMethodName.split("#");
         }
 
-        int lioDot = l_selectedMethodName.lastIndexOf('.');
+        int lioDot = in_selectedMethodName.lastIndexOf('.');
 
         if (lioDot == -1) {
             throw new IllegalArgumentException("The selected method name is not valid, or is of a bad format. Please include a full reference to a step name");
         }
-        return new String []{l_selectedMethodName.substring(0,lioDot),l_selectedMethodName.substring(lioDot+1)};
+        return new String []{in_selectedMethodName.substring(0,lioDot),in_selectedMethodName.substring(lioDot+1)};
     }
 }

@@ -988,6 +988,7 @@ public final class PhasedTestManager {
      * Author : gandomi
      *
      * @param in_testMethod A TestNG Test Result object
+     * @param in_parameter  The phase group of the test
      * @return The identity of the scenario
      */
     public static String fetchScenarioName(Method in_testMethod, String in_parameter) {

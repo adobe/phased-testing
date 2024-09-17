@@ -44,7 +44,7 @@ public enum ConfigValueHandlerPhased {
 
     /**
      * Sets the given value to our property
-     * @param in_value
+     * @param in_value set the value for the current config to this value
      */
     public void activate(String in_value) {
         System.setProperty(this.systemName, in_value);
@@ -74,7 +74,7 @@ public enum ConfigValueHandlerPhased {
 
     /**
      * Compares the value using equalsIgnoreCase
-     * @param in_value
+     * @param in_value A value to compare the current one to
      * @return true if the given value is the same as the set one.
      */
     public boolean is(String in_value) {
