@@ -158,6 +158,43 @@ public class TestPhasedNonInterruptive {
         //PhasedEventManager.stopEventManager();
     }
 
+
+    @Test
+    public void eventManagerTests_conclusive() {
+        String myEvent = MyNonInterruptiveClosureEvent.class.getTypeName();
+
+        NonInterruptiveEvent nie = PhasedEventManager.startEvent(myEvent, "B");
+        Date start = new Date();
+        assertThat("Our event should be started", nie.getState().equals(NonInterruptiveEvent.states.STARTED));
+        assertThat("We should have stored an event object", PhasedEventManager.getEvents().size(), equalTo(1));
+        assertThat("We should have stored an event object", PhasedEventManager.getEvents().get("B"), notNullValue());
+        assertThat("We should have stored our event object", PhasedEventManager.getEvents().get("B"), equalTo(nie));
+
+
+        assertThat("There should be an event logged which is between the current and after dates",
+                PhasedEventManager.getEventLogs().size(), equalTo(1));
+
+
+        assertThat("The event should be currently on-going", !nie.isFinished());
+
+        //Stop event
+        NonInterruptiveEvent nieEND = PhasedEventManager.finishEvent(myEvent, "B");
+        assertThat("The event should no longer be on-going", nie, Matchers.equalTo(nieEND));
+        Date finish = new Date();
+
+        assertThat("The event should still be stopped now", nieEND.isFinished());
+
+        assertThat("The duration should be more than a second", (finish.getTime() - start.getTime()),
+                greaterThan(450l));
+        assertThat("The duration should be less than 2 seconds", (finish.getTime() - start.getTime()), lessThan(600l));
+        assertThat("Our event should be finished", nie.getState().equals(NonInterruptiveEvent.states.FINISHED));
+
+        assertThat("In the end executor should no longer be null (lazily instantiated)", PhasedEventManager.getEventExecutor(),notNullValue());
+        assertThat(((MyNonInterruptiveClosureEvent)nieEND).getTaskContainer(),equalTo(-2));
+
+        //PhasedEventManager.stopEventManager();
+    }
+
     @Test(description = "We start problematic instances")
     public void eventManagerTestsStart_negative() {
 
