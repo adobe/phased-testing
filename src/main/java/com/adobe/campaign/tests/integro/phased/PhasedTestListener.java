@@ -266,7 +266,7 @@ public class PhasedTestListener
 
     @Override
     public void onStart(ITestContext context) {
-        log.debug("{} onStart - current Execution State is : {}.",
+        log.info("{} onStart - current Execution State is : {}.",
                 PhasedTestManager.PHASED_TEST_LOG_PREFIX, Phases.getCurrentPhase());
     }
 
