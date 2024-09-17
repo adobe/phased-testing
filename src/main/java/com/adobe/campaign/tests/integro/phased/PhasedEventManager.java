@@ -112,7 +112,7 @@ public class PhasedEventManager {
         if (eventExecutor == null) {
             eventExecutor = Executors.newSingleThreadExecutor();
         }
-        log.debug("Starting event {} for step {}.",in_event,in_onAccountOfStep);
+        log.info("Starting event {} for step {}.",in_event,in_onAccountOfStep);
         NonInterruptiveEvent nie = instantiateClassFromString(in_event);
         logEvent(EventMode.START, in_event, in_onAccountOfStep);
         events.put(in_onAccountOfStep, nie);
@@ -155,7 +155,7 @@ public class PhasedEventManager {
      * @return The NonInterruptive Event that is started by this call
      */
     protected static NonInterruptiveEvent finishEvent(String in_event, String in_onAccountOfStep) {
-        log.debug("Finishing event {} for step {}.", in_event, in_onAccountOfStep);
+        log.info("Finishing event {} for step {}.", in_event, in_onAccountOfStep);
         NonInterruptiveEvent l_activeEvent = events.get(in_onAccountOfStep);
         if (l_activeEvent == null) {
             throw new PhasedTestException("No event of the type "+in_event+" was stored for the test step "+in_onAccountOfStep);
