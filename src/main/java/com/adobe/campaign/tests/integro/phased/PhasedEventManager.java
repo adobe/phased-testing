@@ -172,7 +172,7 @@ public class PhasedEventManager {
         l_activeEvent.waitTillFinished();
 
         logEvent(EventMode.END, in_event, in_onAccountOfStep);
-        l_activeEvent.runPostStepActions();
+        l_activeEvent.tearDownEvent();
         return l_activeEvent;
     }
 

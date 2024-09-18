@@ -57,6 +57,7 @@ Examples of events are:
       * [PHASED.TESTS.NONPHASED.LEGACY](#phasedtestsnonphasedlegacy)
     * [Executing a CONSUMER phase based on the PRODUCED Data](#executing-a-consumer-phase-based-on-the-produced-data)
     * [Execution Order](#execution-order)
+    * [Running Nested Phased Tests](#running-nested-phased-tests)
   * [Integrity between Steps and Scenarios](#integrity-between-steps-and-scenarios)
     * [Phase Contexts - Managing the Scenario Step Executions](#phase-contexts---managing-the-scenario-step-executions)
       * [On Failure](#on-failure)
@@ -299,11 +300,11 @@ As you can see we have to implement three methods:
 In order to define these event you will need to implement these methods, as you who are defining the event have the best knowledge on how these event will work.
 
 ##### Performing Event Cleanup Actions
-At times the simple execution of an event is not sufficient. We need to perform an event counter action to reset the system to a stable state. For this we allow you to define post step actions for an event. This means that after an event has been finished, we perform an additional set of actions before the next step is executed. To make use of this you need to override the method `runPostStepActions` in your event. The framework will then execute this action right before the next step is triggered.
+At times the simple execution of an event is not sufficient. We need to perform an event clean up action to reset the system to a stable state. For this we allow you to define a 'tearDownEven' actions for an event. This means that after an event has been finished, we perform an additional set of actions before the next step is executed. To make use of this you need to override the method `tearDownEvent` in your event. The framework will then execute this action right before the next step is triggered.
 
 ```java
 @Override
-public boolean runPostStepActions() {
+public boolean tearDownEvent() {
         // Perform actions
         return true; //Return true if the actions were successful
         }
@@ -534,6 +535,15 @@ By default, the phased tests, being implemented in TestNG follow the same rules 
 
 As of version 8 we have implemented code based order. Whenever the system property, PHASED.TESTS.DETECT.ORDER is set, the steps are executed in the order the way we declared in the code. By default, we expect the code to be in maven where the tests are in the directory src/test/java. However, this can be overriden by setting the execution property PHASED.TESTS.CODE.ROOT.
 
+### Running Nested Phased Tests
+Nested class tests are usually quite tricky in Surefire because dollar sign '$' used for identifiying these object needs to be escaped. You can run a nested tests in the following way:
+    
+    ```mvn clean test -Dtest='PhasedTestSeries_NestedContainer$PhasedScenario1'```
+
+or
+
+```mvn clean test -Dtest=PhasedTestSeries_NestedContainer\$PhasedScenario1```
+
 ## Integrity between Steps and Scenarios 
 ### Phase Contexts - Managing the Scenario Step Executions
 Although we try to keep the execution of a scenario like any other test scenario, we feel that it is useful to document how the state of a scenario works.
@@ -628,7 +638,7 @@ For now, we have not come around to deciding how retry should work in the case o
 
 ### 8.11.2
 * **(new feature)** [#178 Allowing the injection in any step of a scenario](https://github.com/adobe/bridgeService/issues/178). We can now inject an event into a step in an arbitrary phased test. This is done by setting the syetm property PHASED.EVENTS.TARGET. This way you can inject the event into that step.
-* **(new feature)** [#198 Adding Post Step Event actions](https://github.com/adobe/bridgeService/issues/198). We allow you to define post-step actions in the context of an event. Please refer to the chapter [Performing Event Cleanup Actions](#performing-event-cleanup-actions).
+* **(new feature)** [#198 Adding Post Step Event actions](https://github.com/adobe/bridgeService/issues/198). We allow you to define a 'tearDownEvent' tool to allow you to put the system back to a normal state after the event has finished. Please refer to the chapter [Performing Event Cleanup Actions](#performing-event-cleanup-actions).
 
 ### 8.11.1
 * Renaming ConfigValueHandler to ConfigValueHandlerPhased

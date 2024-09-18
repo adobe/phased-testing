@@ -54,7 +54,7 @@ public class MyNonInterruptiveClosureEvent extends NonInterruptiveEvent {
     }
 
     @Override
-    public boolean runPostStepActions() {
+    public boolean tearDownEvent() {
         taskContainer--;
         return true;
     }

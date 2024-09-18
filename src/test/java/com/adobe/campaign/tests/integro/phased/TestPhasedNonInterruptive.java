@@ -187,6 +187,7 @@ public class TestPhasedNonInterruptive {
         assertThat("The duration should be more than a second", (finish.getTime() - start.getTime()),
                 greaterThan(450l));
         assertThat("The duration should be less than 2 seconds", (finish.getTime() - start.getTime()), lessThan(600l));
+        System.out.println("Marker for eventManagerTests_conclusive");
         assertThat("Our event should be finished", nie.getState().equals(NonInterruptiveEvent.states.FINISHED));
 
         assertThat("In the end executor should no longer be null (lazily instantiated)", PhasedEventManager.getEventExecutor(),notNullValue());
