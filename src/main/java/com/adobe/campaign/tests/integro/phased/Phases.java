@@ -11,45 +11,61 @@
  */
 package com.adobe.campaign.tests.integro.phased;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public enum Phases {
-    PRODUCER(true), CONSUMER(true), NON_PHASED(false), ASYNCHRONOUS(false);
+    PRODUCER(true, new ArrayList<>()),
+    CONSUMER(true, new ArrayList<>()),
+    NON_PHASED(false,  new ArrayList<>()),
+    ASYNCHRONOUS(false,  new ArrayList<>()) {
+        public boolean isSelected() {
+            return this.equals(getCurrentPhase()) || Phases.NON_INTERRUPTIVE.equals(getCurrentPhase());
+        };
+    },
+    NON_INTERRUPTIVE(false, Arrays.asList( "23", "33" )) {
+        public boolean isSelected() {
+            return this.equals(getCurrentPhase()) || Phases.ASYNCHRONOUS.equals(getCurrentPhase());
+        };
+    },
+    INTERRUPTIVE(false, Arrays.asList( "PRODUCER", "CONSUMER" )) {
+        public boolean isSelected() {
+            return this.equals(getCurrentPhase()) || Phases.PRODUCER.equals(getCurrentPhase())
+                    || Phases.CONSUMER.equals(getCurrentPhase());
+        };
+    };
 
     boolean hasSplittingEvent;
+    List<String> phaseTypes;
 
-    Phases(boolean in_isInPhase) {
+    Phases(boolean in_isInPhase, List<String> in_phaseTypes) {
         hasSplittingEvent = in_isInPhase;
+        phaseTypes = in_phaseTypes;
     }
 
     /**
-     * Returns the Phased Test state in which the current test session is being
-     * executed
-     *
+     * Returns the Phased Test state in which the current test session is being executed
+     * <p>
      * Author : gandomi
      *
      * @return The phase which is currently being executed
-     *
      */
     public static Phases getCurrentPhase() {
         return fetchCorrespondingPhase(ConfigValueHandlerPhased.PROP_SELECTED_PHASE.fetchValue());
     }
 
     /**
-     * We find a corresponding PhasedTest state given a string. If none are
-     * found we return INACTIVE
-     *
+     * We find a corresponding PhasedTest state given a string. If none are found we return INACTIVE
+     * <p>
      * Author : gandomi
      *
-     * @param in_stateValue
-     *        Returns a Phase given a string representation of its value
-     * @return A state corresponding to the given Phased State, if none found we
-     *         return inactive
-     *
+     * @param in_stateValue Returns a Phase given a string representation of its value
+     * @return A state corresponding to the given Phased State, if none found we return inactive
      */
     public static Phases fetchCorrespondingPhase(String in_stateValue) {
         for (Phases lt_ptState : Phases.values()) {
-            if (lt_ptState.toString().equalsIgnoreCase(in_stateValue)) {
+            if (in_stateValue.toUpperCase().startsWith(lt_ptState.toString().toUpperCase())) {
                 return lt_ptState;
             }
         }
@@ -57,12 +73,32 @@ public enum Phases {
     }
 
     /**
-     * Checks if the current entry is active. I.e. either producer or consumer
+     * Provides an array of Phases that contain a splitting Event aka PhasedEvent
+     * <p>
+     * Author : gandomi
      *
+     * @return An array of Phases that have a Splitting Event
+     */
+    public static Phases[] fetchPhasesWithEvents() {
+        return Arrays.stream(Phases.values())
+                .filter(p -> p.hasSplittingEvent)
+                .toArray(Phases[]::new);
+    }
+
+    public boolean isTypeValid() {
+        String l_currentType = fetchType();
+        if (phaseTypes.isEmpty()) {
+            return l_currentType.isEmpty();
+        }
+        return phaseTypes.contains(l_currentType);
+    }
+
+    /**
+     * Checks if the current entry is active. I.e. either producer or consumer
+     * <p>
      * Author : gandomi
      *
      * @return true if we are the active state
-     *
      */
     public boolean isSelected() {
         return this.equals(getCurrentPhase());
@@ -70,11 +106,10 @@ public enum Phases {
 
     /**
      * Lets us know if the current phase will include a splitting event
-     *
+     * <p>
      * Author : gandomi
      *
      * @return True if the the phase could have a splitting event.
-     *
      */
     public boolean hasSplittingEvent() {
         return this.hasSplittingEvent;
@@ -82,27 +117,34 @@ public enum Phases {
 
     /**
      * Activates the given phase
-     *
+     * <p>
      * Author : gandomi
-     *
-     *
      */
     void activate() {
         ConfigValueHandlerPhased.PROP_SELECTED_PHASE.activate(this.name());
     }
 
     /**
-     * Provides an array of Phases that contain a plittingEvent aka PhasedEvent
-     *
-     * Author : gandomi
-     *
-     * @return An array of Phases that have a Splitting Event
-     *
+     * Activates the given phase with the given type
+     * @param in_phaseType
      */
-    public static Phases[] fetchPhasesWithEvents() {
-        return Arrays.stream(Phases.values())
-            .filter(p -> p.hasSplittingEvent)
-            .toArray(Phases[]::new);
+    public void activate(String in_phaseType) {
+        if (!phaseTypes.contains(in_phaseType)) {
+            throw new IllegalArgumentException("The given phase type is not valid for this mode.");
+        }
+
+        ConfigValueHandlerPhased.PROP_SELECTED_PHASE.activate(this.name() + "(" + in_phaseType + ")");
+    }
+
+    public String fetchType() {
+        String l_value = ConfigValueHandlerPhased.PROP_SELECTED_PHASE.fetchValue();
+        int l_startIndex = l_value.indexOf("(");
+        int l_endIndex = l_value.indexOf(")");
+
+        if (l_startIndex != -1 && l_endIndex != -1) {
+            return l_value.substring(l_startIndex + 1, l_endIndex);
+        }
+        return "";
     }
 
 }

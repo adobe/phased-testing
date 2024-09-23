@@ -13,7 +13,11 @@ package com.adobe.campaign.tests.integro.phased;
 
 import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestingEventException;
 
+import java.util.concurrent.Future;
+
 public abstract class NonInterruptiveEvent implements Runnable {
+
+    Future<?> threadFuture = null;
 
     /**
      * Starts the non-interruptive event
@@ -44,7 +48,7 @@ public abstract class NonInterruptiveEvent implements Runnable {
         if (state.equals(states.FAILURE)) {
             throw new PhasedTestingEventException("There was a problem starting this event.");
         }
-
+        /*
         waitTillFinished();
 
         if (!isFinished()) {
@@ -52,6 +56,8 @@ public abstract class NonInterruptiveEvent implements Runnable {
         }
         state=states.FINISHED;
         Thread.currentThread().interrupt();
+
+         */
         return;
     }
 
