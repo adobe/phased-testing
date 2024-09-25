@@ -83,7 +83,7 @@ public class PhasedEventManager {
         return null;
     }
 
-    protected static enum EventMode {START, END};
+    protected enum EventMode {START, END};
 
     static Map<String, NonInterruptiveEvent> events = new HashMap<>();
 
@@ -129,7 +129,7 @@ public class PhasedEventManager {
         }
 
         //NON_INTERRUPTIVE 23
-        if (Phases.NON_INTERRUPTIVE.fetchType().startsWith("2")) {
+        if (ExecutionMode.NON_INTERRUPTIVE.fetchType().startsWith("2")) {
             log.info("Forcing Event End {} BEFORE step {} has started.", in_event, in_onAccountOfStep);
             nie.waitTillFinished();
         }

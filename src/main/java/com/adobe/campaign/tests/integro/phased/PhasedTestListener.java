@@ -154,7 +154,7 @@ public class PhasedTestListener
 
             //Managing events
             //Cases 4 & 5
-            if (Phases.ASYNCHRONOUS.isSelected()) {
+            if (ExecutionMode.NON_INTERRUPTIVE.isSelected()) {
 
                 //Check if there is an event declared
                 String lt_event = PhasedEventManager.fetchEvent(result);
@@ -241,7 +241,7 @@ public class PhasedTestListener
             PhasedTestManager.scenarioStateStore(result);
 
             //Cases 4 & 5
-            if (Phases.ASYNCHRONOUS.isSelected()) {
+            if (ExecutionMode.NON_INTERRUPTIVE.isSelected()) {
                 PhasedTestManager.getPhasedCache();
                 //Check if there is an event declared
                 String lt_event = PhasedEventManager.fetchEvent(result);

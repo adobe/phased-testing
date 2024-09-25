@@ -25,7 +25,8 @@ public enum ConfigValueHandlerPhased {
     PHASED_TEST_DETECT_ORDER("PHASED.TESTS.DETECT.ORDER", "false", false),
     PHASED_TEST_NONPHASED_LEGACY( "PHASED.TESTS.NONPHASED.LEGACY", "false", false ),
     PROP_SCENARIO_EXPORTED_PREFIX("PHASED.TESTS.STORAGE.SCENARIO.PREFIX", "[TC]", false),
-    EVENT_TARGET("PHASED.EVENTS.TARGET", null, false );
+    EVENT_TARGET("PHASED.EVENTS.TARGET", null, false ),
+    PROP_EXECUTION_MODE("MUTATIONAL.TESTS.EXECUTION.MODE", "DEFAULT", false);
 
     public final String systemName;
     public final String defaultValue;

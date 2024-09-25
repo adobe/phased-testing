@@ -15,24 +15,28 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public enum Phases {
-    PRODUCER(true),
-    CONSUMER(true),
-    NON_PHASED(false),
-    /**
-     * @deprecated This is a deprecated phase. You should be using {@link ExecutionMode#NON_INTERRUPTIVE} instead.
-     */
-    @Deprecated
-    ASYNCHRONOUS(false) {
+public enum ExecutionMode {
+    DEFAULT(false,  new ArrayList<>()),
+    NON_INTERRUPTIVE(false, Arrays.asList( "23", "33" )) {
         public boolean isSelected() {
-            return this.equals(getCurrentPhase());
+            return this.equals(getCurrentMode()) || Phases.ASYNCHRONOUS.isSelected();
+        };
+    },
+    INTERRUPTIVE(false, Arrays.asList( "PRODUCER", "CONSUMER" )) {
+        public boolean isSelected() {
+            return this.equals(getCurrentMode()) || Phases.PRODUCER.isSelected()
+                    || Phases.CONSUMER.isSelected();
         };
     };
 
-    boolean hasSplittingEvent;
+    private static final ConfigValueHandlerPhased USED_PROPERTY = ConfigValueHandlerPhased.PROP_EXECUTION_MODE;
 
-    Phases(boolean in_isInPhase) {
+    boolean hasSplittingEvent;
+    List<String> phaseTypes;
+
+    ExecutionMode(boolean in_isInPhase, List<String> in_phaseTypes) {
         hasSplittingEvent = in_isInPhase;
+        phaseTypes = in_phaseTypes;
     }
 
     /**
@@ -42,8 +46,8 @@ public enum Phases {
      *
      * @return The phase which is currently being executed
      */
-    public static Phases getCurrentPhase() {
-        return fetchCorrespondingPhase(ConfigValueHandlerPhased.PROP_SELECTED_PHASE.fetchValue());
+    public static ExecutionMode getCurrentMode() {
+        return fetchCorrespondingMode(USED_PROPERTY.fetchValue());
     }
 
     /**
@@ -54,13 +58,13 @@ public enum Phases {
      * @param in_stateValue Returns a Phase given a string representation of its value
      * @return A state corresponding to the given Phased State, if none found we return inactive
      */
-    public static Phases fetchCorrespondingPhase(String in_stateValue) {
-        for (Phases lt_ptState : Phases.values()) {
+    public static ExecutionMode fetchCorrespondingMode(String in_stateValue) {
+        for (ExecutionMode lt_ptState : ExecutionMode.values()) {
             if (in_stateValue.toUpperCase().startsWith(lt_ptState.toString().toUpperCase())) {
                 return lt_ptState;
             }
         }
-        return NON_PHASED;
+        return DEFAULT;
     }
 
     /**
@@ -70,10 +74,18 @@ public enum Phases {
      *
      * @return An array of Phases that have a Splitting Event
      */
-    public static Phases[] fetchPhasesWithEvents() {
-        return Arrays.stream(Phases.values())
+    public static ExecutionMode[] fetchPhasesWithEvents() {
+        return Arrays.stream(ExecutionMode.values())
                 .filter(p -> p.hasSplittingEvent)
-                .toArray(Phases[]::new);
+                .toArray(ExecutionMode[]::new);
+    }
+
+    public boolean isTypeValid() {
+        String l_currentType = fetchType();
+        if (phaseTypes.isEmpty()) {
+            return l_currentType.isEmpty();
+        }
+        return phaseTypes.contains(l_currentType);
     }
 
     /**
@@ -84,7 +96,7 @@ public enum Phases {
      * @return true if we are the active state
      */
     public boolean isSelected() {
-        return this.equals(getCurrentPhase());
+        return this.equals(getCurrentMode());
     }
 
     /**
@@ -92,7 +104,7 @@ public enum Phases {
      * <p>
      * Author : gandomi
      *
-     * @return True if the phase could have a splitting event.
+     * @return True if the the phase could have a splitting event.
      */
     public boolean hasSplittingEvent() {
         return this.hasSplittingEvent;
@@ -104,7 +116,30 @@ public enum Phases {
      * Author : gandomi
      */
     void activate() {
-        ConfigValueHandlerPhased.PROP_SELECTED_PHASE.activate(this.name());
+        USED_PROPERTY.activate(this.name());
+    }
+
+    /**
+     * Activates the given phase with the given type
+     * @param in_phaseType
+     */
+    public void activate(String in_phaseType) {
+        if (!phaseTypes.contains(in_phaseType)) {
+            throw new IllegalArgumentException("The given phase type is not valid for this mode.");
+        }
+
+        USED_PROPERTY.activate(this.name() + "(" + in_phaseType + ")");
+    }
+
+    public String fetchType() {
+        String l_value = USED_PROPERTY.fetchValue();
+        int l_startIndex = l_value.indexOf("(");
+        int l_endIndex = l_value.indexOf(")");
+
+        if (l_startIndex != -1 && l_endIndex != -1) {
+            return l_value.substring(l_startIndex + 1, l_endIndex);
+        }
+        return "";
     }
 
 }

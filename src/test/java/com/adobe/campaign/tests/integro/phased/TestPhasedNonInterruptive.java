@@ -855,7 +855,7 @@ public class TestPhasedNonInterruptive {
         final Class<TestNIE_Synchroneous> l_testClass = TestNIE_Synchroneous.class;
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
-        Phases.NON_INTERRUPTIVE.activate("23");
+        ExecutionMode.NON_INTERRUPTIVE.activate("23");
         ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.activate(NIESynchronousEvent.class.getTypeName());
         ConfigValueHandlerPhased.EVENT_TARGET.activate(TestNIE_Synchroneous.class.getTypeName() + "#step2");
 
@@ -991,6 +991,7 @@ public class TestPhasedNonInterruptive {
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
         Phases.ASYNCHRONOUS.activate();
+        ExecutionMode.NON_INTERRUPTIVE.activate();
 
         myTestNG.run();
 
