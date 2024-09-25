@@ -14,6 +14,7 @@ package com.adobe.campaign.tests.integro.phased;
 import com.adobe.campaign.tests.integro.phased.data.*;
 import com.adobe.campaign.tests.integro.phased.data.befaft.PhasedSeries_M_SimpleClass;
 import com.adobe.campaign.tests.integro.phased.data.dp.*;
+import com.adobe.campaign.tests.integro.phased.data.events.NI_Event1;
 import com.adobe.campaign.tests.integro.phased.data.events.TestSINGLEWithEvent_eventAsAnnotation;
 import com.adobe.campaign.tests.integro.phased.data.events.TestSINGLEWithEvent_eventAsExecProperty;
 import com.adobe.campaign.tests.integro.phased.data.events.TestShuffled_eventPassedAsExecutionVariable;
@@ -1139,6 +1140,7 @@ public class PhasedTestManagerTests {
             throws NoSuchMethodException, SecurityException {
 
         Phases.ASYNCHRONOUS.activate();
+        //ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.activate(NI_Event1.class.getTypeName());
         final Method l_myMethod1 = TestSINGLEWithEvent_eventAsAnnotation.class.getMethod("step1", String.class);
         final Method l_myMethod2 = TestSINGLEWithEvent_eventAsAnnotation.class.getMethod("step2", String.class);
         final Method l_myMethod3 = TestSINGLEWithEvent_eventAsAnnotation.class.getMethod("step3", String.class);
@@ -1146,12 +1148,14 @@ public class PhasedTestManagerTests {
         Object[] l_providerStep1 = PhasedTestManager.fetchProvidersSingle(l_myMethod1);
 
         assertThat("We should have a parameter for this method",l_providerStep1.length, equalTo(1));
+        //System.out.println(PhasedEventManager.fetchEvent());
+        assertThat("We should have the correct parameter for this method",l_providerStep1[0], equalTo(PhasedTestManager.STD_PHASED_GROUP_SINGLE));
 
-        Object[] l_providerStep2 = PhasedTestManager.fetchProvidersSingle(l_myMethod1);
+        Object[] l_providerStep2 = PhasedTestManager.fetchProvidersSingle(l_myMethod2);
 
         assertThat("We should have a parameter for this method",l_providerStep2.length, equalTo(1));
 
-        Object[] l_providerStep3 = PhasedTestManager.fetchProvidersSingle(l_myMethod1);
+        Object[] l_providerStep3 = PhasedTestManager.fetchProvidersSingle(l_myMethod3);
 
         assertThat("We should have a parameter for this method",l_providerStep3.length, equalTo(1));
 
