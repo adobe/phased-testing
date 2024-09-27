@@ -151,22 +151,26 @@ public class PhasedEventManager {
         logEvent(EventMode.START, in_event, in_onAccountOfStep);
         events.put(in_onAccountOfStep, nie);
         nie.threadFuture = eventExecutor.submit(nie);
+
+        //Check that the vent really starts
         while (nie.getState().equals(NonInterruptiveEvent.states.DEFINED)) {
             try {
                 //log.debug("Waiting for event to start");
                 Thread.sleep(1);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                throw new RuntimeException(e);
+                throw new PhasedTestingEventException("Un expected exception at startup",e);
             }
         }
 
+        //Check if the event had no issues
         if (nie.getState().equals(NonInterruptiveEvent.states.FAILURE)) {
             log.error("Event Exception : The event {} for step {} caused an exception during start.", in_event, in_onAccountOfStep);
             try {
                 nie.threadFuture.get();
             } catch (InterruptedException | ExecutionException ex) {
                 ex.getCause().printStackTrace();
+                nie.threadFuture.cancel(true);
             }
         }
 
