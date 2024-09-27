@@ -14,9 +14,7 @@ package com.adobe.campaign.tests.integro.phased;
 import com.adobe.campaign.tests.integro.phased.data.*;
 import com.adobe.campaign.tests.integro.phased.data.befaft.PhasedSeries_M_SimpleClass;
 import com.adobe.campaign.tests.integro.phased.data.dp.*;
-import com.adobe.campaign.tests.integro.phased.data.events.TestSINGLEWithEvent_eventAsAnnotation;
-import com.adobe.campaign.tests.integro.phased.data.events.TestSINGLEWithEvent_eventAsExecProperty;
-import com.adobe.campaign.tests.integro.phased.data.events.TestShuffled_eventPassedAsExecutionVariable;
+import com.adobe.campaign.tests.integro.phased.data.events.*;
 import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestConfigurationException;
 import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestException;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
@@ -274,7 +272,7 @@ public class PhasedTestManagerTests {
     }
 
     /**
-     * Testing {@code PROP_PHASED_DATA_PATH} that when the property {@value ConfigValueHandlerPhased#PROP_PHASED_DATA_PATH.systemName} is set, that path is
+     * Testing {@code PROP_PHASED_DATA_PATH} that when the property is set, that path is
      * used.
      *
      * Author : gandomi
@@ -917,6 +915,65 @@ public class PhasedTestManagerTests {
 
     }
 
+    @Test
+    public void testCreateDataProviderData_forNonInterruptiveWithEvent() throws NoSuchMethodException {
+        Phases.ASYNCHRONOUS.activate();
+
+        var eventClass = MyNonInterruptiveEvent.class;
+        ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.activate(eventClass.getTypeName());
+
+        Map<Class<?>, List<String>> l_myMap = new HashMap<>();
+
+        Method method1 = PhasedSeries_F_Shuffle.class.getMethod("step1", String.class);
+        Method method2 = PhasedSeries_F_Shuffle.class.getMethod("step2", String.class);
+        Method method3 = PhasedSeries_F_Shuffle.class.getMethod("step3", String.class);
+
+        l_myMap.put(PhasedSeries_F_Shuffle.class,
+                Arrays.asList(ClassPathParser.fetchFullName(method1), ClassPathParser.fetchFullName(method2),
+                        ClassPathParser.fetchFullName(method3)));
+
+        Map<String, MethodMapping> l_result = PhasedTestManager.generatePhasedProviders(l_myMap,
+                Phases.getCurrentPhase());
+
+        assertThat("we need to have the expected key", l_result.containsKey(ClassPathParser.fetchFullName(method1)));
+        assertThat("The first method should have three entries", l_result.get(ClassPathParser.fetchFullName(method1)).nrOfProviders, equalTo(3));
+
+        assertThat("The first method should have two entries", l_result.get(ClassPathParser.fetchFullName(method2)).nrOfProviders, equalTo(3));
+
+        assertThat("The first method should have one entry", l_result.get(ClassPathParser.fetchFullName(method3)).nrOfProviders, equalTo(3));
+
+        assertThat("We should have the same amount of total sizes", l_result.get(ClassPathParser.fetchFullName(method1)).totalClassMethods,
+                equalTo(l_result.get(ClassPathParser.fetchFullName(method2)).totalClassMethods));
+        assertThat("We should have the same amount of total sizes", l_result.get(ClassPathParser.fetchFullName(method1)).totalClassMethods,
+                equalTo(l_result.get(ClassPathParser.fetchFullName(method3)).totalClassMethods));
+
+        Object[][] l_providerA = PhasedTestManager.fetchProvidersShuffled(method1);
+
+        assertThat(l_providerA[0].length, equalTo(1));
+
+        var expectedPrefix = PhasedTestManager.STD_PHASED_GROUP_NIE_PREFIX +eventClass.getSimpleName();
+        assertThat(l_providerA[0][0], equalTo(expectedPrefix+ "_1"));
+        assertThat(l_providerA[1][0], equalTo(expectedPrefix+ "_2"));
+        assertThat(l_providerA[2][0], equalTo(expectedPrefix + "_3"));
+
+        Object[][] l_providerB = PhasedTestManager.fetchProvidersShuffled(method2);
+
+        assertThat(l_providerB[0].length, equalTo(1));
+
+        assertThat(l_providerB[0][0], equalTo(expectedPrefix + "_1"));
+        assertThat(l_providerB[1][0], equalTo(expectedPrefix + "_2"));
+        assertThat(l_providerB[2][0], equalTo(expectedPrefix + "_3"));
+
+        Object[][] l_providerC = PhasedTestManager.fetchProvidersShuffled(method3);
+
+        assertThat(l_providerC[0].length, equalTo(1));
+
+        assertThat(l_providerC[0][0], equalTo(expectedPrefix + "_1"));
+        assertThat(l_providerC[1][0], equalTo(expectedPrefix + "_2"));
+        assertThat(l_providerC[2][0], equalTo(expectedPrefix + "_3"));
+
+    }
+
 
     @Test
     public void testPhasedManagerContext() {
@@ -1135,7 +1192,7 @@ public class PhasedTestManagerTests {
 
     //NIE
     @Test
-    public void testFetchProvidersSingle_asynchronousNonInterruptive()
+    public void testFetchProvidersSingle_NIE_eventDefined()
             throws NoSuchMethodException, SecurityException {
 
         Phases.ASYNCHRONOUS.activate();
@@ -1146,14 +1203,50 @@ public class PhasedTestManagerTests {
         Object[] l_providerStep1 = PhasedTestManager.fetchProvidersSingle(l_myMethod1);
 
         assertThat("We should have a parameter for this method",l_providerStep1.length, equalTo(1));
+        //System.out.println(PhasedEventManager.fetchEvent(l_myMethod1));
+        var l_expectedGroup = PhasedTestManager.STD_PHASED_GROUP_NIE_PREFIX + "MyNonInterruptiveEvent";
+        assertThat("We should have the correct parameter for this method",l_providerStep1[0], equalTo(l_expectedGroup));
 
-        Object[] l_providerStep2 = PhasedTestManager.fetchProvidersSingle(l_myMethod1);
+        Object[] l_providerStep2 = PhasedTestManager.fetchProvidersSingle(l_myMethod2);
 
         assertThat("We should have a parameter for this method",l_providerStep2.length, equalTo(1));
+        assertThat("We should have the correct parameter for this method",l_providerStep2[0], equalTo(l_expectedGroup));
 
-        Object[] l_providerStep3 = PhasedTestManager.fetchProvidersSingle(l_myMethod1);
+
+        Object[] l_providerStep3 = PhasedTestManager.fetchProvidersSingle(l_myMethod3);
 
         assertThat("We should have a parameter for this method",l_providerStep3.length, equalTo(1));
+        assertThat("We should have the correct parameter for this method",l_providerStep3[0], equalTo(l_expectedGroup));
+    }
+
+
+    @Test
+    public void testFetchProvidersSingle_NIE_eventSet()
+            throws NoSuchMethodException, SecurityException {
+
+        Phases.ASYNCHRONOUS.activate();
+        ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.activate(NI_Event2.class.getTypeName());
+        final Method l_myMethod1 = TestShuffled_eventPassedAsExecutionVariable.class.getMethod("step1", String.class);
+        final Method l_myMethod2 = TestShuffled_eventPassedAsExecutionVariable.class.getMethod("step2", String.class);
+        final Method l_myMethod3 = TestShuffled_eventPassedAsExecutionVariable.class.getMethod("step3", String.class);
+
+        Object[] l_providerStep1 = PhasedTestManager.fetchProvidersSingle(l_myMethod1);
+        var l_expectedGroup = PhasedTestManager.STD_PHASED_GROUP_NIE_PREFIX + "NI_Event2";
+
+        assertThat("We should have a parameter for this method",l_providerStep1.length, equalTo(1));
+
+        assertThat("We should have the correct parameter for this method",l_providerStep1[0], equalTo(l_expectedGroup));
+
+        Object[] l_providerStep2 = PhasedTestManager.fetchProvidersSingle(l_myMethod2);
+
+        assertThat("We should have a parameter for this method",l_providerStep2.length, equalTo(1));
+        assertThat("We should have the correct parameter for this method",l_providerStep2[0], equalTo(l_expectedGroup));
+
+
+        Object[] l_providerStep3 = PhasedTestManager.fetchProvidersSingle(l_myMethod3);
+
+        assertThat("We should have a parameter for this method",l_providerStep3.length, equalTo(1));
+        assertThat("We should have the correct parameter for this method",l_providerStep3[0], equalTo(l_expectedGroup));
 
     }
 

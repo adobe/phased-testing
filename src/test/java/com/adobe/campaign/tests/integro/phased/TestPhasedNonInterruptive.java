@@ -11,6 +11,7 @@
  */
 package com.adobe.campaign.tests.integro.phased;
 
+import com.adobe.campaign.tests.integro.phased.data.NormalSeries_A;
 import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_F_Shuffle;
 import com.adobe.campaign.tests.integro.phased.data.PhasedTestShuffledWithoutCanShuffleNested;
 import com.adobe.campaign.tests.integro.phased.data.events.*;
@@ -21,6 +22,7 @@ import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 import com.adobe.campaign.tests.integro.phased.utils.MockTestTools;
 import com.adobe.campaign.tests.integro.phased.utils.TestTools;
 import org.hamcrest.Matchers;
+import org.testng.Assert;
 import org.testng.ITestResult;
 import org.testng.TestListenerAdapter;
 import org.testng.TestNG;
@@ -465,9 +467,12 @@ public class TestPhasedNonInterruptive {
 
         assertThat("The first element should be an event defined in step2", l_eventStartLog.getEventName(),
                 Matchers.equalTo(MyNonInterruptiveEvent.class.getTypeName()));
+
+        var l_shaffleGroup = PhasedTestManager.STD_PHASED_GROUP_NIE_PREFIX+MyNonInterruptiveEvent.class.getSimpleName();
+
         assertThat("The first element should be an event started by step2", l_eventStartLog.getPhasedStepName(),
                 Matchers.equalTo(
-                        "com.adobe.campaign.tests.integro.phased.data.events.TestSINGLEWithEvent_eventAsAnnotation.step2(phased-singleRun)"));
+                        "com.adobe.campaign.tests.integro.phased.data.events.TestSINGLEWithEvent_eventAsAnnotation.step2("+l_shaffleGroup+")"));
 
         ITestResult l_testSubjectedToEvent = tla.getPassedTests().stream().filter(t -> t.getName().equals("step2"))
                 .collect(Collectors.toList()).get(0);
@@ -482,7 +487,7 @@ public class TestPhasedNonInterruptive {
                 Matchers.equalTo(MyNonInterruptiveEvent.class.getTypeName()));
         assertThat("The second element should be an event started by step2", l_eventEndLog.getPhasedStepName(),
                 Matchers.equalTo(
-                        "com.adobe.campaign.tests.integro.phased.data.events.TestSINGLEWithEvent_eventAsAnnotation.step2(phased-singleRun)"));
+                        "com.adobe.campaign.tests.integro.phased.data.events.TestSINGLEWithEvent_eventAsAnnotation.step2("+l_shaffleGroup+")"));
 
         assertThat("Our test should have started before the end of the event", l_testSubjectedToEvent.getStartMillis(),
                 lessThan(l_eventEndLog.getEventDate().getTime()));
@@ -535,9 +540,12 @@ public class TestPhasedNonInterruptive {
 
         assertThat("The first element should be an event defined in step2", l_eventStartLog.getEventName(),
                 Matchers.equalTo(MyNonInterruptiveEvent.class.getTypeName()));
+
+        var l_shaffleGroup = PhasedTestManager.STD_PHASED_GROUP_NIE_PREFIX+MyNonInterruptiveEvent.class.getSimpleName();
+
         assertThat("The first element should be an event started by step2", l_eventStartLog.getPhasedStepName(),
                 Matchers.equalTo(
-                        l_testClass.getTypeName() + ".step2(phased-singleRun)"));
+                        l_testClass.getTypeName() + ".step2("+l_shaffleGroup+")"));
 
         ITestResult l_testSubjectedToEvent = tla.getPassedTests().stream().filter(t -> t.getName().equals("step2"))
                 .collect(Collectors.toList()).get(0);
@@ -552,7 +560,7 @@ public class TestPhasedNonInterruptive {
                 Matchers.equalTo(MyNonInterruptiveEvent.class.getTypeName()));
         assertThat("The second element should be an event started by step2", l_eventEndLog.getPhasedStepName(),
                 Matchers.equalTo(
-                        l_testClass.getTypeName() + ".step2(phased-singleRun)"));
+                        l_testClass.getTypeName() + ".step2("+l_shaffleGroup+")"));
 
         assertThat("Our test should have started before the end of the event", l_testSubjectedToEvent.getStartMillis(),
                 lessThan(l_eventEndLog.getEventDate().getTime()));
@@ -605,9 +613,10 @@ public class TestPhasedNonInterruptive {
 
         assertThat("The first element should be an event defined in step2", l_eventStartLog.getEventName(),
                 Matchers.equalTo(MyNonInterruptiveEvent.class.getTypeName()));
+        var l_shaffleGroup = PhasedTestManager.STD_PHASED_GROUP_NIE_PREFIX+MyNonInterruptiveEvent.class.getSimpleName();
         assertThat("The first element should be an event started by step2", l_eventStartLog.getPhasedStepName(),
                 Matchers.equalTo(
-                        l_testClass.getTypeName() + ".step2(phased-singleRun)"));
+                        l_testClass.getTypeName() + ".step2(" + l_shaffleGroup + ")"));
 
         ITestResult l_testSubjectedToEvent = tla.getPassedTests().stream().filter(t -> t.getName().equals("step2"))
                 .collect(Collectors.toList()).get(0);
@@ -622,7 +631,7 @@ public class TestPhasedNonInterruptive {
                 Matchers.equalTo(MyNonInterruptiveEvent.class.getTypeName()));
         assertThat("The second element should be an event started by step2", l_eventEndLog.getPhasedStepName(),
                 Matchers.equalTo(
-                        l_testClass.getTypeName() + ".step2(phased-singleRun)"));
+                        l_testClass.getTypeName() + ".step2(" + l_shaffleGroup + ")"));
 
         assertThat("Our test should have started before the end of the event", l_testSubjectedToEvent.getStartMillis(),
                 lessThan(l_eventEndLog.getEventDate().getTime()));
@@ -1054,6 +1063,7 @@ public class TestPhasedNonInterruptive {
                 Matchers.equalTo(2));
     }
 
+
     /**
      * This is a test for non-intyerruptive events in shuffled classes
      */
@@ -1183,5 +1193,77 @@ public class TestPhasedNonInterruptive {
         assertThat("We should have the correct number of events in the logs (1 x phase groups)",
                 PhasedEventManager.getEventLogs().size(),
                 Matchers.equalTo(6));
+    }
+
+    @Test
+    public void testEventAppliesTo_specificEventAnnotationOnMethod() throws NoSuchMethodException {
+        //Case 1 Event Declared on PhasedEvent annotation
+        Method l_methodWithEvent = TestSINGLEWithEvent_eventAsAnnotation.class.getMethod("step2", String.class);
+
+        assertThat("We should correctly extract the event from the method",
+                PhasedEventManager.fetchApplicableEvent(l_methodWithEvent),
+                equalTo(MyNonInterruptiveEvent.class.getTypeName()));
+
+        assertThat("We should correctly identify that this class could be subject to a non-interruptive event",
+                PhasedEventManager.fetchApplicableEvent(TestSINGLEWithEvent_eventAsAnnotation.class),
+                Matchers.equalTo(MyNonInterruptiveEvent.class));
+    }
+
+    @Test
+    public void testEventAppliesTo_eventAnnotationOnMethod() throws NoSuchMethodException {
+        //Case 2A Event Declared as Exec property with none set
+        assertThat("We should correctly extract the event from the method",
+                PhasedEventManager.fetchApplicableEvent(TestSINGLEWithEvent_eventAsExecProperty.class), nullValue());
+
+        ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
+
+        //Case 2B Event Declared as Exec property with none set
+        assertThat("We should correctly extract the event from the method",
+                PhasedEventManager.fetchApplicableEvent(TestSINGLEWithEvent_eventAsExecProperty.class),
+                Matchers.equalTo(MyNonInterruptiveEvent.class));
+    }
+
+    @Test
+    public void testEventAppliesTo_eventInjected() throws NoSuchMethodException {
+
+        assertThat("By default this scenario is not subject to an event",
+                PhasedEventManager.fetchApplicableEvent(PhasedSeries_F_Shuffle.class),
+                Matchers.nullValue());
+
+        //Case 3 Normal test where the event is injected into the
+        Method l_targettedMethodWithoutEvent = PhasedSeries_F_Shuffle.class.getMethod("step2", String.class);
+        ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
+        ConfigValueHandlerPhased.EVENT_TARGET.activate(ClassPathParser.fetchFullName(l_targettedMethodWithoutEvent));
+
+        assertThat("Now that one of the methods is targetted, we should correctly extract the event from the method",
+                PhasedEventManager.fetchApplicableEvent(TestSINGLEWithEvent_eventAsExecProperty.class),
+                Matchers.equalTo(MyNonInterruptiveEvent.class));
+
+    }
+
+
+    @Test
+    public void testEventAppliesTo_noEventAnnotationClass() throws NoSuchMethodException {
+
+        //Case 2B Event Declared as Exec property with none set
+        assertThat("We should correctly extract the event from the method",
+                PhasedEventManager.fetchApplicableEvent(TestShuffled_eventDefinedOnPhasedTestAnnotation.class),
+                Matchers.equalTo(MyNonInterruptiveEvent.class));
+    }
+
+    @Test
+    public void testEventAppliesTo_NEGATIVE_nonExitingEvent() throws NoSuchMethodException {
+        ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.activate("i.really.do.not.Exist");
+        Assert.assertThrows(PhasedTestConfigurationException.class, () ->
+                PhasedEventManager.fetchApplicableEvent(PhasedSeries_F_Shuffle.class));
+    }
+
+    @Test
+    public void testEventAppliesTo_NEGATIVE_eventNotAnEvent() throws NoSuchMethodException {
+
+        assertThat("", NonInterruptiveEvent.class.isAssignableFrom(MyNonInterruptiveEvent.class));
+        ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.activate(NormalSeries_A.class.getTypeName());
+        Assert.assertThrows(PhasedTestConfigurationException.class, () ->
+                PhasedEventManager.fetchApplicableEvent(PhasedSeries_F_Shuffle.class));
     }
 }

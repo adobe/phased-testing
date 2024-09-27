@@ -54,7 +54,7 @@ public final class PhasedTestManager {
     static final String STD_PHASED_GROUP_PREFIX = "phased-shuffledGroup_";
     static final String STD_PHASED_GROUP_SINGLE = "phased-singleRun";
 
-    static final String STD_PHASED_GROUP_NIE_PREFIX = "phased-shuffledGroupNIE_";
+    static final String STD_PHASED_GROUP_NIE_PREFIX = "ni_event_";
 
     public static final String STD_MERGE_STEP_ERROR_PREFIX = "Phased Error: Failure in step ";
 
@@ -553,7 +553,10 @@ public final class PhasedTestManager {
                         + "_"
                         + lt_nrAfterPhase;
             } else {
-                l_objectArrayPhased[rows][0] = STD_PHASED_GROUP_NIE_PREFIX + (rows+1);
+                Class<NonInterruptiveEvent> l_event = PhasedEventManager.fetchApplicableEvent(
+                        in_method.getDeclaringClass());
+
+                l_objectArrayPhased[rows][0] = STD_PHASED_GROUP_NIE_PREFIX + (l_event != null ? l_event.getSimpleName()+"_" : ""  ) + (rows+1);
             }
         }
 
@@ -593,7 +596,11 @@ public final class PhasedTestManager {
         }
 
         if (Phases.ASYNCHRONOUS.isSelected()) {
-            return new Object[] { STD_PHASED_GROUP_SINGLE };
+            Class<NonInterruptiveEvent> l_event = PhasedEventManager.fetchApplicableEvent(
+                    in_method.getDeclaringClass());
+
+            return new Object[] { l_event == null ? STD_PHASED_GROUP_SINGLE :
+                    PhasedTestManager.STD_PHASED_GROUP_NIE_PREFIX + l_event.getSimpleName() };
         }
 
         return new Object[] {};
