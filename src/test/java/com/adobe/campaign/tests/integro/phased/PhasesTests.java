@@ -11,6 +11,7 @@
  */
 package com.adobe.campaign.tests.integro.phased;
 
+import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 import org.hamcrest.Matchers;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -95,6 +96,57 @@ public class PhasesTests {
         Phases[] l_phasesWithEvents = Phases.fetchPhasesWithEvents();
         
         assertThat("All phases should have a splitting event", Arrays.stream(l_phasesWithEvents).allMatch(p -> p.hasSplittingEvent));
+
+    }
+
+
+    @Test
+    public void testNonInterruptivePhase() {
+        Phases.ASYNCHRONOUS.activate();
+
+        assertThat("This should be the same as Non-interruptive", Phases.NON_INTERRUPTIVE.isSelected());
+        assertThat("This should be the same as Non-interruptive", Phases.ASYNCHRONOUS.isSelected());
+
+        Phases.NON_INTERRUPTIVE.activate();
+
+        assertThat("This should be the same as Non-interruptive", Phases.NON_INTERRUPTIVE.isSelected());
+        assertThat("This should be the same as Non-interruptive", Phases.ASYNCHRONOUS.isSelected());
+
+        //ConfigValueHandlerPhased.PROP_SELECTED_PHASE.activate(Phases.NON_INTERRUPTIVE.name()+"23");
+
+    }
+
+    @Test
+    public void testNonInterruptivePhaseWithEvents() {
+        //assertThat("We should be able to extract the phase value from the string", GeneralTestUtils);
+
+        String l_selectedPhase = Phases.NON_INTERRUPTIVE.name() + "(23)";
+        assertThat("We should detect the correct phase",Phases.fetchCorrespondingPhase(l_selectedPhase), Matchers.equalTo(Phases.NON_INTERRUPTIVE));
+
+        ConfigValueHandlerPhased.PROP_SELECTED_PHASE.activate(l_selectedPhase);
+
+        assertThat("This should be the same as Non-interruptive", Phases.NON_INTERRUPTIVE.isSelected());
+        assertThat("This should be the same as Non-interruptive", Phases.NON_INTERRUPTIVE.fetchType(), Matchers.equalTo("23"));
+        assertThat("We should detect that the given value is corrects",Phases.getCurrentPhase().isTypeValid());
+
+
+        ConfigValueHandlerPhased.PROP_SELECTED_PHASE.activate(Phases.NON_INTERRUPTIVE.name());
+        assertThat("This should be the same as Non-interruptive", Phases.NON_INTERRUPTIVE.fetchType(), Matchers.equalTo(""));
+        assertThat("We should not accept an empty type",!Phases.getCurrentPhase().isTypeValid());
+
+
+        ConfigValueHandlerPhased.PROP_SELECTED_PHASE.activate(Phases.NON_INTERRUPTIVE.name());
+        assertThat("This should be the same as Non-interruptive", Phases.NON_INTERRUPTIVE.fetchType(), Matchers.equalTo(""));
+
+        ConfigValueHandlerPhased.PROP_SELECTED_PHASE.activate(Phases.INTERRUPTIVE.name()+"(jhfdhj)");
+        assertThat("We should detect that given type is incorrect",!Phases.getCurrentPhase().isTypeValid());
+
+        Phases.NON_PHASED.activate();
+        assertThat("This should be the same as Non-phased", Phases.getCurrentPhase().fetchType(), Matchers.equalTo(""));
+        assertThat("We should accept an empty type",Phases.getCurrentPhase().isTypeValid());
+
+        Phases.NON_INTERRUPTIVE.activate("33");
+        assertThat("This should be the same as Non-interruptive", Phases.getCurrentPhase().fetchType(), Matchers.equalTo("33"));
 
     }
 

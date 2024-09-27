@@ -13,6 +13,7 @@ package com.adobe.campaign.tests.integro.phased;
 
 import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestConfigurationException;
 import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestException;
+import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestingEventException;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,6 +21,7 @@ import org.testng.ITestResult;
 
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -148,14 +150,30 @@ public class PhasedEventManager {
         NonInterruptiveEvent nie = instantiateClassFromString(in_event);
         logEvent(EventMode.START, in_event, in_onAccountOfStep);
         events.put(in_onAccountOfStep, nie);
-        eventExecutor.submit(nie);
+        nie.threadFuture = eventExecutor.submit(nie);
         while (nie.getState().equals(NonInterruptiveEvent.states.DEFINED)) {
             try {
+                //log.debug("Waiting for event to start");
                 Thread.sleep(1);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 throw new RuntimeException(e);
             }
+        }
+
+        if (nie.getState().equals(NonInterruptiveEvent.states.FAILURE)) {
+            log.error("Event Exception : The event {} for step {} caused an exception during start.", in_event, in_onAccountOfStep);
+            try {
+                nie.threadFuture.get();
+            } catch (InterruptedException | ExecutionException ex) {
+                ex.getCause().printStackTrace();
+            }
+        }
+
+        //NON_INTERRUPTIVE 23
+        if (Phases.NON_INTERRUPTIVE.fetchType().startsWith("2")) {
+            log.info("Forcing Event End {} BEFORE step {} has started.", in_event, in_onAccountOfStep);
+            performWaitTilFinish(in_event, in_onAccountOfStep, nie);
         }
         return nie;
     }
@@ -205,11 +223,48 @@ public class PhasedEventManager {
             throw new PhasedTestConfigurationException("Class " + in_event + " not found.", e);
         }
 
-        l_activeEvent.waitTillFinished();
+        //if (Phases.NON_INTERRUPTIVE.fetchType().startsWith("3")) {
+        //    log.info("Forcing Event End {} AFTER step {} has finished.", in_event, in_onAccountOfStep);
+        performWaitTilFinish(in_event, in_onAccountOfStep, l_activeEvent);
+        //}
+
+        if (!l_activeEvent.isFinished()) {
+            throw new PhasedTestingEventException("This event did not finish as expected.");
+        }
+
+        l_activeEvent.state = NonInterruptiveEvent.states.FINISHED;
+        log.info("Event {} for step {} has finished.", in_event, in_onAccountOfStep);
+
+        if (!l_activeEvent.threadFuture.isDone()) {
+            log.error("The event {} for step {} did not finish as expected. Cancelling the event.", in_event, in_onAccountOfStep);
+            l_activeEvent.threadFuture.cancel(true);
+        }
 
         logEvent(EventMode.END, in_event, in_onAccountOfStep);
-        l_activeEvent.tearDownEvent();
+        performTearDown(in_event, in_onAccountOfStep, l_activeEvent);
         return l_activeEvent;
+    }
+
+    private static void performWaitTilFinish(String in_event, String in_onAccountOfStep, NonInterruptiveEvent nie) {
+        try {
+            nie.waitTillFinished();
+        } catch (Exception e) {
+            log.error("The waitTillFinished method for event {} caused an exception in the context of step {}.",
+                    in_event, in_onAccountOfStep);
+            e.printStackTrace();
+            nie.threadFuture.cancel(true);
+        }
+    }
+
+    private static void performTearDown(String in_event, String in_onAccountOfStep, NonInterruptiveEvent l_activeEvent) {
+        try {
+            l_activeEvent.tearDownEvent();
+        } catch (Exception e) {
+            log.error("The tearDownEvent method for event {} caused an exception of type {} in the context of step {}.",
+                    in_event, e.getCause(), in_onAccountOfStep);
+            e.printStackTrace();
+            l_activeEvent.threadFuture.cancel(true);
+        }
     }
 
     public static List<PhasedEventLogEntry> getEventLogs() {

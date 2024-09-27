@@ -158,6 +158,7 @@ public class TestPhasedNonInterruptive {
         assertThat("The duration should be more than a second", (finish.getTime() - start.getTime()),
                 greaterThan(450l));
         assertThat("The duration should be less than 2 seconds", (finish.getTime() - start.getTime()), lessThan(600l));
+
         assertThat("Our event should be finished", nie.getState().equals(NonInterruptiveEvent.states.FINISHED));
 
         assertThat("In the end executor should no longer be null (lazily instantiated)",
@@ -768,6 +769,300 @@ public class TestPhasedNonInterruptive {
                 PhasedEventManager.getEventLogs().size(),
                 Matchers.equalTo(2));
     }
+
+    /**
+     * This is a test for non-interruptive events in shuffled classes. Using the legacy annotations
+     */
+    @Test
+    public void testNonInterruptive_33_Targetted() {
+        NIESynchronousEvent.START_STEP_VALUE = 2;
+        NIESynchronousEvent.WTF_STEP_VALUE = 7;
+        NIESynchronousEvent.TDE_STEP_VALUE = 23;
+
+        //Reset
+        TestNIE_Synchroneous.testElement = 3;
+
+        //The WTF should be finished before the start of step 2
+        TestNIE_Synchroneous.expectedStep2Value = NIESynchronousEvent.START_STEP_VALUE;
+
+        TestNIE_Synchroneous.expectedStep3Value = NIESynchronousEvent.TDE_STEP_VALUE;
+        TestNIE_Synchroneous.expectedStep3EndResult = TestNIE_Synchroneous.expectedStep2Value + TestNIE_Synchroneous.testElement;
+
+        // Rampup
+        TestNG myTestNG = TestTools.createTestNG();
+        TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
+
+        // Define suites
+        XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG, "Automated Suite Phased Testing");
+
+        // Add listeners
+        mySuite.addListener("com.adobe.campaign.tests.integro.phased.PhasedTestListener");
+
+        // Create an instance of XmlTest and assign a name for it.
+        XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Shuffled Phased Tests");
+
+        final Class<TestNIE_Synchroneous> l_testClass = TestNIE_Synchroneous.class;
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
+
+        Phases.ASYNCHRONOUS.activate();
+        ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.activate(NIESynchronousEvent.class.getTypeName());
+        ConfigValueHandlerPhased.EVENT_TARGET.activate(TestNIE_Synchroneous.class.getTypeName() + "#step2");
+
+        myTestNG.run();
+
+        assertThat("We should be in non-interruptive mode shuffled",
+                !PhasedTestManager.isPhasedTestShuffledMode(l_testClass));
+
+        tla.getFailedTests().forEach(t -> System.out.println(t.getThrowable().getMessage()));
+
+        assertThat("We should have 3 successful methods of phased Tests",
+                (int) tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
+                is(equalTo(3)));
+
+        //Global
+        assertThat("We should have no failed tests", tla.getFailedTests().size(), equalTo(0));
+        assertThat("We should have no skipped tests", tla.getSkippedTests().size(), equalTo(0));
+
+        assertThat("We should have the correct number of events in the logs (1 x phase groups)",
+                PhasedEventManager.getEventLogs().size(),
+                Matchers.equalTo(2));
+    }
+
+
+    /**
+     * This is a test for non-interruptive events in shuffled classes. Using the legacy annotations
+     */
+    @Test
+    public void testNonInterruptive_33_Targetted_ExceptionInStartEvent() {
+        NIESynchronousEventWithException.START_STEP_VALUE = 2;
+        NIESynchronousEventWithException.WTF_STEP_VALUE = 7;
+        NIESynchronousEventWithException.TDE_STEP_VALUE = 23;
+        NIESynchronousEventWithException.exceptionPlace = 1;
+
+        //Reset
+        TestNIE_Synchroneous.testElement = 3;
+
+        //The WTF should be finished before the start of step 2
+        TestNIE_Synchroneous.expectedStep2Value = NIESynchronousEventWithException.START_STEP_VALUE;
+
+        TestNIE_Synchroneous.expectedStep3Value = NIESynchronousEventWithException.TDE_STEP_VALUE;
+        TestNIE_Synchroneous.expectedStep3EndResult = TestNIE_Synchroneous.expectedStep2Value + TestNIE_Synchroneous.testElement;
+
+        // Rampup
+        TestNG myTestNG = TestTools.createTestNG();
+        TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
+
+        // Define suites
+        XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG, "Automated Suite Phased Testing");
+
+        // Add listeners
+        mySuite.addListener("com.adobe.campaign.tests.integro.phased.PhasedTestListener");
+
+        // Create an instance of XmlTest and assign a name for it.
+        XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Shuffled Phased Tests");
+
+        final Class<TestNIE_Synchroneous> l_testClass = TestNIE_Synchroneous.class;
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
+
+        Phases.ASYNCHRONOUS.activate();
+        ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.activate(NIESynchronousEventWithException.class.getTypeName());
+        ConfigValueHandlerPhased.EVENT_TARGET.activate(TestNIE_Synchroneous.class.getTypeName() + "#step2");
+
+        myTestNG.run();
+
+        assertThat("We should be in non-interruptive mode shuffled",
+                !PhasedTestManager.isPhasedTestShuffledMode(l_testClass));
+
+        tla.getFailedTests().forEach(t -> System.out.println(t.getThrowable().getMessage()));
+
+        assertThat("Only step 1 should have succeeded",
+                (int) tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
+                is(equalTo(3)));
+
+        //Global
+        assertThat("We should have no failed tests", tla.getFailedTests().size(), equalTo(0));
+        assertThat("We should have no skipped tests", tla.getSkippedTests().size(), equalTo(0));
+
+        assertThat("We should have the correct number of events in the logs (1 x phase groups)",
+                PhasedEventManager.getEventLogs().size(),
+                Matchers.equalTo(2));
+    }
+
+    /**
+     * This is a test for non-interruptive events in shuffled classes. Using the legacy annotations
+     */
+    @Test
+    public void testNonInterruptive_33_Targetted_ExceptionInWaitForEventToFinish() {
+        NIESynchronousEventWithException.START_STEP_VALUE = 2;
+        NIESynchronousEventWithException.WTF_STEP_VALUE = 7;
+        NIESynchronousEventWithException.TDE_STEP_VALUE = 23;
+        NIESynchronousEventWithException.exceptionPlace = 2;
+
+        //Reset
+        TestNIE_Synchroneous.testElement = 3;
+
+        //The WTF should be finished before the start of step 2
+        TestNIE_Synchroneous.expectedStep2Value = NIESynchronousEventWithException.START_STEP_VALUE;
+
+        TestNIE_Synchroneous.expectedStep3Value = NIESynchronousEventWithException.TDE_STEP_VALUE;
+        TestNIE_Synchroneous.expectedStep3EndResult = TestNIE_Synchroneous.expectedStep2Value + TestNIE_Synchroneous.testElement;
+
+        // Rampup
+        TestNG myTestNG = TestTools.createTestNG();
+        TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
+
+        // Define suites
+        XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG, "Automated Suite Phased Testing");
+
+        // Add listeners
+        mySuite.addListener("com.adobe.campaign.tests.integro.phased.PhasedTestListener");
+
+        // Create an instance of XmlTest and assign a name for it.
+        XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Shuffled Phased Tests");
+
+        final Class<TestNIE_Synchroneous> l_testClass = TestNIE_Synchroneous.class;
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
+
+        Phases.ASYNCHRONOUS.activate();
+        ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.activate(NIESynchronousEventWithException.class.getTypeName());
+        ConfigValueHandlerPhased.EVENT_TARGET.activate(TestNIE_Synchroneous.class.getTypeName() + "#step2");
+
+        myTestNG.run();
+
+        assertThat("We should be in non-interruptive mode shuffled",
+                !PhasedTestManager.isPhasedTestShuffledMode(l_testClass));
+
+        tla.getFailedTests().forEach(t -> System.out.println(t.getThrowable().getMessage()));
+
+        assertThat("Only step 1 should have succeeded",
+                (int) tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
+                is(equalTo(3)));
+
+        //Global
+        assertThat("We should have no failed tests", tla.getFailedTests().size(), equalTo(0));
+        assertThat("We should have no skipped tests", tla.getSkippedTests().size(), equalTo(0));
+
+        assertThat("We should have the correct number of events in the logs (1 x phase groups)",
+                PhasedEventManager.getEventLogs().size(),
+                Matchers.equalTo(2));
+    }
+
+    @Test
+    public void testNonInterruptive_33_Targetted_ExceptionInTearDown() {
+        NIESynchronousEventWithException.START_STEP_VALUE = 2;
+        NIESynchronousEventWithException.WTF_STEP_VALUE = 7;
+        NIESynchronousEventWithException.TDE_STEP_VALUE = 23;
+        NIESynchronousEventWithException.exceptionPlace = 3;
+
+        //Reset
+        TestNIE_Synchroneous.testElement = 3;
+
+        //The WTF should be finished before the start of step 2
+        TestNIE_Synchroneous.expectedStep2Value = NIESynchronousEventWithException.START_STEP_VALUE;
+
+        TestNIE_Synchroneous.expectedStep3Value = NIESynchronousEventWithException.TDE_STEP_VALUE;
+        TestNIE_Synchroneous.expectedStep3EndResult = TestNIE_Synchroneous.expectedStep2Value + TestNIE_Synchroneous.testElement;
+
+        // Rampup
+        TestNG myTestNG = TestTools.createTestNG();
+        TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
+
+        // Define suites
+        XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG, "Automated Suite Phased Testing");
+
+        // Add listeners
+        mySuite.addListener("com.adobe.campaign.tests.integro.phased.PhasedTestListener");
+
+        // Create an instance of XmlTest and assign a name for it.
+        XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Shuffled Phased Tests");
+
+        final Class<TestNIE_Synchroneous> l_testClass = TestNIE_Synchroneous.class;
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
+
+        Phases.ASYNCHRONOUS.activate();
+        ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.activate(NIESynchronousEventWithException.class.getTypeName());
+        ConfigValueHandlerPhased.EVENT_TARGET.activate(TestNIE_Synchroneous.class.getTypeName() + "#step2");
+
+        myTestNG.run();
+
+        assertThat("We should be in non-interruptive mode shuffled",
+                !PhasedTestManager.isPhasedTestShuffledMode(l_testClass));
+
+        tla.getFailedTests().forEach(t -> System.out.println(t.getThrowable().getMessage()));
+
+        assertThat("Only step 1 should have succeeded",
+                (int) tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
+                is(equalTo(3)));
+
+        //Global
+        assertThat("We should have no failed tests", tla.getFailedTests().size(), equalTo(0));
+        assertThat("We should have no skipped tests", tla.getSkippedTests().size(), equalTo(0));
+
+        assertThat("We should have the correct number of events in the logs (1 x phase groups)",
+                PhasedEventManager.getEventLogs().size(),
+                Matchers.equalTo(2));
+    }
+
+
+    /**
+     * This is a test for non-intyerruptive events in shuffled classes. Using the legacy annotations
+     */
+    @Test
+    public void testNonInterruptive_23_Targeted() {
+        NIESynchronousEvent.START_STEP_VALUE = 2;
+        NIESynchronousEvent.WTF_STEP_VALUE = 7;
+        NIESynchronousEvent.TDE_STEP_VALUE = 23;
+
+        //Reset
+        TestNIE_Synchroneous.testElement = 3;
+
+        //The WTF should be finished before the start of step 2
+        TestNIE_Synchroneous.expectedStep2Value = NIESynchronousEvent.WTF_STEP_VALUE;
+
+        TestNIE_Synchroneous.expectedStep3Value = NIESynchronousEvent.TDE_STEP_VALUE;
+        TestNIE_Synchroneous.expectedStep3EndResult = NIESynchronousEvent.WTF_STEP_VALUE + TestNIE_Synchroneous.testElement;
+
+
+        // Rampup
+        TestNG myTestNG = TestTools.createTestNG();
+        TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
+
+        // Define suites
+        XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG, "Automated Suite Phased Testing");
+
+        // Add listeners
+        mySuite.addListener("com.adobe.campaign.tests.integro.phased.PhasedTestListener");
+
+        // Create an instance of XmlTest and assign a name for it.
+        XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Shuffled Phased Tests");
+
+        final Class<TestNIE_Synchroneous> l_testClass = TestNIE_Synchroneous.class;
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
+
+        Phases.NON_INTERRUPTIVE.activate("23");
+        ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.activate(NIESynchronousEvent.class.getTypeName());
+        ConfigValueHandlerPhased.EVENT_TARGET.activate(TestNIE_Synchroneous.class.getTypeName() + "#step2");
+
+        myTestNG.run();
+
+        assertThat("We should be in non-interruptive mode shuffled",
+                !PhasedTestManager.isPhasedTestShuffledMode(l_testClass));
+
+        tla.getFailedTests().forEach(t -> System.out.println(t.getThrowable().getMessage()));
+
+        assertThat("We should have 3 successful methods of phased Tests",
+                (int) tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
+                is(equalTo(3)));
+
+        //Global
+        assertThat("We should have no failed tests", tla.getFailedTests().size(), equalTo(0));
+        assertThat("We should have no skipped tests", tla.getSkippedTests().size(), equalTo(0));
+
+        assertThat("We should have the correct number of events in the logs (1 x phase groups)",
+                PhasedEventManager.getEventLogs().size(),
+                Matchers.equalTo(2));
+    }
+
 
     /**
      * This is a test for non-intyerruptive events in shuffled classes
