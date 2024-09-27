@@ -168,9 +168,11 @@ public class PhasedEventManager {
             log.error("Event Exception : The event {} for step {} caused an exception during start.", in_event, in_onAccountOfStep);
             try {
                 nie.threadFuture.get();
-            } catch (InterruptedException | ExecutionException ex) {
+            } catch (ExecutionException ex) {
                 ex.getCause().printStackTrace();
-                nie.threadFuture.cancel(true);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new PhasedTestingEventException("Un expected problem happened when waiting for th event to start.",e);
             }
         }
 
