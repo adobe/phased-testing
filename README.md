@@ -636,9 +636,10 @@ For now, we have not come around to deciding how retry should work in the case o
 
 ## Release Notes
 
-### 8.11.2
+### 8.11.3 in Progress
 * **(new feature)** [#178 Allowing the injection in any step of a scenario](https://github.com/adobe/phased-testing/issues/178). We can now inject an event into a step in an arbitrary phased test. This is done by setting the syetm property PHASED.EVENTS.TARGET. This way you can inject the event into that step.
 * **(new feature)** [#198 Adding Post Step Event actions](https://github.com/adobe/phased-testing/issues/198). We allow you to define a 'tearDownEvent' tool to allow you to put the system back to a normal state after the event has finished. Please refer to the chapter [Performing Event Cleanup Actions](#performing-event-cleanup-actions).
+* [#202 Error Handling during Event Execution](https://github.com/adobe/phased-testing/issues/202). Exceptions in events were either not communicated or they caused unexpected behavior. We now return the exceptions thrown by the event.
 
 ### 8.11.1
 * Renaming ConfigValueHandler to ConfigValueHandlerPhased

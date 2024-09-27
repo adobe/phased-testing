@@ -43,21 +43,14 @@ public abstract class NonInterruptiveEvent implements Runnable {
 
     @Override
     public void run() {
-        state = startEvent() ? states.STARTED : states.FAILURE;
-
-        if (state.equals(states.FAILURE)) {
-            throw new PhasedTestingEventException("There was a problem starting this event.");
+        try {
+            startEvent();
+            state = states.STARTED;
+        } catch (Exception e) {
+            state = states.FAILURE;
+            throw new PhasedTestingEventException("There was a problem starting this event.", e);
         }
-        /*
-        waitTillFinished();
 
-        if (!isFinished()) {
-            throw new PhasedTestingEventException("This event did not finish as expected.");
-        }
-        state=states.FINISHED;
-        Thread.currentThread().interrupt();
-
-         */
         return;
     }
 
