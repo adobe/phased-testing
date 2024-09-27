@@ -25,8 +25,9 @@ import java.util.concurrent.Executors;
 
 public class PhasedEventManager {
     private static final Logger log = LogManager.getLogger();
-
+    static Map<String, NonInterruptiveEvent> events = new HashMap<>();
     private static ExecutorService eventExecutor = null;
+    private static List<PhasedEventLogEntry> eventLogs = new ArrayList();
 
     /**
      * Returns the declared event.  if declared on the method. The declarations have the following precedence:
@@ -35,11 +36,12 @@ public class PhasedEventManager {
      *  <li>Declaration in @PhasedTest</li>
      *  <li>When the property PHASED.EVENTS.NONINTERRUPTIVE is set</li>
      * </ol>Null is returned if no such declaration is present.
+     *
      * @param in_method The method we are examining
      * @return The event that is declared on the method. Null if there is no event declared for the method
      */
     public static String fetchApplicableEvent(Method in_method) {
-        if (!PhasedTestManager.isPhasedTest(in_method) ) {
+        if (!PhasedTestManager.isPhasedTest(in_method)) {
             return null;
         }
 /*
@@ -71,23 +73,53 @@ public class PhasedEventManager {
                     ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.fetchValue();
 
              */
-        }
-        else if (in_method.getDeclaringClass().getDeclaredAnnotation(PhasedTest.class).eventClasses().length > 0) {
+        } else if (in_method.getDeclaringClass().getDeclaredAnnotation(PhasedTest.class).eventClasses().length > 0) {
             return in_method.getDeclaringClass().getDeclaredAnnotation(PhasedTest.class).eventClasses()[0];
         } else if (ConfigValueHandlerPhased.EVENT_TARGET.isSet()) {
-            return PhasedTestManager.isPhasedTestTargetOfEvent(in_method) ? ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.fetchValue() : null;
+            return PhasedTestManager.isPhasedTestTargetOfEvent(
+                    in_method) ? ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.fetchValue() : null;
         } else if (ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.isSet()) {
             return ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.fetchValue();
         }
         return null;
     }
 
-    protected static enum EventMode {START, END};
+    ;
 
-    static Map<String, NonInterruptiveEvent> events = new HashMap<>();
+    /**
+     * Returns the declared event.  if declared on the method. The declarations have the following precedence:
+     * <ol>
+     *  <li>Declaration in @PhaseEvent</li>
+     *  <li>Declaration in @PhasedTest</li>
+     *  <li>When the property PHASED.EVENTS.NONINTERRUPTIVE is set</li>
+     * </ol>Null is returned if no such declaration is present.
+     *
+     * @param in_scenario The class/scenario we are examining
+     * @return The event that is declared on the method. Null if there is no event declared for the method
+     */
+    public static Class fetchApplicableEvent(Class in_scenario) {
+        Method l_foundMethod = Arrays.stream(in_scenario.getMethods()).filter(m -> fetchApplicableEvent(m) != null)
+                .findFirst().orElse(null);
 
+        if (l_foundMethod == null) {
+            return null;
+        }
 
-    private static List<PhasedEventLogEntry> eventLogs = new ArrayList();
+        try {
+            Class<?> lr_eventClass = Class.forName(fetchApplicableEvent(l_foundMethod));
+
+            if (!NonInterruptiveEvent.class.isAssignableFrom(lr_eventClass)) {
+                throw new PhasedTestConfigurationException(
+                        "The given event " + lr_eventClass.getTypeName() + " should extend the abstract class "
+                                + NonInterruptiveEvent.class.getTypeName() + ".");
+            }
+
+            return lr_eventClass;
+        } catch (ClassNotFoundException e) {
+            throw new PhasedTestConfigurationException(
+                    "The given event " + fetchApplicableEvent(l_foundMethod) + " could not be found.", e);
+        }
+    }
 
     /**
      * Used for logging events
@@ -112,7 +144,7 @@ public class PhasedEventManager {
         if (eventExecutor == null) {
             eventExecutor = Executors.newSingleThreadExecutor();
         }
-        log.info("Starting event {} for step {}.",in_event,in_onAccountOfStep);
+        log.info("Starting event {} for step {}.", in_event, in_onAccountOfStep);
         NonInterruptiveEvent nie = instantiateClassFromString(in_event);
         logEvent(EventMode.START, in_event, in_onAccountOfStep);
         events.put(in_onAccountOfStep, nie);
@@ -135,14 +167,17 @@ public class PhasedEventManager {
             Class<?> eventClass = Class.forName(in_event);
 
             if (!NonInterruptiveEvent.class.isAssignableFrom(eventClass)) {
-                throw new PhasedTestConfigurationException("The given event "+in_event+ " should be a sub-class of the abstract class "+NonInterruptiveEvent.class.getTypeName()+".");
+                throw new PhasedTestConfigurationException(
+                        "The given event " + in_event + " should be a sub-class of the abstract class "
+                                + NonInterruptiveEvent.class.getTypeName() + ".");
             }
             nie = (NonInterruptiveEvent) eventClass.newInstance();
         } catch (IllegalAccessException | InstantiationException e) {
 
-            throw new PhasedTestConfigurationException("We have had a problem instantiating the event "+in_event+".", e);
+            throw new PhasedTestConfigurationException(
+                    "We have had a problem instantiating the event " + in_event + ".", e);
         } catch (ClassNotFoundException e) {
-            throw new PhasedTestConfigurationException("The given event class "+in_event+" could not be found.", e);
+            throw new PhasedTestConfigurationException("The given event class " + in_event + " could not be found.", e);
         }
         return nie;
     }
@@ -158,15 +193,16 @@ public class PhasedEventManager {
         log.info("Finishing event {} for step {}.", in_event, in_onAccountOfStep);
         NonInterruptiveEvent l_activeEvent = events.get(in_onAccountOfStep);
         if (l_activeEvent == null) {
-            throw new PhasedTestException("No event of the type "+in_event+" was stored for the test step "+in_onAccountOfStep);
+            throw new PhasedTestException(
+                    "No event of the type " + in_event + " was stored for the test step " + in_onAccountOfStep);
         }
 
         try {
             if (Class.forName(in_event) != l_activeEvent.getClass()) {
-                throw new PhasedTestException("The given class "+in_event+" does not exist.");
+                throw new PhasedTestException("The given class " + in_event + " does not exist.");
             }
         } catch (ClassNotFoundException e) {
-            throw new PhasedTestConfigurationException("Class "+in_event+" not found.",e);
+            throw new PhasedTestConfigurationException("Class " + in_event + " not found.", e);
         }
 
         l_activeEvent.waitTillFinished();
@@ -194,6 +230,7 @@ public class PhasedEventManager {
 
     /**
      * Extracts the event for a given method. The choice of the event is based on where the event is declared.
+     *
      * @param in_testResult A result object for a test containing the annotation {@link PhaseEvent}
      * @return An event that can be executed with this method. Null if no event is applicable
      */
@@ -218,9 +255,10 @@ public class PhasedEventManager {
 
             int l_currentShuffleGroupNr = PhasedTestManager.asynchronousExtractIndex(in_testResult);
 
-            int l_currentStep = PhasedTestManager.getMethodMap().get(ClassPathParser.fetchFullName(l_currentMethod)).methodOrderInExecution;
+            int l_currentStep = PhasedTestManager.getMethodMap()
+                    .get(ClassPathParser.fetchFullName(l_currentMethod)).methodOrderInExecution;
 
-            if (l_currentStep  == l_currentShuffleGroupNr) {
+            if (l_currentStep == l_currentShuffleGroupNr) {
                 return fetchApplicableEvent(l_currentMethod);
             }
             return null;
@@ -232,9 +270,11 @@ public class PhasedEventManager {
     }
 
     public static void stopEventExecutor() {
-        if (eventExecutor != null)
+        if (eventExecutor != null) {
             eventExecutor.shutdown();
+        }
     }
 
+    protected static enum EventMode {START, END}
 
 }
