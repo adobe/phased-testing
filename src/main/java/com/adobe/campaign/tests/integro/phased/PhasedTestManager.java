@@ -54,7 +54,7 @@ public final class PhasedTestManager {
     static final String STD_PHASED_GROUP_PREFIX = "phased-shuffledGroup_";
     static final String STD_PHASED_GROUP_SINGLE = "phased-singleRun";
 
-    static final String STD_PHASED_GROUP_NIE_PREFIX = "phased-shuffledGroupNIE_";
+    static final String STD_PHASED_GROUP_NIE_PREFIX = "ni_event_";
 
     public static final String STD_MERGE_STEP_ERROR_PREFIX = "Phased Error: Failure in step ";
 
