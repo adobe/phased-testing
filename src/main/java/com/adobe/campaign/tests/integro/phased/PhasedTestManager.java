@@ -893,7 +893,7 @@ public final class PhasedTestManager {
      * @return true if The annotations PhasedTest and PhasedStep are present
      */
     public static boolean isPhasedTest(Method in_method) {
-        return isPhasedTest(in_method.getDeclaringClass());
+        return isPhasedTest(in_method.getDeclaringClass()) || MutationManager.isMutationalTest(in_method);
     }
 
     /**
@@ -905,7 +905,7 @@ public final class PhasedTestManager {
      * @return True if the class is a phased test scenario
      */
     public static boolean isPhasedTest(Class<?> in_class) {
-        return in_class.isAnnotationPresent(PhasedTest.class);
+        return in_class.isAnnotationPresent(PhasedTest.class) || MutationManager.isMutationalTest(in_class);
     }
 
     /**
@@ -925,6 +925,10 @@ public final class PhasedTestManager {
      * @return True if the test class is a SingleRun Phase Test scenario
      */
     static boolean isPhasedTestSingleMode(Class<?> in_class) {
+        if (MutationManager.isMutationalTest(in_class)) {
+            return MutationManager.isSingleMode(in_class);
+        }
+
         //TODO in 8.11.3 to be removed -  make public
         //return isPhasedTest(in_class) && (isPhasedTestWithEvent(in_class)
         return isPhasedTest(in_class) && (isPhasedTestWithEvent(in_class) || !in_class.getAnnotation(PhasedTest.class).canShuffle()) || isPhasedTestTargetOfEvent(in_class);
@@ -960,6 +964,9 @@ public final class PhasedTestManager {
      * @return True if the given test scenario is a Shuffled Phased Test scenario
      */
     static boolean isPhasedTestShuffledMode(Class<?> in_class) {
+        if (MutationManager.isMutationalTest(in_class)) {
+            return MutationManager.isShuffleMode(in_class);
+        }
         return isPhasedTest(in_class) && !isPhasedTestWithEvent(in_class) && in_class.getAnnotation(PhasedTest.class)
                 .canShuffle() && !isPhasedTestTargetOfEvent(in_class);
     }
@@ -974,7 +981,7 @@ public final class PhasedTestManager {
      * @return The identity of the scenario
      */
     public static String fetchScenarioName(ITestResult in_testNGResult) {
-        if (MutationManager.isMutational(in_testNGResult)) {
+        if (MutationManager.isMutationalTest(in_testNGResult)) {
             return MutationManager.fetchScenarioName(in_testNGResult);
         }
         return in_testNGResult.getMethod().getConstructorOrMethod().getMethod().getDeclaringClass()

@@ -17,7 +17,6 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 
 @Test
-@PhasedTest
 public class IE_Shuffled_ErrorAssertion1 extends Mutational {
 
     public void step1(String val) {

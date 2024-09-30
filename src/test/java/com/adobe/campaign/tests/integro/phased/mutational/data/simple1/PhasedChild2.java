@@ -14,7 +14,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 //@Test(groups = "aaa", dataProvider = "MUTATIONAL", dataProviderClass = PhasedDataProvider.class)
-@PhasedTest
+//@PhasedTest
 @Test(groups = "aaa")
 public class PhasedChild2 extends Mutational {
 

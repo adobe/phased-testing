@@ -11,6 +11,7 @@ package com.adobe.campaign.tests.integro.phased;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
 import org.testng.ITestResult;
 
+import java.lang.reflect.Method;
 import java.util.stream.Collectors;
 
 public class MutationManager {
@@ -34,8 +35,27 @@ public class MutationManager {
      * @param in_testResult The test result
      * @return true if it is a mutational test
      */
-    public static boolean isMutational(ITestResult in_testResult) {
+    public static boolean isMutationalTest(ITestResult in_testResult) {
         return in_testResult.getMethod().getRealClass().getTypeName().equals(Mutational.class.getTypeName());
+    }
+
+    /**
+     * Lets us know if the given class is a mutational class. This means that it is a sub-class of Mutational
+     * @param in_class a candidate class
+     * @return true if the class inherits from Mutational
+     */
+    public static boolean isMutationalTest(Class in_class) {
+
+        return in_class.getSuperclass() != null ? in_class.getSuperclass().equals(Mutational.class) : false;
+    }
+
+    /**
+     * Lets us know if the given method is part of a mutational test. This means that it is a sub-class of Mutational
+     * @param in_method a candidate class
+     * @return true if the method is part of a class that inherits from Mutational
+     */
+    public static boolean isMutationalTest(Method in_method) {
+        return isMutationalTest(in_method.getDeclaringClass());
     }
 
     public static String fetchScenarioName(String in_classFullName, String in_shuffleGroup) {
@@ -76,5 +96,27 @@ public class MutationManager {
         }
 
         return lr_result;
+    }
+
+    /**
+     * This method lets us know if the steps in a PhasedTest are to be executed in a Shuffled manner. For a test with 3
+     * steps the test will be executed 6 times in total
+     *
+     * @param in_class A test class/scenario
+     * @return True if the given test scenario is a Shuffled Phased Test scenario
+     */
+    public static boolean isShuffleMode(Class<?> in_class) {
+        return !PhasedTestManager.isPhasedTestWithEvent(in_class) && !PhasedTestManager.isPhasedTestTargetOfEvent(in_class);
+    }
+
+    /**
+     * This method lets us know if the steps in a PhasedTest are to be executed consequently in two phases
+     *
+     * @param in_class Any class that contains tests
+     * @return True if the test class is a SingleRun Phase Test scenario
+     */
+    public static boolean isSingleMode(Class<?> in_class) {
+        return isMutationalTest(in_class) && (PhasedTestManager.isPhasedTestWithEvent(in_class) || PhasedTestManager.isPhasedTestTargetOfEvent(in_class));
+
     }
 }

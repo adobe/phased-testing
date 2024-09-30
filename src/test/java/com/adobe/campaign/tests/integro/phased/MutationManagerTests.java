@@ -8,10 +8,12 @@
  */
 package com.adobe.campaign.tests.integro.phased;
 
+import com.adobe.campaign.tests.integro.phased.data.NormalSeries_A;
 import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_F_Shuffle;
 import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClassWithError;
+import com.adobe.campaign.tests.integro.phased.mutational.data.nested.MutationalTestParent;
+import com.adobe.campaign.tests.integro.phased.mutational.data.simple1.PhasedChild1;
 import com.adobe.campaign.tests.integro.phased.mutational.data.simple1.PhasedChild2;
-import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 import com.adobe.campaign.tests.integro.phased.utils.MockTestTools;
 import org.hamcrest.Matchers;
@@ -23,10 +25,6 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -97,7 +95,7 @@ public class MutationManagerTests {
 
         ITestResult l_itr = createMutationalMock(expected, "Q");
 
-        assertThat("This should be a mutational test", MutationManager.isMutational(l_itr));
+        assertThat("This should be a mutational test", MutationManager.isMutationalTest(l_itr));
     }
 
     @Test
@@ -109,7 +107,7 @@ public class MutationManagerTests {
 
         ITestResult l_itr = MockTestTools.generateTestResultMock(l_myTestWithOneArg, l_argumentObjects);
 
-        assertThat("We should have the correct full name", !MutationManager.isMutational(l_itr));
+        assertThat("We should have the correct full name", !MutationManager.isMutationalTest(l_itr));
     }
 
     @Test
@@ -143,6 +141,62 @@ public class MutationManagerTests {
 
         assertThat("We should have one steps to executed in permutational", MutationManager.fetchExecutionIndex(testClass.getTypeName(), l_phaseGroup, Phases.PERMUTATIONAL),
                 Matchers.arrayContaining(0, 3));
+    }
+
+    @Test
+    public void testIfTestIsMutationalSimple() {
+        Class l_testClass = PhasedChild1.class;
+
+        assertThat("This should be a mutational test", MutationManager.isMutationalTest(l_testClass));
+
+        assertThat("A mutational test is a phasedTest", PhasedTestManager.isPhasedTest(l_testClass));
+
+        Class l_nonMutationalClass = NormalSeries_A.class;
+        assertThat("This should not be a mutational test", !MutationManager.isMutationalTest(l_nonMutationalClass));
+
+
+
+    }
+
+    @Test
+    public void testIfTestIsMutationalNested() {
+        Class l_testClass = MutationalTestParent.MutationalChildTest1.class;
+
+        assertThat("This should be a mutational test", MutationManager.isMutationalTest(l_testClass));
+
+        assertThat("TA mutational test is a phasedTest", PhasedTestManager.isPhasedTest(l_testClass));
+
+    }
+
+
+    @Test
+    public void testIfTestIsMutationalMethod() throws NoSuchMethodException {
+        Method l_testMethod = PhasedChild1.class.getMethod("step1", String.class);
+
+        assertThat("This should be a mutational test", MutationManager.isMutationalTest(l_testMethod));
+
+        assertThat("A mutational test is a phasedTest", PhasedTestManager.isPhasedTest(l_testMethod));
+
+
+        Method l_nonMutationalMethod = NormalSeries_A.class.getMethod("firstTest");
+        assertThat("This should not be a mutational test", !MutationManager.isMutationalTest(l_nonMutationalMethod));
+
+        Method l_nonMutationalMethod2 = Object.class.getMethod("wait");
+        assertThat("This should not be a mutational test", !MutationManager.isMutationalTest(l_nonMutationalMethod));
+
+    }
+
+    @Test
+    public void testIsShuffled_Mutational() throws SecurityException {
+        Class l_myClass = PhasedChild1.class;
+
+        assertThat("We should be in Shuffled mode", PhasedTestManager.isPhasedTestShuffledMode(l_myClass));
+        assertThat("We should not be in Single mode", !PhasedTestManager.isPhasedTestSingleMode(l_myClass));
+
+        //Activate target event
+        ConfigValueHandlerPhased.EVENT_TARGET.activate(l_myClass.getTypeName()+".step1");
+        assertThat("We should be in Shuffled mode", !PhasedTestManager.isPhasedTestShuffledMode(l_myClass));
+        assertThat("We should  be in Single mode", PhasedTestManager.isPhasedTestSingleMode(l_myClass));
     }
 
 
