@@ -218,7 +218,7 @@ public class MutationListener
          */
 
             //Generate scenario step dependencies
-        PhasedTestManager.setStepDependencies(l_phasedClasses.stream()
+        PhasedTestManager.setStepDependencies(l_phasedClasses.stream().filter(pc -> !pc.equals(Mutational.class))
                     .map(ScenarioStepDependencyFactory::listMethodCalls).collect(Collectors.toMap(ScenarioStepDependencies::getScenarioName, Function.identity())));
 
 
