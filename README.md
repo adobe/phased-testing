@@ -35,11 +35,12 @@ Examples of events are:
     * [Local Execution](#local-execution)
     * [Non-Interruptive Events](#non-interruptive-events)
       * [Writing a Non-Interruptive Event](#writing-a-non-interruptive-event)
+        * [Performing Event Cleanup Actions](#performing-event-cleanup-actions)
       * [Binding an Event to a Scenario](#binding-an-event-to-a-scenario)
-      * [Attaching an Event using the PhaseEvent Annotation](#attaching-an-event-using-the-phaseevent-annotation)
-      * [Attaching an Event using the PhasedTest Annotation](#attaching-an-event-using-the-phasedtest-annotation)
-      * [Attaching an Event to the Test Suite](#attaching-an-event-to-the-test-suite)
-      * [Targeting an Event to a Specific Step](#targeting-an-event-to-a-specific-step)
+        * [Attaching an Event using the PhaseEvent Annotation](#attaching-an-event-using-the-phaseevent-annotation)
+        * [Attaching an Event using the PhasedTest Annotation](#attaching-an-event-using-the-phasedtest-annotation)
+        * [Attaching an Event to the Test Suite](#attaching-an-event-to-the-test-suite)
+        * [Targeting an Event to a Specific Step](#targeting-an-event-to-a-specific-step)
     * [Before- and After-Phase Actions](#before--and-after-phase-actions)
     * [Nested Design Pattern](#nested-design-pattern)
   * [Running a Phased Test](#running-a-phased-test)
@@ -56,6 +57,7 @@ Examples of events are:
       * [PHASED.TESTS.NONPHASED.LEGACY](#phasedtestsnonphasedlegacy)
     * [Executing a CONSUMER phase based on the PRODUCED Data](#executing-a-consumer-phase-based-on-the-produced-data)
     * [Execution Order](#execution-order)
+    * [Running Nested Phased Tests](#running-nested-phased-tests)
   * [Integrity between Steps and Scenarios](#integrity-between-steps-and-scenarios)
     * [Phase Contexts - Managing the Scenario Step Executions](#phase-contexts---managing-the-scenario-step-executions)
       * [On Failure](#on-failure)
@@ -297,6 +299,17 @@ As you can see we have to implement three methods:
 
 In order to define these event you will need to implement these methods, as you who are defining the event have the best knowledge on how these event will work.
 
+##### Performing Event Cleanup Actions
+At times the simple execution of an event is not sufficient. We need to perform an event clean up action to reset the system to a stable state. For this we allow you to define a 'tearDownEven' actions for an event. This means that after an event has been finished, we perform an additional set of actions before the next step is executed. To make use of this you need to override the method `tearDownEvent` in your event. The framework will then execute this action right before the next step is triggered.
+
+```java
+@Override
+public boolean tearDownEvent() {
+        // Perform actions
+        return true; //Return true if the actions were successful
+        }
+```
+
 #### Binding an Event to a Scenario
 In order for your scenario to interact with an event you will need to declare it. This can be done in three ways (in order of precedence) :
 * Phased Event Annotation
@@ -305,7 +318,7 @@ In order for your scenario to interact with an event you will need to declare it
 
 If you have the event declared in more than one level (for example on both the PhasedEvent and the PhasedTest annotation), it is the value with more precedence which is taken into account.
 
-#### Attaching an Event using the PhaseEvent Annotation
+##### Attaching an Event using the PhaseEvent Annotation
 The mode is only applicable to Single Run execution modes.
 
 In the case of single run scenarios, we can specify which phase event should be triggered on the annotation itself. This is by setting the `eventClasses` attribute for the `@PhaseEvent` annotation.
@@ -334,7 +347,7 @@ public class SingleRunScenarioWithEvent {
 }
 ```
 
-#### Attaching an Event using the PhasedTest Annotation
+##### Attaching an Event using the PhasedTest Annotation
 In this case we expect us to specify if a scenario is only subject to the same event. This will be done at the `@PhasedTest` annotation using the attribute `eventClasses`. When set we only use the specified event.
 
 ```Java
@@ -359,7 +372,7 @@ public class ShuffledScenarioWithEvent {
 }
 ```
 
-#### Attaching an Event to the Test Suite
+##### Attaching an Event to the Test Suite
 In this case, we state that all scenarios should be using the same Event. We can activate this mode by setting the environment variable `PHASED.EVENTS.NONINTERRUPTIVE` to the event class.
 
 This works for both Shuffled and Single-Run tests. If we want to run all tests with the event `com.adobe.campaign.tests.integro.phased.data.events.MyNonInterruptiveEvent`, we enter:
@@ -368,7 +381,7 @@ This works for both Shuffled and Single-Run tests. If we want to run all tests w
 
 You can also add it as a property in your testng definition file.
 
-#### Targeting an Event to a Specific Step
+##### Targeting an Event to a Specific Step
 As of version 8.11.2, we can inject an event to a specific step of a Phased Scenario. This is done by:
 * Declaring an event by setting the variable `PHASED.EVENTS.NONINTERRUPTIVE`.
 * Identifying the step on which an event will occur. This is done by setting the variable `PHASED.EVENTS.TARGET`.
@@ -522,6 +535,15 @@ By default, the phased tests, being implemented in TestNG follow the same rules 
 
 As of version 8 we have implemented code based order. Whenever the system property, PHASED.TESTS.DETECT.ORDER is set, the steps are executed in the order the way we declared in the code. By default, we expect the code to be in maven where the tests are in the directory src/test/java. However, this can be overriden by setting the execution property PHASED.TESTS.CODE.ROOT.
 
+### Running Nested Phased Tests
+Nested class tests are usually quite tricky in Surefire because dollar sign '$' used for identifiying these object needs to be escaped. You can run a nested tests in the following way:
+    
+    ```mvn clean test -Dtest='PhasedTestSeries_NestedContainer$PhasedScenario1'```
+
+or
+
+```mvn clean test -Dtest=PhasedTestSeries_NestedContainer\$PhasedScenario1```
+
 ## Integrity between Steps and Scenarios 
 ### Phase Contexts - Managing the Scenario Step Executions
 Although we try to keep the execution of a scenario like any other test scenario, we feel that it is useful to document how the state of a scenario works.
@@ -615,8 +637,8 @@ For now, we have not come around to deciding how retry should work in the case o
 ## Release Notes
 
 ### 8.11.2
-* [#178 Allowing the injection in any step of a scenario](https://github.com/adobe/bridgeService/issues/178). We can now inject an event into a step in an arbitrary phased test. This is done by setting the syetm property PHASED.EVENTS.TARGET. This way you can inject the event into that step.
-
+* **(new feature)** [#178 Allowing the injection in any step of a scenario](https://github.com/adobe/phased-testing/issues/178). We can now inject an event into a step in an arbitrary phased test. This is done by setting the syetm property PHASED.EVENTS.TARGET. This way you can inject the event into that step.
+* **(new feature)** [#198 Adding Post Step Event actions](https://github.com/adobe/phased-testing/issues/198). We allow you to define a 'tearDownEvent' tool to allow you to put the system back to a normal state after the event has finished. Please refer to the chapter [Performing Event Cleanup Actions](#performing-event-cleanup-actions).
 
 ### 8.11.1
 * Renaming ConfigValueHandler to ConfigValueHandlerPhased

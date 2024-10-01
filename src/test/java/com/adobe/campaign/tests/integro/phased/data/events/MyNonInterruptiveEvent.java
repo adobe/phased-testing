@@ -47,6 +47,7 @@ public class MyNonInterruptiveEvent extends NonInterruptiveEvent {
 
     @Override
     public boolean waitTillFinished() {
+        log.info("finishing");
 
         try {
             if (eventThread.isAlive()) {
