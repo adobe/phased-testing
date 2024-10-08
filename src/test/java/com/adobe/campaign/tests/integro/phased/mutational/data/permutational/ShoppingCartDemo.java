@@ -13,7 +13,6 @@ import com.adobe.campaign.tests.integro.phased.PhasedTestManager;
 import com.adobe.campaign.tests.integro.phased.Mutational;
 import org.testng.annotations.Test;
 
-@PhasedTest
 @Test(groups = "bbb")
 public class ShoppingCartDemo extends Mutational {
     public void loginToSite(String param) {
