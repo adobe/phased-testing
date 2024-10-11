@@ -72,7 +72,7 @@ public class PhasedEventManager {
 
              */
         }
-        else if (in_method.getDeclaringClass().getDeclaredAnnotation(PhasedTest.class).eventClasses().length > 0) {
+        else if (in_method.getDeclaringClass().isAnnotationPresent(PhasedTest.class) && in_method.getDeclaringClass().getDeclaredAnnotation(PhasedTest.class).eventClasses().length > 0) {
             return in_method.getDeclaringClass().getDeclaredAnnotation(PhasedTest.class).eventClasses()[0];
         } else if (ConfigValueHandlerPhased.EVENT_TARGET.isSet()) {
             return PhasedTestManager.isPhasedTestTargetOfEvent(in_method) ? ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.fetchValue() : null;

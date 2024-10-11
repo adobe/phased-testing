@@ -15,7 +15,6 @@ import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertEquals;
 
-@PhasedTest
 @Test
 public class TestMutationalShuffled_eventPassedAsExecutionVariable extends Mutational {
 
