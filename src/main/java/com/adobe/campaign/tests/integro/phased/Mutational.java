@@ -24,7 +24,7 @@ import java.util.Map;
 @Test(dataProvider = "MUTATIONAL", dataProviderClass = PhasedDataProvider.class)
 public abstract class Mutational {
 
-    public void shuffled(String phaseGroup) throws Throwable {
+    public void scenario(String phaseGroup) throws Throwable {
 
         String l_thisScneario = this.getClass().getTypeName() + "(" + phaseGroup + ")";
 

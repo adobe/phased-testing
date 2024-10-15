@@ -9,7 +9,6 @@
 package com.adobe.campaign.tests.integro.phased;
 
 import com.adobe.campaign.tests.integro.phased.data.NormalSeries_A;
-import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_F_Shuffle;
 import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClassWithError;
 import com.adobe.campaign.tests.integro.phased.mutational.data.nested.MutationalTestParent;
 import com.adobe.campaign.tests.integro.phased.mutational.data.simple1.PhasedChild1;
@@ -31,7 +30,7 @@ import static org.hamcrest.Matchers.equalTo;
 
 public class MutationManagerTests {
     private static ITestResult createMutationalMock(String expected, String argument) throws NoSuchMethodException {
-        final Method l_myTestWithOneArg = Mutational.class.getMethod("shuffled",
+        final Method l_myTestWithOneArg = Mutational.class.getMethod("scenario",
                 String.class);
         Object[] l_argumentObjects = { argument };
 
