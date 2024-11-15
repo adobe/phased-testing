@@ -654,7 +654,7 @@ public final class PhasedTestManager {
             return new Object[] { STD_PHASED_GROUP_SINGLE };
         }
 
-        if (Phases.ASYNCHRONOUS.isSelected()) {
+        if (ExecutionMode.NON_INTERRUPTIVE.isSelected()) {
             return new Object[] { STD_PHASED_GROUP_SINGLE };
         }
 
