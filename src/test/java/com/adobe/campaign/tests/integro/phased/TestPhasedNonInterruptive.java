@@ -428,7 +428,7 @@ public class TestPhasedNonInterruptive {
         final Class<TestSINGLEWithEvent_eventAsAnnotation> l_testClass = TestSINGLEWithEvent_eventAsAnnotation.class;
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
-        ExecutionType.NON_INTERRUPTIVE.activate("33");
+        ExecutionModes.NON_INTERRUPTIVE.activate("33");
         myTestNG.run();
 
         assertThat("The correct phase must have been selected", Phases.getCurrentPhase(), equalTo(Phases.ASYNCHRONOUS));
@@ -498,7 +498,7 @@ public class TestPhasedNonInterruptive {
         final Class<TestSINGLEWithEvent_eventAsExecProperty> l_testClass = TestSINGLEWithEvent_eventAsExecProperty.class;
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
-        ExecutionType.NON_INTERRUPTIVE.activate("33");
+        ExecutionModes.NON_INTERRUPTIVE.activate("33");
         ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
         myTestNG.run();
 
@@ -570,7 +570,7 @@ public class TestPhasedNonInterruptive {
         final Class<TestSINGLEWithEvent_eventAsExecProperty> l_testClass = TestSINGLEWithEvent_eventAsExecProperty.class;
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
-        ExecutionType.NON_INTERRUPTIVE.activate("33");
+        ExecutionModes.NON_INTERRUPTIVE.activate("33");
         ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
         myTestNG.run();
 
@@ -641,7 +641,7 @@ public class TestPhasedNonInterruptive {
         final Class<TestShuffled_eventPassedAsExecutionVariable> l_testClass = TestShuffled_eventPassedAsExecutionVariable.class;
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
-        ExecutionType.NON_INTERRUPTIVE.activate("33");
+        ExecutionModes.NON_INTERRUPTIVE.activate("33");
         ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
 
         myTestNG.run();
@@ -682,7 +682,7 @@ public class TestPhasedNonInterruptive {
         final Class<PhasedTestShuffledWithoutCanShuffleNested.PhasedTestShuffledWithoutCanShuffleNestedInner> l_testClass = PhasedTestShuffledWithoutCanShuffleNested.PhasedTestShuffledWithoutCanShuffleNestedInner.class;
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
-        ExecutionType.NON_INTERRUPTIVE.activate("33");
+        ExecutionModes.NON_INTERRUPTIVE.activate("33");
         ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
 
         myTestNG.run();
@@ -724,7 +724,7 @@ public class TestPhasedNonInterruptive {
         final Class<PhasedTestShuffledWithoutCanShuffleNested.PhasedTestShuffledWithoutCanShuffleNestedInner> l_testClass = PhasedTestShuffledWithoutCanShuffleNested.PhasedTestShuffledWithoutCanShuffleNestedInner.class;
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
-        ExecutionType.NON_INTERRUPTIVE.activate("33");
+        ExecutionModes.NON_INTERRUPTIVE.activate("33");
         ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
         ConfigValueHandlerPhased.EVENT_TARGET.activate(PhasedTestShuffledWithoutCanShuffleNested.PhasedTestShuffledWithoutCanShuffleNestedInner.class.getTypeName()+"#step3");
 
@@ -767,7 +767,7 @@ public class TestPhasedNonInterruptive {
         final Class<TestOrderedShuffled_eventPassedAsExecutionVariable> l_testClass = TestOrderedShuffled_eventPassedAsExecutionVariable.class;
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
-        ExecutionType.NON_INTERRUPTIVE.activate("33");
+        ExecutionModes.NON_INTERRUPTIVE.activate("33");
         ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
         ConfigValueHandlerPhased.PHASED_TEST_DETECT_ORDER.activate("true");
 
@@ -807,7 +807,7 @@ public class TestPhasedNonInterruptive {
         final Class<TestShuffled_eventConfiguredAfter> l_testClass = TestShuffled_eventConfiguredAfter.class;
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
-        ExecutionType.NON_INTERRUPTIVE.activate("33");
+        ExecutionModes.NON_INTERRUPTIVE.activate("33");
         ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
 
         assertThat("The after phase should not yet have been updated", TestShuffled_eventConfiguredAfter.originalValue, Matchers.equalTo(0));
@@ -852,7 +852,7 @@ public class TestPhasedNonInterruptive {
         final Class<TestShuffled_eventDefinedOnPhasedTestAnnotation> l_testClass = TestShuffled_eventDefinedOnPhasedTestAnnotation.class;
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
-        ExecutionType.NON_INTERRUPTIVE.activate("33");
+        ExecutionModes.NON_INTERRUPTIVE.activate("33");
 
         myTestNG.run();
 

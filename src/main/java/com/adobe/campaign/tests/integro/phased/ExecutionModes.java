@@ -12,13 +12,12 @@
 package com.adobe.campaign.tests.integro.phased;
 
 import com.adobe.campaign.tests.integro.phased.exceptions.MutationRampUpException;
-import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestConfigurationException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public enum ExecutionType {
+public enum ExecutionModes {
     DEFAULT(false,  new ArrayList<>()),
     //We need to revise this as execution in a suite may not require a precision
     NON_INTERRUPTIVE(false, Arrays.asList( "23", "33" )) {
@@ -43,11 +42,11 @@ public enum ExecutionType {
     private static final ConfigValueHandlerPhased USED_PROPERTY = ConfigValueHandlerPhased.PROP_EXECUTION_MODE;
 
     boolean hasSplittingEvent;
-    List<String> modes;
+    List<String> behaviorTypes;
 
-    ExecutionType(boolean in_isInPhase, List<String> in_phaseTypes) {
+    ExecutionModes(boolean in_isInPhase, List<String> in_phaseTypes) {
         hasSplittingEvent = in_isInPhase;
-        modes = in_phaseTypes;
+        behaviorTypes = in_phaseTypes;
     }
 
     /**
@@ -57,7 +56,7 @@ public enum ExecutionType {
      *
      * @return The phase which is currently being executed
      */
-    public static ExecutionType getCurrentExecutionType() {
+    public static ExecutionModes getCurrentExecutionType() {
         return fetchCorrespondingMode(USED_PROPERTY.fetchValue());
     }
 
@@ -69,8 +68,8 @@ public enum ExecutionType {
      * @param in_stateValue Returns a Phase given a string representation of its value
      * @return A state corresponding to the given Phased State, if none found we return inactive
      */
-    public static ExecutionType fetchCorrespondingMode(String in_stateValue) {
-        for (ExecutionType lt_ptState : ExecutionType.values()) {
+    public static ExecutionModes fetchCorrespondingMode(String in_stateValue) {
+        for (ExecutionModes lt_ptState : ExecutionModes.values()) {
             if (in_stateValue.toUpperCase().startsWith(lt_ptState.toString().toUpperCase())) {
                 return lt_ptState;
             }
@@ -85,18 +84,18 @@ public enum ExecutionType {
      *
      * @return An array of Phases that have a Splitting Event
      */
-    public static ExecutionType[] fetchPhasesWithEvents() {
-        return Arrays.stream(ExecutionType.values())
+    public static ExecutionModes[] fetchPhasesWithEvents() {
+        return Arrays.stream(ExecutionModes.values())
                 .filter(p -> p.hasSplittingEvent)
-                .toArray(ExecutionType[]::new);
+                .toArray(ExecutionModes[]::new);
     }
 
     public boolean isTypeValid() {
         String l_currentType = fetchMode();
-        if (modes.isEmpty()) {
+        if (behaviorTypes.isEmpty()) {
             return l_currentType.isEmpty();
         }
-        return modes.contains(l_currentType);
+        return behaviorTypes.contains(l_currentType);
     }
 
     /**
@@ -135,8 +134,8 @@ public enum ExecutionType {
      * @param in_executionMode
      */
     public void activate(String in_executionMode) {
-        if (!modes.contains(in_executionMode)) {
-            throw new MutationRampUpException("The given execution mode type is not valid for this execution type. Please use one of the following: " + modes.toString());
+        if (!behaviorTypes.contains(in_executionMode)) {
+            throw new MutationRampUpException("The given execution mode type is not valid for this execution type. Please use one of the following: " + behaviorTypes.toString());
         }
 
         USED_PROPERTY.activate(this.name() + "(" + in_executionMode + ")");
@@ -166,7 +165,7 @@ public enum ExecutionType {
      */
     public boolean isSelected(String in_executionMode) {
         //Ignore the argument if none are expected
-        return this.modes.isEmpty() ? isSelected() : this.fetchMode().equals(in_executionMode);
+        return this.behaviorTypes.isEmpty() ? isSelected() : this.fetchMode().equals(in_executionMode);
 
     }
 }

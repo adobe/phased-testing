@@ -101,14 +101,14 @@ public class PhasesTests {
 
         Phases.ASYNCHRONOUS.activate();
 
-        assertThat("This should be the same as Non-interruptive", ExecutionType.NON_INTERRUPTIVE.isSelected());
+        assertThat("This should be the same as Non-interruptive", ExecutionModes.NON_INTERRUPTIVE.isSelected());
         assertThat("This should be the same as Non-interruptive", Phases.ASYNCHRONOUS.isSelected());
 
         ConfigValueHandlerPhased.resetAllValues();
 
-        ExecutionType.NON_INTERRUPTIVE.activate();
+        ExecutionModes.NON_INTERRUPTIVE.activate();
 
-        assertThat("This should be the same as Non-interruptive", ExecutionType.NON_INTERRUPTIVE.isSelected());
+        assertThat("This should be the same as Non-interruptive", ExecutionModes.NON_INTERRUPTIVE.isSelected());
         assertThat("This should be the same as Non-interruptive", Phases.ASYNCHRONOUS.isSelected());
 
         //ConfigValueHandlerPhased.PROP_SELECTED_PHASE.activate(Phases.NON_INTERRUPTIVE.name()+"23");
@@ -118,34 +118,34 @@ public class PhasesTests {
     public void testNonInterruptivePhaseWithEvents() {
         //assertThat("We should be able to extract the phase value from the string", GeneralTestUtils);
 
-        String l_selectedPhase = ExecutionType.NON_INTERRUPTIVE.name() + "(23)";
+        String l_selectedPhase = ExecutionModes.NON_INTERRUPTIVE.name() + "(23)";
         assertThat("We should detect the correct phase",
-                ExecutionType.fetchCorrespondingMode(l_selectedPhase), Matchers.equalTo(ExecutionType.NON_INTERRUPTIVE));
+                ExecutionModes.fetchCorrespondingMode(l_selectedPhase), Matchers.equalTo(ExecutionModes.NON_INTERRUPTIVE));
 
         ConfigValueHandlerPhased.PROP_EXECUTION_MODE.activate(l_selectedPhase);
 
-        assertThat("This should be the same as Non-interruptive", ExecutionType.NON_INTERRUPTIVE.isSelected());
-        assertThat("This should be the same as Non-interruptive", ExecutionType.NON_INTERRUPTIVE.fetchMode(), Matchers.equalTo("23"));
-        assertThat("We should detect that the given value is corrects", ExecutionType.getCurrentExecutionType().isTypeValid());
+        assertThat("This should be the same as Non-interruptive", ExecutionModes.NON_INTERRUPTIVE.isSelected());
+        assertThat("This should be the same as Non-interruptive", ExecutionModes.NON_INTERRUPTIVE.fetchMode(), Matchers.equalTo("23"));
+        assertThat("We should detect that the given value is corrects", ExecutionModes.getCurrentExecutionType().isTypeValid());
 
 
-        ConfigValueHandlerPhased.PROP_EXECUTION_MODE.activate(ExecutionType.NON_INTERRUPTIVE.name());
-        assertThat("This should be the same as Non-interruptive", ExecutionType.NON_INTERRUPTIVE.fetchMode(), Matchers.equalTo(""));
-        assertThat("We should not accept an empty type",!ExecutionType.getCurrentExecutionType().isTypeValid());
+        ConfigValueHandlerPhased.PROP_EXECUTION_MODE.activate(ExecutionModes.NON_INTERRUPTIVE.name());
+        assertThat("This should be the same as Non-interruptive", ExecutionModes.NON_INTERRUPTIVE.fetchMode(), Matchers.equalTo(""));
+        assertThat("We should not accept an empty type",!ExecutionModes.getCurrentExecutionType().isTypeValid());
 
 
-        ConfigValueHandlerPhased.PROP_EXECUTION_MODE.activate(ExecutionType.NON_INTERRUPTIVE.name());
-        assertThat("This should be the same as Non-interruptive", ExecutionType.NON_INTERRUPTIVE.fetchMode(), Matchers.equalTo(""));
+        ConfigValueHandlerPhased.PROP_EXECUTION_MODE.activate(ExecutionModes.NON_INTERRUPTIVE.name());
+        assertThat("This should be the same as Non-interruptive", ExecutionModes.NON_INTERRUPTIVE.fetchMode(), Matchers.equalTo(""));
 
-        ConfigValueHandlerPhased.PROP_EXECUTION_MODE.activate(ExecutionType.INTERRUPTIVE.name()+"(jhfdhj)");
-        assertThat("We should detect that given type is incorrect",!ExecutionType.getCurrentExecutionType().isTypeValid());
+        ConfigValueHandlerPhased.PROP_EXECUTION_MODE.activate(ExecutionModes.INTERRUPTIVE.name()+"(jhfdhj)");
+        assertThat("We should detect that given type is incorrect",!ExecutionModes.getCurrentExecutionType().isTypeValid());
 
-        ExecutionType.DEFAULT.activate();
-        assertThat("This should be the same as Non-phased", ExecutionType.getCurrentExecutionType().fetchMode(), Matchers.equalTo(""));
-        assertThat("We should accept an empty type", ExecutionType.getCurrentExecutionType().isTypeValid());
+        ExecutionModes.DEFAULT.activate();
+        assertThat("This should be the same as Non-phased", ExecutionModes.getCurrentExecutionType().fetchMode(), Matchers.equalTo(""));
+        assertThat("We should accept an empty type", ExecutionModes.getCurrentExecutionType().isTypeValid());
 
-        ExecutionType.NON_INTERRUPTIVE.activate("33");
-        assertThat("This should be the same as Non-interruptive", ExecutionType.getCurrentExecutionType().fetchMode(), Matchers.equalTo("33"));
+        ExecutionModes.NON_INTERRUPTIVE.activate("33");
+        assertThat("This should be the same as Non-interruptive", ExecutionModes.getCurrentExecutionType().fetchMode(), Matchers.equalTo("33"));
 
     }
 

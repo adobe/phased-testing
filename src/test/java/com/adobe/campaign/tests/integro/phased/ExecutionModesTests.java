@@ -9,7 +9,6 @@
 package com.adobe.campaign.tests.integro.phased;
 
 import com.adobe.campaign.tests.integro.phased.exceptions.MutationRampUpException;
-import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestConfigurationException;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -18,7 +17,7 @@ import org.testng.annotations.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-public class ExecutionTypeTests {
+public class ExecutionModesTests {
     @BeforeClass
     public void cleanCache() {
         PhasedTestManager.clearCache();
@@ -33,10 +32,10 @@ public class ExecutionTypeTests {
 
     @Test
     public void testSetModeNonInterruptive() {
-        ExecutionType.NON_INTERRUPTIVE.activate("23");
+        ExecutionModes.NON_INTERRUPTIVE.activate("23");
 
-        assertThat("This should be the same as Non-interruptive", ExecutionType.NON_INTERRUPTIVE.isSelected());
-        assertThat("This should be the same as Non-interruptive", ExecutionType.NON_INTERRUPTIVE.isSelected("23"));
+        assertThat("This should be the same as Non-interruptive", ExecutionModes.NON_INTERRUPTIVE.isSelected());
+        assertThat("This should be the same as Non-interruptive", ExecutionModes.NON_INTERRUPTIVE.isSelected("23"));
 
         assertThat("We should have the correct phase", Phases.getCurrentPhase().equals(Phases.ASYNCHRONOUS));
 
@@ -50,20 +49,20 @@ public class ExecutionTypeTests {
 
         assertThat("We should have the correct phase", Phases.getCurrentPhase().equals(Phases.ASYNCHRONOUS));
 
-        assertThat("This should be the same as Non-interruptive", ExecutionType.NON_INTERRUPTIVE.isSelected());
+        assertThat("This should be the same as Non-interruptive", ExecutionModes.NON_INTERRUPTIVE.isSelected());
     }
 
     @Test
     public void test_Negative_SetBadMode() {
-        Assert.assertThrows(MutationRampUpException.class, () -> ExecutionType.INTERRUPTIVE.activate("23"));
+        Assert.assertThrows(MutationRampUpException.class, () -> ExecutionModes.INTERRUPTIVE.activate("23"));
     }
 
     @Test
     public void testSetModeInterruptiveProducer() {
-        ExecutionType.INTERRUPTIVE.activate("PRODUCER");
+        ExecutionModes.INTERRUPTIVE.activate("PRODUCER");
 
-        assertThat("This should be the same as Non-interruptive", ExecutionType.INTERRUPTIVE.isSelected());
-        assertThat("This should be the same as Non-interruptive", ExecutionType.INTERRUPTIVE.isSelected("PRODUCER"));
+        assertThat("This should be the same as Non-interruptive", ExecutionModes.INTERRUPTIVE.isSelected());
+        assertThat("This should be the same as Non-interruptive", ExecutionModes.INTERRUPTIVE.isSelected("PRODUCER"));
 
         assertThat("We should have the correct phase", Phases.getCurrentPhase().equals(Phases.PRODUCER));
 
@@ -73,8 +72,8 @@ public class ExecutionTypeTests {
     public void testSetModeInterruptiveProducerPhased() {
         Phases.PRODUCER.activate();
 
-        assertThat("This should be the same as Non-interruptive", ExecutionType.INTERRUPTIVE.isSelected());
-        assertThat("This should be the same as Non-interruptive", ExecutionType.INTERRUPTIVE.isSelected("PRODUCER"));
+        assertThat("This should be the same as Non-interruptive", ExecutionModes.INTERRUPTIVE.isSelected());
+        assertThat("This should be the same as Non-interruptive", ExecutionModes.INTERRUPTIVE.isSelected("PRODUCER"));
 
         assertThat("We should have the correct phase", Phases.getCurrentPhase().equals(Phases.PRODUCER));
 
@@ -82,10 +81,10 @@ public class ExecutionTypeTests {
 
     @Test
     public void testSetModeInterruptiveConsumer() {
-        ExecutionType.INTERRUPTIVE.activate("CONSUMER");
+        ExecutionModes.INTERRUPTIVE.activate("CONSUMER");
 
-        assertThat("This should be the same as Non-interruptive", ExecutionType.INTERRUPTIVE.isSelected());
-        assertThat("This should be the same as Non-interruptive", ExecutionType.INTERRUPTIVE.isSelected("CONSUMER"));
+        assertThat("This should be the same as Non-interruptive", ExecutionModes.INTERRUPTIVE.isSelected());
+        assertThat("This should be the same as Non-interruptive", ExecutionModes.INTERRUPTIVE.isSelected("CONSUMER"));
 
         assertThat("We should have the correct phase", Phases.getCurrentPhase().equals(Phases.CONSUMER));
     }
@@ -94,8 +93,8 @@ public class ExecutionTypeTests {
     public void testSetModeInterruptiveConsumerPhased() {
         Phases.CONSUMER.activate();
 
-        assertThat("This should be the same as Non-interruptive", ExecutionType.INTERRUPTIVE.isSelected());
-        assertThat("This should be the same as Non-interruptive", ExecutionType.INTERRUPTIVE.isSelected("CONSUMER"));
+        assertThat("This should be the same as Non-interruptive", ExecutionModes.INTERRUPTIVE.isSelected());
+        assertThat("This should be the same as Non-interruptive", ExecutionModes.INTERRUPTIVE.isSelected("CONSUMER"));
 
         assertThat("We should have the correct phase", Phases.getCurrentPhase().equals(Phases.CONSUMER));
 
@@ -103,17 +102,17 @@ public class ExecutionTypeTests {
 
     @Test
     public void testSDefault() {
-        assertThat("This should be the same as Non-interruptive", ExecutionType.DEFAULT.isSelected());
-        assertThat("Even though we pass a bad value we should not throw an exception. It is simply ignored", ExecutionType.DEFAULT.isSelected("CONSUMER"));
+        assertThat("This should be the same as Non-interruptive", ExecutionModes.DEFAULT.isSelected());
+        assertThat("Even though we pass a bad value we should not throw an exception. It is simply ignored", ExecutionModes.DEFAULT.isSelected("CONSUMER"));
 
         assertThat("We should have the correct phase", Phases.getCurrentPhase().equals(Phases.NON_PHASED));
     }
 
     @Test
     public void testSMutational() {
-        ExecutionType.PERMUTATIONAL.activate();
+        ExecutionModes.PERMUTATIONAL.activate();
 
-        assertThat("This should be the same as Non-interruptive", ExecutionType.PERMUTATIONAL.isSelected());
+        assertThat("This should be the same as Non-interruptive", ExecutionModes.PERMUTATIONAL.isSelected());
 
         assertThat("Permutational does not exist in phased", Phases.getCurrentPhase().equals(Phases.NON_PHASED));
     }

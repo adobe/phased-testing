@@ -28,10 +28,10 @@ public enum Phases {
      */
     public static Phases getCurrentPhase() {
         if (ConfigValueHandlerPhased.PROP_EXECUTION_MODE.isSet()) {
-            ExecutionType currentExecutionType = ExecutionType.getCurrentExecutionType();
-            switch (currentExecutionType) {
+            ExecutionModes currentExecutionModes = ExecutionModes.getCurrentExecutionType();
+            switch (currentExecutionModes) {
             case INTERRUPTIVE:
-                if (currentExecutionType.fetchMode().equals("PRODUCER")) {
+                if (currentExecutionModes.fetchMode().equals("PRODUCER")) {
                     return PRODUCER;
                 } else {
                     return CONSUMER;
