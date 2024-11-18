@@ -27,6 +27,23 @@ public enum Phases {
      * @return The phase which is currently being executed
      */
     public static Phases getCurrentPhase() {
+        if (ConfigValueHandlerPhased.PROP_EXECUTION_MODE.isSet()) {
+            ExecutionType currentExecutionType = ExecutionType.getCurrentExecutionType();
+            switch (currentExecutionType) {
+            case INTERRUPTIVE:
+                if (currentExecutionType.fetchMode().equals("PRODUCER")) {
+                    return PRODUCER;
+                } else {
+                    return CONSUMER;
+                }
+            case NON_INTERRUPTIVE:
+                return ASYNCHRONOUS;
+            default:
+                return NON_PHASED;
+            }
+        }
+
+
         return fetchCorrespondingPhase(ConfigValueHandlerPhased.PROP_SELECTED_PHASE.fetchValue());
     }
 
