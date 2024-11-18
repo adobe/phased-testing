@@ -216,7 +216,7 @@ public class MutationalTests {
         TestNG myTestNG = TestTools.createTestNG();
         TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
 
-        Phases.PRODUCER.activate();
+        ExecutionType.INTERRUPTIVE.activate("PRODUCER");
 
         // Define suites
         XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG, "Automated Suite Phased Testing");
@@ -257,7 +257,7 @@ public class MutationalTests {
         TestNG myTestNGC = TestTools.createTestNG();
         TestListenerAdapter tlaC = TestTools.fetchTestResultsHandler(myTestNGC);
 
-        Phases.CONSUMER.activate();
+        ExecutionType.INTERRUPTIVE.activate("CONSUMER");
 
         // Define suites
         XmlSuite mySuiteC = TestTools.addSuitToTestNGTest(myTestNGC, "Automated Suite Phased Testing");
@@ -382,7 +382,7 @@ public class MutationalTests {
         final Class<TestMutationalShuffled_eventPassedAsExecutionVariable> l_testClass = TestMutationalShuffled_eventPassedAsExecutionVariable.class;
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
-        Phases.ASYNCHRONOUS.activate();
+        ExecutionType.NON_INTERRUPTIVE.activate("33");
         ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
         ConfigValueHandlerPhased.PHASED_TEST_DETECT_ORDER.activate("true");
 

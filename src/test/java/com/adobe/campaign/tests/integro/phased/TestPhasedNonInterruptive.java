@@ -13,9 +13,14 @@ import com.adobe.campaign.tests.integro.phased.data.PhasedTestShuffledWithoutCan
 import com.adobe.campaign.tests.integro.phased.data.events.*;
 import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestConfigurationException;
 import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestException;
-import com.adobe.campaign.tests.integro.phased.utils.*;
+import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
+import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
+import com.adobe.campaign.tests.integro.phased.utils.MockTestTools;
+import com.adobe.campaign.tests.integro.phased.utils.TestTools;
 import org.hamcrest.Matchers;
-import org.testng.*;
+import org.testng.ITestResult;
+import org.testng.TestListenerAdapter;
+import org.testng.TestNG;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -25,7 +30,10 @@ import org.testng.xml.XmlTest;
 
 import java.io.File;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.stream.Collectors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -420,7 +428,7 @@ public class TestPhasedNonInterruptive {
         final Class<TestSINGLEWithEvent_eventAsAnnotation> l_testClass = TestSINGLEWithEvent_eventAsAnnotation.class;
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
-        Phases.ASYNCHRONOUS.activate();
+        ExecutionType.NON_INTERRUPTIVE.activate("33");
         myTestNG.run();
 
         assertThat("The correct phase must have been selected", Phases.getCurrentPhase(), equalTo(Phases.ASYNCHRONOUS));
@@ -490,7 +498,7 @@ public class TestPhasedNonInterruptive {
         final Class<TestSINGLEWithEvent_eventAsExecProperty> l_testClass = TestSINGLEWithEvent_eventAsExecProperty.class;
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
-        Phases.ASYNCHRONOUS.activate();
+        ExecutionType.NON_INTERRUPTIVE.activate("33");
         ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
         myTestNG.run();
 
@@ -562,7 +570,7 @@ public class TestPhasedNonInterruptive {
         final Class<TestSINGLEWithEvent_eventAsExecProperty> l_testClass = TestSINGLEWithEvent_eventAsExecProperty.class;
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
-        Phases.ASYNCHRONOUS.activate();
+        ExecutionType.NON_INTERRUPTIVE.activate("33");
         ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
         myTestNG.run();
 
@@ -633,7 +641,7 @@ public class TestPhasedNonInterruptive {
         final Class<TestShuffled_eventPassedAsExecutionVariable> l_testClass = TestShuffled_eventPassedAsExecutionVariable.class;
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
-        Phases.ASYNCHRONOUS.activate();
+        ExecutionType.NON_INTERRUPTIVE.activate("33");
         ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
 
         myTestNG.run();
@@ -674,7 +682,7 @@ public class TestPhasedNonInterruptive {
         final Class<PhasedTestShuffledWithoutCanShuffleNested.PhasedTestShuffledWithoutCanShuffleNestedInner> l_testClass = PhasedTestShuffledWithoutCanShuffleNested.PhasedTestShuffledWithoutCanShuffleNestedInner.class;
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
-        Phases.ASYNCHRONOUS.activate();
+        ExecutionType.NON_INTERRUPTIVE.activate("33");
         ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
 
         myTestNG.run();
@@ -716,7 +724,7 @@ public class TestPhasedNonInterruptive {
         final Class<PhasedTestShuffledWithoutCanShuffleNested.PhasedTestShuffledWithoutCanShuffleNestedInner> l_testClass = PhasedTestShuffledWithoutCanShuffleNested.PhasedTestShuffledWithoutCanShuffleNestedInner.class;
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
-        Phases.ASYNCHRONOUS.activate();
+        ExecutionType.NON_INTERRUPTIVE.activate("33");
         ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
         ConfigValueHandlerPhased.EVENT_TARGET.activate(PhasedTestShuffledWithoutCanShuffleNested.PhasedTestShuffledWithoutCanShuffleNestedInner.class.getTypeName()+"#step3");
 
@@ -759,7 +767,7 @@ public class TestPhasedNonInterruptive {
         final Class<TestOrderedShuffled_eventPassedAsExecutionVariable> l_testClass = TestOrderedShuffled_eventPassedAsExecutionVariable.class;
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
-        Phases.ASYNCHRONOUS.activate();
+        ExecutionType.NON_INTERRUPTIVE.activate("33");
         ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
         ConfigValueHandlerPhased.PHASED_TEST_DETECT_ORDER.activate("true");
 
@@ -799,7 +807,7 @@ public class TestPhasedNonInterruptive {
         final Class<TestShuffled_eventConfiguredAfter> l_testClass = TestShuffled_eventConfiguredAfter.class;
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
-        Phases.ASYNCHRONOUS.activate();
+        ExecutionType.NON_INTERRUPTIVE.activate("33");
         ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
 
         assertThat("The after phase should not yet have been updated", TestShuffled_eventConfiguredAfter.originalValue, Matchers.equalTo(0));
@@ -844,7 +852,7 @@ public class TestPhasedNonInterruptive {
         final Class<TestShuffled_eventDefinedOnPhasedTestAnnotation> l_testClass = TestShuffled_eventDefinedOnPhasedTestAnnotation.class;
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
-        Phases.ASYNCHRONOUS.activate();
+        ExecutionType.NON_INTERRUPTIVE.activate("33");
 
         myTestNG.run();
 
