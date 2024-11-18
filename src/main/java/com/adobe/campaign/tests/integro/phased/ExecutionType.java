@@ -32,6 +32,11 @@ public enum ExecutionType {
             return this.equals(getCurrentExecutionType()) || Phases.PRODUCER.isSelected()
                     || Phases.CONSUMER.isSelected();
         };
+        public boolean isSelected(String in_executionMode) {
+
+            return this.fetchMode().equals(in_executionMode) || Phases.PRODUCER.isSelected()
+                    || Phases.CONSUMER.isSelected();
+        };
     },
     PERMUTATIONAL(true, Arrays.asList());
 

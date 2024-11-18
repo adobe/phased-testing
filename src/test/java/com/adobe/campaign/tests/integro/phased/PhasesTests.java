@@ -112,7 +112,6 @@ public class PhasesTests {
         assertThat("This should be the same as Non-interruptive", Phases.ASYNCHRONOUS.isSelected());
 
         //ConfigValueHandlerPhased.PROP_SELECTED_PHASE.activate(Phases.NON_INTERRUPTIVE.name()+"23");
-
     }
 
     @Test

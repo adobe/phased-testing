@@ -30,6 +30,7 @@ public class ExecutionTypeTests {
         cleanCache();
     }
 
+
     @Test
     public void testSetModeNonInterruptive() {
         ExecutionType.NON_INTERRUPTIVE.activate("23");
@@ -41,6 +42,15 @@ public class ExecutionTypeTests {
 
         //assertThat("This should be the same as Non-interruptive", Phases.ASYNCHRONOUS.isSelected());
 
+    }
+
+    @Test
+    public void testSetModeNonInterruptivePhased() {
+        Phases.ASYNCHRONOUS.activate();
+
+        assertThat("We should have the correct phase", Phases.getCurrentPhase().equals(Phases.ASYNCHRONOUS));
+
+        assertThat("This should be the same as Non-interruptive", ExecutionType.NON_INTERRUPTIVE.isSelected());
     }
 
     @Test
@@ -60,6 +70,17 @@ public class ExecutionTypeTests {
     }
 
     @Test
+    public void testSetModeInterruptiveProducerPhased() {
+        Phases.PRODUCER.activate();
+
+        assertThat("This should be the same as Non-interruptive", ExecutionType.INTERRUPTIVE.isSelected());
+        assertThat("This should be the same as Non-interruptive", ExecutionType.INTERRUPTIVE.isSelected("PRODUCER"));
+
+        assertThat("We should have the correct phase", Phases.getCurrentPhase().equals(Phases.PRODUCER));
+
+    }
+
+    @Test
     public void testSetModeInterruptiveConsumer() {
         ExecutionType.INTERRUPTIVE.activate("CONSUMER");
 
@@ -67,6 +88,17 @@ public class ExecutionTypeTests {
         assertThat("This should be the same as Non-interruptive", ExecutionType.INTERRUPTIVE.isSelected("CONSUMER"));
 
         assertThat("We should have the correct phase", Phases.getCurrentPhase().equals(Phases.CONSUMER));
+    }
+
+    @Test
+    public void testSetModeInterruptiveConsumerPhased() {
+        Phases.CONSUMER.activate();
+
+        assertThat("This should be the same as Non-interruptive", ExecutionType.INTERRUPTIVE.isSelected());
+        assertThat("This should be the same as Non-interruptive", ExecutionType.INTERRUPTIVE.isSelected("CONSUMER"));
+
+        assertThat("We should have the correct phase", Phases.getCurrentPhase().equals(Phases.CONSUMER));
+
     }
 
     @Test
