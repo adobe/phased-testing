@@ -613,7 +613,7 @@ public final class PhasedTestManager {
                     l_objectArrayPhased[rows][0] = STD_PHASED_GROUP_PREFIX + lt_nrBeforePhase
                             + "_"
                             + lt_nrAfterPhase;
-                } else if (ExecutionModes.NON_INTERRUPTIVE.isSelected()) {
+                } else if (ExecutionMode.NON_INTERRUPTIVE.isSelected()) {
                     l_objectArrayPhased[rows][0] = STD_PHASED_GROUP_NIE_PREFIX + (rows + 1);
                 }
             }
@@ -654,7 +654,7 @@ public final class PhasedTestManager {
             return new Object[] { STD_PHASED_GROUP_SINGLE };
         }
 
-        if (ExecutionModes.NON_INTERRUPTIVE.isSelected()) {
+        if (ExecutionMode.NON_INTERRUPTIVE.isSelected()) {
             return new Object[] { STD_PHASED_GROUP_SINGLE };
         }
 

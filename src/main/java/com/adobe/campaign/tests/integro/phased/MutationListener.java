@@ -41,7 +41,7 @@ public class MutationListener
         IAlterSuiteListener.super.alter(suites);
 
         log.debug("{} in alter - current Execution State is : {}", PhasedTestManager.PHASED_TEST_LOG_PREFIX
-                , Phases.getCurrentPhase());
+                , ExecutionMode.getCurrentExecutionMode());
 
         // *** Import DataBroker ***
         String l_phasedDataBrokerClass = null;
@@ -51,7 +51,7 @@ public class MutationListener
                 .containsKey(ConfigValueHandlerPhased.PROP_PHASED_TEST_DATABROKER.systemName)) {
             l_phasedDataBrokerClass = suites.get(0)
                     .getParameter(ConfigValueHandlerPhased.PROP_PHASED_TEST_DATABROKER.systemName);
-        } else if (!Phases.NON_PHASED.isSelected()) {
+        } else if (!ExecutionMode.DEFAULT.isSelected()) {
             log.info("{} No PhasedDataBroker set. Using the file system path {}/{} instead ",
                     PhasedTestManager.PHASED_TEST_LOG_PREFIX, PhasedTestManager.STD_STORE_DIR,
                     PhasedTestManager.STD_STORE_FILE
@@ -69,7 +69,7 @@ public class MutationListener
 
         // *** import context for consumer ***
         //The second condition is there for testing purposes. You can bypass the file by filling the Test
-        if (Phases.CONSUMER.isSelected() && PhasedTestManager.getPhasedCache().isEmpty()) {
+        if (ExecutionMode.INTERRUPTIVE.isSelected("CONSUMER") && PhasedTestManager.getPhasedCache().isEmpty()) {
             PhasedTestManager.importPhaseData();
         }
 
@@ -123,7 +123,7 @@ public class MutationListener
         }
 
         if (PhasedTestManager.isPhasedTest(l_currentClass)) {
-            if (Phases.NON_PHASED.isSelected()) {
+            if (ExecutionMode.DEFAULT.isSelected()) {
                 annotation.setDataProvider(
                         ConfigValueHandlerPhased.PHASED_TEST_NONPHASED_LEGACY.is("true") ? PhasedDataProvider.SINGLE : PhasedDataProvider.DEFAULT);
 

@@ -17,34 +17,32 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public enum ExecutionModes {
+public enum ExecutionMode {
     DEFAULT(false,  new ArrayList<>()),
     //We need to revise this as execution in a suite may not require a precision
     NON_INTERRUPTIVE(false, Arrays.asList( "23", "33" )) {
 
         public boolean isSelected() {
-            return this.equals(getCurrentExecutionType()) || Phases.ASYNCHRONOUS.isSelected();
+            return this.equals(getCurrentExecutionMode()) || Phases.ASYNCHRONOUS.isSelected();
         };
     },
     INTERRUPTIVE(false, Arrays.asList( "PRODUCER", "CONSUMER" )) {
         public boolean isSelected() {
-            return this.equals(getCurrentExecutionType()) || Phases.PRODUCER.isSelected()
+            return this.equals(getCurrentExecutionMode()) || Phases.PRODUCER.isSelected()
                     || Phases.CONSUMER.isSelected();
         };
         public boolean isSelected(String in_executionMode) {
 
-            return this.fetchMode().equals(in_executionMode) || Phases.PRODUCER.isSelected()
-                    || Phases.CONSUMER.isSelected();
+            return this.fetchBehavior().equals(in_executionMode) || (in_executionMode.equals("PRODUCER") && Phases.PRODUCER.isSelected())
+                    || (in_executionMode.equals("CONSUMER") && Phases.CONSUMER.isSelected());
         };
     },
     PERMUTATIONAL(true, Arrays.asList());
 
-    private static final ConfigValueHandlerPhased USED_PROPERTY = ConfigValueHandlerPhased.PROP_EXECUTION_MODE;
-
     boolean hasSplittingEvent;
     List<String> behaviorTypes;
 
-    ExecutionModes(boolean in_isInPhase, List<String> in_phaseTypes) {
+    ExecutionMode(boolean in_isInPhase, List<String> in_phaseTypes) {
         hasSplittingEvent = in_isInPhase;
         behaviorTypes = in_phaseTypes;
     }
@@ -56,8 +54,8 @@ public enum ExecutionModes {
      *
      * @return The phase which is currently being executed
      */
-    public static ExecutionModes getCurrentExecutionType() {
-        return fetchCorrespondingMode(USED_PROPERTY.fetchValue());
+    public static ExecutionMode getCurrentExecutionMode() {
+        return fetchCorrespondingMode(ConfigValueHandlerPhased.PROP_EXECUTION_MODE.fetchValue());
     }
 
     /**
@@ -68,8 +66,8 @@ public enum ExecutionModes {
      * @param in_stateValue Returns a Phase given a string representation of its value
      * @return A state corresponding to the given Phased State, if none found we return inactive
      */
-    public static ExecutionModes fetchCorrespondingMode(String in_stateValue) {
-        for (ExecutionModes lt_ptState : ExecutionModes.values()) {
+    public static ExecutionMode fetchCorrespondingMode(String in_stateValue) {
+        for (ExecutionMode lt_ptState : ExecutionMode.values()) {
             if (in_stateValue.toUpperCase().startsWith(lt_ptState.toString().toUpperCase())) {
                 return lt_ptState;
             }
@@ -84,14 +82,18 @@ public enum ExecutionModes {
      *
      * @return An array of Phases that have a Splitting Event
      */
-    public static ExecutionModes[] fetchPhasesWithEvents() {
-        return Arrays.stream(ExecutionModes.values())
+    public static ExecutionMode[] fetchPhasesWithEvents() {
+        return Arrays.stream(ExecutionMode.values())
                 .filter(p -> p.hasSplittingEvent)
-                .toArray(ExecutionModes[]::new);
+                .toArray(ExecutionMode[]::new);
+    }
+
+    public static RunValues fetchRunValues() {
+        return new RunValues(getCurrentExecutionMode(), getCurrentExecutionMode().fetchBehavior());
     }
 
     public boolean isTypeValid() {
-        String l_currentType = fetchMode();
+        String l_currentType = fetchBehavior();
         if (behaviorTypes.isEmpty()) {
             return l_currentType.isEmpty();
         }
@@ -106,7 +108,7 @@ public enum ExecutionModes {
      * @return true if we are the active state
      */
     public boolean isSelected() {
-        return this.equals(getCurrentExecutionType());
+        return this.equals(getCurrentExecutionMode());
     }
 
     /**
@@ -126,7 +128,7 @@ public enum ExecutionModes {
      * Author : gandomi
      */
     void activate() {
-        USED_PROPERTY.activate(this.name());
+        ConfigValueHandlerPhased.PROP_EXECUTION_MODE.activate(this.name());
     }
 
     /**
@@ -138,15 +140,15 @@ public enum ExecutionModes {
             throw new MutationRampUpException("The given execution mode type is not valid for this execution type. Please use one of the following: " + behaviorTypes.toString());
         }
 
-        USED_PROPERTY.activate(this.name() + "(" + in_executionMode + ")");
+        ConfigValueHandlerPhased.PROP_EXECUTION_MODE.activate(this.name() + "(" + in_executionMode + ")");
     }
 
     /**
      * Fetches the mode of the current execution type
      * @return The mode set at runtime
      */
-    public String fetchMode() {
-        String l_value = USED_PROPERTY.fetchValue();
+    public String fetchBehavior() {
+        String l_value = ConfigValueHandlerPhased.PROP_EXECUTION_MODE.fetchValue();
         int l_startIndex = l_value.indexOf("(");
         int l_endIndex = l_value.indexOf(")");
 
@@ -165,7 +167,8 @@ public enum ExecutionModes {
      */
     public boolean isSelected(String in_executionMode) {
         //Ignore the argument if none are expected
-        return this.behaviorTypes.isEmpty() ? isSelected() : this.fetchMode().equals(in_executionMode);
+        return this.behaviorTypes.isEmpty() ? isSelected() : this.fetchBehavior().equals(in_executionMode);
 
     }
+
 }
