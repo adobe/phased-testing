@@ -226,7 +226,7 @@ public class MutationListener
             log.info("{} Generating Phased Providers", PhasedTestManager.PHASED_TEST_LOG_PREFIX);
             //NIA
             PhasedTestManager.generatePhasedProviders(l_classMethodMap, PhasedTestManager.getStepDependencies(),
-                    Phases.getCurrentPhase().fetchRunValues());
+                    ExecutionMode.getCurrentExecutionMode().fetchRunValues());
             //}
 
             //Start by adding the non-phased tests
@@ -311,14 +311,14 @@ public class MutationListener
         ITestListener.super.onFinish(context);
 
         //Once the tests have finished in producer mode we, need to export the data
-        if (Phases.PRODUCER.isSelected()) {
+        if (ExecutionMode.INTERRUPTIVE.isSelected("PRODUCER")) {
             log.info("{} At the end. Exporting data", PhasedTestManager.PHASED_TEST_LOG_PREFIX);
             PhasedTestManager.exportPhaseData();
         }
         log.debug("{} Purging results - Keeping one method per test class",
                 PhasedTestManager.PHASED_TEST_LOG_PREFIX);
 
-        if (Phases.ASYNCHRONOUS.isSelected()) {
+        if (ExecutionMode.NON_INTERRUPTIVE.isSelected()) {
             PhasedEventManager.stopEventExecutor();
         }
     }
