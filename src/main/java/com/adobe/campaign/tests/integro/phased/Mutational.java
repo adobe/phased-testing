@@ -34,8 +34,8 @@ public abstract class Mutational {
 
         Map<String, ScenarioStepDependencies> l_scenarioDependencies = PhasedTestManager.getStepDependencies();
 
-        List<StepDependencies> l_orderList = Phases.getCurrentPhase()
-                .equals(Phases.PERMUTATIONAL) ? l_scenarioDependencies.get(l_executingClass.getTypeName())
+        List<StepDependencies> l_orderList = ExecutionMode.is(ExecutionMode.PERMUTATIONAL) ? l_scenarioDependencies.get(
+                        l_executingClass.getTypeName())
                 .fetchScenarioPermutations().get(phaseGroup) : l_scenarioDependencies.get(
                 l_executingClass.getTypeName()).fetchExecutionOrderList();
 
@@ -43,7 +43,7 @@ public abstract class Mutational {
         //         phaseGroup)[0] : l_orderList.size();
 
         Integer[] l_boundaries = MutationManager.fetchExecutionIndex(l_executingClass.getTypeName(), phaseGroup,
-                Phases.getCurrentPhase());
+                ExecutionMode.getCurrentMode().fetchRunValues());
         // System.out.println(nrOfSteps + " - " + phaseGroup);
         //for (Method stepMethod : l_executingClass.getDeclaredMethods()) {
         //for (StepDependencies stepOrdering : stepOrder) {
@@ -60,7 +60,7 @@ public abstract class Mutational {
 
                 PhasedTestManager.storePhasedContext(ClassPathParser.fetchFullName(stepMethod), phaseGroup);
 
-                if (Phases.ASYNCHRONOUS.isSelected()) {
+                if (ExecutionMode.NON_INTERRUPTIVE.isSelected()) {
 
                     //Check if there is an event declared
                     String lt_event = PhasedEventManager.fetchEvent(stepMethod, phaseGroup);
@@ -75,7 +75,7 @@ public abstract class Mutational {
                 stepMethod.invoke(ourInstance, phaseGroup);
                 long l_end = System.currentTimeMillis();
 
-                if (Phases.ASYNCHRONOUS.isSelected()) {
+                if (ExecutionMode.NON_INTERRUPTIVE.isSelected()) {
                     //Check if there is an event declared
                     String lt_event = PhasedEventManager.fetchEvent(stepMethod, phaseGroup);
                     if (lt_event != null) {

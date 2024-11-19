@@ -34,7 +34,7 @@ public enum Phases {
      */
     public static Phases getCurrentPhase() {
         if (ConfigValueHandlerPhased.PROP_EXECUTION_MODE.isSet()) {
-            ExecutionMode currentExecutionMode = ExecutionMode.getCurrentExecutionMode();
+            ExecutionMode currentExecutionMode = ExecutionMode.getCurrentMode();
             switch (currentExecutionMode) {
             case INTERRUPTIVE:
                 if (currentExecutionMode.fetchBehavior().equals("PRODUCER")) {

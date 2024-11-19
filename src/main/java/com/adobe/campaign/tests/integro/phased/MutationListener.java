@@ -41,7 +41,7 @@ public class MutationListener
         IAlterSuiteListener.super.alter(suites);
 
         log.debug("{} in alter - current Execution State is : {}", PhasedTestManager.PHASED_TEST_LOG_PREFIX
-                , ExecutionMode.getCurrentExecutionMode());
+                , ExecutionMode.getCurrentMode());
 
         // *** Import DataBroker ***
         String l_phasedDataBrokerClass = null;
@@ -226,7 +226,7 @@ public class MutationListener
             log.info("{} Generating Phased Providers", PhasedTestManager.PHASED_TEST_LOG_PREFIX);
             //NIA
             PhasedTestManager.generatePhasedProviders(l_classMethodMap, PhasedTestManager.getStepDependencies(),
-                    ExecutionMode.getCurrentExecutionMode().fetchRunValues());
+                    ExecutionMode.getCurrentMode().fetchRunValues());
             //}
 
             //Start by adding the non-phased tests

@@ -691,7 +691,7 @@ public final class PhasedTestManager {
      */
     public static Map<String, MethodMapping> generatePhasedProviders(Map<Class<?>, List<String>> in_classMethodMap) {
 
-        return generatePhasedProviders(in_classMethodMap, ExecutionMode.getCurrentExecutionMode().fetchRunValues());
+        return generatePhasedProviders(in_classMethodMap, ExecutionMode.getCurrentMode().fetchRunValues());
 
     }
 

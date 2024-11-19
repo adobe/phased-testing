@@ -23,12 +23,12 @@ public enum ExecutionMode {
     NON_INTERRUPTIVE(false, Arrays.asList( "23", "33" )) {
 
         public boolean isSelected() {
-            return this.equals(getCurrentExecutionMode()) || Phases.ASYNCHRONOUS.isSelected();
+            return this.equals(getCurrentMode()) || Phases.ASYNCHRONOUS.isSelected();
         };
     },
     INTERRUPTIVE(false, Arrays.asList( "PRODUCER", "CONSUMER" )) {
         public boolean isSelected() {
-            return this.equals(getCurrentExecutionMode()) || Phases.PRODUCER.isSelected()
+            return this.equals(getCurrentMode()) || Phases.PRODUCER.isSelected()
                     || Phases.CONSUMER.isSelected();
         };
         public boolean isSelected(String in_executionMode) {
@@ -54,7 +54,7 @@ public enum ExecutionMode {
      *
      * @return The phase which is currently being executed
      */
-    public static ExecutionMode getCurrentExecutionMode() {
+    public static ExecutionMode getCurrentMode() {
         return fetchCorrespondingMode(ConfigValueHandlerPhased.PROP_EXECUTION_MODE.fetchValue());
     }
 
@@ -88,8 +88,17 @@ public enum ExecutionMode {
                 .toArray(ExecutionMode[]::new);
     }
 
+    /**
+     * Checks if the selected Execution Mode is the given one
+     * @param in_executionMode A given execution mode to check
+     * @return
+     */
+    public static boolean is(ExecutionMode in_executionMode) {
+        return in_executionMode.equals(getCurrentMode());
+    }
+
     public RunValues fetchRunValues() {
-        return new RunValues(getCurrentExecutionMode(), getCurrentExecutionMode().fetchBehavior());
+        return new RunValues(getCurrentMode(), getCurrentMode().fetchBehavior());
     }
 
     public boolean isTypeValid() {
@@ -108,7 +117,7 @@ public enum ExecutionMode {
      * @return true if we are the active state
      */
     public boolean isSelected() {
-        return this.equals(getCurrentExecutionMode());
+        return this.equals(getCurrentMode());
     }
 
     /**

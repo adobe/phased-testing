@@ -67,26 +67,26 @@ public class MutationManager {
      *
      * @param in_className  The name of the scenario
      * @param in_phaseGroup The phase group in which we are in
-     * @param in_phase      The phase in which we are in
+     * @param in_runValues      The set execution mode and behavior
      * @return An array of two entries. The first entry is the start index and the second entry is the end index
      */
-    public static Integer[] fetchExecutionIndex(String in_className, String in_phaseGroup, Phases in_phase) {
+    public static Integer[] fetchExecutionIndex(String in_className, String in_phaseGroup, RunValues in_runValues) {
         Integer[] lr_result = new Integer[2];
 
         //FetchNr Of Steps
         int l_nrOfMethods = PhasedTestManager.getMethodMap().keySet().stream().filter(m -> m.startsWith(in_className))
                 .collect(Collectors.toList()).size();
 
-        Integer[] l_boundaries = in_phase.hasSplittingEvent() ? PhasedTestManager.fetchShuffledStepCount(
+        Integer[] l_boundaries = in_runValues.getExecutionMode().equals(ExecutionMode.INTERRUPTIVE)? PhasedTestManager.fetchShuffledStepCount(
                 in_phaseGroup) : new Integer[] {
                 0, l_nrOfMethods };
 
-        switch (in_phase) {
-        case PRODUCER:
+        switch (in_runValues.getBehavior()) {
+        case "PRODUCER":
             lr_result[0] = 0;
             lr_result[1] = l_boundaries[0];
             break;
-        case CONSUMER:
+        case "CONSUMER":
             lr_result[0] = l_boundaries[0];
             lr_result[1] = l_nrOfMethods;
             break;
