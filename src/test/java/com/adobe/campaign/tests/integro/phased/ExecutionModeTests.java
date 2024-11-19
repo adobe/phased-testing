@@ -40,7 +40,7 @@ public class ExecutionModeTests {
 
         assertThat("We should have the correct phase", Phases.getCurrentPhase().equals(Phases.ASYNCHRONOUS));
 
-        var runMode = ExecutionMode.fetchRunValues();
+        var runMode = ExecutionMode.getCurrentExecutionMode().fetchRunValues();
         assertThat("The execution mode should be correct", runMode.getExecutionMode(), Matchers.equalTo(ExecutionMode.NON_INTERRUPTIVE));
         assertThat("The execution mode should be correct", runMode.getBehavior(), Matchers.equalTo("23"));
 
@@ -73,7 +73,7 @@ public class ExecutionModeTests {
 
         assertThat("We should have the correct phase", Phases.getCurrentPhase().equals(Phases.PRODUCER));
 
-        var runMode = ExecutionMode.fetchRunValues();
+        var runMode = ExecutionMode.getCurrentExecutionMode().fetchRunValues();
         assertThat("The execution mode should be correct", runMode.getExecutionMode(), Matchers.equalTo(ExecutionMode.INTERRUPTIVE));
         assertThat("The execution mode should be correct", runMode.getBehavior(), Matchers.equalTo("PRODUCER"));
 
@@ -107,13 +107,13 @@ public class ExecutionModeTests {
 
         assertThat("We should have the correct phase", Phases.getCurrentPhase().equals(Phases.CONSUMER));
 
-        assertThat("We should have an execution mode instance", ExecutionMode.fetchRunValues(), Matchers.instanceOf(
+        assertThat("We should have an execution mode instance", ExecutionMode.getCurrentExecutionMode().fetchRunValues(), Matchers.instanceOf(
                 RunValues.class));
-        assertThat("The execution mode should be correct", ExecutionMode.fetchRunValues().getExecutionMode(), Matchers.equalTo(ExecutionMode.INTERRUPTIVE));
-        assertThat("The execution mode should be correct", ExecutionMode.fetchRunValues().getBehavior(), Matchers.equalTo("CONSUMER"));
+        assertThat("The execution mode should be correct", ExecutionMode.getCurrentExecutionMode().fetchRunValues().getExecutionMode(), Matchers.equalTo(ExecutionMode.INTERRUPTIVE));
+        assertThat("The execution mode should be correct", ExecutionMode.getCurrentExecutionMode().fetchRunValues().getBehavior(), Matchers.equalTo("CONSUMER"));
 
-        assertThat("The both run values should be the same Phases and ExecutionModes", ExecutionMode.fetchRunValues().equals(Phases.CONSUMER.fetchRunValues()));
-        assertThat("The both run values should NOT be the same Phases and ExecutionModes", !ExecutionMode.fetchRunValues().equals(Phases.PRODUCER.fetchRunValues()));
+        assertThat("The both run values should be the same Phases and ExecutionModes", ExecutionMode.getCurrentExecutionMode().fetchRunValues().equals(Phases.CONSUMER.fetchRunValues()));
+        assertThat("The both run values should NOT be the same Phases and ExecutionModes", !ExecutionMode.getCurrentExecutionMode().fetchRunValues().equals(Phases.PRODUCER.fetchRunValues()));
 
     }
 
@@ -135,7 +135,7 @@ public class ExecutionModeTests {
 
         assertThat("We should have the correct phase", Phases.getCurrentPhase().equals(Phases.NON_PHASED));
 
-        var runMode = ExecutionMode.fetchRunValues();
+        var runMode = ExecutionMode.getCurrentExecutionMode().fetchRunValues();
         assertThat("The execution mode should be correct", runMode.getExecutionMode(), Matchers.equalTo(ExecutionMode.DEFAULT));
         assertThat("The execution mode should be correct", runMode.getBehavior(), Matchers.equalTo(""));
 
@@ -149,7 +149,7 @@ public class ExecutionModeTests {
 
         assertThat("Permutational does not exist in phased", Phases.getCurrentPhase().equals(Phases.PERMUTATIONAL));
 
-        var runMode = ExecutionMode.fetchRunValues();
+        var runMode = ExecutionMode.getCurrentExecutionMode().fetchRunValues();
         assertThat("The execution mode should be correct", runMode.getExecutionMode(), Matchers.equalTo(ExecutionMode.PERMUTATIONAL));
         assertThat("The execution mode should be correct", runMode.getBehavior(), Matchers.equalTo(""));
 

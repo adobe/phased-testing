@@ -88,7 +88,7 @@ public enum ExecutionMode {
                 .toArray(ExecutionMode[]::new);
     }
 
-    public static RunValues fetchRunValues() {
+    public RunValues fetchRunValues() {
         return new RunValues(getCurrentExecutionMode(), getCurrentExecutionMode().fetchBehavior());
     }
 

@@ -507,7 +507,7 @@ public class PhasedTestListener
         if (ConfigValueHandlerPhased.PHASED_TEST_DETECT_ORDER.is("false")) {
             log.info("{} Generating Phased Providers", PhasedTestManager.PHASED_TEST_LOG_PREFIX);
             //NIA
-            PhasedTestManager.generatePhasedProviders(l_classMethodMap, Phases.getCurrentPhase());
+            PhasedTestManager.generatePhasedProviders(l_classMethodMap, Phases.getCurrentPhase().fetchRunValues());
             return list;
         } else {
 
@@ -519,7 +519,7 @@ public class PhasedTestListener
                 log.info("{} Generating Phased Providers", PhasedTestManager.PHASED_TEST_LOG_PREFIX);
                 //NIA
                 PhasedTestManager.generatePhasedProviders(l_classMethodMap, l_scenarioDependencies,
-                        Phases.getCurrentPhase());
+                        Phases.getCurrentPhase().fetchRunValues());
             //}
 
             //Start by adding the non-phased tests

@@ -625,7 +625,7 @@ public class PhasedTestManagerTests {
                         ClassPathParser.fetchFullName(method3)));
 
         Map<String, MethodMapping> l_result = PhasedTestManager.generatePhasedProviders(l_myMap,
-                Phases.getCurrentPhase());
+                Phases.getCurrentPhase().fetchRunValues());
 
         assertThat("we need to have the expected key", l_result.containsKey(ClassPathParser.fetchFullName(method1)));
         assertThat("The first method should have three entries", l_result.get(ClassPathParser.fetchFullName(method1)).nrOfProviders, equalTo(3));
@@ -684,7 +684,7 @@ public class PhasedTestManagerTests {
                         ClassPathParser.fetchFullName(method3)));
 
         Map<String, MethodMapping> l_result = PhasedTestManager.generatePhasedProviders(l_myMap,
-                Phases.getCurrentPhase());
+                Phases.getCurrentPhase().fetchRunValues());
 
         assertThat("we need to have the expected key", l_result.containsKey(ClassPathParser.fetchFullName(method1)));
         assertThat("The first method should have three entries", l_result.get(ClassPathParser.fetchFullName(method1)).nrOfProviders, equalTo(3));
@@ -757,7 +757,7 @@ public class PhasedTestManagerTests {
                         ClassPathParser.fetchFullName(method3)));
 
         Map<String, MethodMapping> l_result = PhasedTestManager.generatePhasedProviders(l_myMap,
-                Phases.getCurrentPhase());
+                Phases.getCurrentPhase().fetchRunValues());
 
         assertThat("we need to have the expected key", l_result.containsKey(ClassPathParser.fetchFullName(method1)));
         assertThat("The first method should have three entries", l_result.get(ClassPathParser.fetchFullName(method1)).nrOfProviders, equalTo(3));
@@ -829,7 +829,7 @@ public class PhasedTestManagerTests {
                         ClassPathParser.fetchFullName(method3)));
 
         Map<String, MethodMapping> l_result = PhasedTestManager.generatePhasedProviders(l_myMap,
-                Phases.CONSUMER);
+                Phases.CONSUMER.fetchRunValues());
 
         assertThat("we need to have the expected key", l_result.containsKey(ClassPathParser.fetchFullName(method1)));
         assertThat("The first method should have three entries", l_result.get(ClassPathParser.fetchFullName(method1)).nrOfProviders, equalTo(1));
@@ -878,7 +878,7 @@ public class PhasedTestManagerTests {
                         ClassPathParser.fetchFullName(method3)));
 
         Map<String, MethodMapping> l_result = PhasedTestManager.generatePhasedProviders(l_myMap,
-                Phases.getCurrentPhase());
+                Phases.getCurrentPhase().fetchRunValues());
 
         assertThat("we need to have the expected key", l_result.containsKey(ClassPathParser.fetchFullName(method1)));
         assertThat("The first method should have three entries", l_result.get(ClassPathParser.fetchFullName(method1)).nrOfProviders, equalTo(3));
@@ -936,7 +936,7 @@ public class PhasedTestManagerTests {
         PhasedTestManager.setStepDependencies(Collections.singletonMap(l_scenario.getScenarioName(), l_scenario));
 
         Map<String, MethodMapping> l_result = PhasedTestManager.generatePhasedProviders(l_myMap,
-                l_currentPhase);
+                l_currentPhase.fetchRunValues());
 
         assertThat("we need to have the expected key", l_result.containsKey(ClassPathParser.fetchFullName(method1)));
         assertThat("The first method should have three entries", l_result.get(ClassPathParser.fetchFullName(method1)).nrOfProviders, equalTo(3));
@@ -978,7 +978,7 @@ public class PhasedTestManagerTests {
         PhasedTestManager.setStepDependencies(Collections.singletonMap(l_scenario.getScenarioName(), l_scenario));
 
         Map<String, MethodMapping> l_result = PhasedTestManager.generatePhasedProviders(l_myMap,
-                l_currentPhase);
+                l_currentPhase.fetchRunValues());
 
         assertThat("we need to have the expected key", l_result.containsKey(ClassPathParser.fetchFullName(method1)));
         assertThat("The first method should have three entries", l_result.get(ClassPathParser.fetchFullName(method1)).nrOfProviders, equalTo(4));

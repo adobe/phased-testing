@@ -691,7 +691,7 @@ public final class PhasedTestManager {
      */
     public static Map<String, MethodMapping> generatePhasedProviders(Map<Class<?>, List<String>> in_classMethodMap) {
 
-        return generatePhasedProviders(in_classMethodMap, Phases.getCurrentPhase());
+        return generatePhasedProviders(in_classMethodMap, ExecutionMode.getCurrentExecutionMode().fetchRunValues());
 
     }
 
@@ -701,13 +701,13 @@ public final class PhasedTestManager {
      * Author : gandomi
      *
      * @param in_classMethodMap A map of a class and it is methods (A scenario and its steps)
-     * @param in_phaseState     The phase in which we are
+     * @param in_runValues     The execution mode values
      * @return A map letting us know that for a given method how often it will be executed in the current phase
      */
     public static Map<String, MethodMapping> generatePhasedProviders(Map<Class<?>, List<String>> in_classMethodMap,
-            Phases in_phaseState) {
+            RunValues in_runValues) {
 
-        return generatePhasedProviders(in_classMethodMap, null, in_phaseState);
+        return generatePhasedProviders(in_classMethodMap, null, in_runValues);
 
     }
 
@@ -719,11 +719,11 @@ public final class PhasedTestManager {
      *
      * @param in_classMethodMap       A map of a class and it is methods (A scenario and its steps)
      * @param in_scenarioDependencies A map allowing us to detect the test execution order
-     * @param in_phaseState           The phase in which we are
+     * @param in_runValues           The execution mode values
      * @return A map letting us know that for a given method how often it will be executed in the current phase
      */
     public static Map<String, MethodMapping> generatePhasedProviders(Map<Class<?>, List<String>> in_classMethodMap,
-            Map<String, ScenarioStepDependencies> in_scenarioDependencies, Phases in_phaseState) {
+            Map<String, ScenarioStepDependencies> in_scenarioDependencies, RunValues in_runValues) {
         methodMap = new HashMap<>();
 
         for (Entry<Class<?>, List<String>> entry : in_classMethodMap.entrySet().stream().filter(e -> !Modifier.isAbstract(e.getKey().getModifiers())).collect(
@@ -735,9 +735,9 @@ public final class PhasedTestManager {
                             .map(ol -> entry.getKey().getTypeName() + "." + ol.getStepName()).collect(
                                     Collectors.toList());
 
-            if (in_phaseState.hasSplittingEvent) {
+            if (in_runValues.getExecutionMode().equals(ExecutionMode.INTERRUPTIVE)) {
 
-                if (in_phaseState.equals(Phases.CONSUMER)) {
+                if (in_runValues.getBehavior().equals("CONSUMER")) {
                     Collections.reverse(lt_methodList);
                 }
 

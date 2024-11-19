@@ -226,7 +226,7 @@ public class MutationListener
             log.info("{} Generating Phased Providers", PhasedTestManager.PHASED_TEST_LOG_PREFIX);
             //NIA
             PhasedTestManager.generatePhasedProviders(l_classMethodMap, PhasedTestManager.getStepDependencies(),
-                    Phases.getCurrentPhase());
+                    Phases.getCurrentPhase().fetchRunValues());
             //}
 
             //Start by adding the non-phased tests
