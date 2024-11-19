@@ -116,29 +116,43 @@ public class MutationManagerTests {
         //PG 2_1
 
         Class testClass = PhasedChild2.class;
-        PhasedTestManager.getMethodMap().put(testClass.getTypeName()+".a", new MethodMapping(testClass, 1, 3, 1));
-        PhasedTestManager.getMethodMap().put(testClass.getTypeName()+".b", new MethodMapping(testClass, 1, 3, 2));
-        PhasedTestManager.getMethodMap().put(testClass.getTypeName()+".c", new MethodMapping(testClass, 1, 3, 3));
-
+        PhasedTestManager.getMethodMap().put(testClass.getTypeName() + ".a", new MethodMapping(testClass, 1, 3, 1));
+        PhasedTestManager.getMethodMap().put(testClass.getTypeName() + ".b", new MethodMapping(testClass, 1, 3, 2));
+        PhasedTestManager.getMethodMap().put(testClass.getTypeName() + ".c", new MethodMapping(testClass, 1, 3, 3));
 
         String l_phaseGroup = PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1";
 
         //MutationManager.
         //String l_scenarioName = MutationManager.fetchScenarioName(testClass.getTypeName(), l_phaseGroup);
 
-        assertThat("We should have two steps to execute in Producer", MutationManager.fetchExecutionIndex(testClass.getTypeName(), l_phaseGroup, Phases.PRODUCER.fetchRunValues()),
+        assertThat("We should have two steps to execute in Producer",
+                MutationManager.fetchExecutionIndex(testClass.getTypeName(), l_phaseGroup,
+                        Phases.PRODUCER.fetchRunValues()),
                 Matchers.arrayContaining(0, 2));
 
-        assertThat("We should have one steps to executed in Consumer", MutationManager.fetchExecutionIndex(testClass.getTypeName(), l_phaseGroup, Phases.CONSUMER.fetchRunValues()),
+        assertThat("We should have one steps to executed in Consumer",
+                MutationManager.fetchExecutionIndex(testClass.getTypeName(), l_phaseGroup,
+                        Phases.CONSUMER.fetchRunValues()),
                 Matchers.arrayContaining(2, 3));
 
-        assertThat("We should have one steps to executed by default", MutationManager.fetchExecutionIndex(testClass.getTypeName(), l_phaseGroup, Phases.NON_PHASED.fetchRunValues()),
+        assertThat("We should have one steps to executed by default",
+                MutationManager.fetchExecutionIndex(testClass.getTypeName(), l_phaseGroup,
+                        Phases.NON_PHASED.fetchRunValues()),
                 Matchers.arrayContaining(0, 3));
 
-        assertThat("We should have one steps to executed in Asynchronous", MutationManager.fetchExecutionIndex(testClass.getTypeName(), l_phaseGroup, Phases.ASYNCHRONOUS.fetchRunValues()),
+        assertThat("We should have one steps to executed by default",
+                MutationManager.fetchExecutionIndex(testClass.getTypeName(), l_phaseGroup,
+                        ExecutionMode.DEFAULT.fetchRunValues()),
                 Matchers.arrayContaining(0, 3));
 
-        assertThat("We should have one steps to executed in permutational", MutationManager.fetchExecutionIndex(testClass.getTypeName(), l_phaseGroup, Phases.PERMUTATIONAL.fetchRunValues()),
+        assertThat("We should have one steps to executed in Asynchronous",
+                MutationManager.fetchExecutionIndex(testClass.getTypeName(), l_phaseGroup,
+                        Phases.ASYNCHRONOUS.fetchRunValues()),
+                Matchers.arrayContaining(0, 3));
+
+        assertThat("We should have one steps to executed in permutational",
+                MutationManager.fetchExecutionIndex(testClass.getTypeName(), l_phaseGroup,
+                        Phases.PERMUTATIONAL.fetchRunValues()),
                 Matchers.arrayContaining(0, 3));
     }
 
