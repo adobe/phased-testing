@@ -127,32 +127,27 @@ public class MutationManagerTests {
 
         assertThat("We should have two steps to execute in Producer",
                 MutationManager.fetchExecutionIndex(testClass.getTypeName(), l_phaseGroup,
-                        Phases.PRODUCER.fetchRunValues()),
+                        new RunValues(ExecutionMode.INTERRUPTIVE, "PRODUCER")),
                 Matchers.arrayContaining(0, 2));
 
         assertThat("We should have one steps to executed in Consumer",
                 MutationManager.fetchExecutionIndex(testClass.getTypeName(), l_phaseGroup,
-                        Phases.CONSUMER.fetchRunValues()),
+                        new RunValues(ExecutionMode.INTERRUPTIVE, "CONSUMER")),
                 Matchers.arrayContaining(2, 3));
 
         assertThat("We should have one steps to executed by default",
                 MutationManager.fetchExecutionIndex(testClass.getTypeName(), l_phaseGroup,
-                        Phases.NON_PHASED.fetchRunValues()),
-                Matchers.arrayContaining(0, 3));
-
-        assertThat("We should have one steps to executed by default",
-                MutationManager.fetchExecutionIndex(testClass.getTypeName(), l_phaseGroup,
-                        ExecutionMode.DEFAULT.fetchRunValues()),
+                        new RunValues(ExecutionMode.DEFAULT, "")),
                 Matchers.arrayContaining(0, 3));
 
         assertThat("We should have one steps to executed in Asynchronous",
                 MutationManager.fetchExecutionIndex(testClass.getTypeName(), l_phaseGroup,
-                        Phases.ASYNCHRONOUS.fetchRunValues()),
+                        new RunValues(ExecutionMode.NON_INTERRUPTIVE, "23")),
                 Matchers.arrayContaining(0, 3));
 
         assertThat("We should have one steps to executed in permutational",
                 MutationManager.fetchExecutionIndex(testClass.getTypeName(), l_phaseGroup,
-                        Phases.PERMUTATIONAL.fetchRunValues()),
+                        new RunValues(ExecutionMode.PERMUTATIONAL, "23")),
                 Matchers.arrayContaining(0, 3));
     }
 

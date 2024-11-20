@@ -282,7 +282,7 @@ public class MutationListener
                         + " due to failure in step " + PhasedTestManager.getScenarioContext()
                         .get(PhasedTestManager.fetchScenarioName(result)).getFailedStep() + " in Phase "
                         + PhasedTestManager.getScenarioContext()
-                        .get(PhasedTestManager.fetchScenarioName(result)).getFailedInPhase().name();
+                        .get(PhasedTestManager.fetchScenarioName(result)).getFailedInPhase();
 
                 log.info(skipMessageSKIPFAILURE);
                 result.setStatus(ITestResult.SKIP);

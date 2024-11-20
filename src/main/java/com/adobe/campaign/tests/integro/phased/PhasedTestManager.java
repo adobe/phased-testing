@@ -1578,7 +1578,7 @@ public final class PhasedTestManager {
         private boolean passed;
         private long duration;
         private String failedStep;
-        private Phases failedInPhase;
+        private String failedInPhase;
         private String currentStep;
         private int stepNr;
 
@@ -1587,7 +1587,7 @@ public final class PhasedTestManager {
             passed = true;
             duration = 0;
             failedStep = NOT_APPLICABLE_STEP_NAME;
-            setFailedInPhase(Phases.NON_PHASED);
+            setFailedInPhase("N/A");
             setCurrentStep(NOT_APPLICABLE_STEP_NAME);
         }
 
@@ -1610,7 +1610,7 @@ public final class PhasedTestManager {
          * @param in_phase       The Phase in which the error happened
          * @param in_currentStep The current step in which we are
          */
-        protected ScenarioContextData(boolean in_passed, long in_duration, String in_failedStep, Phases in_phase,
+        protected ScenarioContextData(boolean in_passed, long in_duration, String in_failedStep, String in_phase,
                 String in_currentStep) {
             this.passed = in_passed;
             this.duration = in_duration;
@@ -1631,7 +1631,7 @@ public final class PhasedTestManager {
             this.passed = in_passed;
             this.duration = in_duration;
             this.failedStep = in_failedStep;
-            this.setFailedInPhase(Phases.getCurrentPhase());
+            this.setFailedInPhase(ExecutionMode.getCurrentMode().fetchBehavior());
         }
 
         public boolean isPassed() {
@@ -1658,11 +1658,11 @@ public final class PhasedTestManager {
             this.failedStep = failedStep;
         }
 
-        public Phases getFailedInPhase() {
+        public String getFailedInPhase() {
             return failedInPhase;
         }
 
-        public void setFailedInPhase(Phases failedInPhase) {
+        public void setFailedInPhase(String failedInPhase) {
             this.failedInPhase = failedInPhase;
         }
 
@@ -1700,7 +1700,7 @@ public final class PhasedTestManager {
             switch (in_stepRessult) {
             case ITestResult.FAILURE:
                 failedStep = in_scenarioName;
-                setFailedInPhase(Phases.getCurrentPhase());
+                setFailedInPhase(ExecutionMode.getCurrentMode().fetchBehavior());
             case ITestResult.SKIP:
                 passed = false;
             default:
@@ -1720,7 +1720,7 @@ public final class PhasedTestManager {
          */
         public String exportToString() {
             return this.passed + ";" + this.duration + ";" + this.failedStep + ";"
-                    + this.getFailedInPhase().name();
+                    + this.getFailedInPhase();
         }
 
         /**
@@ -1753,14 +1753,16 @@ public final class PhasedTestManager {
             this.failedStep =
                 !l_valueArray[2].trim().isEmpty() ? l_valueArray[2] : NOT_APPLICABLE_STEP_NAME;
 
-            try {
-                this.setFailedInPhase(!l_valueArray[3].trim().isEmpty() ? Phases.valueOf(
-                    l_valueArray[3]) : Phases.NON_PHASED);
-            } catch (IllegalArgumentException exc) {
-                throw new IllegalArgumentException(
-                    "The given import string " + in_importString
-                        + " does not allow us to deduce the Phase.");
-            }
+                var importedPhase = !l_valueArray[3].trim().isEmpty() ?
+                        l_valueArray[3] : "N/A";
+
+                if (importedPhase.equals("N/A") || ExecutionMode.INTERRUPTIVE.behaviorTypes.contains(importedPhase)) {
+                    this.setFailedInPhase(importedPhase);
+                } else {
+                    throw new IllegalArgumentException(
+                        "The given import string " + in_importString
+                            + " does not allow us to deduce the Phase.");
+                }
 
             //TODO include the StepNr ?
 

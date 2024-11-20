@@ -226,7 +226,7 @@ public class PhasedTestManagerTests {
         assertThat("We should find our scenario", prop.containsKey(l_storedScenarioContext));
 
         assertThat("We should find our scenario", prop.get(l_storedScenarioContext),
-                Matchers.equalTo("true;0;NA;NON_PHASED"));
+                Matchers.equalTo("true;0;NA;N/A"));
 
     }
 
@@ -515,7 +515,7 @@ public class PhasedTestManagerTests {
     public void importingData() {
         String l_stepId = PhasedTestManager.produceInStep("Hello");
         String l_scenarioId = PhasedTestManager.storeTestData(PhasedSeries_F_Shuffle.class, "A",
-                new PhasedTestManager.ScenarioContextData(false,3,"abc",Phases.PRODUCER,"zdf" ));
+                new PhasedTestManager.ScenarioContextData(false,3,"abc","PRODUCER","zdf" ));
 
         File l_phasedTestFile = PhasedTestManager.exportPhaseData();
         PhasedTestManager.clearCache();
@@ -3186,9 +3186,9 @@ public class PhasedTestManagerTests {
         l_scenarioContext.setFailedStep("abc");
 
         assertThat("The toString method should correctly export the data", l_scenarioContext.exportToString(),
-                Matchers.equalTo("false;2;abc;NON_PHASED"));
+                Matchers.equalTo("false;2;abc;N/A"));
 
-        l_scenarioContext.setFailedInPhase(Phases.CONSUMER);
+        l_scenarioContext.setFailedInPhase("CONSUMER");
 
         assertThat("The toString method should correctly export the data", l_scenarioContext.exportToString(),
                 Matchers.equalTo("false;2;abc;CONSUMER"));
@@ -3211,7 +3211,7 @@ public class PhasedTestManagerTests {
 
     @Test
     public void testScenarioContextData_StringConstructor() {
-        PhasedTestManager.ScenarioContextData l_scenarioContext = new PhasedTestManager.ScenarioContextData(false,2,"abc",Phases.PRODUCER,"efg" );
+        PhasedTestManager.ScenarioContextData l_scenarioContext = new PhasedTestManager.ScenarioContextData(false,2,"abc","PRODUCER","efg" );
 
         assertThat("The toString method should correctly export the data", l_scenarioContext.exportToString(),
                 Matchers.equalTo("false;2;abc;"+Phases.PRODUCER.name()));
@@ -3227,7 +3227,7 @@ public class PhasedTestManagerTests {
         assertThat("The failedStep should be correctly imported", l_scenarioContextImported.getFailedStep(),
                 Matchers.equalTo(l_scenarioContext.getFailedStep()));
         assertThat("The phased in which the failure occurred should be the producer phase",
-                l_scenarioContextImported.getFailedInPhase(), equalTo(Phases.PRODUCER));
+                l_scenarioContextImported.getFailedInPhase(), equalTo("PRODUCER"));
 
         assertThat("The phased in which the failure occurred should be the producer phase",
                 l_scenarioContextImported.getCurrentStep(), equalTo(PhasedTestManager.ScenarioContextData.NOT_APPLICABLE_STEP_NAME));
@@ -3245,7 +3245,7 @@ public class PhasedTestManagerTests {
         assertThat("The failedStep should be correctly imported", l_scenarioContextImported.getFailedStep(),
                 Matchers.equalTo("NA"));
         assertThat("The phased in which the failure occurred should be the producer phase",
-                l_scenarioContextImported.getFailedInPhase(), equalTo(Phases.NON_PHASED));
+                l_scenarioContextImported.getFailedInPhase(), equalTo("N/A"));
     }
 
     @Test
@@ -3260,7 +3260,7 @@ public class PhasedTestManagerTests {
         assertThat("The failedStep should be correctly imported", l_scenarioContextImported.getFailedStep(),
                 Matchers.equalTo("NA"));
         assertThat("The phased in which the failure occurred should be the producer phase",
-                l_scenarioContextImported.getFailedInPhase(), equalTo(Phases.NON_PHASED));
+                l_scenarioContextImported.getFailedInPhase(), equalTo("N/A"));
 
         l_scenarioContextImported.importFromString("true;2");
 
@@ -3270,7 +3270,7 @@ public class PhasedTestManagerTests {
         assertThat("The failedStep should be correctly imported", l_scenarioContextImported.getFailedStep(),
                 Matchers.equalTo("NA"));
         assertThat("The phased in which the failure occurred should be the producer phase",
-                l_scenarioContextImported.getFailedInPhase(), equalTo(Phases.NON_PHASED));
+                l_scenarioContextImported.getFailedInPhase(), equalTo("N/A"));
     }
 
     @Test
@@ -3285,7 +3285,7 @@ public class PhasedTestManagerTests {
         assertThat("The failedStep should be correctly imported", l_scenarioContextImported.getFailedStep(),
                 Matchers.equalTo("sd"));
         assertThat("The phased in which the failure occurred should be the producer phase",
-                l_scenarioContextImported.getFailedInPhase(), equalTo(Phases.NON_PHASED));
+                l_scenarioContextImported.getFailedInPhase(), equalTo("N/A"));
     }
 
     @Test
@@ -3300,7 +3300,7 @@ public class PhasedTestManagerTests {
         assertThat("The failedStep should be correctly imported", l_scenarioContextImported.getFailedStep(),
                 Matchers.equalTo(PhasedTestManager.ScenarioContextData.NOT_APPLICABLE_STEP_NAME));
         assertThat("The phased in which the failure occurred should be the producer phase",
-                l_scenarioContextImported.getFailedInPhase(), equalTo(Phases.NON_PHASED));
+                l_scenarioContextImported.getFailedInPhase(), equalTo("N/A"));
     }
 
     @Test
