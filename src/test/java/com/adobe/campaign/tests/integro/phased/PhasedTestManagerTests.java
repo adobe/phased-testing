@@ -2871,7 +2871,7 @@ public class PhasedTestManagerTests {
         Phases.CONSUMER.activate();
 
         assertThat("This method and phase group should not have steps in the producer",
-                !PhasedTestManager.hasStepsExecutedInProducer(l_itr, Phases.CONSUMER));
+                !PhasedTestManager.hasStepsExecutedInProducer(l_itr, new RunValues(ExecutionMode.INTERRUPTIVE, "CONSUMER")));
 
         Mockito.when(l_itr.getParameters())
                 .thenReturn(new Object[] { PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_3" });
@@ -2885,14 +2885,14 @@ public class PhasedTestManagerTests {
                 .thenReturn(new Object[] { PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_3" });
 
         assertThat("This method and phase group should not have steps in the producer",
-                !PhasedTestManager.hasStepsExecutedInProducer(l_itr, Phases.PRODUCER));
+                !PhasedTestManager.hasStepsExecutedInProducer(l_itr, new RunValues(ExecutionMode.INTERRUPTIVE, "PRODUCER")));
 
         Mockito.when(l_itr.getParameters())
                 .thenReturn(new Object[] { PhasedTestManager.STD_PHASED_GROUP_PREFIX + "0_3" });
 
         assertThat(
                 "This method and phase group should not have steps in the producer since we are in Producer",
-                !PhasedTestManager.hasStepsExecutedInProducer(l_itr, Phases.PRODUCER));
+                !PhasedTestManager.hasStepsExecutedInProducer(l_itr, new RunValues(ExecutionMode.INTERRUPTIVE, "PRODUCER")));
 
         //Testing non-phased
 
@@ -2900,14 +2900,14 @@ public class PhasedTestManagerTests {
                 .thenReturn(new Object[] { PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_3" });
 
         assertThat("This method and phase group should not have steps in the producer",
-                !PhasedTestManager.hasStepsExecutedInProducer(l_itr, Phases.NON_PHASED));
+                !PhasedTestManager.hasStepsExecutedInProducer(l_itr, new RunValues(ExecutionMode.DEFAULT, "")));
 
         Mockito.when(l_itr.getParameters())
                 .thenReturn(new Object[] { PhasedTestManager.STD_PHASED_GROUP_PREFIX + "0_3" });
 
         assertThat(
                 "This method and phase group should not have steps in the producer since we are in Producer",
-                !PhasedTestManager.hasStepsExecutedInProducer(l_itr, Phases.NON_PHASED));
+                !PhasedTestManager.hasStepsExecutedInProducer(l_itr, new RunValues(ExecutionMode.DEFAULT, "")));
 
     }
 
