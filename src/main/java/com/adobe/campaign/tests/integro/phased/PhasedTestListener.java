@@ -48,6 +48,10 @@ public class PhasedTestListener
 
     @Override
     public void alter(List<XmlSuite> suites) {
+        if (ConfigValueHandlerPhased.PROP_SELECTED_PHASE.isSet()) {
+            log.warn("IMPORTANT: The property {} is DEPRECATED. Please you the property {} henceforth.",
+                    ConfigValueHandlerPhased.PROP_SELECTED_PHASE.systemName, ConfigValueHandlerPhased.PROP_EXECUTION_MODE.systemName);
+        }
         log.debug("{} in alter - current Execution State is : {}", PhasedTestManager.PHASED_TEST_LOG_PREFIX
                 , ExecutionMode.getCurrentModeAsString());
 

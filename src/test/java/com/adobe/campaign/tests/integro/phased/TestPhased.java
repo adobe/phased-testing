@@ -2600,7 +2600,7 @@ public class TestPhased {
 
         assertThat("We should have the correct message suffix",
                 context.getFailedTests().getAllResults().iterator().next().getThrowable().getMessage(),
-                Matchers.endsWith(Phases.getCurrentPhase().toString() + "]"));
+                Matchers.endsWith(ExecutionMode.getCurrentModeAsString() + "]"));
 
     }
 

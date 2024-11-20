@@ -556,7 +556,7 @@ public final class PhasedTestManager {
      * @return A two-dimensional array of all the data providers attached to the current step/method
      */
     public static Object[][] fetchProvidersShuffled(Method in_method) {
-        return fetchProvidersShuffled(ClassPathParser.fetchFullName(in_method), Phases.getCurrentPhase());
+        return fetchProvidersShuffled(ClassPathParser.fetchFullName(in_method), ExecutionMode.getCurrentMode().fetchRunValues());
     }
 
     /**
@@ -570,7 +570,7 @@ public final class PhasedTestManager {
      */
     public static Object[][] fetchProvidersShuffled(ITestNGMethod in_method) {
         String l_candidateMethod  = fetchMappingKeyWithMaxProviders(in_method.getTestClass().getRealClass().getTypeName(), getMethodMap());
-        return fetchProvidersShuffled(l_candidateMethod, Phases.getCurrentPhase());
+        return fetchProvidersShuffled(l_candidateMethod, ExecutionMode.getCurrentMode().fetchRunValues());
     }
 
     /**
@@ -580,17 +580,16 @@ public final class PhasedTestManager {
      * Author : gandomi
      *
      * @param in_methodFullName The full name of the method used for identifying it in the phase context
-     * @param in_phasedState    The phase state for which we should retrieve the parameters. The parameters will be
-     *                          different based on the phase.
+     * @param in_runMode    The mode in which the mutational tests are executed
      * @return A two-dimensional array of all the data providers attached to the current step/method
      */
-    public static Object[][] fetchProvidersShuffled(String in_methodFullName, Phases in_phasedState) {
+    public static Object[][] fetchProvidersShuffled(String in_methodFullName, RunValues in_runMode) {
 
         final MethodMapping l_methodMapping = methodMap.get(in_methodFullName);
         int l_nrOfProviders = l_methodMapping.nrOfProviders;
         Object[][] l_objectArrayPhased;
 
-        if (in_phasedState.equals(Phases.PERMUTATIONAL)) {
+        if (in_runMode.getExecutionMode().equals(ExecutionMode.PERMUTATIONAL)) {
             Map<String, List<StepDependencies>> l_permutations = getStepDependencies().get(l_methodMapping.declaredClass.getTypeName()).fetchScenarioPermutations();
             l_nrOfProviders = l_permutations.size();
             l_objectArrayPhased = new Object[l_nrOfProviders][1];
@@ -604,12 +603,12 @@ public final class PhasedTestManager {
             l_objectArrayPhased= new Object[l_nrOfProviders][1];
             for (int rows = 0; rows < l_nrOfProviders; rows++) {
 
-                int lt_nrBeforePhase = in_phasedState.equals(Phases.PRODUCER) ? (l_methodMapping.totalClassMethods
+                int lt_nrBeforePhase = in_runMode.getBehavior().equals("PRODUCER") ? (l_methodMapping.totalClassMethods
                         - rows) : rows;
 
                 int lt_nrAfterPhase = l_methodMapping.totalClassMethods - lt_nrBeforePhase;
 
-                if (in_phasedState.hasSplittingEvent()) {
+                if (in_runMode.getExecutionMode().equals(ExecutionMode.INTERRUPTIVE)) {
                     l_objectArrayPhased[rows][0] = STD_PHASED_GROUP_PREFIX + lt_nrBeforePhase
                             + "_"
                             + lt_nrAfterPhase;
@@ -640,16 +639,16 @@ public final class PhasedTestManager {
     public static Object[] fetchProvidersSingle(Method in_method) {
         log.debug("Returning provider for method {}", ClassPathParser.fetchFullName(in_method));
 
-        if (Phases.PRODUCER.isSelected() && isExecutedInProducerMode(in_method)) {
+        if (ExecutionMode.INTERRUPTIVE.isSelected("PRODUCER") && isExecutedInProducerMode(in_method)) {
 
             return new Object[] { STD_PHASED_GROUP_SINGLE };
         }
 
-        if (Phases.CONSUMER.isSelected() && !isExecutedInProducerMode(in_method)) {
+        if (ExecutionMode.INTERRUPTIVE.isSelected("CONSUMER") && !isExecutedInProducerMode(in_method)) {
             return new Object[] { STD_PHASED_GROUP_SINGLE };
         }
 
-        if (Phases.NON_PHASED.isSelected() && in_method.getDeclaringClass().getAnnotation(PhasedTest.class)
+        if (ExecutionMode.DEFAULT.isSelected() && in_method.getDeclaringClass().getAnnotation(PhasedTest.class)
                 .executeInactive()) {
             return new Object[] { STD_PHASED_GROUP_SINGLE };
         }
@@ -673,7 +672,7 @@ public final class PhasedTestManager {
     public static  Object[]  fetchProvidersStandard(Method in_method) {
         log.debug("Returning provider for method {}", ClassPathParser.fetchFullName(in_method));
 
-        if (Phases.NON_PHASED.isSelected() && !in_method.getDeclaringClass().getAnnotation(PhasedTest.class)
+        if (ExecutionMode.DEFAULT.isSelected() && !in_method.getDeclaringClass().getAnnotation(PhasedTest.class)
                 .executeInactive()) {
             return new Object[] { };
         }
@@ -1218,7 +1217,7 @@ public final class PhasedTestManager {
         sb.append("[Failed at step : ");
         sb.append(in_failedTestResult.getMethod().getMethodName());
         sb.append(" - ");
-        sb.append(Phases.getCurrentPhase().toString());
+        sb.append(ExecutionMode.getCurrentModeAsString());
         sb.append("]");
 
         PhasedTestManager.changeExceptionMessage(l_thrownException, sb.toString());

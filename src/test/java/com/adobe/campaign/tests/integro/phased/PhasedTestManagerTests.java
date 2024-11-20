@@ -839,20 +839,20 @@ public class PhasedTestManagerTests {
         assertThat("The third method should have three entries", l_result.get(ClassPathParser.fetchFullName(method3)).totalClassMethods,
                 equalTo(3));
 
-        Object[][] l_providerA = PhasedTestManager.fetchProvidersShuffled(ClassPathParser.fetchFullName(method1), Phases.CONSUMER);
+        Object[][] l_providerA = PhasedTestManager.fetchProvidersShuffled(ClassPathParser.fetchFullName(method1), Phases.CONSUMER.fetchRunValues());
 
         assertThat(l_providerA[0].length, equalTo(1));
 
         assertThat(l_providerA[0][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "0_3"));
 
-        Object[][] l_providerB = PhasedTestManager.fetchProvidersShuffled(ClassPathParser.fetchFullName(method2), Phases.CONSUMER);
+        Object[][] l_providerB = PhasedTestManager.fetchProvidersShuffled(ClassPathParser.fetchFullName(method2), Phases.CONSUMER.fetchRunValues());
 
         assertThat(l_providerB[0].length, equalTo(1));
 
         assertThat(l_providerB[0][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "0_3"));
         assertThat(l_providerB[1][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2"));
 
-        Object[][] l_providerC = PhasedTestManager.fetchProvidersShuffled(ClassPathParser.fetchFullName(method3), Phases.CONSUMER);
+        Object[][] l_providerC = PhasedTestManager.fetchProvidersShuffled(ClassPathParser.fetchFullName(method3), Phases.CONSUMER.fetchRunValues());
 
         assertThat(l_providerC[0].length, equalTo(1));
 
@@ -946,7 +946,7 @@ public class PhasedTestManagerTests {
         assertThat("The third method should have three entries", l_result.get(ClassPathParser.fetchFullName(method3)).totalClassMethods,
                 equalTo(3));
 
-        Object[][] l_providerPerm = PhasedTestManager.fetchProvidersShuffled(ClassPathParser.fetchFullName(method1), l_currentPhase);
+        Object[][] l_providerPerm = PhasedTestManager.fetchProvidersShuffled(ClassPathParser.fetchFullName(method1), l_currentPhase.fetchRunValues());
 
         assertThat(l_providerPerm.length, equalTo(2));
 
@@ -988,7 +988,7 @@ public class PhasedTestManagerTests {
         assertThat("The third method should have three entries", l_result.get(ClassPathParser.fetchFullName(method3)).totalClassMethods,
                 equalTo(4));
 
-        Object[][] l_providerPerm = PhasedTestManager.fetchProvidersShuffled(ClassPathParser.fetchFullName(method1), l_currentPhase);
+        Object[][] l_providerPerm = PhasedTestManager.fetchProvidersShuffled(ClassPathParser.fetchFullName(method1), l_currentPhase.fetchRunValues());
 
         assertThat(l_providerPerm.length, equalTo(3));
 
@@ -2421,7 +2421,7 @@ public class PhasedTestManagerTests {
         assertThat("We should have the correct exception", l_newThrowable.getMessage(),
                 Matchers.startsWith(l_originalMessage));
         assertThat("The message should end with the original message", l_newThrowable.getMessage(),
-                Matchers.endsWith(Phases.getCurrentPhase().toString() + "]"));
+                Matchers.endsWith(ExecutionMode.getCurrentModeAsString() + "]"));
 
         assertThat("We should have the step name in the message", l_newThrowable.getMessage(),
                 Matchers.containsString(l_renamedMethod));
@@ -2453,7 +2453,7 @@ public class PhasedTestManagerTests {
         assertThat("We should have the correct exception", l_newThrowable.getMessage(),
                 Matchers.startsWith("["));
         assertThat("The message should end with the original message", l_newThrowable.getMessage(),
-                Matchers.endsWith(Phases.getCurrentPhase().toString() + "]"));
+                Matchers.endsWith(ExecutionMode.getCurrentModeAsString() + "]"));
         assertThat("We should have the step name in the message", l_newThrowable.getMessage(),
                 Matchers.containsString(l_renamedMethod));
 
