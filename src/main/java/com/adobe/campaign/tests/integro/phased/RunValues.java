@@ -34,4 +34,9 @@ public class RunValues {
         return getBehavior().equals(runValues.getBehavior());
     }
 
+    @Override
+    public String toString() {
+        return executionMode.name() + (!getBehavior().isEmpty() ? "(" + behavior + ")" : "");
+    }
+
 }

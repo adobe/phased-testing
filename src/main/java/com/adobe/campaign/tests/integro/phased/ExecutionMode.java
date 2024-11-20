@@ -55,7 +55,10 @@ public enum ExecutionMode {
      * @return The phase which is currently being executed
      */
     public static ExecutionMode getCurrentMode() {
-        return fetchCorrespondingMode(ConfigValueHandlerPhased.PROP_EXECUTION_MODE.fetchValue());
+        if (ConfigValueHandlerPhased.PROP_EXECUTION_MODE.isSet()) {
+            return fetchCorrespondingMode(ConfigValueHandlerPhased.PROP_EXECUTION_MODE.fetchValue());
+        }
+        return Phases.getCurrentPhase().fetchRunValues().getExecutionMode();
     }
 
     /**
@@ -95,6 +98,10 @@ public enum ExecutionMode {
      */
     public static boolean is(ExecutionMode in_executionMode) {
         return in_executionMode.equals(getCurrentMode());
+    }
+
+    public static String getCurrentModeAsString() {
+        return getCurrentMode().fetchRunValues().toString();
     }
 
     public RunValues fetchRunValues() {
@@ -157,14 +164,19 @@ public enum ExecutionMode {
      * @return The mode set at runtime
      */
     public String fetchBehavior() {
-        String l_value = ConfigValueHandlerPhased.PROP_EXECUTION_MODE.fetchValue();
-        int l_startIndex = l_value.indexOf("(");
-        int l_endIndex = l_value.indexOf(")");
+        if (ConfigValueHandlerPhased.PROP_EXECUTION_MODE.isSet()) {
+            String l_value = ConfigValueHandlerPhased.PROP_EXECUTION_MODE.fetchValue();
+            int l_startIndex = l_value.indexOf("(");
+            int l_endIndex = l_value.indexOf(")");
 
-        if (l_startIndex != -1 && l_endIndex != -1) {
-            return l_value.substring(l_startIndex + 1, l_endIndex);
+            if (l_startIndex != -1 && l_endIndex != -1) {
+                return l_value.substring(l_startIndex + 1, l_endIndex);
+            }
+            return "";
+        } else {
+            return Phases.getCurrentPhase().behavior;
         }
-        return "";
+
     }
 
     /**

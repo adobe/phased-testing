@@ -59,7 +59,7 @@ public class PhasedTestListener
                 .containsKey(ConfigValueHandlerPhased.PROP_PHASED_TEST_DATABROKER.systemName)) {
             l_phasedDataBrokerClass = suites.get(0)
                     .getParameter(ConfigValueHandlerPhased.PROP_PHASED_TEST_DATABROKER.systemName);
-        } else if (!Phases.NON_PHASED.isSelected()) {
+        } else if (!ExecutionMode.DEFAULT.isSelected()) {
             log.info("{} No PhasedDataBroker set. Using the file system path {}/{} instead ",
                     PhasedTestManager.PHASED_TEST_LOG_PREFIX, PhasedTestManager.STD_STORE_DIR,
                     PhasedTestManager.STD_STORE_FILE
@@ -77,7 +77,7 @@ public class PhasedTestListener
 
         // *** import context for consumer ***
         //The second condition is there for testing purposes. You can bypass the file by filling the Test
-        if (Phases.CONSUMER.isSelected() && PhasedTestManager.getPhasedCache().isEmpty()) {
+        if (ExecutionMode.INTERRUPTIVE.isSelected("CONSUMER") && PhasedTestManager.getPhasedCache().isEmpty()) {
             PhasedTestManager.importPhaseData();
         }
 
@@ -151,7 +151,7 @@ public class PhasedTestListener
 
             //Managing events
             //Cases 4 & 5
-            if (Phases.ASYNCHRONOUS.isSelected()) {
+            if (ExecutionMode.NON_INTERRUPTIVE.isSelected()) {
 
                 //Check if there is an event declared
                 String lt_event = PhasedEventManager.fetchEvent(result);
@@ -238,7 +238,7 @@ public class PhasedTestListener
             PhasedTestManager.scenarioStateStore(result);
 
             //Cases 4 & 5
-            if (Phases.ASYNCHRONOUS.isSelected()) {
+            if (ExecutionMode.NON_INTERRUPTIVE.isSelected()) {
                 PhasedTestManager.getPhasedCache();
                 //Check if there is an event declared
                 String lt_event = PhasedEventManager.fetchEvent(result);
@@ -264,7 +264,7 @@ public class PhasedTestListener
     @Override
     public void onStart(ITestContext context) {
         log.info("{} onStart - current Execution State is : {}.",
-                PhasedTestManager.PHASED_TEST_LOG_PREFIX, Phases.getCurrentPhase());
+                PhasedTestManager.PHASED_TEST_LOG_PREFIX, ExecutionMode.getCurrentMode());
     }
 
     @Override
