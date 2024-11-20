@@ -1463,23 +1463,22 @@ public final class PhasedTestManager {
      * phase
      */
     public static boolean hasStepsExecutedInProducer(ITestResult in_testResult) {
-        return hasStepsExecutedInProducer(in_testResult, Phases.getCurrentPhase());
+        return hasStepsExecutedInProducer(in_testResult, Phases.getCurrentPhase().fetchRunValues());
 
     }
 
     /**
-     * Given a phased test method and and its phase group, lets you know if it has ssteps executed in the producer
-     * phase
+     * Given a phased test method and and its phase group, lets you know if it has steps executed in the producer phase
      * <p>
      * Author : gandomi
      *
      * @param in_testResult A TestNG Test result
-     * @param in_phase      The phase in which we are currently.
+     * @param in_runValues  The execution mode and behavior for the tests being executed
      * @return true if we are in consumer, and we are not a 0_X phase group that is executed end to end in the consumer
      * phase
      */
-    public static boolean hasStepsExecutedInProducer(ITestResult in_testResult, Phases in_phase) {
-        return (in_phase.equals(Phases.CONSUMER) && (fetchNrOfStepsBeforePhaseChange(in_testResult) > 0));
+    public static boolean hasStepsExecutedInProducer(ITestResult in_testResult, RunValues in_runValues) {
+        return (in_runValues.getBehavior().equals("CONSUMER") && (fetchNrOfStepsBeforePhaseChange(in_testResult) > 0));
     }
 
     /**
@@ -1492,8 +1491,7 @@ public final class PhasedTestManager {
      */
     public static Integer fetchNrOfStepsBeforePhaseChange(ITestResult in_testResult) {
 
-        if (isPhasedTestShuffledMode(in_testResult) && Phases.getCurrentPhase()
-                .hasSplittingEvent()) {
+        if (isPhasedTestShuffledMode(in_testResult) && ExecutionMode.INTERRUPTIVE.isSelected()) {
 
             final String in_phaseGroup = in_testResult.getParameters()[0].toString();
 
