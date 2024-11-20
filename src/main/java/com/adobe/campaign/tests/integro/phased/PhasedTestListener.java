@@ -49,7 +49,7 @@ public class PhasedTestListener
     @Override
     public void alter(List<XmlSuite> suites) {
         log.debug("{} in alter - current Execution State is : {}", PhasedTestManager.PHASED_TEST_LOG_PREFIX
-                , Phases.getCurrentPhase());
+                , ExecutionMode.getCurrentModeAsString());
 
         // *** Import DataBroker ***
         String l_phasedDataBrokerClass = null;
@@ -271,7 +271,7 @@ public class PhasedTestListener
     public void onFinish(ITestContext context) {
 
         //Once the tests have finished in producer mode we, need to export the data
-        if (Phases.PRODUCER.isSelected()) {
+        if (ExecutionMode.INTERRUPTIVE.isSelected("PRODUCER")) {
             log.info("{} At the end. Exporting data", PhasedTestManager.PHASED_TEST_LOG_PREFIX);
             PhasedTestManager.exportPhaseData();
         }
@@ -430,7 +430,7 @@ public class PhasedTestListener
         }
 
         if (PhasedTestManager.isPhasedTest(l_currentClass)) {
-            if (Phases.NON_PHASED.isSelected()) {
+            if (ExecutionMode.DEFAULT.isSelected()) {
                 annotation.setDataProvider(
                         ConfigValueHandlerPhased.PHASED_TEST_NONPHASED_LEGACY.is("true") ? PhasedDataProvider.SINGLE : PhasedDataProvider.DEFAULT);
 
@@ -507,7 +507,7 @@ public class PhasedTestListener
         if (ConfigValueHandlerPhased.PHASED_TEST_DETECT_ORDER.is("false")) {
             log.info("{} Generating Phased Providers", PhasedTestManager.PHASED_TEST_LOG_PREFIX);
             //NIA
-            PhasedTestManager.generatePhasedProviders(l_classMethodMap, Phases.getCurrentPhase().fetchRunValues());
+            PhasedTestManager.generatePhasedProviders(l_classMethodMap, ExecutionMode.getCurrentMode().fetchRunValues());
             return list;
         } else {
 
@@ -519,7 +519,7 @@ public class PhasedTestListener
                 log.info("{} Generating Phased Providers", PhasedTestManager.PHASED_TEST_LOG_PREFIX);
                 //NIA
                 PhasedTestManager.generatePhasedProviders(l_classMethodMap, l_scenarioDependencies,
-                        Phases.getCurrentPhase().fetchRunValues());
+                        ExecutionMode.getCurrentMode().fetchRunValues());
             //}
 
             //Start by adding the non-phased tests

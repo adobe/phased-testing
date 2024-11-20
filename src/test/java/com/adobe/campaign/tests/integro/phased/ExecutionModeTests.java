@@ -190,7 +190,7 @@ public class ExecutionModeTests {
     }
 
     @Test
-    public void testSMutational() {
+    public void testMutational() {
         ExecutionMode.PERMUTATIONAL.activate();
 
         assertThat("This should be the same as Non-interruptive", ExecutionMode.PERMUTATIONAL.isSelected());
@@ -201,6 +201,12 @@ public class ExecutionModeTests {
         assertThat("The execution mode should be correct", runMode.getExecutionMode(),
                 Matchers.equalTo(ExecutionMode.PERMUTATIONAL));
         assertThat("The execution mode should be correct", runMode.getBehavior(), Matchers.equalTo(""));
+
+        assertThat("The runMode toString should be correct", runMode.toString(),
+                Matchers.equalTo("PERMUTATIONAL"));
+
+        assertThat("We should properly present the execution mode", ExecutionMode.getCurrentModeAsString(),
+                Matchers.equalTo(runMode.toString()));
 
     }
 
