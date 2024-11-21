@@ -130,14 +130,50 @@ The following dependency needs to be added to your pom file:
 </dependency>
 ```
 
-### Demo
+## Demo
 We have a standard demo that can be accessed through the [Phased Test Demo](https://github.com/baubakg/phased-test-demo).
 
-## Phases
+## Execution Modes
+We currently have 4 execution modes:
+* STANDARD
+* INTERRUPTIVE
+* NON-INTERRUPTIVE
+* PERMUATIONAL
+
+
+The execution mode is set by passing the config value "MUTATIONAL.EXECUTION.MODE" at execution time.
+
+Some execution modes have a notion of a "behavior" which add more details to the system as to how the tests should be executed. The behavior is set by passing the behavior within parenthesis.
+
+### STANDARD Execution Mode
+This is the default execution mode. By default, we execute the scenario in the order and manner in which it was defined. 
+
+### INTERRUPTIVE Execution Mode
+The Interruptive execution mode simulates the system being subject to an interruptive event.
+
+The Phased Testing framework was originally devised for Interruptive Events, i.e. you need to stop a system so that you can perform some system change, such as an upgrade, to that system. Once the upgrade is done, we expect that the users can carry on with what they were doing.
+
+The execution of steps in interruptive events is divided into two phases/behaviors depending on their execution relative to the interruptive event. The phase before the event is called “producer”, because the steps executed before the event produce data used after the event has taken place. Similarly, the phase after the event is called “consumer” because the steps rely on data created in the phase before the execution of the event.
+
+| NAME     | When Passing          | Description                                                                                                     |
+|----------|-----------------------|-----------------------------------------------------------------------------------------------------------------|
+| PRODUCER | INTERUPTIVE(PRODUCER) | The tests will stop before we execute the event. The tests prepare data to be used in the following test phase. |
+| CONSUMER | INTERUPTIVE(CONSUMER) | The tests will continue where they left off after the event has finished. The tests consume the data produced in the previous phase. |
+
+
+### NON-INTERRUPTIVE execution mode
+A non-interruptive execution mode is used when we want to inject an event in the middle of the execution of a scenario. Non-Interruptive events allow us to see the effects of parallel events. 
+
+This execution mode is a good way of performing chaos testing.
+
+This mode is activated by setting the environment variable "MUTATIONAL.EXECUTION.MODE" to "NON-INTERRUPTIVE".
+
+
+## LEGACY PHASES - DEPRECATED
 Phases are directives at execution time, where we let the system know, in what way we want our tests to interact with an event. 
 
 We have four test phases:
-* **Producer** In this Interruptive mode, the tests will stop before we execute the event. The tests prepare data to be used in the following test phase. The tests will be interr
+* **Producer** In this Interruptive mode, the tests will stop before we execute the event. The tests prepare data to be used in the following test phase. 
 * **Consumer** In this Interruptive mode, the tests will continue where they left off after the event has finished. The tests consume the data produced in the previous phase. 
 * **Asynchrounous** In this Non-Interruptive mode, the events are executed in parallel to a step.
 * * **Non-Phased** In this state, we have not designated a state, as such, if not unwanted, we execute all tests.

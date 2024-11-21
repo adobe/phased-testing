@@ -63,7 +63,7 @@ public class PhasedTestListener
                 .containsKey(ConfigValueHandlerPhased.PROP_PHASED_TEST_DATABROKER.systemName)) {
             l_phasedDataBrokerClass = suites.get(0)
                     .getParameter(ConfigValueHandlerPhased.PROP_PHASED_TEST_DATABROKER.systemName);
-        } else if (!ExecutionMode.DEFAULT.isSelected()) {
+        } else if (!ExecutionMode.STANDARD.isSelected()) {
             log.info("{} No PhasedDataBroker set. Using the file system path {}/{} instead ",
                     PhasedTestManager.PHASED_TEST_LOG_PREFIX, PhasedTestManager.STD_STORE_DIR,
                     PhasedTestManager.STD_STORE_FILE
@@ -434,7 +434,7 @@ public class PhasedTestListener
         }
 
         if (PhasedTestManager.isPhasedTest(l_currentClass)) {
-            if (ExecutionMode.DEFAULT.isSelected()) {
+            if (ExecutionMode.STANDARD.isSelected()) {
                 annotation.setDataProvider(
                         ConfigValueHandlerPhased.PHASED_TEST_NONPHASED_LEGACY.is("true") ? PhasedDataProvider.SINGLE : PhasedDataProvider.DEFAULT);
 

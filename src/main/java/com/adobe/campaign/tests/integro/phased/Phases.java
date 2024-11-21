@@ -12,7 +12,7 @@ import java.util.Arrays;
 
 public enum Phases {
     PRODUCER(true, ExecutionMode.INTERRUPTIVE, "PRODUCER"), CONSUMER(true, ExecutionMode.INTERRUPTIVE,
-            "CONSUMER"), NON_PHASED(false, ExecutionMode.DEFAULT, ""), ASYNCHRONOUS(false,
+            "CONSUMER"), NON_PHASED(false, ExecutionMode.STANDARD, ""), ASYNCHRONOUS(false,
             ExecutionMode.NON_INTERRUPTIVE, ""), PERMUTATIONAL(false, ExecutionMode.PERMUTATIONAL, "");
 
     boolean hasSplittingEvent;

@@ -140,7 +140,7 @@ public class PhasesTests {
         ConfigValueHandlerPhased.PROP_EXECUTION_MODE.activate(ExecutionMode.INTERRUPTIVE.name()+"(jhfdhj)");
         assertThat("We should detect that given type is incorrect",!ExecutionMode.getCurrentMode().isTypeValid());
 
-        ExecutionMode.DEFAULT.activate();
+        ExecutionMode.STANDARD.activate();
         assertThat("This should be the same as Non-phased", ExecutionMode.getCurrentMode().fetchBehavior(), Matchers.equalTo(""));
         assertThat("We should accept an empty type", ExecutionMode.getCurrentMode().isTypeValid());
 

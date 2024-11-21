@@ -433,7 +433,7 @@ public class TestPhasedNonInterruptive {
 
         assertThat("The correct phase must have been selected", ExecutionMode.NON_INTERRUPTIVE.isSelected("33"));
         assertThat("The correct phase must have been selected", ExecutionMode.getCurrentMode(),
-                not(equalTo(ExecutionMode.DEFAULT)));
+                not(equalTo(ExecutionMode.STANDARD)));
 
         assertThat("We should have 3 successful methods of phased Tests",
                 (int) tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
@@ -504,7 +504,7 @@ public class TestPhasedNonInterruptive {
 
         assertThat("The correct phase must have been selected", ExecutionMode.getCurrentMode(), equalTo(ExecutionMode.NON_INTERRUPTIVE));
         assertThat("The correct phase must have been selected", ExecutionMode.getCurrentMode(),
-                not(equalTo(ExecutionMode.DEFAULT)));
+                not(equalTo(ExecutionMode.STANDARD)));
 
         assertThat("We should have 3 successful methods of phased Tests",
                 (int) tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
@@ -576,7 +576,7 @@ public class TestPhasedNonInterruptive {
 
         assertThat("The correct phase must have been selected", ExecutionMode.getCurrentMode(), equalTo(ExecutionMode.NON_INTERRUPTIVE));
         assertThat("The correct phase must have been selected", ExecutionMode.getCurrentMode(),
-                not(equalTo(ExecutionMode.DEFAULT)));
+                not(equalTo(ExecutionMode.STANDARD)));
 
         assertThat("We should have 3 successful methods of phased Tests",
                 (int) tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),

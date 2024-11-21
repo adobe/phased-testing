@@ -648,7 +648,7 @@ public final class PhasedTestManager {
             return new Object[] { STD_PHASED_GROUP_SINGLE };
         }
 
-        if (ExecutionMode.DEFAULT.isSelected() && in_method.getDeclaringClass().getAnnotation(PhasedTest.class)
+        if (ExecutionMode.STANDARD.isSelected() && in_method.getDeclaringClass().getAnnotation(PhasedTest.class)
                 .executeInactive()) {
             return new Object[] { STD_PHASED_GROUP_SINGLE };
         }
@@ -672,7 +672,7 @@ public final class PhasedTestManager {
     public static  Object[]  fetchProvidersStandard(Method in_method) {
         log.debug("Returning provider for method {}", ClassPathParser.fetchFullName(in_method));
 
-        if (ExecutionMode.DEFAULT.isSelected() && !in_method.getDeclaringClass().getAnnotation(PhasedTest.class)
+        if (ExecutionMode.STANDARD.isSelected() && !in_method.getDeclaringClass().getAnnotation(PhasedTest.class)
                 .executeInactive()) {
             return new Object[] { };
         }

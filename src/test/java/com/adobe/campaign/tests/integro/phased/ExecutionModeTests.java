@@ -168,21 +168,21 @@ public class ExecutionModeTests {
 
     @Test
     public void testDefault() {
-        assertThat("This should be the same as Non-interruptive", ExecutionMode.DEFAULT.isSelected());
+        assertThat("This should be the same as Non-interruptive", ExecutionMode.STANDARD.isSelected());
         assertThat("Even though we pass a bad value we should not throw an exception. It is simply ignored",
-                ExecutionMode.DEFAULT.isSelected("CONSUMER"));
+                ExecutionMode.STANDARD.isSelected("CONSUMER"));
 
         assertThat("We should have the correct phase", Phases.getCurrentPhase().equals(Phases.NON_PHASED));
 
         var runMode = ExecutionMode.getCurrentMode().fetchRunValues();
         assertThat("The execution mode should be correct", runMode.getExecutionMode(),
-                Matchers.equalTo(ExecutionMode.DEFAULT));
+                Matchers.equalTo(ExecutionMode.STANDARD));
         assertThat("The execution mode should be correct", runMode.getBehavior(), Matchers.equalTo(""));
 
         assertThat("is is default selected", Phases.NON_PHASED.isSelected());
 
         assertThat("The runMode toString should be correct", runMode.toString(),
-                Matchers.equalTo("DEFAULT"));
+                Matchers.equalTo("STANDARD"));
 
         assertThat("We should properly present the execution mode", ExecutionMode.getCurrentModeAsString(),
                 Matchers.equalTo(runMode.toString()));
@@ -213,8 +213,8 @@ public class ExecutionModeTests {
     @Test
     public void testIs() {
 
-        assertThat("We should have equals", ExecutionMode.getCurrentMode().equals(ExecutionMode.DEFAULT));
-        assertThat("We should have equals", ExecutionMode.is(ExecutionMode.DEFAULT));
+        assertThat("We should have equals", ExecutionMode.getCurrentMode().equals(ExecutionMode.STANDARD));
+        assertThat("We should have equals", ExecutionMode.is(ExecutionMode.STANDARD));
 
     }
 

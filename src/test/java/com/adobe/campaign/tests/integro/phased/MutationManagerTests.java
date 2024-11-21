@@ -137,7 +137,7 @@ public class MutationManagerTests {
 
         assertThat("We should have one steps to executed by default",
                 MutationManager.fetchExecutionIndex(testClass.getTypeName(), l_phaseGroup,
-                        new RunValues(ExecutionMode.DEFAULT, "")),
+                        new RunValues(ExecutionMode.STANDARD, "")),
                 Matchers.arrayContaining(0, 3));
 
         assertThat("We should have one steps to executed in Asynchronous",

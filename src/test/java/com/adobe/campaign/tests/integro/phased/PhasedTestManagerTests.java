@@ -18,7 +18,6 @@ import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestConfiguratio
 import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestException;
 import com.adobe.campaign.tests.integro.phased.mutational.data.permutational.MultipleProducerConsumer;
 import com.adobe.campaign.tests.integro.phased.mutational.data.permutational.ShoppingCartDemo;
-import com.adobe.campaign.tests.integro.phased.mutational.data.simple1.PhasedChild2;
 import com.adobe.campaign.tests.integro.phased.permutational.ScenarioStepDependencies;
 import com.adobe.campaign.tests.integro.phased.permutational.ScenarioStepDependencyFactory;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
@@ -2900,14 +2899,14 @@ public class PhasedTestManagerTests {
                 .thenReturn(new Object[] { PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_3" });
 
         assertThat("This method and phase group should not have steps in the producer",
-                !PhasedTestManager.hasStepsExecutedInProducer(l_itr, new RunValues(ExecutionMode.DEFAULT, "")));
+                !PhasedTestManager.hasStepsExecutedInProducer(l_itr, new RunValues(ExecutionMode.STANDARD, "")));
 
         Mockito.when(l_itr.getParameters())
                 .thenReturn(new Object[] { PhasedTestManager.STD_PHASED_GROUP_PREFIX + "0_3" });
 
         assertThat(
                 "This method and phase group should not have steps in the producer since we are in Producer",
-                !PhasedTestManager.hasStepsExecutedInProducer(l_itr, new RunValues(ExecutionMode.DEFAULT, "")));
+                !PhasedTestManager.hasStepsExecutedInProducer(l_itr, new RunValues(ExecutionMode.STANDARD, "")));
 
     }
 

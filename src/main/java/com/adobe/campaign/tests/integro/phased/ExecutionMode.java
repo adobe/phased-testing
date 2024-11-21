@@ -18,7 +18,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public enum ExecutionMode {
-    DEFAULT(false,  new ArrayList<>()),
+    STANDARD(false,  new ArrayList<>()),
     //We need to revise this as execution in a suite may not require a precision
     NON_INTERRUPTIVE(false, Arrays.asList( "23", "33" )) {
 
@@ -75,7 +75,7 @@ public enum ExecutionMode {
                 return lt_ptState;
             }
         }
-        return DEFAULT;
+        return STANDARD;
     }
 
     /**
