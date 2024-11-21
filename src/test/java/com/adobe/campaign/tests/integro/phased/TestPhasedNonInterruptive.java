@@ -431,9 +431,9 @@ public class TestPhasedNonInterruptive {
         ExecutionMode.NON_INTERRUPTIVE.activate("33");
         myTestNG.run();
 
-        assertThat("The correct phase must have been selected", Phases.getCurrentPhase(), equalTo(Phases.ASYNCHRONOUS));
-        assertThat("The correct phase must have been selected", Phases.getCurrentPhase(),
-                not(equalTo(Phases.NON_PHASED)));
+        assertThat("The correct phase must have been selected", ExecutionMode.NON_INTERRUPTIVE.isSelected("33"));
+        assertThat("The correct phase must have been selected", ExecutionMode.getCurrentMode(),
+                not(equalTo(ExecutionMode.DEFAULT)));
 
         assertThat("We should have 3 successful methods of phased Tests",
                 (int) tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
@@ -502,9 +502,9 @@ public class TestPhasedNonInterruptive {
         ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
         myTestNG.run();
 
-        assertThat("The correct phase must have been selected", Phases.getCurrentPhase(), equalTo(Phases.ASYNCHRONOUS));
-        assertThat("The correct phase must have been selected", Phases.getCurrentPhase(),
-                not(equalTo(Phases.NON_PHASED)));
+        assertThat("The correct phase must have been selected", ExecutionMode.getCurrentMode(), equalTo(ExecutionMode.NON_INTERRUPTIVE));
+        assertThat("The correct phase must have been selected", ExecutionMode.getCurrentMode(),
+                not(equalTo(ExecutionMode.DEFAULT)));
 
         assertThat("We should have 3 successful methods of phased Tests",
                 (int) tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
@@ -574,9 +574,9 @@ public class TestPhasedNonInterruptive {
         ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.activate(MyNonInterruptiveEvent.class.getTypeName());
         myTestNG.run();
 
-        assertThat("The correct phase must have been selected", Phases.getCurrentPhase(), equalTo(Phases.ASYNCHRONOUS));
-        assertThat("The correct phase must have been selected", Phases.getCurrentPhase(),
-                not(equalTo(Phases.NON_PHASED)));
+        assertThat("The correct phase must have been selected", ExecutionMode.getCurrentMode(), equalTo(ExecutionMode.NON_INTERRUPTIVE));
+        assertThat("The correct phase must have been selected", ExecutionMode.getCurrentMode(),
+                not(equalTo(ExecutionMode.DEFAULT)));
 
         assertThat("We should have 3 successful methods of phased Tests",
                 (int) tla.getPassedTests().stream().filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
