@@ -568,7 +568,15 @@ We have the following system properties:
 * PHASED.TESTS.DETECT.ORDER
 * PHASED.TESTS.NONPHASED.LEGACY
 
-#### PHASED.TESTS.PHASE
+#### MUTATIONAL.EXECUTION.MODE
+This property is used to set the execution mode of the Phased Tests. The value can be one of the following:
+1. **STANDARD** (Or not setting any mode) : By default we execute all the steps in a mutational test, unless the @PhasedTest has set the attribute **executeInactive** to "false"
+2. **INTERRUPTIVE(PRODUCER)** : The tests will stop before we execute the event. The tests prepare data to be used in the following test phase.
+3. **INTERRUPTIVE(CONSUMER)** : The tests will continue where they left off after the event has finished. The tests consume the data produced in the previous phase.
+4. **NON-INTERRUPTIVE** : The tests will execute in a non-interruptive mode. This means that the tests will be executed in parallel with an event.
+5. **PERMUATIONAL** : The tests will execute in all possible orders.
+
+#### PHASED.TESTS.PHASE (DEPRECATED)
 We have four phased states:
 1. **PRODUCER** : We produce information
 2. **CONSUMER** : We consume information
@@ -729,6 +737,9 @@ For now, we have not come around to deciding how retry should work in the case o
 ### 9.0.0 - In-Progress
 * **(new feature)** [#204 Introduction of the Execution Mode replacing Phases](https://github.com/adobe/phased-testing/issues/204). We have revised the way we execute scenarios, as we no longer only cater to Upgrade tests. The means you should revise the way you execute Phased Tests by using Execution Modes. For more information please refer to the chapter [Execution Modes](#execution-modes).
 * **(new feature)** [#35 Adding the Permutation Execution Mode](https://github.com/adobe/phased-testing/issues/35). We have introduced the Permutation Execution Mode. This mode executes a scenario with all possible permutations it can have. This is done by identifying the dependencies between each step, and creating the possible orders of that scenario. For more information please refer to the chapters [Permutation Execution Mode](#permutation-execution-mode).
+
+* **New Environment Variables**
+* MUTATIONAL.EXECUTION.MODE : This property is used to set the execution mode of the Mutational Tests. The value can be one of the following: STANDARD, INTERRUPTIVE(PRODUCER), INTERRUPTIVE(CONSUMER), NON-INTERRUPTIVE, PERMUATIONAL. This will replace the PHASED.TESTS.PHASE property which will be removed in 9.X.3.
 
 ### 8.11.2
 * **(new feature)** [#178 Allowing the injection in any step of a scenario](https://github.com/adobe/phased-testing/issues/178). We can now inject an event into a step in an arbitrary phased test. This is done by setting the syetm property PHASED.EVENTS.TARGET. This way you can inject the event into that step.
