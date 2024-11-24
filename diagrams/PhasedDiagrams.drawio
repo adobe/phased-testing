@@ -1,4 +1,4 @@
-<mxfile host="Electron" modified="2024-11-21T15:32:07.397Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.5.0 Chrome/112.0.5615.204 Electron/24.5.1 Safari/537.36" etag="1LRZ7prUSKN2D6cqX3Ma" version="21.5.0" type="device" pages="16">
+<mxfile host="Electron" modified="2024-11-22T14:10:15.303Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.5.0 Chrome/112.0.5615.204 Electron/24.5.1 Safari/537.36" etag="z51HaxryQplcwwby25g1" version="21.5.0" type="device" pages="16">
   <diagram id="aC-T4JbGRuo5PAbJxA2-" name="Normal-Migration">
     <mxGraphModel dx="1114" dy="824" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
@@ -1909,56 +1909,53 @@
         <mxCell id="rpEFPilSn_RUln57czce-52" value="Search &lt;br&gt;Product" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
           <mxGeometry x="239" y="496" width="120" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="rpEFPilSn_RUln57czce-54" value="Authentication" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
-          <mxGeometry x="68" y="1503" width="120" height="30" as="geometry" />
+        <mxCell id="e3HgLe7738xeDfBbRMj5-1" value="Login" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="204" y="1292" width="120" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="rpEFPilSn_RUln57czce-55" value="Product" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
-          <mxGeometry x="179" y="1503" width="120" height="30" as="geometry" />
+        <mxCell id="e3HgLe7738xeDfBbRMj5-2" value="Put &lt;br&gt;Product&lt;br&gt;in basket&amp;nbsp;" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="424" y="1292" width="120" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="rpEFPilSn_RUln57czce-56" value="Basket" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
-          <mxGeometry x="288" y="1503" width="120" height="30" as="geometry" />
+        <mxCell id="e3HgLe7738xeDfBbRMj5-3" value="Checkout &lt;br&gt;and &lt;br&gt;Pay" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="530" y="1292" width="120" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="rpEFPilSn_RUln57czce-57" value="Authentication" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
-          <mxGeometry x="398.5" y="1503" width="120" height="30" as="geometry" />
+        <mxCell id="e3HgLe7738xeDfBbRMj5-4" value="Search &lt;br&gt;Product" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="314" y="1292" width="120" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="rpEFPilSn_RUln57czce-58" value="Product" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
-          <mxGeometry x="268" y="1533" width="120" height="30" as="geometry" />
+        <mxCell id="e3HgLe7738xeDfBbRMj5-15" value="Login" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="300.5" y="1492" width="120" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="rpEFPilSn_RUln57czce-59" value="Product" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
-          <mxGeometry x="378.5" y="1533" width="120" height="30" as="geometry" />
+        <mxCell id="e3HgLe7738xeDfBbRMj5-16" value="Put &lt;br&gt;Product&lt;br&gt;in basket&amp;nbsp;" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="520.5" y="1492" width="120" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="rpEFPilSn_RUln57czce-60" value="Basket" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
-          <mxGeometry x="358.5" y="1563" width="120" height="30" as="geometry" />
+        <mxCell id="e3HgLe7738xeDfBbRMj5-17" value="Checkout &lt;br&gt;and &lt;br&gt;Pay" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="627.5" y="1492" width="120" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="rpEFPilSn_RUln57czce-61" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
-          <mxGeometry x="576" y="1511.5" width="36" height="32" as="geometry" />
+        <mxCell id="e3HgLe7738xeDfBbRMj5-18" value="Search &lt;br&gt;Product" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="410.5" y="1492" width="120" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="rpEFPilSn_RUln57czce-62" value="Produce" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="612" y="1511.5" width="75" height="32" as="geometry" />
+        <mxCell id="e3HgLe7738xeDfBbRMj5-19" value="Login" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="409.5" y="1590" width="120" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="rpEFPilSn_RUln57czce-63" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
-          <mxGeometry x="576" y="1552.5" width="36" height="32" as="geometry" />
+        <mxCell id="e3HgLe7738xeDfBbRMj5-20" value="Put &lt;br&gt;Product&lt;br&gt;in basket&amp;nbsp;" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="520.5" y="1590" width="120" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="rpEFPilSn_RUln57czce-64" value="Cosume" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="612" y="1552.5" width="75" height="32" as="geometry" />
+        <mxCell id="e3HgLe7738xeDfBbRMj5-21" value="Checkout &lt;br&gt;and &lt;br&gt;Pay" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="627.5" y="1590" width="120" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="rpEFPilSn_RUln57czce-69" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="rpEFPilSn_RUln57czce-65" target="rpEFPilSn_RUln57czce-68" edge="1">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="e3HgLe7738xeDfBbRMj5-22" value="Search &lt;br&gt;Product" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="299.5" y="1590" width="120" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="rpEFPilSn_RUln57czce-70" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="rpEFPilSn_RUln57czce-65" target="rpEFPilSn_RUln57czce-66" edge="1">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="e3HgLe7738xeDfBbRMj5-23" value="Checkout &lt;br&gt;and &lt;br&gt;Pay" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="625" y="1685" width="120" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="rpEFPilSn_RUln57czce-65" value="Login" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
-          <mxGeometry x="88" y="1423" width="120" height="80" as="geometry" />
+        <mxCell id="e3HgLe7738xeDfBbRMj5-24" value="Put &lt;br&gt;Product&lt;br&gt;in basket&amp;nbsp;" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="408" y="1685" width="120" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="rpEFPilSn_RUln57czce-66" value="Put &lt;br&gt;Product&lt;br&gt;in basket&amp;nbsp;" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="1" vertex="1">
-          <mxGeometry x="308" y="1423" width="120" height="80" as="geometry" />
+        <mxCell id="e3HgLe7738xeDfBbRMj5-25" value="Search &lt;br&gt;Product" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="298" y="1685" width="120" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="rpEFPilSn_RUln57czce-67" value="Checkout &lt;br&gt;and &lt;br&gt;Pay" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="1" vertex="1">
-          <mxGeometry x="419" y="1423" width="120" height="80" as="geometry" />
-        </mxCell>
-        <mxCell id="rpEFPilSn_RUln57czce-68" value="Search &lt;br&gt;Product" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
-          <mxGeometry x="198" y="1423" width="120" height="80" as="geometry" />
+        <mxCell id="e3HgLe7738xeDfBbRMj5-26" value="Login" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="517" y="1685" width="120" height="80" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>

@@ -4,14 +4,13 @@
 [![javadoc](https://javadoc.io/badge2/com.adobe.campaign.tests.phased/phased-testing-testng/javadoc.svg)](https://javadoc.io/doc/com.adobe.campaign.tests.phased/phased-testing-testng)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=adobe_phased-testing&metric=alert_status&branch=main)](https://sonarcloud.io/summary/new_code?id=adobe_phased-testing&branch=main)
 
-Phased Testing has been created to address the issues related to Event Based Testing. Event Based Testing is a notion where tests adapt to external events, and allow you to simulate how your product reacts to an external event. 
+Mutational Tests (aka Phased Tests) is a framework, built upon TestNG, that allows test scenarios to "mutate". This means that a given scenario can, when needed,change its structure and order, i.e. “mutate”, to address the challenges that are imposed on it.
 
-Examples of events are:
-* Upgrades
-* Migrations
-* Time-Consuming external Data process
-* Load surges
-* Service shut-downs
+The mutational test methods help solve problems such as:
+* Software Migration testing
+* Software Upgrade testing
+* Chaos testing
+* End-User testing
 
 ## Table of Contents
 <!-- TOC -->
@@ -120,6 +119,8 @@ This framework was originally, and was created to address the issues related to 
 * **_Interruptive events_** are cases such as system & application upgrades, system migrations and dependant service upgrades.
 * **_Non-Interruptive events_** are cases such as system restarts, load injections and other unexpected events.
 
+The mutational tests allow us to assess the effect of an event on a scenario no matter where along the scenario execution it takes place. 
+
 #### Interruptive Events
 Interruptive events are cases such as system & application upgrades, system migrations and dependant service upgrades. Where the whole system requires a down-time in order to perform these events.
 This library allows you to define tests in such a way, so that they can be interrupted at any point awaiting an event, and to carry on where they left off. More specifically based on your design the Phased tests will ensure that a scenario will work on an upgraded system no matter where it is interrupted.
@@ -148,6 +149,8 @@ This process can be used for validating resilience due to the injection of event
 ### Permutations
 Permutations is the process of detecting all the possible paths a scenario can take. This is done by identifying the dependencies between each step, and creating the possible orders of that scenario.
 
+Mutationa testing allows us to make sure that all possible permutations of a scenario is checked.
+
 This is particularily usefull for covering all the possible paths a functional scenario can take.  
 
 ## Installation
@@ -160,7 +163,7 @@ The following dependency needs to be added to your pom file:
  <dependency>
     <groupId>com.adobe.campaign.tests.phased</groupId>
     <artifactId>phased-testing-testng</artifactId>
-    <version>8.11.1</version>
+    <version>9.0.0</version>
 </dependency>
 ```
 
