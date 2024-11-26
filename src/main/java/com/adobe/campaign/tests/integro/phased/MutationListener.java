@@ -41,7 +41,7 @@ public class MutationListener
         IAlterSuiteListener.super.alter(suites);
 
         log.debug("{} in alter - current Execution State is : {}", PhasedTestManager.PHASED_TEST_LOG_PREFIX
-                , Phases.getCurrentPhase());
+                , ExecutionMode.getCurrentMode());
 
         // *** Import DataBroker ***
         String l_phasedDataBrokerClass = null;
@@ -51,7 +51,7 @@ public class MutationListener
                 .containsKey(ConfigValueHandlerPhased.PROP_PHASED_TEST_DATABROKER.systemName)) {
             l_phasedDataBrokerClass = suites.get(0)
                     .getParameter(ConfigValueHandlerPhased.PROP_PHASED_TEST_DATABROKER.systemName);
-        } else if (!Phases.NON_PHASED.isSelected()) {
+        } else if (!ExecutionMode.STANDARD.isSelected()) {
             log.info("{} No PhasedDataBroker set. Using the file system path {}/{} instead ",
                     PhasedTestManager.PHASED_TEST_LOG_PREFIX, PhasedTestManager.STD_STORE_DIR,
                     PhasedTestManager.STD_STORE_FILE
@@ -69,7 +69,7 @@ public class MutationListener
 
         // *** import context for consumer ***
         //The second condition is there for testing purposes. You can bypass the file by filling the Test
-        if (Phases.CONSUMER.isSelected() && PhasedTestManager.getPhasedCache().isEmpty()) {
+        if (ExecutionMode.INTERRUPTIVE.isSelected("CONSUMER") && PhasedTestManager.getPhasedCache().isEmpty()) {
             PhasedTestManager.importPhaseData();
         }
 
@@ -123,7 +123,7 @@ public class MutationListener
         }
 
         if (PhasedTestManager.isPhasedTest(l_currentClass)) {
-            if (Phases.NON_PHASED.isSelected()) {
+            if (ExecutionMode.STANDARD.isSelected()) {
                 annotation.setDataProvider(
                         ConfigValueHandlerPhased.PHASED_TEST_NONPHASED_LEGACY.is("true") ? PhasedDataProvider.SINGLE : PhasedDataProvider.DEFAULT);
 
@@ -226,7 +226,7 @@ public class MutationListener
             log.info("{} Generating Phased Providers", PhasedTestManager.PHASED_TEST_LOG_PREFIX);
             //NIA
             PhasedTestManager.generatePhasedProviders(l_classMethodMap, PhasedTestManager.getStepDependencies(),
-                    Phases.getCurrentPhase());
+                    ExecutionMode.getCurrentMode().fetchRunValues());
             //}
 
             //Start by adding the non-phased tests
@@ -282,7 +282,7 @@ public class MutationListener
                         + " due to failure in step " + PhasedTestManager.getScenarioContext()
                         .get(PhasedTestManager.fetchScenarioName(result)).getFailedStep() + " in Phase "
                         + PhasedTestManager.getScenarioContext()
-                        .get(PhasedTestManager.fetchScenarioName(result)).getFailedInPhase().name();
+                        .get(PhasedTestManager.fetchScenarioName(result)).getFailedInPhase();
 
                 log.info(skipMessageSKIPFAILURE);
                 result.setStatus(ITestResult.SKIP);
@@ -311,14 +311,14 @@ public class MutationListener
         ITestListener.super.onFinish(context);
 
         //Once the tests have finished in producer mode we, need to export the data
-        if (Phases.PRODUCER.isSelected()) {
+        if (ExecutionMode.INTERRUPTIVE.isSelected("PRODUCER")) {
             log.info("{} At the end. Exporting data", PhasedTestManager.PHASED_TEST_LOG_PREFIX);
             PhasedTestManager.exportPhaseData();
         }
         log.debug("{} Purging results - Keeping one method per test class",
                 PhasedTestManager.PHASED_TEST_LOG_PREFIX);
 
-        if (Phases.ASYNCHRONOUS.isSelected()) {
+        if (ExecutionMode.NON_INTERRUPTIVE.isSelected()) {
             PhasedEventManager.stopEventExecutor();
         }
     }

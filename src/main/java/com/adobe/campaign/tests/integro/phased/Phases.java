@@ -11,12 +11,18 @@ package com.adobe.campaign.tests.integro.phased;
 import java.util.Arrays;
 
 public enum Phases {
-    PRODUCER(true), CONSUMER(true), NON_PHASED(false), ASYNCHRONOUS(false), PERMUTATIONAL(false);
+    PRODUCER(true, ExecutionMode.INTERRUPTIVE, "PRODUCER"), CONSUMER(true, ExecutionMode.INTERRUPTIVE,
+            "CONSUMER"), NON_PHASED(false, ExecutionMode.STANDARD, ""), ASYNCHRONOUS(false,
+            ExecutionMode.NON_INTERRUPTIVE, ""), PERMUTATIONAL(false, ExecutionMode.PERMUTATIONAL, "");
 
     boolean hasSplittingEvent;
+    ExecutionMode executionMode;
+    String behavior;
 
-    Phases(boolean in_isInPhase) {
+    Phases(boolean in_isInPhase, ExecutionMode in_executionMode, String in_behavior) {
         hasSplittingEvent = in_isInPhase;
+        executionMode = in_executionMode;
+        behavior = in_behavior;
     }
 
     /**
@@ -27,6 +33,25 @@ public enum Phases {
      * @return The phase which is currently being executed
      */
     public static Phases getCurrentPhase() {
+        if (ConfigValueHandlerPhased.PROP_EXECUTION_MODE.isSet()) {
+            ExecutionMode currentExecutionMode = ExecutionMode.getCurrentMode();
+            switch (currentExecutionMode) {
+            case INTERRUPTIVE:
+                if (currentExecutionMode.fetchBehavior().equals("PRODUCER")) {
+                    return PRODUCER;
+                } else {
+                    return CONSUMER;
+                }
+            case NON_INTERRUPTIVE:
+                return ASYNCHRONOUS;
+            case PERMUTATIONAL:
+                return PERMUTATIONAL;
+            default:
+                return NON_PHASED;
+            }
+        }
+
+
         return fetchCorrespondingPhase(ConfigValueHandlerPhased.PROP_SELECTED_PHASE.fetchValue());
     }
 
@@ -74,7 +99,7 @@ public enum Phases {
      * <p>
      * Author : gandomi
      *
-     * @return True if the the phase could have a splitting event.
+     * @return True if the phase could have a splitting event.
      */
     public boolean hasSplittingEvent() {
         return this.hasSplittingEvent;
@@ -89,4 +114,7 @@ public enum Phases {
         ConfigValueHandlerPhased.PROP_SELECTED_PHASE.activate(this.name());
     }
 
+    public RunValues fetchRunValues() {
+        return new RunValues(executionMode, behavior.isEmpty() ? executionMode.fetchBehavior() : behavior);
+    }
 }

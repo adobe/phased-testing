@@ -39,7 +39,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.testng.Assert.assertThrows;
 
-public class TestPhased {
+public class TestPhasedExecMode {
     @BeforeMethod
     public void resetVariables() {
 
@@ -90,8 +90,8 @@ public class TestPhased {
         myTest.setXmlClasses(
                 Arrays.asList(new XmlClass(PhasedSeries_A.class), new XmlClass(NormalSeries_A.class)));
 
-        Phases.PRODUCER.activate();
-
+        ExecutionMode.INTERRUPTIVE.activate("PRODUCER");
+        
         myTestNG.run();
 
         assertThat("We should have no failed methods of phased Tests", tla.getFailedTests().size(),
@@ -131,7 +131,7 @@ public class TestPhased {
 
         myTest.setXmlClasses(Arrays.asList(new XmlClass(PhasedSeries_D_SingleNoPhase.class)));
 
-        Phases.PRODUCER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("PRODUCER");
         ConfigValueHandlerPhased.PHASED_TEST_NONPHASED_LEGACY.activate("false");
 
         myTestNG.run();
@@ -167,7 +167,7 @@ public class TestPhased {
 
         myTest.setXmlClasses(Arrays.asList(new XmlClass(PhasedTestSingleWithCanShuffleTrue.class)));
 
-        Phases.PRODUCER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("PRODUCER");
 
         myTestNG.run();
 
@@ -362,7 +362,7 @@ public class TestPhased {
         myTest.setXmlClasses(Arrays.asList(new XmlClass(PhasedSeries_H_ShuffledClass.class),
                 new XmlClass(NormalSeries_A.class)));
 
-        Phases.CONSUMER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("CONSUMER");
 
         //Adding otherwise we can have an exception if there is no phasedTest.properties file
         PhasedTestManager.produceInStep("just for testing");
@@ -419,7 +419,7 @@ public class TestPhased {
         myTest.setXmlClasses(
                 Arrays.asList(new XmlClass(l_targetTestClass), new XmlClass(NormalSeries_A.class)));
 
-        Phases.CONSUMER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("CONSUMER");
 
         //Adding otherwise we can have an exception if there is no phasedTest.properties file
         PhasedTestManager.produceInStep("just for testing");
@@ -468,7 +468,7 @@ public class TestPhased {
 
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(PhasedSeries_E_FullMonty.class)));
 
-        Phases.PRODUCER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("PRODUCER");
         myTestNG.run();
 
         assertThat("We should have 2 successful methods of phased Tests",
@@ -488,7 +488,7 @@ public class TestPhased {
 
         //Clear data
         PhasedTestManager.clearCache();
-        Phases.CONSUMER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("CONSUMER");
 
         TestNG myTestNG2 = TestTools.createTestNG();
         TestListenerAdapter tla2 = TestTools.fetchTestResultsHandler(myTestNG2);
@@ -534,7 +534,7 @@ public class TestPhased {
         Class<PhasedTestSingleWithoutCanShuffle> l_testClass = PhasedTestSingleWithoutCanShuffle.class;
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
-        Phases.PRODUCER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("PRODUCER");
         myTestNG.run();
 
         assertThat("We should have 2 successful methods of phased Tests",
@@ -554,7 +554,7 @@ public class TestPhased {
 
         //Clear data
         PhasedTestManager.clearCache();
-        Phases.CONSUMER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("CONSUMER");
 
         TestNG myTestNG2 = TestTools.createTestNG();
         TestListenerAdapter tla2 = TestTools.fetchTestResultsHandler(myTestNG2);
@@ -639,7 +639,7 @@ public class TestPhased {
 
         // Add package to test
 
-        Phases.PRODUCER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("PRODUCER");
         ConfigValueHandlerPhased.PROP_MERGE_STEP_RESULTS.activate("false");
 
         myTestNG.run();
@@ -734,7 +734,7 @@ public class TestPhased {
 
         // Add package to test
 
-        Phases.PRODUCER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("PRODUCER");
 
         PhasedTestManager.activateMergedReports();
 
@@ -834,7 +834,7 @@ public class TestPhased {
 
         // Add package to test
 
-        Phases.CONSUMER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("CONSUMER");
 
         //Fill the cache
         final Method l_myTest1 = PhasedSeries_F_Shuffle.class.getMethod("step1", String.class);
@@ -959,7 +959,7 @@ public class TestPhased {
 
         // Add package to test
 
-        Phases.CONSUMER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("CONSUMER");
 
         PhasedTestManager.activateMergedReports();
 
@@ -1110,7 +1110,7 @@ public class TestPhased {
 
         // Add package to test
 
-        Phases.PRODUCER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("PRODUCER");
         ConfigValueHandlerPhased.PROP_MERGE_STEP_RESULTS.activate("false");
 
         myTestNG.run();
@@ -1142,7 +1142,7 @@ public class TestPhased {
 
         //Clear data
         PhasedTestManager.clearCache();
-        Phases.CONSUMER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("CONSUMER");
 
         TestNG myTestNG2 = TestTools.createTestNG();
         TestListenerAdapter tla2 = TestTools.fetchTestResultsHandler(myTestNG2);
@@ -1258,7 +1258,7 @@ public class TestPhased {
 
         // Add package to test
 
-        Phases.PRODUCER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("PRODUCER");
 
         PhasedTestManager.activateMergedReports();
 
@@ -1287,7 +1287,7 @@ public class TestPhased {
 
         //Clear data
         PhasedTestManager.clearCache();
-        Phases.CONSUMER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("CONSUMER");
 
         TestNG myTestNG2 = TestTools.createTestNG();
         TestListenerAdapter tla2 = TestTools.fetchTestResultsHandler(myTestNG2);
@@ -1403,7 +1403,7 @@ public class TestPhased {
 
         // Add package to test
 
-        Phases.PRODUCER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("PRODUCER");
 
         PhasedTestManager.activateMergedReports();
 
@@ -1432,7 +1432,7 @@ public class TestPhased {
 
         //Clear data
         PhasedTestManager.clearCache();
-        Phases.CONSUMER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("CONSUMER");
 
         TestNG myTestNG2 = TestTools.createTestNG();
         TestListenerAdapter tla2 = TestTools.fetchTestResultsHandler(myTestNG2);
@@ -1588,7 +1588,7 @@ public class TestPhased {
 
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(PhasedSeries_G_DefaultProvider.class)));
 
-        Phases.PRODUCER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("PRODUCER");
 
         myTestNG.run();
 
@@ -1620,7 +1620,7 @@ public class TestPhased {
 
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(PhasedSeries_G_DefaultProvider.class)));
 
-        Phases.PRODUCER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("PRODUCER");
 
         myTestNG.run();
 
@@ -1659,7 +1659,7 @@ public class TestPhased {
 
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(PhasedSeries_E_FullMonty.class)));
 
-        Phases.PRODUCER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("PRODUCER");
 
         myTestNG.run();
 
@@ -1705,7 +1705,7 @@ public class TestPhased {
 
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(PhasedSeries_E_FullMonty.class)));
 
-        Phases.PRODUCER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("PRODUCER");
         ConfigValueHandlerPhased.PROP_PHASED_TEST_DATABROKER.activate(PhasedDataBrokerTestImplementation.class.getTypeName());
 
         myTestNG.run();
@@ -1790,7 +1790,7 @@ public class TestPhased {
 
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(PhasedSeries_H_SingleClass.class)));
 
-        Phases.PRODUCER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("PRODUCER");
 
         myTestNG.run();
 
@@ -1820,7 +1820,7 @@ public class TestPhased {
 
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(PhasedSeries_H_SingleClass.class)));
 
-        Phases.PRODUCER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("PRODUCER");
         ConfigValueHandlerPhased.PROP_MERGE_STEP_RESULTS.activate("true");
 
         myTestNG.run();
@@ -1864,7 +1864,7 @@ public class TestPhased {
 
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
 
-        Phases.PRODUCER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("PRODUCER");
         myTestNG.run();
 
         assertThat("We should have 2 successful methods of phased Tests",
@@ -1882,7 +1882,7 @@ public class TestPhased {
 
         //Clear data
         PhasedTestManager.clearCache();
-        Phases.CONSUMER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("CONSUMER");
 
         TestNG myTestNG2 = TestTools.createTestNG();
         TestListenerAdapter tla2 = TestTools.fetchTestResultsHandler(myTestNG2);
@@ -1931,7 +1931,7 @@ public class TestPhased {
 
         // Add package to test
 
-        Phases.PRODUCER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("PRODUCER");
 
         myTestNG.run();
 
@@ -1945,7 +1945,7 @@ public class TestPhased {
 
         // ******** CONSUMER ********
 
-        Phases.CONSUMER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("CONSUMER");
 
         TestNG myTestNG2 = TestTools.createTestNG();
         TestListenerAdapter tla2 = TestTools.fetchTestResultsHandler(myTestNG2);
@@ -2048,7 +2048,7 @@ public class TestPhased {
 
         // Add package to test
 
-        Phases.PRODUCER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("PRODUCER");
 
         myTestNG.run();
 
@@ -2094,7 +2094,7 @@ public class TestPhased {
 
         // ******** CONSUMER ********
 
-        Phases.CONSUMER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("CONSUMER");
 
         TestNG myTestNG2 = TestTools.createTestNG();
         TestListenerAdapter tla2 = TestTools.fetchTestResultsHandler(myTestNG2);
@@ -2197,7 +2197,7 @@ public class TestPhased {
 
         // Add package to test
 
-        Phases.PRODUCER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("PRODUCER");
         ConfigValueHandlerPhased.PROP_MERGE_STEP_RESULTS.activate("true");
 
         myTestNG.run();
@@ -2257,7 +2257,7 @@ public class TestPhased {
 
         // ******** CONSUMER ********
 
-        Phases.CONSUMER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("CONSUMER");
 
         TestNG myTestNG2 = TestTools.createTestNG();
         TestListenerAdapter tla2 = TestTools.fetchTestResultsHandler(myTestNG2);
@@ -2370,7 +2370,7 @@ public class TestPhased {
 
         // Add package to test
 
-        Phases.PRODUCER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("PRODUCER");
 
         myTestNG.run();
 
@@ -2384,7 +2384,7 @@ public class TestPhased {
 
         // ******** CONSUMER ********
 
-        Phases.CONSUMER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("CONSUMER");
 
         TestNG myTestNG2 = TestTools.createTestNG();
         TestListenerAdapter tla2 = TestTools.fetchTestResultsHandler(myTestNG2);
@@ -2629,7 +2629,7 @@ public class TestPhased {
 
         myTest.addIncludedGroup("UPGRADE");
 
-        Phases.PRODUCER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("PRODUCER");
 
         myTestNG.run();
 
@@ -2658,7 +2658,7 @@ public class TestPhased {
 
         myTest.setXmlClasses(Collections.singletonList(new XmlClass(PhasedSeries_I_SingleClassProduceTest.class)));
 
-        Phases.PRODUCER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("PRODUCER");
 
         myTestNG.run();
 
@@ -2700,7 +2700,7 @@ public class TestPhased {
 
         // Add package to test
 
-        Phases.PRODUCER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("PRODUCER");
 
         myTestNG.run();
 
@@ -2787,7 +2787,7 @@ public class TestPhased {
 
         // Add package to test
 
-        Phases.PRODUCER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("PRODUCER");
 
         myTestNG.run();
 
@@ -2803,7 +2803,7 @@ public class TestPhased {
         assertThat("We should have no skipped tests", tla.getSkippedTests().size(), equalTo(0));
 
         // ******** CONSUMER ********
-        Phases.CONSUMER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("CONSUMER");
 
         TestNG myTestNG2 = TestTools.createTestNG();
         TestListenerAdapter tla2 = TestTools.fetchTestResultsHandler(myTestNG2);
@@ -2905,7 +2905,7 @@ public class TestPhased {
 
         // Add package to test
 
-        Phases.PRODUCER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("PRODUCER");
 
         myTestNG.run();
 
@@ -2938,7 +2938,7 @@ public class TestPhased {
 
         // Add package to test
 
-        Phases.PRODUCER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("PRODUCER");
 
         myTestNG.run();
 
@@ -2971,7 +2971,7 @@ public class TestPhased {
 
         // Add package to test
 
-        Phases.PRODUCER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("PRODUCER");
         ConfigValueHandlerPhased.PROP_MERGE_STEP_RESULTS.activate("true");
 
         myTestNG.run();
@@ -3023,7 +3023,7 @@ public class TestPhased {
 
         // Add package to test
 
-        Phases.PRODUCER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("PRODUCER");
 
         assertThrows(PhasedTestConfigurationException.class, myTestNG::run);
 
@@ -3049,7 +3049,7 @@ public class TestPhased {
 
         // Add package to test
 
-        Phases.PRODUCER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("PRODUCER");
 
         assertThrows(PhasedTestConfigurationException.class, myTestNG::run);
 
@@ -3072,7 +3072,7 @@ public class TestPhased {
         // Create an instance of XmlTest and assign a name for it.
         TestTools.attachTestToSuite(mySuite, "Test Phased Tests");
 
-        Phases.CONSUMER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("CONSUMER");
         Properties phasedCache = PhasedTestManager.phasedCache;
         phasedCache.put(PhasedSeries_H_SingleClass.class.getTypeName() + ".step2("
                 + PhasedTestManager.STD_PHASED_GROUP_SINGLE + ")", "AB");
@@ -3118,7 +3118,7 @@ public class TestPhased {
         //This activates the selection
         myTest.addIncludedGroup(PhasedTestManager.STD_GROUP_SELECT_TESTS_BY_PRODUCER);
 
-        Phases.CONSUMER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("CONSUMER");
         Properties phasedCache = PhasedTestManager.phasedCache;
         phasedCache.put(PhasedSeries_H_SingleClass.class.getTypeName() + ".step2("
                 + PhasedTestManager.STD_PHASED_GROUP_SINGLE + ")", "AB");
@@ -3167,7 +3167,7 @@ public class TestPhased {
         //This activates the selection
         myTest.addIncludedGroup(PhasedTestManager.STD_GROUP_SELECT_TESTS_BY_PRODUCER);
 
-        Phases.PRODUCER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("PRODUCER");
         Properties phasedCache = PhasedTestManager.phasedCache;
         phasedCache.put(PhasedSeries_H_SingleClass.class.getTypeName() + ".step2("
                 + PhasedTestManager.STD_PHASED_GROUP_SINGLE + ")", "AB");
@@ -3217,7 +3217,7 @@ public class TestPhased {
 
         myTest.addIncludedGroup("PROPERTIES_SELECT");
 
-        Phases.CONSUMER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("CONSUMER");
 
         //Fill producer data
         Properties phasedCache = PhasedTestManager.phasedCache;
@@ -3267,7 +3267,7 @@ public class TestPhased {
         //This activates the selection for selection by Producerr
         myTest2.addIncludedGroup(PhasedTestManager.STD_GROUP_SELECT_TESTS_BY_PRODUCER);
 
-        Phases.CONSUMER.activate();
+        ExecutionMode.INTERRUPTIVE.activate("CONSUMER");
 
         //Fill producer data
         Properties phasedCache = PhasedTestManager.phasedCache;

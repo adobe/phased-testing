@@ -4,24 +4,24 @@
 [![javadoc](https://javadoc.io/badge2/com.adobe.campaign.tests.phased/phased-testing-testng/javadoc.svg)](https://javadoc.io/doc/com.adobe.campaign.tests.phased/phased-testing-testng)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=adobe_phased-testing&metric=alert_status&branch=main)](https://sonarcloud.io/summary/new_code?id=adobe_phased-testing&branch=main)
 
-Phased Testing has been created to address the issues related to Event Based Testing. Event Based Testing is a notion where tests adapt to external events, and allow you to simulate how your product reacts to an external event. 
+Mutational Tests (aka Phased Tests) is a framework, built upon TestNG, that allows test scenarios to "mutate". This means that a given scenario can, when needed,change its structure and order, i.e. “mutate”, to address the challenges that are imposed on it.
 
-Examples of events are:
-* Upgrades
-* Migrations
-* Time-Consuming external Data process
-* Load surges
-* Service shut-downs
+The mutational test methods help solve problems such as:
+* Software Migration testing
+* Software Upgrade testing
+* Chaos testing
+* End-User testing
 
 ## Table of Contents
 <!-- TOC -->
   * [Problem Statement](#problem-statement)
-    * [Interruptive Events](#interruptive-events)
-    * [Non-Interruptive Events](#non-interruptive-events)
+    * [Events](#events)
+      * [Interruptive Events](#interruptive-events)
+      * [Non-Interruptive Events](#non-interruptive-events)
+    * [Permutations](#permutations)
   * [Installation](#installation)
     * [Maven](#maven)
-    * [Demo](#demo)
-  * [Phases](#phases)
+  * [Demo](#demo)
     * [Test Execution Modes](#test-execution-modes)
       * [Default Mode](#default-mode)
       * [Single Execution Mode](#single-execution-mode)
@@ -44,6 +44,11 @@ Examples of events are:
     * [Before- and After-Phase Actions](#before--and-after-phase-actions)
     * [Nested Design Pattern](#nested-design-pattern)
   * [Running a Phased Test](#running-a-phased-test)
+    * [Execution Modes](#execution-modes)
+      * [STANDARD Execution Mode](#standard-execution-mode)
+      * [INTERRUPTIVE Execution Mode](#interruptive-execution-mode)
+      * [NON-INTERRUPTIVE execution mode](#non-interruptive-execution-mode)
+      * [PERMUATIONAL Execution Mode](#permuational-execution-mode)
     * [Run Time Properties](#run-time-properties)
       * [PHASED.TESTS.PHASE](#phasedtestsphase)
       * [PHASED.EVENTS.NONINTERRUPTIVE](#phasedeventsnoninterruptive)
@@ -58,6 +63,7 @@ Examples of events are:
     * [Executing a CONSUMER phase based on the PRODUCED Data](#executing-a-consumer-phase-based-on-the-produced-data)
     * [Execution Order](#execution-order)
     * [Running Nested Phased Tests](#running-nested-phased-tests)
+    * [LEGACY PHASES - DEPRECATED](#legacy-phases---deprecated)
   * [Integrity between Steps and Scenarios](#integrity-between-steps-and-scenarios)
     * [Phase Contexts - Managing the Scenario Step Executions](#phase-contexts---managing-the-scenario-step-executions)
       * [On Failure](#on-failure)
@@ -75,6 +81,7 @@ Examples of events are:
     * [Parallel Testing](#parallel-testing)
     * [Retry Mechanisms](#retry-mechanisms)
   * [Release Notes](#release-notes)
+    * [9.0.0 - In-Progress](#900---in-progress)
     * [8.11.2](#8112)
     * [8.11.1](#8111)
     * [8.0.0](#800)
@@ -90,13 +97,31 @@ Examples of events are:
 <!-- TOC -->
  
 ## Problem Statement
-Phased Testing has been created to address the issues related to Event Based Testing. Event Based Testing is a notion where tests adapt to external events, and allow you to simulate how your product reacts to an external event. We identify two types of events:
+Mutational Tests (aka Phased Tests) is a framework, built upon TestNG, that allows test scenarios to "mutate". This means that a given scenario can, when needed,change its structure and order, i.e. “mutate”, to address the challenges that are imposed on it.
+
+The mutational test methods help solve problems such as:
+* Software Migration testing
+* Software Upgrade testing
+* Chaos testing
+* End-User testing
+
+Mutations are currently of the following types:
+* Events: Events taking place during the execution of tests
+* Permutations: The user may take a different path than originally intended
+* Standard : The normal execution of tests (no mutations)
+
+![Mutation Tests Possibilities](diagrams/PhasedDiagrams-Mutational Tests.drawio.png)
+
+Our philosophy is that normal tests should be able to run as they are, but when needed, they should be able to adapt to the situation. A test will be executed as usual on a day-to-day basis, and will test a given functionality. However, when required, it will adapt, and change the way it is executed, in order to help us better test our products.   
+
+### Events
+This framework was originally, and was created to address the issues related to Events in a system. Event Based Testing is a notion where tests adapt to external events, and allow you to simulate how your product reacts to an external event. We identify two types of events:
 * **_Interruptive events_** are cases such as system & application upgrades, system migrations and dependant service upgrades.
 * **_Non-Interruptive events_** are cases such as system restarts, load injections and other unexpected events.
 
-This library was originally created to help validate system changes such as upgrades and migrations.
+The mutational tests allow us to assess the effect of an event on a scenario no matter where along the scenario execution it takes place. 
 
-### Interruptive Events
+#### Interruptive Events
 Interruptive events are cases such as system & application upgrades, system migrations and dependant service upgrades. Where the whole system requires a down-time in order to perform these events.
 This library allows you to define tests in such a way, so that they can be interrupted at any point awaiting an event, and to carry on where they left off. More specifically based on your design the Phased tests will ensure that a scenario will work on an upgraded system no matter where it is interrupted.
 
@@ -105,16 +130,28 @@ This process can be used for validating :
 * Migrations
 * Time-Consuming external Data process
 
-Phased Testing, when testing Non-Interruptive events breaks down and reexecutes the tests in the way shown below: 
+Phased Testing, when testing Interruptive events breaks down and reexecutes the tests in the way shown below: 
 
 ![The Real Processes](diagrams/PhasedDiagrams-HL-Change-Scenarios.png)
 
 If we want to simulate all the use cases for a workflow of a user we will end up with too many duplicate code. This is why we came up with Phased Testing, which allows a scenario to cover all the possible steps in which a workflow can be interrupted.
 
-### Non-Interruptive Events
+#### Non-Interruptive Events
 Non-Interruptive events are cases such as system restarts, load injections and other unexpected events. These events do not require the whole system to restart. 
 
 A typical use case for non-interruptive event is chaos testing.
+
+This process can be used for validating resilience due to the injection of events during the execution of a scenario. Examples are
+* Real-time Upgrades
+* Load surges during the execuion of a scenario
+* A driverless car that needs to react to a sudden event
+
+### Permutations
+Permutations is the process of detecting all the possible paths a scenario can take. This is done by identifying the dependencies between each step, and creating the possible orders of that scenario.
+
+Mutationa testing allows us to make sure that all possible permutations of a scenario is checked.
+
+This is particularily usefull for covering all the possible paths a functional scenario can take.  
 
 ## Installation
 This version runs with the TestNG runner. You can use this library by including it in your project.
@@ -126,32 +163,25 @@ The following dependency needs to be added to your pom file:
  <dependency>
     <groupId>com.adobe.campaign.tests.phased</groupId>
     <artifactId>phased-testing-testng</artifactId>
-    <version>8.11.1</version>
+    <version>9.0.0</version>
 </dependency>
 ```
 
-### Demo
+## Demo
 We have a standard demo that can be accessed through the [Phased Test Demo](https://github.com/baubakg/phased-test-demo).
 
-## Phases
-Phases are directives at execution time, where we let the system know, in what way we want our tests to interact with an event. 
+## Wrapping a Secnario around an Event
+One of the main features of Phased Testing is the ability to wrap a scenario around an event or a problem. This is done by performing a number of iterations and injecting the event at different stages of the execution of that scenario.
 
-We have four test phases:
-* **Producer** In this Interruptive mode, the tests will stop before we execute the event. The tests prepare data to be used in the following test phase. The tests will be interr
-* **Consumer** In this Interruptive mode, the tests will continue where they left off after the event has finished. The tests consume the data produced in the previous phase. 
-* **Asynchrounous** In this Non-Interruptive mode, the events are executed in parallel to a step.
-* * **Non-Phased** In this state, we have not designated a state, as such, if not unwanted, we execute all tests.
-
-### Test Execution Modes
 We have three modes of execution of a Phased Test:
 * Default Mode
 * Single Mode
 * Shuffled Mode
 
-#### Default Mode
-The steps of each scenario are executed one by one without interruption.
+### Default Mode
+The steps of each scenario are executed like any other scenario in a linear predicted fashion.
 
-#### Single Execution Mode
+### Single Execution Mode
 Single Execution Mode is used only when a workflow will always be interrupted at a given stage. This is particularly relevant when your scenario will expect a time concuming external process to finish. In this case we execute all steps till the Phase End marker. When in Consumer mode, we execute the rest of the steps.
 
 ![The Single Execution Mode](diagrams/PhasedDiagrams-SingleRun-H.png)
@@ -182,8 +212,10 @@ public class ShuffledTest {
 }
 ```
 
-#### Shuffled Execution Mode
-When in Shuffled mode, we execute all the possible ordered combinations of the steps.
+### Shuffled Execution Mode
+The concept of “shuffling” involves the multiple re-executions of a scenario, based on a stimulus or a requirement. In the case of Upgrades, the shuffling is based on the possible interruptions a scenario can be subject to whenever an upgrade happens.
+
+Each re-execution or iteration is identified by what we call a Shuffle Group. The Shuffle Group also acts as a context in which the steps have a relationship and share context variables.
 
 The code below will react differently depending on the PHASE/Execution mode it is subject to :
 
@@ -478,9 +510,57 @@ We are able to run tests in phases since each step stores the information needed
 
 Managing this data is obviously essential to the Phased Tests. We will discuss this in more detail in the chapter on "Managing Phased Data".
 
+### Execution Modes
+We currently have 4 execution modes:
+* STANDARD
+* INTERRUPTIVE
+* NON-INTERRUPTIVE
+* PERMUTATIONAL
+
+The execution mode is set by passing the config value "MUTATIONAL.EXECUTION.MODE" at execution time.
+
+Some execution modes have a notion of a "behavior" which add more details to the system as to how the tests should be executed. The behavior is set by passing the behavior within parenthesis.
+
+#### STANDARD Execution Mode
+This is the default execution mode. By default, we execute the scenario in the order and manner in which it was defined.
+
+#### INTERRUPTIVE Execution Mode
+The INTERRUPTIVE execution mode simulates the system being subject to an interruptive event.
+
+The Phased Testing framework was originally devised for Interruptive Events, i.e. you need to stop a system so that you can perform some system change, such as an upgrade, to that system. Once the upgrade is done, we expect that the users can carry on with what they were doing.
+
+The execution of steps in interruptive events is divided into two phases/behaviors depending on their execution relative to the interruptive event. The phase before the event is called “producer”, because the steps executed before the event produce data used after the event has taken place. Similarly, the phase after the event is called “consumer” because the steps rely on data created in the phase before the execution of the event.
+
+| NAME     | When Passing          | Description                                                                                                     |
+|----------|-----------------------|-----------------------------------------------------------------------------------------------------------------|
+| PRODUCER | INTERUPTIVE(PRODUCER) | The tests will stop before we execute the event. The tests prepare data to be used in the following test phase. |
+| CONSUMER | INTERUPTIVE(CONSUMER) | The tests will continue where they left off after the event has finished. The tests consume the data produced in the previous phase. |
+
+
+#### NON-INTERRUPTIVE execution mode
+A NON-INTERRUPTIVE execution mode is used when we want to inject an event in the middle of the execution of a scenario. Non-Interruptive events allow us to see the effects of parallel events.
+
+This execution mode is a good way of performing chaos testing.
+
+This mode is activated by setting the environment variable "MUTATIONAL.EXECUTION.MODE" to "NON-INTERRUPTIVE".
+
+#### PERMUATIONAL Execution Mode
+We have now introduced the PERMUATIONAL execution mode. This execution mode executes a scenario with all possible permutations it can have. This is done by identifying the dependencies between each step, and creating the possible orders of that scenario.
+
+For example, below you can see a normal scenario being executed in the standard mode:
+
+![Permutation Standard](diagrams/permutation-normal.png)
+
+When executed in the PERMUATIONAL mode is is executed in all possible orders:
+
+![Permutation Permutational](diagrams/permutation-expanded.png)
+
+This mode is activated by setting the environment variable "MUTATIONAL.EXECUTION.MODE" to "PERMUATIONAL".
+
 ### Run Time Properties
 We have the following system properties:
-* PHASED.TESTS.PHASE
+* MUTATIONAL.EXECUTION.MODE
+* PHASED.TESTS.PHASE (Deprecated)
 * PHASED.EVENTS.NONINTERRUPTIVE
 * PHASED.TESTS.DATABROKER
 * PHASED.TESTS.STORAGE.PATH
@@ -491,7 +571,15 @@ We have the following system properties:
 * PHASED.TESTS.DETECT.ORDER
 * PHASED.TESTS.NONPHASED.LEGACY
 
-#### PHASED.TESTS.PHASE
+#### MUTATIONAL.EXECUTION.MODE
+This property is used to set the execution mode of the Phased Tests. The value can be one of the following:
+1. **STANDARD** (Or not setting any mode) : By default we execute all the steps in a mutational test, unless the @PhasedTest has set the attribute **executeInactive** to "false"
+2. **INTERRUPTIVE(PRODUCER)** : The tests will stop before we execute the event. The tests prepare data to be used in the following test phase.
+3. **INTERRUPTIVE(CONSUMER)** : The tests will continue where they left off after the event has finished. The tests consume the data produced in the previous phase.
+4. **NON-INTERRUPTIVE** : The tests will execute in a non-interruptive mode. This means that the tests will be executed in parallel with an event.
+5. **PERMUATIONAL** : The tests will execute in all possible orders.
+
+#### PHASED.TESTS.PHASE (DEPRECATED)
 We have four phased states:
 1. **PRODUCER** : We produce information
 2. **CONSUMER** : We consume information
@@ -542,7 +630,20 @@ Nested class tests are usually quite tricky in Surefire because dollar sign '$' 
 
 or
 
-```mvn clean test -Dtest=PhasedTestSeries_NestedContainer\$PhasedScenario1```
+    ```mvn clean test -Dtest=PhasedTestSeries_NestedContainer\$PhasedScenario1```
+
+### LEGACY PHASES - DEPRECATED
+Historically Phased Tests were written for INTERRUPTIVE events so the execution reflected this behavior. As we are now expanding and revising the notion of Mutational Tests, we have need to use the [Execution Modes](#execution-modes) Instead.
+
+We do however still support the old Phased Tests until version 9.X.2.
+
+Phases are directives at execution time, where we let the system know, in what way we want our tests to interact with an event.
+
+We have four test phases:
+* **Producer** In this Interruptive mode, the tests will stop before we execute the event. The tests prepare data to be used in the following test phase.
+* **Consumer** In this Interruptive mode, the tests will continue where they left off after the event has finished. The tests consume the data produced in the previous phase.
+* **Asynchrounous** In this Non-Interruptive mode, the events are executed in parallel to a step.
+* * **Non-Phased** In this state, we have not designated a state, as such, if not unwanted, we execute all tests.
 
 ## Integrity between Steps and Scenarios 
 ### Phase Contexts - Managing the Scenario Step Executions
@@ -635,6 +736,13 @@ For now, we do not know how parallel execution will work with phased tests. So i
 For now, we have not come around to deciding how retry should work in the case of phased tests. By default, we deactivate them on the phased tests unless the user specifically chooses to activate them by setting the system property `PHASED.TESTS.RETRY.DISABLED` to false. 
 
 ## Release Notes
+
+### 9.0.0 - In-Progress
+* **(new feature)** [#204 Introduction of the Execution Mode replacing Phases](https://github.com/adobe/phased-testing/issues/204). We have revised the way we execute scenarios, as we no longer only cater to Upgrade tests. The means you should revise the way you execute Phased Tests by using Execution Modes. For more information please refer to the chapter [Execution Modes](#execution-modes).
+* **(new feature)** [#35 Adding the Permutation Execution Mode](https://github.com/adobe/phased-testing/issues/35). We have introduced the Permutation Execution Mode. This mode executes a scenario with all possible permutations it can have. This is done by identifying the dependencies between each step, and creating the possible orders of that scenario. For more information please refer to the chapters [Permutation Execution Mode](#permutation-execution-mode).
+
+* **New Environment Variables**
+* MUTATIONAL.EXECUTION.MODE : This property is used to set the execution mode of the Mutational Tests. The value can be one of the following: STANDARD, INTERRUPTIVE(PRODUCER), INTERRUPTIVE(CONSUMER), NON-INTERRUPTIVE, PERMUATIONAL. This will replace the PHASED.TESTS.PHASE property which will be removed in 9.X.3.
 
 ### 8.11.2
 * **(new feature)** [#178 Allowing the injection in any step of a scenario](https://github.com/adobe/phased-testing/issues/178). We can now inject an event into a step in an arbitrary phased test. This is done by setting the syetm property PHASED.EVENTS.TARGET. This way you can inject the event into that step.

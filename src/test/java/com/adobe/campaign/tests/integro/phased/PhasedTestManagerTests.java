@@ -18,7 +18,6 @@ import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestConfiguratio
 import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestException;
 import com.adobe.campaign.tests.integro.phased.mutational.data.permutational.MultipleProducerConsumer;
 import com.adobe.campaign.tests.integro.phased.mutational.data.permutational.ShoppingCartDemo;
-import com.adobe.campaign.tests.integro.phased.mutational.data.simple1.PhasedChild2;
 import com.adobe.campaign.tests.integro.phased.permutational.ScenarioStepDependencies;
 import com.adobe.campaign.tests.integro.phased.permutational.ScenarioStepDependencyFactory;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
@@ -226,7 +225,7 @@ public class PhasedTestManagerTests {
         assertThat("We should find our scenario", prop.containsKey(l_storedScenarioContext));
 
         assertThat("We should find our scenario", prop.get(l_storedScenarioContext),
-                Matchers.equalTo("true;0;NA;NON_PHASED"));
+                Matchers.equalTo("true;0;NA;N/A"));
 
     }
 
@@ -515,7 +514,7 @@ public class PhasedTestManagerTests {
     public void importingData() {
         String l_stepId = PhasedTestManager.produceInStep("Hello");
         String l_scenarioId = PhasedTestManager.storeTestData(PhasedSeries_F_Shuffle.class, "A",
-                new PhasedTestManager.ScenarioContextData(false,3,"abc",Phases.PRODUCER,"zdf" ));
+                new PhasedTestManager.ScenarioContextData(false,3,"abc","PRODUCER","zdf" ));
 
         File l_phasedTestFile = PhasedTestManager.exportPhaseData();
         PhasedTestManager.clearCache();
@@ -625,7 +624,7 @@ public class PhasedTestManagerTests {
                         ClassPathParser.fetchFullName(method3)));
 
         Map<String, MethodMapping> l_result = PhasedTestManager.generatePhasedProviders(l_myMap,
-                Phases.getCurrentPhase());
+                Phases.getCurrentPhase().fetchRunValues());
 
         assertThat("we need to have the expected key", l_result.containsKey(ClassPathParser.fetchFullName(method1)));
         assertThat("The first method should have three entries", l_result.get(ClassPathParser.fetchFullName(method1)).nrOfProviders, equalTo(3));
@@ -684,7 +683,7 @@ public class PhasedTestManagerTests {
                         ClassPathParser.fetchFullName(method3)));
 
         Map<String, MethodMapping> l_result = PhasedTestManager.generatePhasedProviders(l_myMap,
-                Phases.getCurrentPhase());
+                Phases.getCurrentPhase().fetchRunValues());
 
         assertThat("we need to have the expected key", l_result.containsKey(ClassPathParser.fetchFullName(method1)));
         assertThat("The first method should have three entries", l_result.get(ClassPathParser.fetchFullName(method1)).nrOfProviders, equalTo(3));
@@ -757,7 +756,7 @@ public class PhasedTestManagerTests {
                         ClassPathParser.fetchFullName(method3)));
 
         Map<String, MethodMapping> l_result = PhasedTestManager.generatePhasedProviders(l_myMap,
-                Phases.getCurrentPhase());
+                Phases.getCurrentPhase().fetchRunValues());
 
         assertThat("we need to have the expected key", l_result.containsKey(ClassPathParser.fetchFullName(method1)));
         assertThat("The first method should have three entries", l_result.get(ClassPathParser.fetchFullName(method1)).nrOfProviders, equalTo(3));
@@ -829,7 +828,7 @@ public class PhasedTestManagerTests {
                         ClassPathParser.fetchFullName(method3)));
 
         Map<String, MethodMapping> l_result = PhasedTestManager.generatePhasedProviders(l_myMap,
-                Phases.CONSUMER);
+                Phases.CONSUMER.fetchRunValues());
 
         assertThat("we need to have the expected key", l_result.containsKey(ClassPathParser.fetchFullName(method1)));
         assertThat("The first method should have three entries", l_result.get(ClassPathParser.fetchFullName(method1)).nrOfProviders, equalTo(1));
@@ -839,20 +838,20 @@ public class PhasedTestManagerTests {
         assertThat("The third method should have three entries", l_result.get(ClassPathParser.fetchFullName(method3)).totalClassMethods,
                 equalTo(3));
 
-        Object[][] l_providerA = PhasedTestManager.fetchProvidersShuffled(ClassPathParser.fetchFullName(method1), Phases.CONSUMER);
+        Object[][] l_providerA = PhasedTestManager.fetchProvidersShuffled(ClassPathParser.fetchFullName(method1), Phases.CONSUMER.fetchRunValues());
 
         assertThat(l_providerA[0].length, equalTo(1));
 
         assertThat(l_providerA[0][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "0_3"));
 
-        Object[][] l_providerB = PhasedTestManager.fetchProvidersShuffled(ClassPathParser.fetchFullName(method2), Phases.CONSUMER);
+        Object[][] l_providerB = PhasedTestManager.fetchProvidersShuffled(ClassPathParser.fetchFullName(method2), Phases.CONSUMER.fetchRunValues());
 
         assertThat(l_providerB[0].length, equalTo(1));
 
         assertThat(l_providerB[0][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "0_3"));
         assertThat(l_providerB[1][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_2"));
 
-        Object[][] l_providerC = PhasedTestManager.fetchProvidersShuffled(ClassPathParser.fetchFullName(method3), Phases.CONSUMER);
+        Object[][] l_providerC = PhasedTestManager.fetchProvidersShuffled(ClassPathParser.fetchFullName(method3), Phases.CONSUMER.fetchRunValues());
 
         assertThat(l_providerC[0].length, equalTo(1));
 
@@ -878,7 +877,7 @@ public class PhasedTestManagerTests {
                         ClassPathParser.fetchFullName(method3)));
 
         Map<String, MethodMapping> l_result = PhasedTestManager.generatePhasedProviders(l_myMap,
-                Phases.getCurrentPhase());
+                Phases.getCurrentPhase().fetchRunValues());
 
         assertThat("we need to have the expected key", l_result.containsKey(ClassPathParser.fetchFullName(method1)));
         assertThat("The first method should have three entries", l_result.get(ClassPathParser.fetchFullName(method1)).nrOfProviders, equalTo(3));
@@ -936,7 +935,7 @@ public class PhasedTestManagerTests {
         PhasedTestManager.setStepDependencies(Collections.singletonMap(l_scenario.getScenarioName(), l_scenario));
 
         Map<String, MethodMapping> l_result = PhasedTestManager.generatePhasedProviders(l_myMap,
-                l_currentPhase);
+                l_currentPhase.fetchRunValues());
 
         assertThat("we need to have the expected key", l_result.containsKey(ClassPathParser.fetchFullName(method1)));
         assertThat("The first method should have three entries", l_result.get(ClassPathParser.fetchFullName(method1)).nrOfProviders, equalTo(3));
@@ -946,7 +945,7 @@ public class PhasedTestManagerTests {
         assertThat("The third method should have three entries", l_result.get(ClassPathParser.fetchFullName(method3)).totalClassMethods,
                 equalTo(3));
 
-        Object[][] l_providerPerm = PhasedTestManager.fetchProvidersShuffled(ClassPathParser.fetchFullName(method1), l_currentPhase);
+        Object[][] l_providerPerm = PhasedTestManager.fetchProvidersShuffled(ClassPathParser.fetchFullName(method1), l_currentPhase.fetchRunValues());
 
         assertThat(l_providerPerm.length, equalTo(2));
 
@@ -978,7 +977,7 @@ public class PhasedTestManagerTests {
         PhasedTestManager.setStepDependencies(Collections.singletonMap(l_scenario.getScenarioName(), l_scenario));
 
         Map<String, MethodMapping> l_result = PhasedTestManager.generatePhasedProviders(l_myMap,
-                l_currentPhase);
+                l_currentPhase.fetchRunValues());
 
         assertThat("we need to have the expected key", l_result.containsKey(ClassPathParser.fetchFullName(method1)));
         assertThat("The first method should have three entries", l_result.get(ClassPathParser.fetchFullName(method1)).nrOfProviders, equalTo(4));
@@ -988,7 +987,7 @@ public class PhasedTestManagerTests {
         assertThat("The third method should have three entries", l_result.get(ClassPathParser.fetchFullName(method3)).totalClassMethods,
                 equalTo(4));
 
-        Object[][] l_providerPerm = PhasedTestManager.fetchProvidersShuffled(ClassPathParser.fetchFullName(method1), l_currentPhase);
+        Object[][] l_providerPerm = PhasedTestManager.fetchProvidersShuffled(ClassPathParser.fetchFullName(method1), l_currentPhase.fetchRunValues());
 
         assertThat(l_providerPerm.length, equalTo(3));
 
@@ -2421,7 +2420,7 @@ public class PhasedTestManagerTests {
         assertThat("We should have the correct exception", l_newThrowable.getMessage(),
                 Matchers.startsWith(l_originalMessage));
         assertThat("The message should end with the original message", l_newThrowable.getMessage(),
-                Matchers.endsWith(Phases.getCurrentPhase().toString() + "]"));
+                Matchers.endsWith(ExecutionMode.getCurrentModeAsString() + "]"));
 
         assertThat("We should have the step name in the message", l_newThrowable.getMessage(),
                 Matchers.containsString(l_renamedMethod));
@@ -2453,7 +2452,7 @@ public class PhasedTestManagerTests {
         assertThat("We should have the correct exception", l_newThrowable.getMessage(),
                 Matchers.startsWith("["));
         assertThat("The message should end with the original message", l_newThrowable.getMessage(),
-                Matchers.endsWith(Phases.getCurrentPhase().toString() + "]"));
+                Matchers.endsWith(ExecutionMode.getCurrentModeAsString() + "]"));
         assertThat("We should have the step name in the message", l_newThrowable.getMessage(),
                 Matchers.containsString(l_renamedMethod));
 
@@ -2871,7 +2870,7 @@ public class PhasedTestManagerTests {
         Phases.CONSUMER.activate();
 
         assertThat("This method and phase group should not have steps in the producer",
-                !PhasedTestManager.hasStepsExecutedInProducer(l_itr, Phases.CONSUMER));
+                !PhasedTestManager.hasStepsExecutedInProducer(l_itr, new RunValues(ExecutionMode.INTERRUPTIVE, "CONSUMER")));
 
         Mockito.when(l_itr.getParameters())
                 .thenReturn(new Object[] { PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_3" });
@@ -2885,14 +2884,14 @@ public class PhasedTestManagerTests {
                 .thenReturn(new Object[] { PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_3" });
 
         assertThat("This method and phase group should not have steps in the producer",
-                !PhasedTestManager.hasStepsExecutedInProducer(l_itr, Phases.PRODUCER));
+                !PhasedTestManager.hasStepsExecutedInProducer(l_itr, new RunValues(ExecutionMode.INTERRUPTIVE, "PRODUCER")));
 
         Mockito.when(l_itr.getParameters())
                 .thenReturn(new Object[] { PhasedTestManager.STD_PHASED_GROUP_PREFIX + "0_3" });
 
         assertThat(
                 "This method and phase group should not have steps in the producer since we are in Producer",
-                !PhasedTestManager.hasStepsExecutedInProducer(l_itr, Phases.PRODUCER));
+                !PhasedTestManager.hasStepsExecutedInProducer(l_itr, new RunValues(ExecutionMode.INTERRUPTIVE, "PRODUCER")));
 
         //Testing non-phased
 
@@ -2900,14 +2899,14 @@ public class PhasedTestManagerTests {
                 .thenReturn(new Object[] { PhasedTestManager.STD_PHASED_GROUP_PREFIX + "1_3" });
 
         assertThat("This method and phase group should not have steps in the producer",
-                !PhasedTestManager.hasStepsExecutedInProducer(l_itr, Phases.NON_PHASED));
+                !PhasedTestManager.hasStepsExecutedInProducer(l_itr, new RunValues(ExecutionMode.STANDARD, "")));
 
         Mockito.when(l_itr.getParameters())
                 .thenReturn(new Object[] { PhasedTestManager.STD_PHASED_GROUP_PREFIX + "0_3" });
 
         assertThat(
                 "This method and phase group should not have steps in the producer since we are in Producer",
-                !PhasedTestManager.hasStepsExecutedInProducer(l_itr, Phases.NON_PHASED));
+                !PhasedTestManager.hasStepsExecutedInProducer(l_itr, new RunValues(ExecutionMode.STANDARD, "")));
 
     }
 
@@ -3186,9 +3185,9 @@ public class PhasedTestManagerTests {
         l_scenarioContext.setFailedStep("abc");
 
         assertThat("The toString method should correctly export the data", l_scenarioContext.exportToString(),
-                Matchers.equalTo("false;2;abc;NON_PHASED"));
+                Matchers.equalTo("false;2;abc;N/A"));
 
-        l_scenarioContext.setFailedInPhase(Phases.CONSUMER);
+        l_scenarioContext.setFailedInPhase("CONSUMER");
 
         assertThat("The toString method should correctly export the data", l_scenarioContext.exportToString(),
                 Matchers.equalTo("false;2;abc;CONSUMER"));
@@ -3211,7 +3210,7 @@ public class PhasedTestManagerTests {
 
     @Test
     public void testScenarioContextData_StringConstructor() {
-        PhasedTestManager.ScenarioContextData l_scenarioContext = new PhasedTestManager.ScenarioContextData(false,2,"abc",Phases.PRODUCER,"efg" );
+        PhasedTestManager.ScenarioContextData l_scenarioContext = new PhasedTestManager.ScenarioContextData(false,2,"abc","PRODUCER","efg" );
 
         assertThat("The toString method should correctly export the data", l_scenarioContext.exportToString(),
                 Matchers.equalTo("false;2;abc;"+Phases.PRODUCER.name()));
@@ -3227,7 +3226,7 @@ public class PhasedTestManagerTests {
         assertThat("The failedStep should be correctly imported", l_scenarioContextImported.getFailedStep(),
                 Matchers.equalTo(l_scenarioContext.getFailedStep()));
         assertThat("The phased in which the failure occurred should be the producer phase",
-                l_scenarioContextImported.getFailedInPhase(), equalTo(Phases.PRODUCER));
+                l_scenarioContextImported.getFailedInPhase(), equalTo("PRODUCER"));
 
         assertThat("The phased in which the failure occurred should be the producer phase",
                 l_scenarioContextImported.getCurrentStep(), equalTo(PhasedTestManager.ScenarioContextData.NOT_APPLICABLE_STEP_NAME));
@@ -3245,7 +3244,7 @@ public class PhasedTestManagerTests {
         assertThat("The failedStep should be correctly imported", l_scenarioContextImported.getFailedStep(),
                 Matchers.equalTo("NA"));
         assertThat("The phased in which the failure occurred should be the producer phase",
-                l_scenarioContextImported.getFailedInPhase(), equalTo(Phases.NON_PHASED));
+                l_scenarioContextImported.getFailedInPhase(), equalTo("N/A"));
     }
 
     @Test
@@ -3260,7 +3259,7 @@ public class PhasedTestManagerTests {
         assertThat("The failedStep should be correctly imported", l_scenarioContextImported.getFailedStep(),
                 Matchers.equalTo("NA"));
         assertThat("The phased in which the failure occurred should be the producer phase",
-                l_scenarioContextImported.getFailedInPhase(), equalTo(Phases.NON_PHASED));
+                l_scenarioContextImported.getFailedInPhase(), equalTo("N/A"));
 
         l_scenarioContextImported.importFromString("true;2");
 
@@ -3270,7 +3269,7 @@ public class PhasedTestManagerTests {
         assertThat("The failedStep should be correctly imported", l_scenarioContextImported.getFailedStep(),
                 Matchers.equalTo("NA"));
         assertThat("The phased in which the failure occurred should be the producer phase",
-                l_scenarioContextImported.getFailedInPhase(), equalTo(Phases.NON_PHASED));
+                l_scenarioContextImported.getFailedInPhase(), equalTo("N/A"));
     }
 
     @Test
@@ -3285,7 +3284,7 @@ public class PhasedTestManagerTests {
         assertThat("The failedStep should be correctly imported", l_scenarioContextImported.getFailedStep(),
                 Matchers.equalTo("sd"));
         assertThat("The phased in which the failure occurred should be the producer phase",
-                l_scenarioContextImported.getFailedInPhase(), equalTo(Phases.NON_PHASED));
+                l_scenarioContextImported.getFailedInPhase(), equalTo("N/A"));
     }
 
     @Test
@@ -3300,7 +3299,7 @@ public class PhasedTestManagerTests {
         assertThat("The failedStep should be correctly imported", l_scenarioContextImported.getFailedStep(),
                 Matchers.equalTo(PhasedTestManager.ScenarioContextData.NOT_APPLICABLE_STEP_NAME));
         assertThat("The phased in which the failure occurred should be the producer phase",
-                l_scenarioContextImported.getFailedInPhase(), equalTo(Phases.NON_PHASED));
+                l_scenarioContextImported.getFailedInPhase(), equalTo("N/A"));
     }
 
     @Test

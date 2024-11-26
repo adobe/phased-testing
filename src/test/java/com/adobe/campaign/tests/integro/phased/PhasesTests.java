@@ -96,5 +96,65 @@ public class PhasesTests {
     }
 
 
+    @Test
+    public void testNonInterruptivePhase() {
+
+        Phases.ASYNCHRONOUS.activate();
+
+        assertThat("This should be the same as Non-interruptive", ExecutionMode.NON_INTERRUPTIVE.isSelected());
+        assertThat("This should be the same as Non-interruptive", Phases.ASYNCHRONOUS.isSelected());
+
+        ConfigValueHandlerPhased.resetAllValues();
+
+        ExecutionMode.NON_INTERRUPTIVE.activate();
+
+        assertThat("This should be the same as Non-interruptive", ExecutionMode.NON_INTERRUPTIVE.isSelected());
+        assertThat("This should be the same as Non-interruptive", Phases.ASYNCHRONOUS.isSelected());
+
+        //ConfigValueHandlerPhased.PROP_SELECTED_PHASE.activate(Phases.NON_INTERRUPTIVE.name()+"23");
+    }
+
+    @Test
+    public void testNonInterruptivePhaseWithEvents() {
+        //assertThat("We should be able to extract the phase value from the string", GeneralTestUtils);
+
+        String l_selectedPhase = ExecutionMode.NON_INTERRUPTIVE.name() + "(23)";
+        assertThat("We should detect the correct phase",
+                ExecutionMode.fetchCorrespondingMode(l_selectedPhase), Matchers.equalTo(ExecutionMode.NON_INTERRUPTIVE));
+
+        ConfigValueHandlerPhased.PROP_EXECUTION_MODE.activate(l_selectedPhase);
+
+        assertThat("This should be the same as Non-interruptive", ExecutionMode.NON_INTERRUPTIVE.isSelected());
+        assertThat("This should be the same as Non-interruptive", ExecutionMode.NON_INTERRUPTIVE.fetchBehavior(), Matchers.equalTo("23"));
+        assertThat("We should detect that the given value is corrects", ExecutionMode.getCurrentMode().isTypeValid());
+
+
+        ConfigValueHandlerPhased.PROP_EXECUTION_MODE.activate(ExecutionMode.NON_INTERRUPTIVE.name());
+        assertThat("This should be the same as Non-interruptive", ExecutionMode.NON_INTERRUPTIVE.fetchBehavior(), Matchers.equalTo(""));
+        assertThat("We should not accept an empty type",!ExecutionMode.getCurrentMode().isTypeValid());
+
+
+        ConfigValueHandlerPhased.PROP_EXECUTION_MODE.activate(ExecutionMode.NON_INTERRUPTIVE.name());
+        assertThat("This should be the same as Non-interruptive", ExecutionMode.NON_INTERRUPTIVE.fetchBehavior(), Matchers.equalTo(""));
+
+        ConfigValueHandlerPhased.PROP_EXECUTION_MODE.activate(ExecutionMode.INTERRUPTIVE.name()+"(jhfdhj)");
+        assertThat("We should detect that given type is incorrect",!ExecutionMode.getCurrentMode().isTypeValid());
+
+        ExecutionMode.STANDARD.activate();
+        assertThat("This should be the same as Non-phased", ExecutionMode.getCurrentMode().fetchBehavior(), Matchers.equalTo(""));
+        assertThat("We should accept an empty type", ExecutionMode.getCurrentMode().isTypeValid());
+
+        ExecutionMode.NON_INTERRUPTIVE.activate("33");
+        assertThat("This should be the same as Non-interruptive", ExecutionMode.getCurrentMode().fetchBehavior(), Matchers.equalTo("33"));
+
+    }
+
+    @Test
+    public void testingBackWardCompatibility() {
+        Phases.PRODUCER.activate();
+        assertThat("We should have the correct phase", !Phases.ASYNCHRONOUS.isSelected());
+    }
+
+
 
 }

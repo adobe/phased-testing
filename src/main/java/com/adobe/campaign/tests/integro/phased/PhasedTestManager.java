@@ -556,7 +556,7 @@ public final class PhasedTestManager {
      * @return A two-dimensional array of all the data providers attached to the current step/method
      */
     public static Object[][] fetchProvidersShuffled(Method in_method) {
-        return fetchProvidersShuffled(ClassPathParser.fetchFullName(in_method), Phases.getCurrentPhase());
+        return fetchProvidersShuffled(ClassPathParser.fetchFullName(in_method), ExecutionMode.getCurrentMode().fetchRunValues());
     }
 
     /**
@@ -570,7 +570,7 @@ public final class PhasedTestManager {
      */
     public static Object[][] fetchProvidersShuffled(ITestNGMethod in_method) {
         String l_candidateMethod  = fetchMappingKeyWithMaxProviders(in_method.getTestClass().getRealClass().getTypeName(), getMethodMap());
-        return fetchProvidersShuffled(l_candidateMethod, Phases.getCurrentPhase());
+        return fetchProvidersShuffled(l_candidateMethod, ExecutionMode.getCurrentMode().fetchRunValues());
     }
 
     /**
@@ -580,17 +580,16 @@ public final class PhasedTestManager {
      * Author : gandomi
      *
      * @param in_methodFullName The full name of the method used for identifying it in the phase context
-     * @param in_phasedState    The phase state for which we should retrieve the parameters. The parameters will be
-     *                          different based on the phase.
+     * @param in_runMode    The mode in which the mutational tests are executed
      * @return A two-dimensional array of all the data providers attached to the current step/method
      */
-    public static Object[][] fetchProvidersShuffled(String in_methodFullName, Phases in_phasedState) {
+    public static Object[][] fetchProvidersShuffled(String in_methodFullName, RunValues in_runMode) {
 
         final MethodMapping l_methodMapping = methodMap.get(in_methodFullName);
         int l_nrOfProviders = l_methodMapping.nrOfProviders;
         Object[][] l_objectArrayPhased;
 
-        if (in_phasedState.equals(Phases.PERMUTATIONAL)) {
+        if (in_runMode.getExecutionMode().equals(ExecutionMode.PERMUTATIONAL)) {
             Map<String, List<StepDependencies>> l_permutations = getStepDependencies().get(l_methodMapping.declaredClass.getTypeName()).fetchScenarioPermutations();
             l_nrOfProviders = l_permutations.size();
             l_objectArrayPhased = new Object[l_nrOfProviders][1];
@@ -604,16 +603,16 @@ public final class PhasedTestManager {
             l_objectArrayPhased= new Object[l_nrOfProviders][1];
             for (int rows = 0; rows < l_nrOfProviders; rows++) {
 
-                int lt_nrBeforePhase = in_phasedState.equals(Phases.PRODUCER) ? (l_methodMapping.totalClassMethods
+                int lt_nrBeforePhase = in_runMode.getBehavior().equals("PRODUCER") ? (l_methodMapping.totalClassMethods
                         - rows) : rows;
 
                 int lt_nrAfterPhase = l_methodMapping.totalClassMethods - lt_nrBeforePhase;
 
-                if (in_phasedState.hasSplittingEvent()) {
+                if (in_runMode.getExecutionMode().equals(ExecutionMode.INTERRUPTIVE)) {
                     l_objectArrayPhased[rows][0] = STD_PHASED_GROUP_PREFIX + lt_nrBeforePhase
                             + "_"
                             + lt_nrAfterPhase;
-                } else if (Phases.ASYNCHRONOUS.isSelected()) {
+                } else if (ExecutionMode.NON_INTERRUPTIVE.isSelected()) {
                     l_objectArrayPhased[rows][0] = STD_PHASED_GROUP_NIE_PREFIX + (rows + 1);
                 }
             }
@@ -640,21 +639,21 @@ public final class PhasedTestManager {
     public static Object[] fetchProvidersSingle(Method in_method) {
         log.debug("Returning provider for method {}", ClassPathParser.fetchFullName(in_method));
 
-        if (Phases.PRODUCER.isSelected() && isExecutedInProducerMode(in_method)) {
+        if (ExecutionMode.INTERRUPTIVE.isSelected("PRODUCER") && isExecutedInProducerMode(in_method)) {
 
             return new Object[] { STD_PHASED_GROUP_SINGLE };
         }
 
-        if (Phases.CONSUMER.isSelected() && !isExecutedInProducerMode(in_method)) {
+        if (ExecutionMode.INTERRUPTIVE.isSelected("CONSUMER") && !isExecutedInProducerMode(in_method)) {
             return new Object[] { STD_PHASED_GROUP_SINGLE };
         }
 
-        if (Phases.NON_PHASED.isSelected() && in_method.getDeclaringClass().getAnnotation(PhasedTest.class)
+        if (ExecutionMode.STANDARD.isSelected() && in_method.getDeclaringClass().getAnnotation(PhasedTest.class)
                 .executeInactive()) {
             return new Object[] { STD_PHASED_GROUP_SINGLE };
         }
 
-        if (Phases.ASYNCHRONOUS.isSelected()) {
+        if (ExecutionMode.NON_INTERRUPTIVE.isSelected()) {
             return new Object[] { STD_PHASED_GROUP_SINGLE };
         }
 
@@ -673,7 +672,7 @@ public final class PhasedTestManager {
     public static  Object[]  fetchProvidersStandard(Method in_method) {
         log.debug("Returning provider for method {}", ClassPathParser.fetchFullName(in_method));
 
-        if (Phases.NON_PHASED.isSelected() && !in_method.getDeclaringClass().getAnnotation(PhasedTest.class)
+        if (ExecutionMode.STANDARD.isSelected() && !in_method.getDeclaringClass().getAnnotation(PhasedTest.class)
                 .executeInactive()) {
             return new Object[] { };
         }
@@ -691,7 +690,7 @@ public final class PhasedTestManager {
      */
     public static Map<String, MethodMapping> generatePhasedProviders(Map<Class<?>, List<String>> in_classMethodMap) {
 
-        return generatePhasedProviders(in_classMethodMap, Phases.getCurrentPhase());
+        return generatePhasedProviders(in_classMethodMap, ExecutionMode.getCurrentMode().fetchRunValues());
 
     }
 
@@ -701,13 +700,13 @@ public final class PhasedTestManager {
      * Author : gandomi
      *
      * @param in_classMethodMap A map of a class and it is methods (A scenario and its steps)
-     * @param in_phaseState     The phase in which we are
+     * @param in_runValues     The execution mode values
      * @return A map letting us know that for a given method how often it will be executed in the current phase
      */
     public static Map<String, MethodMapping> generatePhasedProviders(Map<Class<?>, List<String>> in_classMethodMap,
-            Phases in_phaseState) {
+            RunValues in_runValues) {
 
-        return generatePhasedProviders(in_classMethodMap, null, in_phaseState);
+        return generatePhasedProviders(in_classMethodMap, null, in_runValues);
 
     }
 
@@ -719,11 +718,11 @@ public final class PhasedTestManager {
      *
      * @param in_classMethodMap       A map of a class and it is methods (A scenario and its steps)
      * @param in_scenarioDependencies A map allowing us to detect the test execution order
-     * @param in_phaseState           The phase in which we are
+     * @param in_runValues           The execution mode values
      * @return A map letting us know that for a given method how often it will be executed in the current phase
      */
     public static Map<String, MethodMapping> generatePhasedProviders(Map<Class<?>, List<String>> in_classMethodMap,
-            Map<String, ScenarioStepDependencies> in_scenarioDependencies, Phases in_phaseState) {
+            Map<String, ScenarioStepDependencies> in_scenarioDependencies, RunValues in_runValues) {
         methodMap = new HashMap<>();
 
         for (Entry<Class<?>, List<String>> entry : in_classMethodMap.entrySet().stream().filter(e -> !Modifier.isAbstract(e.getKey().getModifiers())).collect(
@@ -735,9 +734,9 @@ public final class PhasedTestManager {
                             .map(ol -> entry.getKey().getTypeName() + "." + ol.getStepName()).collect(
                                     Collectors.toList());
 
-            if (in_phaseState.hasSplittingEvent) {
+            if (in_runValues.getExecutionMode().equals(ExecutionMode.INTERRUPTIVE)) {
 
-                if (in_phaseState.equals(Phases.CONSUMER)) {
+                if (in_runValues.getBehavior().equals("CONSUMER")) {
                     Collections.reverse(lt_methodList);
                 }
 
@@ -1218,7 +1217,7 @@ public final class PhasedTestManager {
         sb.append("[Failed at step : ");
         sb.append(in_failedTestResult.getMethod().getMethodName());
         sb.append(" - ");
-        sb.append(Phases.getCurrentPhase().toString());
+        sb.append(ExecutionMode.getCurrentModeAsString());
         sb.append("]");
 
         PhasedTestManager.changeExceptionMessage(l_thrownException, sb.toString());
@@ -1464,23 +1463,22 @@ public final class PhasedTestManager {
      * phase
      */
     public static boolean hasStepsExecutedInProducer(ITestResult in_testResult) {
-        return hasStepsExecutedInProducer(in_testResult, Phases.getCurrentPhase());
+        return hasStepsExecutedInProducer(in_testResult, Phases.getCurrentPhase().fetchRunValues());
 
     }
 
     /**
-     * Given a phased test method and and its phase group, lets you know if it has ssteps executed in the producer
-     * phase
+     * Given a phased test method and and its phase group, lets you know if it has steps executed in the producer phase
      * <p>
      * Author : gandomi
      *
      * @param in_testResult A TestNG Test result
-     * @param in_phase      The phase in which we are currently.
+     * @param in_runValues  The execution mode and behavior for the tests being executed
      * @return true if we are in consumer, and we are not a 0_X phase group that is executed end to end in the consumer
      * phase
      */
-    public static boolean hasStepsExecutedInProducer(ITestResult in_testResult, Phases in_phase) {
-        return (in_phase.equals(Phases.CONSUMER) && (fetchNrOfStepsBeforePhaseChange(in_testResult) > 0));
+    public static boolean hasStepsExecutedInProducer(ITestResult in_testResult, RunValues in_runValues) {
+        return (in_runValues.getBehavior().equals("CONSUMER") && (fetchNrOfStepsBeforePhaseChange(in_testResult) > 0));
     }
 
     /**
@@ -1493,8 +1491,7 @@ public final class PhasedTestManager {
      */
     public static Integer fetchNrOfStepsBeforePhaseChange(ITestResult in_testResult) {
 
-        if (isPhasedTestShuffledMode(in_testResult) && Phases.getCurrentPhase()
-                .hasSplittingEvent()) {
+        if (isPhasedTestShuffledMode(in_testResult) && ExecutionMode.INTERRUPTIVE.isSelected()) {
 
             final String in_phaseGroup = in_testResult.getParameters()[0].toString();
 
@@ -1581,7 +1578,7 @@ public final class PhasedTestManager {
         private boolean passed;
         private long duration;
         private String failedStep;
-        private Phases failedInPhase;
+        private String failedInPhase;
         private String currentStep;
         private int stepNr;
 
@@ -1590,7 +1587,7 @@ public final class PhasedTestManager {
             passed = true;
             duration = 0;
             failedStep = NOT_APPLICABLE_STEP_NAME;
-            setFailedInPhase(Phases.NON_PHASED);
+            setFailedInPhase("N/A");
             setCurrentStep(NOT_APPLICABLE_STEP_NAME);
         }
 
@@ -1613,7 +1610,7 @@ public final class PhasedTestManager {
          * @param in_phase       The Phase in which the error happened
          * @param in_currentStep The current step in which we are
          */
-        protected ScenarioContextData(boolean in_passed, long in_duration, String in_failedStep, Phases in_phase,
+        protected ScenarioContextData(boolean in_passed, long in_duration, String in_failedStep, String in_phase,
                 String in_currentStep) {
             this.passed = in_passed;
             this.duration = in_duration;
@@ -1634,7 +1631,7 @@ public final class PhasedTestManager {
             this.passed = in_passed;
             this.duration = in_duration;
             this.failedStep = in_failedStep;
-            this.setFailedInPhase(Phases.getCurrentPhase());
+            this.setFailedInPhase(ExecutionMode.getCurrentMode().fetchBehavior());
         }
 
         public boolean isPassed() {
@@ -1661,11 +1658,11 @@ public final class PhasedTestManager {
             this.failedStep = failedStep;
         }
 
-        public Phases getFailedInPhase() {
+        public String getFailedInPhase() {
             return failedInPhase;
         }
 
-        public void setFailedInPhase(Phases failedInPhase) {
+        public void setFailedInPhase(String failedInPhase) {
             this.failedInPhase = failedInPhase;
         }
 
@@ -1703,7 +1700,7 @@ public final class PhasedTestManager {
             switch (in_stepRessult) {
             case ITestResult.FAILURE:
                 failedStep = in_scenarioName;
-                setFailedInPhase(Phases.getCurrentPhase());
+                setFailedInPhase(ExecutionMode.getCurrentMode().fetchBehavior());
             case ITestResult.SKIP:
                 passed = false;
             default:
@@ -1723,17 +1720,24 @@ public final class PhasedTestManager {
          */
         public String exportToString() {
             return this.passed + ";" + this.duration + ";" + this.failedStep + ";"
-                    + this.getFailedInPhase().name();
+                    + this.getFailedInPhase();
         }
 
         /**
-         * Imports the values of a string.
+         * Imports the values of a string. An import string currently contains:
+         * <ul>
+         *     <li>status</li>
+         *     <li>duration</li>
+         *     <li>failedStep</li>
+         *     <li>failedPhase</li>
+         * </ul>
          * <p>
          * Author : gandomi
          *
          * @param in_importString A string that is used to populate the fields of this class.
          */
         public void importFromString(String in_importString) {
+            //This array will contain the following: [0] status, [1] duration, [2] failedStep, [3] failedPhase
             String[] l_valueArray = in_importString.split(STD_SCENARIO_CONTEXT_SEPARATOR);
 
             if (l_valueArray.length < 2) {
@@ -1756,14 +1760,17 @@ public final class PhasedTestManager {
             this.failedStep =
                 !l_valueArray[2].trim().isEmpty() ? l_valueArray[2] : NOT_APPLICABLE_STEP_NAME;
 
-            try {
-                this.setFailedInPhase(!l_valueArray[3].trim().isEmpty() ? Phases.valueOf(
-                    l_valueArray[3]) : Phases.NON_PHASED);
-            } catch (IllegalArgumentException exc) {
-                throw new IllegalArgumentException(
-                    "The given import string " + in_importString
-                        + " does not allow us to deduce the Phase.");
-            }
+            //l_valueArray[3] corresponds to the phase where the failure occurs. If the phase is not set, we will set it to N/A.
+                var importedPhase = !l_valueArray[3].trim().isEmpty() ?
+                        l_valueArray[3] : "N/A";
+
+                if (importedPhase.equals("N/A") || ExecutionMode.INTERRUPTIVE.behaviorTypes.contains(importedPhase)) {
+                    this.setFailedInPhase(importedPhase);
+                } else {
+                    throw new IllegalArgumentException(
+                        "The given import string " + in_importString
+                            + " does not allow us to deduce the Phase.");
+                }
 
             //TODO include the StepNr ?
 
