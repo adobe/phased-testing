@@ -1724,13 +1724,20 @@ public final class PhasedTestManager {
         }
 
         /**
-         * Imports the values of a string.
+         * Imports the values of a string. An import string currently contains:
+         * <ul>
+         *     <li>status</li>
+         *     <li>duration</li>
+         *     <li>failedStep</li>
+         *     <li>failedPhase</li>
+         * </ul>
          * <p>
          * Author : gandomi
          *
          * @param in_importString A string that is used to populate the fields of this class.
          */
         public void importFromString(String in_importString) {
+            //This array will contain the following: [0] status, [1] duration, [2] failedStep, [3] failedPhase
             String[] l_valueArray = in_importString.split(STD_SCENARIO_CONTEXT_SEPARATOR);
 
             if (l_valueArray.length < 2) {
@@ -1753,6 +1760,7 @@ public final class PhasedTestManager {
             this.failedStep =
                 !l_valueArray[2].trim().isEmpty() ? l_valueArray[2] : NOT_APPLICABLE_STEP_NAME;
 
+            //l_valueArray[3] corresponds to the phase where the failure occurs. If the phase is not set, we will set it to N/A.
                 var importedPhase = !l_valueArray[3].trim().isEmpty() ?
                         l_valueArray[3] : "N/A";
 
