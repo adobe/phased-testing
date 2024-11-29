@@ -237,7 +237,7 @@ public class PhasedEventManager {
     /**
      * resets the events. Mostly used for testing
      */
-    public static void resetEvents() {
+    static void resetEvents() {
         events = new HashMap<>();
         eventLogs = new ArrayList();
     }
