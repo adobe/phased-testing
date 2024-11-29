@@ -289,8 +289,11 @@ public class PhasedEventManager {
     }
 
     public static void stopEventExecutor() {
-        if (eventExecutor != null)
+        if (eventExecutor != null) {
             eventExecutor.shutdown();
+        }
+        eventExecutor = null;
+
     }
 
 
