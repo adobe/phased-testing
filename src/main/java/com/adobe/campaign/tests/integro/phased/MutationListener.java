@@ -192,7 +192,7 @@ public class MutationListener
 
             //Prepare data for shuffle calculation
             //NIA Cases 1 & 5
-            if (PhasedTestManager.isPhasedTestShuffledMode(lt_method)) {
+            //if (PhasedTestManager.isPhasedTestShuffledMode(lt_method)) {
                 log.debug("{} In Shuffled mode : current test {}", PhasedTestManager.PHASED_TEST_LOG_PREFIX
                         , ClassPathParser.fetchFullName(lt_method));
                 if (!l_classMethodMap.containsKey(lt_method.getDeclaringClass())) {
@@ -201,21 +201,10 @@ public class MutationListener
 
                 l_classMethodMap.get(lt_method.getDeclaringClass())
                         .add(ClassPathParser.fetchFullName(lt_method));
-            }
+            //}
         }
 
         //If the property PHASED.TESTS.DETECT.ORDER not set, we follow the standard TestNG order
-        /*
-        if (ConfigValueHandlerPhased.PHASED_TEST_DETECT_ORDER.is("false")) {
-            log.info("{} Generating Phased Providers", PhasedTestManager.PHASED_TEST_LOG_PREFIX);
-            //NIA
-            PhasedTestManager.generatePhasedProviders(l_classMethodMap, Phases.getCurrentPhase());
-            //return list;
-            return list.stream().filter(l -> l.getMethod().getRealClass().equals(PhasedParent.class)).collect(
-                    Collectors.toList());
-        } else {
-
-         */
 
             //Generate scenario step dependencies
         PhasedTestManager.setStepDependencies(l_phasedClasses.stream().filter(pc -> !pc.equals(Mutational.class))

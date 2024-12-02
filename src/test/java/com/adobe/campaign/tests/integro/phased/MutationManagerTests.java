@@ -10,6 +10,7 @@ package com.adobe.campaign.tests.integro.phased;
 
 import com.adobe.campaign.tests.integro.phased.data.NormalSeries_A;
 import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClassWithError;
+import com.adobe.campaign.tests.integro.phased.mutational.data.ie.MutationalTestSingle;
 import com.adobe.campaign.tests.integro.phased.mutational.data.nested.MutationalTestParent;
 import com.adobe.campaign.tests.integro.phased.mutational.data.simple1.PhasedChild1;
 import com.adobe.campaign.tests.integro.phased.mutational.data.simple1.PhasedChild2;
@@ -110,7 +111,7 @@ public class MutationManagerTests {
     }
 
     @Test
-    public void testExecutionIndex_InterruptiveProducer() {
+    public void testExecutionIndex_ShufflingProducer() {
         //PRODUCER
         //Three steps
         //PG 2_1
@@ -150,6 +151,47 @@ public class MutationManagerTests {
                         new RunValues(ExecutionMode.PERMUTATIONAL, "23")),
                 Matchers.arrayContaining(0, 3));
     }
+
+    @Test
+    public void testExecutionIndex_SingleRunProducer() {
+        //PRODUCER
+        //Three steps
+        //PG 2_1
+
+        Class testClass = MutationalTestSingle.class;
+
+        String l_phaseGroup = PhasedTestManager.STD_PHASED_GROUP_PREFIX + "2_1";
+
+        //MutationManager.
+        //String l_scenarioName = MutationManager.fetchScenarioName(testClass.getTypeName(), l_phaseGroup);
+
+        assertThat("We should have two steps to execute in Producer",
+                MutationManager.fetchExecutionIndex(testClass.getTypeName(), l_phaseGroup,
+                        new RunValues(ExecutionMode.INTERRUPTIVE, "PRODUCER")),
+                Matchers.arrayContaining(0, 2));
+
+        assertThat("We should have one steps to executed in Consumer",
+                MutationManager.fetchExecutionIndex(testClass.getTypeName(), l_phaseGroup,
+                        new RunValues(ExecutionMode.INTERRUPTIVE, "CONSUMER")),
+                Matchers.arrayContaining(2, 3));
+
+        assertThat("We should have one steps to executed by default",
+                MutationManager.fetchExecutionIndex(testClass.getTypeName(), l_phaseGroup,
+                        new RunValues(ExecutionMode.STANDARD, "")),
+                Matchers.arrayContaining(0, 3));
+
+        assertThat("We should have one steps to executed in Asynchronous",
+                MutationManager.fetchExecutionIndex(testClass.getTypeName(), l_phaseGroup,
+                        new RunValues(ExecutionMode.NON_INTERRUPTIVE, "23")),
+                Matchers.arrayContaining(0, 3));
+
+        assertThat("We should have one steps to executed in permutational",
+                MutationManager.fetchExecutionIndex(testClass.getTypeName(), l_phaseGroup,
+                        new RunValues(ExecutionMode.PERMUTATIONAL, "23")),
+                Matchers.arrayContaining(0, 3));
+    }
+
+
 
     @Test
     public void testIfTestIsMutationalSimple() {

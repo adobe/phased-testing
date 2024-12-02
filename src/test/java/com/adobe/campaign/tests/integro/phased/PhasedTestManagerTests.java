@@ -274,7 +274,7 @@ public class PhasedTestManagerTests {
     }
 
     /**
-     * Testing {@code PROP_PHASED_DATA_PATH} that when the property {@value ConfigValueHandlerPhased#PROP_PHASED_DATA_PATH.systemName} is set, that path is
+     * Testing {@code PROP_PHASED_DATA_PATH} that when the property "PHASED.TESTS.STORAGE.PATH" is set, that path is
      * used.
      *
      * Author : gandomi
