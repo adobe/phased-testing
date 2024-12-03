@@ -262,6 +262,18 @@ Example:
 
 ![Asynchronous Execution Mode](diagrams/PhasedDiagrams-Parallel-Non-Interruptive-Event.drawio.png)
 
+## Event Management and Execution
+Events are an important topic, and have to be correctly covered. An event in Mutational Testing contains three parts:
+* StartUp - the event is initiated.
+* waitTillFinished - the event has finished executing
+* tearDown - the system is set to a stable state
+
+These parts of an event allow us to pilot the event injection around the scenario.
+
+For now we identify two different event wrappings:
+![Event Wrappings](diagrams/Murational-eventWrappings.png)
+
+There are other wrappings, and we will eventually publish them at a later time.
 
 ## Writing a Phased Test
 The Phased Testing is activated using two annotations:
@@ -543,6 +555,11 @@ A NON-INTERRUPTIVE execution mode is used when we want to inject an event in the
 This execution mode is a good way of performing chaos testing.
 
 This mode is activated by setting the environment variable "MUTATIONAL.EXECUTION.MODE" to "NON-INTERRUPTIVE".
+
+The event can be piloted with the following behaviors:
+
+
+
 
 #### PERMUATIONAL Execution Mode
 We have now introduced the PERMUATIONAL execution mode. This execution mode executes a scenario with all possible permutations it can have. This is done by identifying the dependencies between each step, and creating the possible orders of that scenario.
