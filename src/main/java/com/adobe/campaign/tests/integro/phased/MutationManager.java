@@ -9,9 +9,12 @@
 package com.adobe.campaign.tests.integro.phased;
 
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
+import org.testng.ITestNGMethod;
 import org.testng.ITestResult;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class MutationManager {
@@ -74,12 +77,24 @@ public class MutationManager {
         Integer[] lr_result = new Integer[2];
 
         //FetchNr Of Steps
-        int l_nrOfMethods = PhasedTestManager.getMethodMap().keySet().stream().filter(m -> m.startsWith(in_className))
-                .collect(Collectors.toList()).size();
+        var l_relevantMethodMaps = PhasedTestManager.getMethodMap().keySet().stream().filter(m -> m.startsWith(in_className))
+                .collect(Collectors.toList());
+        int l_nrOfMethods = l_relevantMethodMaps.size();
 
-        Integer[] l_boundaries = in_runValues.getExecutionMode().equals(ExecutionMode.INTERRUPTIVE)? PhasedTestManager.fetchShuffledStepCount(
-                in_phaseGroup) : new Integer[] {
-                0, l_nrOfMethods };
+        //By default run everything
+        Integer[] l_boundaries = new Integer[] {0, l_nrOfMethods };
+
+        if (in_runValues.getExecutionMode().equals(ExecutionMode.INTERRUPTIVE)) {
+            if (in_phaseGroup.equals(PhasedTestManager.STD_PHASED_GROUP_SINGLE)) {
+                l_boundaries = new Integer[] { l_relevantMethodMaps.stream()
+                        .filter(m -> Arrays.stream(PhasedTestManager.methodMap.get(m).annotations)
+                                .anyMatch(a -> a.annotationType().equals(PhaseEvent.class))).findFirst()
+                        .map(mf -> PhasedTestManager.methodMap.get(mf).methodOrderInExecution).orElse(l_nrOfMethods)
+                        - 1, l_nrOfMethods };
+            } else {
+                l_boundaries = PhasedTestManager.fetchShuffledStepCount(in_phaseGroup);
+            }
+        }
 
         switch (in_runValues.getBehavior()) {
         case "PRODUCER":
@@ -118,5 +133,17 @@ public class MutationManager {
     public static boolean isSingleMode(Class<?> in_class) {
         return isMutationalTest(in_class) && (PhasedTestManager.isPhasedTestWithEvent(in_class) || PhasedTestManager.isPhasedTestTargetOfEvent(in_class));
 
+    }
+
+    /**
+     * Returns the data provider for a single phase
+     * <p>
+     * Author : gandomi
+     *
+     * @param in_method The step/method for which we want to fond out the data provider
+     * @return An array containing the data providers for the method. Otherwise an empty array
+     */
+    public static Object[][] fetchProvidersSingle(ITestNGMethod in_method) {
+        return new Object[][] {{ PhasedTestManager.STD_PHASED_GROUP_SINGLE }};
     }
 }

@@ -542,11 +542,6 @@ public class TestPhased {
                         .filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
                 is(equalTo(2)));
 
-        assertThat("We should have 2 successful methods of phased Tests",
-                (int) tla.getPassedTests().stream()
-                        .filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
-                is(equalTo(2)));
-
         assertThat("We should have no unsuccesful methods of phased Tests",
                 tla.getFailedTests().size() + tla.getSkippedTests().size(), is(equalTo(0)));
 

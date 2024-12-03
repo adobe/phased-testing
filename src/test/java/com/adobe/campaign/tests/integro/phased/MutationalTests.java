@@ -13,6 +13,7 @@ import com.adobe.campaign.tests.integro.phased.data.events.NIEMutationalSynchron
 import com.adobe.campaign.tests.integro.phased.data.events.TestMutationalNIE_Synchroneous;
 import com.adobe.campaign.tests.integro.phased.mutational.data.erroneous.IE_Shuffled_ErrorAssertion1;
 import com.adobe.campaign.tests.integro.phased.mutational.data.erroneous.IE_Shuffled_ErrorOtherNonAssertive1;
+import com.adobe.campaign.tests.integro.phased.mutational.data.ie.MutationalTestSingleRun;
 import com.adobe.campaign.tests.integro.phased.mutational.data.nie.TestMutationalShuffled_eventPassedAsExecutionVariable;
 import com.adobe.campaign.tests.integro.phased.mutational.data.permutational.MultipleProducerConsumer;
 import com.adobe.campaign.tests.integro.phased.mutational.data.permutational.ShoppingCartDemo;
@@ -295,6 +296,68 @@ public class MutationalTests {
                 tlaC.getPassedTests().stream().filter(m -> m.getInstanceName().equals(PhasedChild2.class.getTypeName()))
                         .collect(Collectors.toList()).size(),
                 Matchers.equalTo(3));
+    }
+
+    @Test
+    public void testInterruptiveSingleRunEvent() {
+
+        //  ***** PRODUCER ****
+        TestNG myTestNG = TestTools.createTestNG();
+        TestListenerAdapter tla = TestTools.fetchTestResultsHandler(myTestNG);
+
+        // Define suites
+        XmlSuite mySuite = TestTools.addSuitToTestNGTest(myTestNG, "Automated Suite Phased Testing");
+
+        // Add listeners
+        mySuite.addListener(MutationListener.class.getTypeName());
+
+        // Create an instance of XmlTest and assign a name for it.
+        XmlTest myTest = TestTools.attachTestToSuite(mySuite, "Test Phased Tests");
+
+        Class<MutationalTestSingleRun> l_testClass = MutationalTestSingleRun.class;
+        myTest.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
+
+        Phases.PRODUCER.activate();
+        myTestNG.run();
+
+        assertThat("We should have 2 successful methods of phased Tests",
+                (int) tla.getPassedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
+                is(equalTo(1)));
+
+        assertThat("We should have no unsuccesful methods of phased Tests",
+                tla.getFailedTests().size() + tla.getSkippedTests().size(), is(equalTo(0)));
+
+        // ***** COSNUMER ****
+
+        //Clear data
+        PhasedTestManager.clearCache();
+        Phases.CONSUMER.activate();
+
+        TestNG myTestNG2 = TestTools.createTestNG();
+        TestListenerAdapter tla2 = TestTools.fetchTestResultsHandler(myTestNG2);
+
+        // Define suites
+        XmlSuite mySuite2 = TestTools.addSuitToTestNGTest(myTestNG2, "Automated Suite Phased Testing");
+
+        // Add listeners
+        mySuite2.addListener(MutationListener.class.getTypeName());
+
+        // Create an instance of XmlTest and assign a name for it.
+        XmlTest myTest2 = TestTools.attachTestToSuite(mySuite2, "Test Phased Tests");
+
+        myTest2.setXmlClasses(Collections.singletonList(new XmlClass(l_testClass)));
+
+        myTestNG2.run();
+
+        assertThat("We should have 1 successful methods of phased Tests",
+                (int) tla2.getPassedTests().stream()
+                        .filter(m -> m.getInstance().getClass().equals(l_testClass)).count(),
+                is(equalTo(1)));
+
+        assertThat("We should have no unsuccesful methods of phased Tests",
+                tla.getFailedTests().size() + tla.getSkippedTests().size(), is(equalTo(0)));
+
     }
 
     @Test

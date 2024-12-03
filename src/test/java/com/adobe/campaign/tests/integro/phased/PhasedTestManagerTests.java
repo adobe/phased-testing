@@ -612,6 +612,7 @@ public class PhasedTestManagerTests {
 
     @Test
     public void testCreateDataProviderData() throws NoSuchMethodException {
+
         Phases.PRODUCER.activate();
 
         Map<Class<?>, List<String>> l_myMap = new HashMap<>();
@@ -666,7 +667,6 @@ public class PhasedTestManagerTests {
         assertThat(l_providerC[0].length, equalTo(1));
 
         assertThat(l_providerC[0][0], equalTo(PhasedTestManager.STD_PHASED_GROUP_PREFIX + "3_0"));
-
     }
 
     @Test

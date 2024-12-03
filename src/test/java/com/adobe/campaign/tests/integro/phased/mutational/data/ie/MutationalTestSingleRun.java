@@ -10,11 +10,10 @@ package com.adobe.campaign.tests.integro.phased.mutational.data.ie;
 
 import com.adobe.campaign.tests.integro.phased.Mutational;
 import com.adobe.campaign.tests.integro.phased.PhaseEvent;
-import com.adobe.campaign.tests.integro.phased.PhasedTest;
 import org.testng.annotations.Test;
 
 @Test
-public class MutationalTestSingle extends Mutational {
+public class MutationalTestSingleRun extends Mutational {
     public void step1(String a) {
 
     }

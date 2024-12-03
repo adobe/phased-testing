@@ -725,13 +725,13 @@ public final class PhasedTestManager {
             Map<String, ScenarioStepDependencies> in_scenarioDependencies, RunValues in_runValues) {
         methodMap = new HashMap<>();
 
-        for (Entry<Class<?>, List<String>> entry : in_classMethodMap.entrySet().stream().filter(e -> !Modifier.isAbstract(e.getKey().getModifiers())).collect(
+        for (Entry<Class<?>, List<String>> lt_entry : in_classMethodMap.entrySet().stream().filter(e -> !Modifier.isAbstract(e.getKey().getModifiers())).collect(
                 Collectors.toList())) {
 
             List<String> lt_methodList =
-                    in_scenarioDependencies == null ? entry.getValue() : in_scenarioDependencies.get(
-                                    entry.getKey().getTypeName()).fetchExecutionOrderList().stream()
-                            .map(ol -> entry.getKey().getTypeName() + "." + ol.getStepName()).collect(
+                    in_scenarioDependencies == null ? lt_entry.getValue() : in_scenarioDependencies.get(
+                                    lt_entry.getKey().getTypeName()).fetchExecutionOrderList().stream()
+                            .map(ol -> lt_entry.getKey().getTypeName() + "." + ol.getStepName()).collect(
                                     Collectors.toList());
 
             if (in_runValues.getExecutionMode().equals(ExecutionMode.INTERRUPTIVE)) {
@@ -740,19 +740,25 @@ public final class PhasedTestManager {
                     Collections.reverse(lt_methodList);
                 }
 
-                for (int i = 0; i < entry.getValue().size(); i++) {
+                for (int i = 0; i < lt_entry.getValue().size(); i++) {
                     methodMap.put(lt_methodList.get(i),
-                            new MethodMapping(entry.getKey(), entry.getValue().size() - i,
-                                    entry.getValue().size(), i + 1));
+                            new MethodMapping(lt_entry.getKey(), lt_entry.getValue().size() - i,
+                                    lt_entry.getValue().size(), i + 1));
 
                 }
             } else {
-                for (int i = 0; i < entry.getValue().size(); i++) {
+                for (int i = 0; i < lt_entry.getValue().size(); i++) {
                     methodMap.put(lt_methodList.get(i),
-                            new MethodMapping(entry.getKey(), entry.getValue().size(),
-                                    entry.getValue().size(), i + 1));
+                            new MethodMapping(lt_entry.getKey(), lt_entry.getValue().size(),
+                                    lt_entry.getValue().size(), i + 1));
 
                 }
+            }
+
+            //Add annotations
+            for (Method method : lt_entry.getKey().getMethods()) {
+                lt_methodList.stream().filter(mli -> mli.equals(ClassPathParser.fetchFullName(method))).findFirst().ifPresent(
+                        m -> methodMap.get(m).annotations = method.getDeclaredAnnotations());
             }
         }
         return methodMap;
@@ -1518,6 +1524,7 @@ public final class PhasedTestManager {
         if (!in_phaseGroup.substring(STD_PHASED_GROUP_PREFIX.length()).contains("_")) {
             throw new PhasedTestException("The phase group of this test does not seem correct: " + in_phaseGroup);
         }
+
 
         String l_numberPart = in_phaseGroup.substring(STD_PHASED_GROUP_PREFIX.length());
 
