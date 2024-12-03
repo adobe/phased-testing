@@ -16,23 +16,28 @@ import com.adobe.campaign.tests.integro.phased.data.mutational.TestMutationalNIE
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class NIEMutationalSynchronousEvent extends NonInterruptiveEvent {
+public class NIEMutationalSynchronousEventWithException extends NonInterruptiveEvent {
     public static int WAIT_TIME_MS = 1;
     public static int START_STEP_VALUE = 3;
     public static int WTF_STEP_VALUE = 13;
     public static int TDE_STEP_VALUE = 11;
+    public static int exceptionPlace = 0;
 
     private static final Logger log = LogManager.getLogger();
 
-    public NIEMutationalSynchronousEvent() {
+    public NIEMutationalSynchronousEventWithException() {
     }
 
     @Override
     public boolean startEvent()  {
         try {
-            log.info("before sleep");
+            log.info("before Exceptions");
             Thread.sleep(WAIT_TIME_MS);
             TestMutationalNIE_Synchroneous.testElement = START_STEP_VALUE;
+
+            if (exceptionPlace == 1) {
+                throw new RuntimeException("Exception in startEvent");
+            }
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -49,15 +54,23 @@ public class NIEMutationalSynchronousEvent extends NonInterruptiveEvent {
     @Override
     public boolean waitTillFinished() {
         log.info("In WTF Setting synchronous value to {}", WTF_STEP_VALUE);
+
+        if (exceptionPlace == 2) {
+            throw new RuntimeException("Exception in WTF");
+        }
+
         TestMutationalNIE_Synchroneous.testElement = WTF_STEP_VALUE;
         return isFinished();
     }
 
     @Override
     public boolean tearDownEvent() {
-        log.info("In TDE Setting synchronous value to {}", TDE_STEP_VALUE);
-
         TestMutationalNIE_Synchroneous.testElement = TDE_STEP_VALUE;
+
+        if (exceptionPlace == 3) {
+            throw new RuntimeException("Exception in TDE");
+        }
+
         return true;
     }
 
