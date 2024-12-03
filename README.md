@@ -22,12 +22,13 @@ The mutational test methods help solve problems such as:
   * [Installation](#installation)
     * [Maven](#maven)
   * [Demo](#demo)
-    * [Test Execution Modes](#test-execution-modes)
-      * [Default Mode](#default-mode)
-      * [Single Execution Mode](#single-execution-mode)
-      * [Shuffled Execution Mode](#shuffled-execution-mode)
+  * [Wrapping a Secnario around an Event](#wrapping-a-secnario-around-an-event)
+    * [Default Mode](#default-mode)
+    * [Single Execution Mode](#single-execution-mode)
+    * [Shuffled Execution Mode](#shuffled-execution-mode)
         * [Shuffled - Interruptive](#shuffled---interruptive)
         * [Shuffled - Non-Interruptive](#shuffled---non-interruptive)
+  * [Event Management and Execution](#event-management-and-execution)
   * [Writing a Phased Test](#writing-a-phased-test)
     * [Setting Execution Modes](#setting-execution-modes)
       * [Shuffled Mode](#shuffled-mode)
@@ -50,7 +51,8 @@ The mutational test methods help solve problems such as:
       * [NON-INTERRUPTIVE execution mode](#non-interruptive-execution-mode)
       * [PERMUATIONAL Execution Mode](#permuational-execution-mode)
     * [Run Time Properties](#run-time-properties)
-      * [PHASED.TESTS.PHASE](#phasedtestsphase)
+      * [MUTATIONAL.EXECUTION.MODE](#mutationalexecutionmode)
+      * [PHASED.TESTS.PHASE (DEPRECATED)](#phasedtestsphase--deprecated-)
       * [PHASED.EVENTS.NONINTERRUPTIVE](#phasedeventsnoninterruptive)
       * [PHASED.TESTS.DATABROKER](#phasedtestsdatabroker)
       * [PHASED.TESTS.STORAGE.PATH](#phasedtestsstoragepath)
@@ -757,9 +759,11 @@ For now, we have not come around to deciding how retry should work in the case o
 ### 9.0.0 - In-Progress
 * **(new feature)** [#204 Introduction of the Execution Mode replacing Phases](https://github.com/adobe/phased-testing/issues/204). We have revised the way we execute scenarios, as we no longer only cater to Upgrade tests. The means you should revise the way you execute Phased Tests by using Execution Modes. For more information please refer to the chapter [Execution Modes](#execution-modes).
 * **(new feature)** [#35 Adding the Permutation Execution Mode](https://github.com/adobe/phased-testing/issues/35). We have introduced the Permutation Execution Mode. This mode executes a scenario with all possible permutations it can have. This is done by identifying the dependencies between each step, and creating the possible orders of that scenario. For more information please refer to the chapters [Permutation Execution Mode](#permutation-execution-mode).
+* **(new feature)** [#197 Adding the event wrappings to a step](https://github.com/adobe/phased-testing/issues/197). We have now introduced the different wrappings an event can have around a test step. Wrappings can be set in different ways: Execution Mode, Event annotation (in progress), The Phased Test Annotation. 
 
 * **New Environment Variables**
 * MUTATIONAL.EXECUTION.MODE : This property is used to set the execution mode of the Mutational Tests. The value can be one of the following: STANDARD, INTERRUPTIVE(PRODUCER), INTERRUPTIVE(CONSUMER), NON-INTERRUPTIVE, PERMUATIONAL. This will replace the PHASED.TESTS.PHASE property which will be removed in 9.X.3.
+* MUTATIONAL.EVENTS.TARGET : This property allows us to run a single event on a specific step of a scenario. The notation is either the standard method reference, or that of Surefire.  
 
 ### 8.11.2
 * **(new feature)** [#178 Allowing the injection in any step of a scenario](https://github.com/adobe/phased-testing/issues/178). We can now inject an event into a step in an arbitrary phased test. This is done by setting the syetm property PHASED.EVENTS.TARGET. This way you can inject the event into that step.
