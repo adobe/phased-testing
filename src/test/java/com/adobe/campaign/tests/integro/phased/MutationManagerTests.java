@@ -9,10 +9,13 @@
 package com.adobe.campaign.tests.integro.phased;
 
 import com.adobe.campaign.tests.integro.phased.data.NormalSeries_A;
+import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_F_Shuffle;
 import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClassWithError;
+import com.adobe.campaign.tests.integro.phased.mutational.data.ie.MutationalTestSingleRun;
 import com.adobe.campaign.tests.integro.phased.mutational.data.nested.MutationalTestParent;
 import com.adobe.campaign.tests.integro.phased.mutational.data.simple1.PhasedChild1;
 import com.adobe.campaign.tests.integro.phased.mutational.data.simple1.PhasedChild2;
+import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 import com.adobe.campaign.tests.integro.phased.utils.MockTestTools;
 import org.hamcrest.Matchers;
@@ -24,6 +27,10 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -110,7 +117,7 @@ public class MutationManagerTests {
     }
 
     @Test
-    public void testExecutionIndex_InterruptiveProducer() {
+    public void testExecutionIndex_ShufflingProducer() {
         //PRODUCER
         //Three steps
         //PG 2_1
@@ -150,6 +157,59 @@ public class MutationManagerTests {
                         new RunValues(ExecutionMode.PERMUTATIONAL, "23")),
                 Matchers.arrayContaining(0, 3));
     }
+
+    @Test
+    public void testExecutionIndex_SingleRunProducer() throws NoSuchMethodException {
+        //PRODUCER
+        //Three steps
+        //PG 2_1
+
+        Class testClass = MutationalTestSingleRun.class;
+
+        Map<Class<?>, List<String>> l_myMap = new HashMap<>();
+        Method method1 = testClass.getMethod("step1", String.class);
+        Method method2 = testClass.getMethod("step2", String.class);
+        Method method3 = testClass.getMethod("step3", String.class);
+
+        l_myMap.put(testClass,
+                Arrays.asList(ClassPathParser.fetchFullName(method1), ClassPathParser.fetchFullName(method2),
+                        ClassPathParser.fetchFullName(method3)));
+
+        Map<String, MethodMapping> l_result = PhasedTestManager.generatePhasedProviders(l_myMap,
+                Phases.getCurrentPhase().fetchRunValues());
+
+        String l_phaseGroup = PhasedTestManager.STD_PHASED_GROUP_SINGLE;
+
+        //MutationManager.
+        //String l_scenarioName = MutationManager.fetchScenarioName(testClass.getTypeName(), l_phaseGroup);
+
+        assertThat("We should have two steps to execute in Producer",
+                MutationManager.fetchExecutionIndex(testClass.getTypeName(), l_phaseGroup,
+                        new RunValues(ExecutionMode.INTERRUPTIVE, "PRODUCER")),
+                Matchers.arrayContaining(0, 2));
+
+        assertThat("We should have one steps to executed in Consumer",
+                MutationManager.fetchExecutionIndex(testClass.getTypeName(), l_phaseGroup,
+                        new RunValues(ExecutionMode.INTERRUPTIVE, "CONSUMER")),
+                Matchers.arrayContaining(2, 3));
+
+        assertThat("We should have one steps to executed by default",
+                MutationManager.fetchExecutionIndex(testClass.getTypeName(), l_phaseGroup,
+                        new RunValues(ExecutionMode.STANDARD, "")),
+                Matchers.arrayContaining(0, 3));
+
+        assertThat("We should have one steps to executed in Asynchronous",
+                MutationManager.fetchExecutionIndex(testClass.getTypeName(), l_phaseGroup,
+                        new RunValues(ExecutionMode.NON_INTERRUPTIVE, "23")),
+                Matchers.arrayContaining(0, 3));
+
+        assertThat("We should have one steps to executed in permutational",
+                MutationManager.fetchExecutionIndex(testClass.getTypeName(), l_phaseGroup,
+                        new RunValues(ExecutionMode.PERMUTATIONAL, "23")),
+                Matchers.arrayContaining(0, 3));
+    }
+
+
 
     @Test
     public void testIfTestIsMutationalSimple() {
@@ -205,6 +265,51 @@ public class MutationManagerTests {
         ConfigValueHandlerPhased.EVENT_TARGET.activate(l_myClass.getTypeName()+".step1");
         assertThat("We should be in Shuffled mode", !PhasedTestManager.isPhasedTestShuffledMode(l_myClass));
         assertThat("We should  be in Single mode", PhasedTestManager.isPhasedTestSingleMode(l_myClass));
+    }
+
+
+    @Test
+    public void testCreateDataProviderData_singleRun() throws NoSuchMethodException {
+        Phases.PRODUCER.activate();
+
+        Map<Class<?>, List<String>> l_myMap = new HashMap<>();
+        Method method1 = MutationalTestSingleRun.class.getMethod("step1", String.class);
+        Method method2 = MutationalTestSingleRun.class.getMethod("step2", String.class);
+        Method method3 = MutationalTestSingleRun.class.getMethod("step3", String.class);
+
+        l_myMap.put(MutationalTestSingleRun.class,
+                Arrays.asList(ClassPathParser.fetchFullName(method1), ClassPathParser.fetchFullName(method2),
+                        ClassPathParser.fetchFullName(method3)));
+
+        Map<String, MethodMapping> l_result = PhasedTestManager.generatePhasedProviders(l_myMap,
+                Phases.getCurrentPhase().fetchRunValues());
+
+        assertThat("we need to have the expected key", l_result.containsKey(ClassPathParser.fetchFullName(method1)));
+        assertThat("The first method should have three entries", l_result.get(ClassPathParser.fetchFullName(method1)).nrOfProviders, equalTo(3));
+
+        assertThat("The first method should have two entries", l_result.get(ClassPathParser.fetchFullName(method2)).nrOfProviders, equalTo(2));
+
+        assertThat("The first method should have one entry", l_result.get(ClassPathParser.fetchFullName(method3)).nrOfProviders, equalTo(1));
+
+
+        assertThat("We should have the same amount of total sizes", l_result.get(ClassPathParser.fetchFullName(method1)).totalClassMethods,
+                equalTo(l_result.get(ClassPathParser.fetchFullName(method2)).totalClassMethods));
+        assertThat("We should have the same amount of total sizes", l_result.get(ClassPathParser.fetchFullName(method1)).totalClassMethods,
+                equalTo(l_result.get(ClassPathParser.fetchFullName(method3)).totalClassMethods));
+
+        assertThat("The first method should have three entries", l_result.get(ClassPathParser.fetchFullName(method1)).methodOrderInExecution, equalTo(1));
+
+        assertThat("The first method should have two entries", l_result.get(ClassPathParser.fetchFullName(method2)).methodOrderInExecution, equalTo(2));
+
+        assertThat("The first method should have one entry", l_result.get(ClassPathParser.fetchFullName(method3)).methodOrderInExecution, equalTo(3));
+
+        assertThat("We should have the correct number of annotations", l_result.get(ClassPathParser.fetchFullName(method3)).annotations.length,
+                Matchers.equalTo(1));
+
+        assertThat("We should have the correct annotations", l_result.get(ClassPathParser.fetchFullName(method3)).annotations[0],
+                Matchers.instanceOf(PhaseEvent.class));
+
+
     }
 
 

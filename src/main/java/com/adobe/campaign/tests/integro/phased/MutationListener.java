@@ -129,7 +129,7 @@ public class MutationListener
 
             } else {
                 annotation.setDataProvider(PhasedTestManager.isPhasedTestShuffledMode(
-                        l_currentClass) ? PhasedDataProvider.MUTATIONAL : PhasedDataProvider.SINGLE);
+                        l_currentClass) ? PhasedDataProvider.MUTATIONAL : PhasedDataProvider.MUTATIONAL_SINGLE);
             }
 
             annotation.setDataProviderClass(PhasedDataProvider.class);
@@ -192,30 +192,18 @@ public class MutationListener
 
             //Prepare data for shuffle calculation
             //NIA Cases 1 & 5
-            if (PhasedTestManager.isPhasedTestShuffledMode(lt_method)) {
+            //if (PhasedTestManager.isPhasedTestShuffledMode(lt_method)) {
                 log.debug("{} In Shuffled mode : current test {}", PhasedTestManager.PHASED_TEST_LOG_PREFIX
                         , ClassPathParser.fetchFullName(lt_method));
-                if (!l_classMethodMap.containsKey(lt_method.getDeclaringClass())) {
-                    l_classMethodMap.put(lt_method.getDeclaringClass(), new ArrayList<>());
-                }
+
+                l_classMethodMap.putIfAbsent(lt_method.getDeclaringClass(), new ArrayList<>());
 
                 l_classMethodMap.get(lt_method.getDeclaringClass())
                         .add(ClassPathParser.fetchFullName(lt_method));
-            }
+            //}
         }
 
         //If the property PHASED.TESTS.DETECT.ORDER not set, we follow the standard TestNG order
-        /*
-        if (ConfigValueHandlerPhased.PHASED_TEST_DETECT_ORDER.is("false")) {
-            log.info("{} Generating Phased Providers", PhasedTestManager.PHASED_TEST_LOG_PREFIX);
-            //NIA
-            PhasedTestManager.generatePhasedProviders(l_classMethodMap, Phases.getCurrentPhase());
-            //return list;
-            return list.stream().filter(l -> l.getMethod().getRealClass().equals(PhasedParent.class)).collect(
-                    Collectors.toList());
-        } else {
-
-         */
 
             //Generate scenario step dependencies
         PhasedTestManager.setStepDependencies(l_phasedClasses.stream().filter(pc -> !pc.equals(Mutational.class))
@@ -245,6 +233,7 @@ public class MutationListener
                     throw new PhasedTestDefinitionException("The scenario " + lt_sd.getScenarioName()
                             + " is not executable. This is probably due to steps that consume a  resource that is not produced.");
                 }
+
                 for (StepDependencies lt_methodName : lt_sd.fetchExecutionOrderList()) {
                     l_phasedDependencyMethods.stream()
                             .filter(m -> m.getMethod().getConstructorOrMethod().getName()
