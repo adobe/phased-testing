@@ -1,0 +1,70 @@
+<!--
+
+    Copyright 2022 Adobe
+    All Rights Reserved.
+
+    NOTICE: Adobe permits you to use, modify, and distribute this file in
+    accordance with the terms of the Adobe license agreement accompanying
+    it.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.adobe.campaign.tests.phased</groupId>
+        <artifactId>phased-testing-parent</artifactId>
+        <version>9.0.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+    <artifactId>phased-testing-report-aggregate</artifactId>
+    <packaging>pom</packaging>
+    <description>Aggregates JaCoCo coverage across all modules into a single report. Needed because
+        phased-testing-core and phased-testing-test-fixtures have no tests of their own — their code is
+        exercised entirely by the phased-testing-testng and phased-testing-mutational test suites, so a
+        per-module JaCoCo report would show them as 0% covered. Internal to this repository's build; never
+        deployed as a released artifact.</description>
+    <name>${project.groupId}:${project.artifactId}</name>
+    <properties>
+        <maven.test.skip>true</maven.test.skip>
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>com.adobe.campaign.tests.phased</groupId>
+            <artifactId>phased-testing-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.adobe.campaign.tests.phased</groupId>
+            <artifactId>phased-testing-test-fixtures</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.adobe.campaign.tests.phased</groupId>
+            <artifactId>phased-testing-testng</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.adobe.campaign.tests.phased</groupId>
+            <artifactId>phased-testing-mutational</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>report-aggregate</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report-aggregate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

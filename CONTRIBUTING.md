@@ -47,12 +47,12 @@ All code pushed onto the repository must pass te following quality gates:
 * Passed Unit Tests
 * Code Coverage may not go down
 * The sonar quality gate should remain green
-* All new files need to ontain the license header. This can be acheived by running `mvn license:format`.
+* All new files need to contain the license header. This can be acheived by running `mvn license:format`.
 
 These validations are done automatically through github actions.
 
 ### Java Version
-Since our current users are still in java 8 the code needs to be able to compile in that version.
+Since our current users are still in java 11 the code needs to be able to compile in that version.
 
 ## Security Issues
 
