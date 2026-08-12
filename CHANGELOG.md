@@ -1,11 +1,9 @@
 # Changelog
 
-## 10.0.0
+## 9.0.0 - In-Progress
 * **(breaking change)** [#224 Split the project into a multi-module project](https://github.com/adobe/phased-testing/issues/224). The project is now a multi-module Maven build: `phased-testing-core` (shared engine), `phased-testing-testng` (annotation-driven authoring, same artifact coordinates as before), and `phased-testing-mutational` (new artifact, inheritance/template-method authoring). If you only use the classic `@PhasedTest` annotation model, no changes are required beyond bumping the version. If you use `Mutational`/`MutationListener`, you now need to add a dependency on `phased-testing-mutational` explicitly — see [Installation](README.md#installation).
 * **(breaking change)** The internal package `com.adobe.campaign.tests.integro.phased.permutational` has been renamed to `com.adobe.campaign.tests.integro.phased.stepdependencies`. This only affects code that directly imports classes from that package (`ScenarioStepDependencies`, `ScenarioStepDependencyFactory`, `StepDependencies`), not typical library usage.
 * **(breaking change)** The exception `MutationRampUpException` has been renamed to `ExecutionModeConfigurationException`, since it is thrown for a generic invalid-execution-mode configuration error, unrelated to Mutational Testing specifically.
-
-## 9.0.0 - In-Progress
 * **(new feature)** [#204 Introduction of the Execution Mode replacing Phases](https://github.com/adobe/phased-testing/issues/204). We have revised the way we execute scenarios, as we no longer only cater to Upgrade tests. The means you should revise the way you execute Phased Tests by using Execution Modes. For more information please refer to the chapter [Execution Modes](README.md#execution-modes).
 * **(new feature)** [#35 Adding the Permutation Execution Mode](https://github.com/adobe/phased-testing/issues/35). We have introduced the Permutation Execution Mode. This mode executes a scenario with all possible permutations it can have. This is done by identifying the dependencies between each step, and creating the possible orders of that scenario. For more information please refer to the chapters [Permutation Execution Mode](README.md#permutation-execution-mode).
 * **(new feature)** [#197 Adding the event wrappings to a step](https://github.com/adobe/phased-testing/issues/197). We have now introduced the different wrappings an event can have around a test step. Wrappings can be set in different ways: Execution Mode, Event annotation (in progress), The Phased Test Annotation.
