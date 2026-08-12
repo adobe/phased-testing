@@ -12,6 +12,7 @@ import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestConfiguratio
 import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestException;
 import com.adobe.campaign.tests.integro.phased.permutational.ScenarioStepDependencies;
 import com.adobe.campaign.tests.integro.phased.permutational.StepDependencies;
+import com.adobe.campaign.tests.integro.phased.spi.MutationMode;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 import com.adobe.campaign.tests.integro.phased.utils.StackTraceManager;
@@ -891,6 +892,87 @@ public final class PhasedTestManager {
     }
 
     /**
+     * The registered {@link MutationMode} strategies, most-specific first. Additional modes (e.g.
+     * permutational) are discovered via {@link ServiceLoader} at class-load time, so that this manager never
+     * references a concrete mode implementation by name. Extra modes can also be registered programmatically
+     * via {@link #registerMutationMode(MutationMode)} (e.g. from tests). The built-in interruptive/shuffle
+     * mode (today's "Phased Testing") is always last: it is the generic, catch-all mode (its own steps carry
+     * no marker beyond the {@link PhasedTest} annotation, which can also incidentally be present on a more
+     * specific mode's own base class), so more specific modes must always get the first chance to claim a
+     * method/class/result.
+     */
+    private static final List<MutationMode> mutationModes = buildMutationModes();
+
+    private static List<MutationMode> buildMutationModes() {
+        List<MutationMode> l_modes = new ArrayList<>();
+        ServiceLoader.load(MutationMode.class).forEach(l_modes::add);
+        l_modes.add(new PhasedShuffleMode());
+        return l_modes;
+    }
+
+    /**
+     * Registers an additional, more specific {@link MutationMode} strategy ahead of the built-in one, e.g.
+     * from a test, or from a module not discoverable via {@link ServiceLoader}.
+     *
+     * @param in_mode the mutation mode to register
+     */
+    public static void registerMutationMode(MutationMode in_mode) {
+        mutationModes.add(mutationModes.size() - 1, in_mode);
+    }
+
+    private static MutationMode fetchApplicableMode(Class<?> in_class) {
+        return mutationModes.stream().filter(m -> m.appliesTo(in_class)).findFirst()
+                .orElseGet(() -> mutationModes.get(mutationModes.size() - 1));
+    }
+
+    private static MutationMode fetchApplicableMode(ITestResult in_testResult) {
+        return mutationModes.stream().filter(m -> m.appliesTo(in_testResult)).findFirst()
+                .orElseGet(() -> mutationModes.get(mutationModes.size() - 1));
+    }
+
+    /**
+     * The built-in mutation mode implementing today's original Phased Testing behavior: interruptive events
+     * handled through shuffle groups and producer/consumer phases, declared via the {@link PhasedTest}
+     * annotation.
+     */
+    private static final class PhasedShuffleMode implements MutationMode {
+
+        @Override
+        public boolean appliesTo(Method in_method) {
+            return appliesTo(in_method.getDeclaringClass());
+        }
+
+        @Override
+        public boolean appliesTo(Class<?> in_class) {
+            return in_class.isAnnotationPresent(PhasedTest.class);
+        }
+
+        @Override
+        public boolean appliesTo(ITestResult in_testResult) {
+            return appliesTo(in_testResult.getMethod().getConstructorOrMethod().getMethod());
+        }
+
+        @Override
+        public boolean isSingleMode(Class<?> in_class) {
+            //TODO in 8.11.3 to be removed -  make public
+            //return isPhasedTest(in_class) && (isPhasedTestWithEvent(in_class)
+            return isPhasedTest(in_class) && (isPhasedTestWithEvent(in_class) || !in_class.getAnnotation(PhasedTest.class).canShuffle()) || isPhasedTestTargetOfEvent(in_class);
+        }
+
+        @Override
+        public boolean isShuffleMode(Class<?> in_class) {
+            return isPhasedTest(in_class) && !isPhasedTestWithEvent(in_class) && in_class.getAnnotation(PhasedTest.class)
+                    .canShuffle() && !isPhasedTestTargetOfEvent(in_class);
+        }
+
+        @Override
+        public String fetchScenarioName(ITestResult in_testResult) {
+            return in_testResult.getMethod().getConstructorOrMethod().getMethod().getDeclaringClass()
+                    .getTypeName() + ClassPathParser.fetchParameterValues(in_testResult);
+        }
+    }
+
+    /**
      * This method tells us if the method is a valid phased test. This is done by seeing if the annotation PhasedStep is
      * on the method, and if the annotation PhasedTest is on the class
      * <p>
@@ -900,7 +982,7 @@ public final class PhasedTestManager {
      * @return true if The annotations PhasedTest and PhasedStep are present
      */
     public static boolean isPhasedTest(Method in_method) {
-        return isPhasedTest(in_method.getDeclaringClass()) || MutationManager.isMutationalTest(in_method);
+        return mutationModes.stream().anyMatch(m -> m.appliesTo(in_method));
     }
 
     /**
@@ -912,7 +994,7 @@ public final class PhasedTestManager {
      * @return True if the class is a phased test scenario
      */
     public static boolean isPhasedTest(Class<?> in_class) {
-        return in_class.isAnnotationPresent(PhasedTest.class) || MutationManager.isMutationalTest(in_class);
+        return mutationModes.stream().anyMatch(m -> m.appliesTo(in_class));
     }
 
     /**
@@ -932,13 +1014,7 @@ public final class PhasedTestManager {
      * @return True if the test class is a SingleRun Phase Test scenario
      */
     static boolean isPhasedTestSingleMode(Class<?> in_class) {
-        if (MutationManager.isMutationalTest(in_class)) {
-            return MutationManager.isSingleMode(in_class);
-        }
-
-        //TODO in 8.11.3 to be removed -  make public
-        //return isPhasedTest(in_class) && (isPhasedTestWithEvent(in_class)
-        return isPhasedTest(in_class) && (isPhasedTestWithEvent(in_class) || !in_class.getAnnotation(PhasedTest.class).canShuffle()) || isPhasedTestTargetOfEvent(in_class);
+        return fetchApplicableMode(in_class).isSingleMode(in_class);
     }
 
     /**
@@ -971,11 +1047,7 @@ public final class PhasedTestManager {
      * @return True if the given test scenario is a Shuffled Phased Test scenario
      */
     static boolean isPhasedTestShuffledMode(Class<?> in_class) {
-        if (MutationManager.isMutationalTest(in_class)) {
-            return MutationManager.isShuffleMode(in_class);
-        }
-        return isPhasedTest(in_class) && !isPhasedTestWithEvent(in_class) && in_class.getAnnotation(PhasedTest.class)
-                .canShuffle() && !isPhasedTestTargetOfEvent(in_class);
+        return fetchApplicableMode(in_class).isShuffleMode(in_class);
     }
 
     /**
@@ -988,11 +1060,7 @@ public final class PhasedTestManager {
      * @return The identity of the scenario
      */
     public static String fetchScenarioName(ITestResult in_testNGResult) {
-        if (MutationManager.isMutationalTest(in_testNGResult)) {
-            return MutationManager.fetchScenarioName(in_testNGResult);
-        }
-        return in_testNGResult.getMethod().getConstructorOrMethod().getMethod().getDeclaringClass()
-            .getTypeName() + ClassPathParser.fetchParameterValues(in_testNGResult);
+        return fetchApplicableMode(in_testNGResult).fetchScenarioName(in_testNGResult);
     }
 
     /**
@@ -1362,7 +1430,9 @@ public final class PhasedTestManager {
             return lr_defaultReturnValue;
         }
 
-        if (l_dataProviderClass.equals(PhasedDataProvider.class)) {
+        final Class<?> l_candidateDataProviderClass = l_dataProviderClass;
+        if (l_candidateDataProviderClass.equals(PhasedDataProvider.class)
+                || mutationModes.stream().anyMatch(m -> m.ownsDataProviderClass(l_candidateDataProviderClass))) {
             return lr_defaultReturnValue;
         }
 

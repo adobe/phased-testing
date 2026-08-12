@@ -20,6 +20,7 @@ import com.adobe.campaign.tests.integro.phased.mutational.data.permutational.Mul
 import com.adobe.campaign.tests.integro.phased.mutational.data.permutational.ShoppingCartDemo;
 import com.adobe.campaign.tests.integro.phased.permutational.ScenarioStepDependencies;
 import com.adobe.campaign.tests.integro.phased.permutational.ScenarioStepDependencyFactory;
+import com.adobe.campaign.tests.integro.phased.spi.MutationMode;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 import com.adobe.campaign.tests.integro.phased.utils.MockTestTools;
@@ -1497,6 +1498,68 @@ public class PhasedTestManagerTests {
 
         assertThat("We should have the correct full name", PhasedTestManager.fetchScenarioName(l_itr),
                 equalTo("com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClassWithError(Q)"));
+    }
+
+    @Test
+    public void testFetchScenarioID_NonPhasedNonMutational_Fallback() throws NoSuchMethodException, SecurityException {
+        //A plain, non-phased, non-mutational method should fall back to the built-in mode's default naming
+        final Method l_myMethod = NormalSeries_A.class.getMethod("firstTest");
+
+        ITestResult l_itr = MockTestTools.generateTestResultMock(l_myMethod, new Object[0]);
+
+        assertThat("We should fall back to the declaring class' full name", PhasedTestManager.fetchScenarioName(l_itr),
+                equalTo("com.adobe.campaign.tests.integro.phased.data.NormalSeries_A"));
+    }
+
+    @Test
+    public void testRegisterMutationMode() throws NoSuchMethodException, SecurityException {
+        class RegisterMutationModeMarkerClass {
+            public void dummyStep() {
+            }
+        }
+
+        final Method l_dummyMethod = RegisterMutationModeMarkerClass.class.getMethod("dummyStep");
+
+        MutationMode l_customMode = new MutationMode() {
+            @Override
+            public boolean appliesTo(Method in_method) {
+                return in_method.getDeclaringClass().equals(RegisterMutationModeMarkerClass.class);
+            }
+
+            @Override
+            public boolean appliesTo(Class<?> in_class) {
+                return in_class.equals(RegisterMutationModeMarkerClass.class);
+            }
+
+            @Override
+            public boolean appliesTo(ITestResult in_testResult) {
+                return false;
+            }
+
+            @Override
+            public boolean isSingleMode(Class<?> in_class) {
+                return true;
+            }
+
+            @Override
+            public boolean isShuffleMode(Class<?> in_class) {
+                return false;
+            }
+
+            @Override
+            public String fetchScenarioName(ITestResult in_testResult) {
+                return "custom-scenario-name";
+            }
+        };
+
+        PhasedTestManager.registerMutationMode(l_customMode);
+
+        assertThat("The newly registered mode should recognize the marker class as a phased test",
+                PhasedTestManager.isPhasedTest(l_dummyMethod));
+        assertThat("The newly registered mode should recognize the marker class as a phased test",
+                PhasedTestManager.isPhasedTest(RegisterMutationModeMarkerClass.class));
+        assertThat("The newly registered mode should classify the marker class as single mode",
+                PhasedTestManager.isPhasedTestSingleMode(l_dummyMethod));
     }
 
     /**

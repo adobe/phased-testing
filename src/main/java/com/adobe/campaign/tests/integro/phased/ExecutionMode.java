@@ -8,7 +8,7 @@
  */
 package com.adobe.campaign.tests.integro.phased;
 
-import com.adobe.campaign.tests.integro.phased.exceptions.MutationRampUpException;
+import com.adobe.campaign.tests.integro.phased.exceptions.ExecutionModeConfigurationException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -150,7 +150,7 @@ public enum ExecutionMode {
      */
     public void activate(String in_executionMode) {
         if (!behaviorTypes.contains(in_executionMode)) {
-            throw new MutationRampUpException("The given execution mode type is not valid for this execution type. Please use one of the following: " + behaviorTypes.toString());
+            throw new ExecutionModeConfigurationException("The given execution mode type is not valid for this execution type. Please use one of the following: " + behaviorTypes.toString());
         }
 
         ConfigValueHandlerPhased.PROP_EXECUTION_MODE.activate(this.name() + "(" + in_executionMode + ")");

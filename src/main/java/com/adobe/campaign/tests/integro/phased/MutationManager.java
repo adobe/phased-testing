@@ -8,16 +8,60 @@
  */
 package com.adobe.campaign.tests.integro.phased;
 
+import com.adobe.campaign.tests.integro.phased.spi.MutationMode;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
 import org.testng.ITestNGMethod;
 import org.testng.ITestResult;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.List;
 import java.util.stream.Collectors;
 
 public class MutationManager {
+
+    /**
+     * The {@link MutationMode} implementation for permutational ("Mutational") scenarios, delegating to this
+     * class's existing static methods. Discovered by {@link PhasedTestManager} via {@link java.util.ServiceLoader}
+     * (see {@code META-INF/services/com.adobe.campaign.tests.integro.phased.spi.MutationMode}) rather than through
+     * a compile-time reference, so it must be a public class with a public no-arg constructor.
+     */
+    public static final class MutationManagerMode implements MutationMode {
+
+        @Override
+        public boolean appliesTo(Method in_method) {
+            return isMutationalTest(in_method);
+        }
+
+        @Override
+        public boolean appliesTo(Class<?> in_class) {
+            return isMutationalTest(in_class);
+        }
+
+        @Override
+        public boolean appliesTo(ITestResult in_testResult) {
+            return isMutationalTest(in_testResult);
+        }
+
+        @Override
+        public boolean isSingleMode(Class<?> in_class) {
+            return MutationManager.isSingleMode(in_class);
+        }
+
+        @Override
+        public boolean isShuffleMode(Class<?> in_class) {
+            return MutationManager.isShuffleMode(in_class);
+        }
+
+        @Override
+        public String fetchScenarioName(ITestResult in_testResult) {
+            return MutationManager.fetchScenarioName(in_testResult);
+        }
+
+        @Override
+        public boolean ownsDataProviderClass(Class<?> in_dataProviderClass) {
+            return MutationalDataProvider.class.equals(in_dataProviderClass);
+        }
+    }
 
     /**
      * This method provides an ID for the scenario given the ITestNGResult. This is assembled using the Classname + the

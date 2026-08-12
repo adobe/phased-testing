@@ -8,7 +8,7 @@
  */
 package com.adobe.campaign.tests.integro.phased;
 
-import com.adobe.campaign.tests.integro.phased.exceptions.MutationRampUpException;
+import com.adobe.campaign.tests.integro.phased.exceptions.ExecutionModeConfigurationException;
 import org.hamcrest.Matchers;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
@@ -70,7 +70,23 @@ public class ExecutionModeTests {
 
     @Test
     public void test_Negative_SetBadMode() {
-        Assert.assertThrows(MutationRampUpException.class, () -> ExecutionMode.INTERRUPTIVE.activate("23"));
+        Assert.assertThrows(ExecutionModeConfigurationException.class, () -> ExecutionMode.INTERRUPTIVE.activate("23"));
+    }
+
+    @Test
+    public void testExecutionModeConfigurationException_DefaultMessage() {
+        assertThat("The default constructor should provide a default message",
+                new ExecutionModeConfigurationException().getMessage(), Matchers.notNullValue());
+    }
+
+    @Test
+    public void testExecutionModeConfigurationException_MessageAndCause() {
+        Throwable l_cause = new RuntimeException("root cause");
+        ExecutionModeConfigurationException l_exception = new ExecutionModeConfigurationException("my message",
+                l_cause);
+
+        assertThat("The message should be set", l_exception.getMessage(), Matchers.equalTo("my message"));
+        assertThat("The cause should be set", l_exception.getCause(), Matchers.equalTo(l_cause));
     }
 
     @Test
