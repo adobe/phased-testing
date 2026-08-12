@@ -126,13 +126,13 @@ public class MutationListener
             if (ExecutionMode.STANDARD.isSelected()) {
                 annotation.setDataProvider(
                         ConfigValueHandlerPhased.PHASED_TEST_NONPHASED_LEGACY.is("true") ? PhasedDataProvider.SINGLE : PhasedDataProvider.DEFAULT);
+                annotation.setDataProviderClass(PhasedDataProvider.class);
 
             } else {
                 annotation.setDataProvider(PhasedTestManager.isPhasedTestShuffledMode(
-                        l_currentClass) ? PhasedDataProvider.MUTATIONAL : PhasedDataProvider.MUTATIONAL_SINGLE);
+                        l_currentClass) ? MutationalDataProvider.MUTATIONAL : MutationalDataProvider.MUTATIONAL_SINGLE);
+                annotation.setDataProviderClass(MutationalDataProvider.class);
             }
-
-            annotation.setDataProviderClass(PhasedDataProvider.class);
         }
     }
 

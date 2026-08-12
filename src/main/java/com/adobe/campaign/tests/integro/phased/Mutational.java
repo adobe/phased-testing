@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 @PhasedTest
-@Test(dataProvider = "MUTATIONAL", dataProviderClass = PhasedDataProvider.class)
+@Test(dataProvider = MutationalDataProvider.MUTATIONAL, dataProviderClass = MutationalDataProvider.class)
 public abstract class Mutational {
 
     public void scenario(String phaseGroup) throws Throwable {

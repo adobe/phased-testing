@@ -15,22 +15,19 @@ package com.adobe.campaign.tests.integro.phased.exceptions;
  * Author : gandomi
  *
  */
-public class MutationRampUpException extends RuntimeException {
+public class ExecutionModeConfigurationException extends RuntimeException {
 
-    /**
-     *
-     */
     private static final long serialVersionUID = -5305055623086270877L;
 
-    public MutationRampUpException(String in_msg, Throwable e) {
+    public ExecutionModeConfigurationException(String in_msg, Throwable e) {
         super(in_msg, e);
     }
 
-    public MutationRampUpException(String in_msg) {
+    public ExecutionModeConfigurationException(String in_msg) {
         super(in_msg);
     }
 
-    public MutationRampUpException() {
-        this("Unexpected Expection occurred when raping up the mutation tests.");
+    public ExecutionModeConfigurationException() {
+        this("Unexpected exception occurred when validating the execution mode configuration.");
     }
 }
