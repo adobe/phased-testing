@@ -10,15 +10,13 @@ package com.adobe.campaign.tests.integro.phased;
 
 import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestConfigurationException;
 import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestException;
-import com.adobe.campaign.tests.integro.phased.permutational.ScenarioStepDependencies;
-import com.adobe.campaign.tests.integro.phased.permutational.StepDependencies;
+import com.adobe.campaign.tests.integro.phased.stepdependencies.ScenarioStepDependencies;
 import com.adobe.campaign.tests.integro.phased.spi.MutationMode;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 import com.adobe.campaign.tests.integro.phased.utils.StackTraceManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.testng.ITestNGMethod;
 import org.testng.ITestResult;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -564,60 +562,32 @@ public final class PhasedTestManager {
 
     /**
      * Returns the provider for shuffling tests. In general the values are Shuffle group prefix + Nr of steps before the
-     * Phase Event and the number of steps after the event. This method is called in the context of MutationTests
-     * <p>
-     * Author : gandomi
-     *
-     * @param in_method The step/method for which we want to fond out the data provider
-     * @return A two-dimensional array of all the data providers attached to the current step/method
-     */
-    public static Object[][] fetchProvidersShuffled(ITestNGMethod in_method) {
-        String l_candidateMethod  = fetchMappingKeyWithMaxProviders(in_method.getTestClass().getRealClass().getTypeName(), getMethodMap());
-        return fetchProvidersShuffled(l_candidateMethod, ExecutionMode.getCurrentMode().fetchRunValues());
-    }
-
-    /**
-     * Returns the provider for shuffling tests. In general the values are Shuffle group prefix + Nr of steps before the
      * Phase Event and the number of steps after the event.
      * <p>
      * Author : gandomi
      *
      * @param in_methodFullName The full name of the method used for identifying it in the phase context
-     * @param in_runMode    The mode in which the mutational tests are executed
+     * @param in_runMode    The mode in which the tests are executed
      * @return A two-dimensional array of all the data providers attached to the current step/method
      */
     public static Object[][] fetchProvidersShuffled(String in_methodFullName, RunValues in_runMode) {
 
         final MethodMapping l_methodMapping = methodMap.get(in_methodFullName);
         int l_nrOfProviders = l_methodMapping.nrOfProviders;
-        Object[][] l_objectArrayPhased;
+        Object[][] l_objectArrayPhased = new Object[l_nrOfProviders][1];
+        for (int rows = 0; rows < l_nrOfProviders; rows++) {
 
-        if (in_runMode.getExecutionMode().equals(ExecutionMode.PERMUTATIONAL)) {
-            Map<String, List<StepDependencies>> l_permutations = getStepDependencies().get(l_methodMapping.declaredClass.getTypeName()).fetchScenarioPermutations();
-            l_nrOfProviders = l_permutations.size();
-            l_objectArrayPhased = new Object[l_nrOfProviders][1];
-            int i = 0;
-            for (Entry<String, List<StepDependencies>> entry : l_permutations.entrySet()) {
-                l_objectArrayPhased[i][0] = entry.getKey();
-                i++;
-            }
+            int lt_nrBeforePhase = in_runMode.getBehavior().equals("PRODUCER") ? (l_methodMapping.totalClassMethods
+                    - rows) : rows;
 
-        } else {
-            l_objectArrayPhased= new Object[l_nrOfProviders][1];
-            for (int rows = 0; rows < l_nrOfProviders; rows++) {
+            int lt_nrAfterPhase = l_methodMapping.totalClassMethods - lt_nrBeforePhase;
 
-                int lt_nrBeforePhase = in_runMode.getBehavior().equals("PRODUCER") ? (l_methodMapping.totalClassMethods
-                        - rows) : rows;
-
-                int lt_nrAfterPhase = l_methodMapping.totalClassMethods - lt_nrBeforePhase;
-
-                if (in_runMode.getExecutionMode().equals(ExecutionMode.INTERRUPTIVE)) {
-                    l_objectArrayPhased[rows][0] = STD_PHASED_GROUP_PREFIX + lt_nrBeforePhase
-                            + "_"
-                            + lt_nrAfterPhase;
-                } else if (ExecutionMode.NON_INTERRUPTIVE.isSelected()) {
-                    l_objectArrayPhased[rows][0] = STD_PHASED_GROUP_NIE_PREFIX + (rows + 1);
-                }
+            if (in_runMode.getExecutionMode().equals(ExecutionMode.INTERRUPTIVE)) {
+                l_objectArrayPhased[rows][0] = STD_PHASED_GROUP_PREFIX + lt_nrBeforePhase
+                        + "_"
+                        + lt_nrAfterPhase;
+            } else if (ExecutionMode.NON_INTERRUPTIVE.isSelected()) {
+                l_objectArrayPhased[rows][0] = STD_PHASED_GROUP_NIE_PREFIX + (rows + 1);
             }
         }
 
