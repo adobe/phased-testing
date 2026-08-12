@@ -8,11 +8,14 @@
  */
 package com.adobe.campaign.tests.integro.phased;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.util.Arrays;
 
 public enum ConfigValueHandlerPhased {
     PROP_SELECTED_PHASE("PHASED.TESTS.PHASE", Phases.NON_PHASED.name(), false),
-    EVENTS_NONINTERRUPTIVE("PHASED.EVENTS.NONINTERRUPTIVE",null, false),
+    EVENTS_NONINTERRUPTIVE("MUTATIONAL.EVENTS.NONINTERRUPTIVE", null, false, "PHASED.EVENTS.NONINTERRUPTIVE"),
     PROP_PHASED_TEST_DATABROKER("PHASED.TESTS.DATABROKER", null, false),
     PROP_PHASED_DATA_PATH("PHASED.TESTS.STORAGE.PATH", null, false),
     PROP_OUTPUT_DIR("PHASED.TESTS.OUTPUT.DIR", PhasedTestManager.DEFAULT_CACHE_DIR,false),
@@ -22,17 +25,31 @@ public enum ConfigValueHandlerPhased {
     PHASED_TEST_DETECT_ORDER("PHASED.TESTS.DETECT.ORDER", "false", false),
     PHASED_TEST_NONPHASED_LEGACY( "PHASED.TESTS.NONPHASED.LEGACY", "false", false ),
     PROP_SCENARIO_EXPORTED_PREFIX("PHASED.TESTS.STORAGE.SCENARIO.PREFIX", "[TC]", false),
-    EVENT_TARGET("PHASED.EVENTS.TARGET", null, false ),
+    EVENT_TARGET("MUTATIONAL.EVENTS.TARGET", null, false, "PHASED.EVENTS.TARGET"),
     PROP_EXECUTION_MODE("MUTATIONAL.EXECUTION.MODE", "DEFAULT", false);
+
+    private static final Logger log = LogManager.getLogger();
 
     public final String systemName;
     public final String defaultValue;
     public final boolean requiredValue;
+    public final String deprecatedSystemName;
 
     ConfigValueHandlerPhased(String in_propertyName, String in_defaultValue, boolean in_requiredValue) {
-        systemName =in_propertyName;
-        defaultValue=in_defaultValue;
-        requiredValue=in_requiredValue;
+        this(in_propertyName, in_defaultValue, in_requiredValue, null);
+    }
+
+    /**
+     * @param in_deprecatedPropertyName A previously used system property name for this config item, kept for
+     *                                   backward compatibility. Used as a fallback when the current
+     *                                   {@code systemName} is not set.
+     */
+    ConfigValueHandlerPhased(String in_propertyName, String in_defaultValue, boolean in_requiredValue,
+            String in_deprecatedPropertyName) {
+        systemName = in_propertyName;
+        defaultValue = in_defaultValue;
+        requiredValue = in_requiredValue;
+        deprecatedSystemName = in_deprecatedPropertyName;
     }
 
     /**
@@ -40,6 +57,12 @@ public enum ConfigValueHandlerPhased {
      * @return The string value of the given property
      */
     public String fetchValue() {
+        if (deprecatedSystemName != null && System.getProperties().containsKey(deprecatedSystemName)
+                && !System.getProperties().containsKey(systemName)) {
+            log.warn("IMPORTANT: The property {} is DEPRECATED. Please use the property {} henceforth.",
+                    deprecatedSystemName, systemName);
+            return System.getProperty(deprecatedSystemName, defaultValue);
+        }
         return System.getProperty(this.systemName, this.defaultValue);
     }
 
@@ -56,6 +79,9 @@ public enum ConfigValueHandlerPhased {
      */
     public void reset() {
         System.clearProperty(this.systemName);
+        if (deprecatedSystemName != null) {
+            System.clearProperty(deprecatedSystemName);
+        }
     }
 
     /**

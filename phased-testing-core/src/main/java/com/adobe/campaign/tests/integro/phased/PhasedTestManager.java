@@ -1872,7 +1872,7 @@ public final class PhasedTestManager {
      * Lets us know if the given class is the target of an event
      *
      * @param in_class A class candidate for an event
-     * @return true if the property  PHASED.EVENTS.NONINTERRUPTIVE.INJECTINTO points to a method in the class
+     * @return true if the property MUTATIONAL.EVENTS.TARGET points to a method in the class
      */
     public static boolean isPhasedTestTargetOfEvent(Class in_class) {
         if (!ConfigValueHandlerPhased.EVENT_TARGET.isSet()) {
@@ -1886,7 +1886,7 @@ public final class PhasedTestManager {
      * Lets us know if the given method is the target of an event
      *
      * @param in_method A method candidate for an event
-     * @return true if the property  PHASED.EVENTS.NONINTERRUPTIVE.INJECTINTO points to the method
+     * @return true if the property MUTATIONAL.EVENTS.TARGET points to the method
      */
     public static boolean isPhasedTestTargetOfEvent(Method in_method) {
         if (!ConfigValueHandlerPhased.EVENT_TARGET.isSet()) {

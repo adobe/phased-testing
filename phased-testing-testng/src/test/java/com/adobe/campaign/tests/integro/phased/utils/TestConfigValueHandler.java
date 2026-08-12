@@ -28,7 +28,7 @@ public class TestConfigValueHandler {
     public void testValuesForNonInterruptiveEvent() {
         ConfigValueHandlerPhased eventItem = ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE;
 
-        assertThat("By default the list of NIE should be empty",eventItem.systemName, equalTo("PHASED.EVENTS.NONINTERRUPTIVE"));
+        assertThat("By default the list of NIE should be empty",eventItem.systemName, equalTo("MUTATIONAL.EVENTS.NONINTERRUPTIVE"));
         assertThat("By default the list of NIE should be empty",eventItem.defaultValue, isEmptyOrNullString());
         assertThat("The value is not set by default", !eventItem.requiredValue);
     }

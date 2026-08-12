@@ -35,7 +35,7 @@ public class PhasedEventManager {
      * <ol>
      *  <li>Declaration in @PhaseEvent</li>
      *  <li>Declaration in @PhasedTest</li>
-     *  <li>When the property PHASED.EVENTS.NONINTERRUPTIVE is set</li>
+     *  <li>When the property MUTATIONAL.EVENTS.NONINTERRUPTIVE is set</li>
      * </ol>Null is returned if no such declaration is present.
      * @param in_method The method we are examining
      * @return The event that is declared on the method. Null if there is no event declared for the method
