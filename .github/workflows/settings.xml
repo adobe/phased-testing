@@ -22,12 +22,11 @@
             </activation>
             <properties>
                 <releaseRepository-Id>ossrh</releaseRepository-Id>
-                <releaseRepository-URL>https://oss.sonatype.org/service/local/staging/deploy/maven2/</releaseRepository-URL>
+                <releaseRepository-URL>https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/</releaseRepository-URL>
                 <snapshotRepository-Id>ossrh</snapshotRepository-Id>
-                <snapshotRepository-URL>https://oss.sonatype.org/content/repositories/snapshots</snapshotRepository-URL>
+                <snapshotRepository-URL>https://central.sonatype.com/repository/maven-snapshots/</snapshotRepository-URL>
                 <project.scm.id>github</project.scm.id>
                 <gpg.executable>gpg</gpg.executable>
-                <gpg.passphrase>${env.GPG_PASSPHRASE}</gpg.passphrase>
             </properties>
         </profile>
     </profiles>
