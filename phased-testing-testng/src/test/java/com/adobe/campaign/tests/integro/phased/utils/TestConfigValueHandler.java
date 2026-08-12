@@ -81,6 +81,29 @@ public class TestConfigValueHandler {
     }
 
     @Test
+    public void testDeprecatedPropertyFallback() {
+        ConfigValueHandlerPhased eventItem = ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE;
+
+        assertThat("The value should not be set yet", !eventItem.isSet());
+
+        System.setProperty(eventItem.deprecatedSystemName, "MyDeprecatedValue");
+
+        assertThat("isSet should honor the deprecated property name", eventItem.isSet());
+        assertThat("fetchValue should fall back to the deprecated property name", eventItem.fetchValue(),
+                equalTo("MyDeprecatedValue"));
+
+        eventItem.activate("MyNewValue");
+
+        assertThat("The new property name should take precedence over the deprecated one", eventItem.fetchValue(),
+                equalTo("MyNewValue"));
+
+        eventItem.reset();
+
+        assertThat("reset() should clear both the new and the deprecated property", !eventItem.isSet());
+        assertThat(System.getProperty(eventItem.deprecatedSystemName), equalTo(null));
+    }
+
+    @Test
     public void testEqualsIgnoreCase() {
         ConfigValueHandlerPhased eventItem = ConfigValueHandlerPhased.PHASED_TEST_NONPHASED_LEGACY;
 

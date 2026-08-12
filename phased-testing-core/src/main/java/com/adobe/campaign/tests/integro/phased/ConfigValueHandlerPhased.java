@@ -96,7 +96,8 @@ public enum ConfigValueHandlerPhased {
      * @return true if the value for our config item is in the system
      */
     public boolean isSet() {
-        return System.getProperties().containsKey(this.systemName);
+        return System.getProperties().containsKey(this.systemName)
+                || (deprecatedSystemName != null && System.getProperties().containsKey(deprecatedSystemName));
     }
 
     /**
