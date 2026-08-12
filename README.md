@@ -158,16 +158,37 @@ This is particularily usefull for covering all the possible paths a functional s
 ## Installation
 This version runs with the TestNG runner. You can use this library by including it in your project.
 
+As of version 10.0.0, the project is split into multiple Maven modules sharing a common core engine
+(`phased-testing-core`), so that the annotation-driven "Phased Testing" authoring model and the
+inheritance/template-method-driven "Mutational Testing" authoring model can be released and depended on
+independently. `phased-testing-core` is a transitive dependency of both and does not need to be declared
+explicitly.
+
 ### Maven
-The following dependency needs to be added to your pom file:
+
+If you write tests using the classic `@PhasedTest` annotation model (`PhasedTest`, `@PhaseEvent`,
+`PhasedTestListener`, `PhasedDataProvider`), add:
 
 ```
  <dependency>
     <groupId>com.adobe.campaign.tests.phased</groupId>
     <artifactId>phased-testing-testng</artifactId>
-    <version>9.0.0</version>
+    <version>10.0.0</version>
 </dependency>
 ```
+
+If you write tests using the `Mutational` base class (inheritance/template-method model, permutations,
+`MutationListener`), add:
+
+```
+ <dependency>
+    <groupId>com.adobe.campaign.tests.phased</groupId>
+    <artifactId>phased-testing-mutational</artifactId>
+    <version>10.0.0</version>
+</dependency>
+```
+
+You can declare both dependencies together if your project uses both authoring styles.
 
 ## Demo
 We have a standard demo that can be accessed through the [Phased Test Demo](https://github.com/baubakg/phased-test-demo).
@@ -755,6 +776,11 @@ For now, we do not know how parallel execution will work with phased tests. So i
 For now, we have not come around to deciding how retry should work in the case of phased tests. By default, we deactivate them on the phased tests unless the user specifically chooses to activate them by setting the system property `PHASED.TESTS.RETRY.DISABLED` to false. 
 
 ## Release Notes
+
+### 10.0.0
+* **(breaking change)** [#224 Split the project into a multi-module project](https://github.com/adobe/phased-testing/issues/224). The project is now a multi-module Maven build: `phased-testing-core` (shared engine), `phased-testing-testng` (annotation-driven authoring, same artifact coordinates as before), and `phased-testing-mutational` (new artifact, inheritance/template-method authoring). If you only use the classic `@PhasedTest` annotation model, no changes are required beyond bumping the version. If you use `Mutational`/`MutationListener`, you now need to add a dependency on `phased-testing-mutational` explicitly — see [Installation](#installation).
+* **(breaking change)** The internal package `com.adobe.campaign.tests.integro.phased.permutational` has been renamed to `com.adobe.campaign.tests.integro.phased.stepdependencies`. This only affects code that directly imports classes from that package (`ScenarioStepDependencies`, `ScenarioStepDependencyFactory`, `StepDependencies`), not typical library usage.
+* **(breaking change)** The exception `MutationRampUpException` has been renamed to `ExecutionModeConfigurationException`, since it is thrown for a generic invalid-execution-mode configuration error, unrelated to Mutational Testing specifically.
 
 ### 9.0.0 - In-Progress
 * **(new feature)** [#204 Introduction of the Execution Mode replacing Phases](https://github.com/adobe/phased-testing/issues/204). We have revised the way we execute scenarios, as we no longer only cater to Upgrade tests. The means you should revise the way you execute Phased Tests by using Execution Modes. For more information please refer to the chapter [Execution Modes](#execution-modes).
