@@ -74,6 +74,22 @@ public class ExecutionModeTests {
     }
 
     @Test
+    public void testExecutionModeConfigurationException_DefaultMessage() {
+        assertThat("The default constructor should provide a default message",
+                new ExecutionModeConfigurationException().getMessage(), Matchers.notNullValue());
+    }
+
+    @Test
+    public void testExecutionModeConfigurationException_MessageAndCause() {
+        Throwable l_cause = new RuntimeException("root cause");
+        ExecutionModeConfigurationException l_exception = new ExecutionModeConfigurationException("my message",
+                l_cause);
+
+        assertThat("The message should be set", l_exception.getMessage(), Matchers.equalTo("my message"));
+        assertThat("The cause should be set", l_exception.getCause(), Matchers.equalTo(l_cause));
+    }
+
+    @Test
     public void testSetModeInterruptiveProducer() {
         ExecutionMode.INTERRUPTIVE.activate("PRODUCER");
 

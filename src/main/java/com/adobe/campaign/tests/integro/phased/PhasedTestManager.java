@@ -893,30 +893,20 @@ public final class PhasedTestManager {
 
     /**
      * The registered {@link MutationMode} strategies, most-specific first. Additional modes (e.g.
-     * permutational) are discovered via {@link ServiceLoader}, so that this manager never references a
-     * concrete mode implementation by name, and discovery does not depend on some other class incidentally
-     * having been loaded first. Extra modes can also be registered programmatically via
-     * {@link #registerMutationMode(MutationMode)} (e.g. from tests). The built-in interruptive/shuffle mode
-     * (today's "Phased Testing") is always appended last: it is the generic, catch-all mode (its own steps
-     * carry no marker beyond the {@link PhasedTest} annotation, which can also incidentally be present on a
-     * more specific mode's own base class), so more specific modes must always get the first chance to claim
-     * a method/class/result.
+     * permutational) are discovered via {@link ServiceLoader} at class-load time, so that this manager never
+     * references a concrete mode implementation by name. Extra modes can also be registered programmatically
+     * via {@link #registerMutationMode(MutationMode)} (e.g. from tests). The built-in interruptive/shuffle
+     * mode (today's "Phased Testing") is always last: it is the generic, catch-all mode (its own steps carry
+     * no marker beyond the {@link PhasedTest} annotation, which can also incidentally be present on a more
+     * specific mode's own base class), so more specific modes must always get the first chance to claim a
+     * method/class/result.
      */
-    private static volatile List<MutationMode> mutationModes;
+    private static final List<MutationMode> mutationModes = buildMutationModes();
 
-    private static List<MutationMode> fetchMutationModes() {
-        List<MutationMode> l_modes = mutationModes;
-        if (l_modes == null) {
-            synchronized (PhasedTestManager.class) {
-                l_modes = mutationModes;
-                if (l_modes == null) {
-                    l_modes = new ArrayList<>();
-                    ServiceLoader.load(MutationMode.class).forEach(l_modes::add);
-                    l_modes.add(new PhasedShuffleMode());
-                    mutationModes = l_modes;
-                }
-            }
-        }
+    private static List<MutationMode> buildMutationModes() {
+        List<MutationMode> l_modes = new ArrayList<>();
+        ServiceLoader.load(MutationMode.class).forEach(l_modes::add);
+        l_modes.add(new PhasedShuffleMode());
         return l_modes;
     }
 
@@ -927,19 +917,17 @@ public final class PhasedTestManager {
      * @param in_mode the mutation mode to register
      */
     public static void registerMutationMode(MutationMode in_mode) {
-        fetchMutationModes().add(fetchMutationModes().size() - 1, in_mode);
+        mutationModes.add(mutationModes.size() - 1, in_mode);
     }
 
     private static MutationMode fetchApplicableMode(Class<?> in_class) {
-        List<MutationMode> l_modes = fetchMutationModes();
-        return l_modes.stream().filter(m -> m.appliesTo(in_class)).findFirst()
-                .orElseGet(() -> l_modes.get(l_modes.size() - 1));
+        return mutationModes.stream().filter(m -> m.appliesTo(in_class)).findFirst()
+                .orElseGet(() -> mutationModes.get(mutationModes.size() - 1));
     }
 
     private static MutationMode fetchApplicableMode(ITestResult in_testResult) {
-        List<MutationMode> l_modes = fetchMutationModes();
-        return l_modes.stream().filter(m -> m.appliesTo(in_testResult)).findFirst()
-                .orElseGet(() -> l_modes.get(l_modes.size() - 1));
+        return mutationModes.stream().filter(m -> m.appliesTo(in_testResult)).findFirst()
+                .orElseGet(() -> mutationModes.get(mutationModes.size() - 1));
     }
 
     /**
@@ -994,7 +982,7 @@ public final class PhasedTestManager {
      * @return true if The annotations PhasedTest and PhasedStep are present
      */
     public static boolean isPhasedTest(Method in_method) {
-        return fetchMutationModes().stream().anyMatch(m -> m.appliesTo(in_method));
+        return mutationModes.stream().anyMatch(m -> m.appliesTo(in_method));
     }
 
     /**
@@ -1006,7 +994,7 @@ public final class PhasedTestManager {
      * @return True if the class is a phased test scenario
      */
     public static boolean isPhasedTest(Class<?> in_class) {
-        return fetchMutationModes().stream().anyMatch(m -> m.appliesTo(in_class));
+        return mutationModes.stream().anyMatch(m -> m.appliesTo(in_class));
     }
 
     /**
@@ -1444,7 +1432,7 @@ public final class PhasedTestManager {
 
         final Class<?> l_candidateDataProviderClass = l_dataProviderClass;
         if (l_candidateDataProviderClass.equals(PhasedDataProvider.class)
-                || fetchMutationModes().stream().anyMatch(m -> m.ownsDataProviderClass(l_candidateDataProviderClass))) {
+                || mutationModes.stream().anyMatch(m -> m.ownsDataProviderClass(l_candidateDataProviderClass))) {
             return lr_defaultReturnValue;
         }
 
