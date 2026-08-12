@@ -170,19 +170,14 @@ public class ScenarioStepDependencies {
      * @return the line number of the last step
      */
     public int fetchLastStepPosition() {
-        if (getStepDependencies().isEmpty()) {
-            return StepDependencies.DEFAULT_LINE_LOCATION;
-        }
-        return fetchLastStep().getStepLine();
+        StepDependencies l_lastStep = fetchLastStep();
+        return l_lastStep == null ? StepDependencies.DEFAULT_LINE_LOCATION : l_lastStep.getStepLine();
     }
 
 
     private static Map<String, List<StepDependencies>> generatePermutationsMap(
             List<List<StepDependencies>> l_scenarioPermutations) {
         Map<String, List<StepDependencies>> lr_permutations = new HashMap<>();
-
-        l_scenarioPermutations.stream().collect(Collectors.toMap(l -> String.join("", l.stream().map(StepDependencies::getShortName).collect(
-                Collectors.toList())), l -> l));
 
         for (int i = 0; i < l_scenarioPermutations.size(); i++) {
             String lt_key = PhasedTestManager.STD_PHASED_PERMUTATIONAL_PREFIX

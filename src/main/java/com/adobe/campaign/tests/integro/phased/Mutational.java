@@ -8,6 +8,7 @@
  */
 package com.adobe.campaign.tests.integro.phased;
 
+import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestConfigurationException;
 import com.adobe.campaign.tests.integro.phased.permutational.ScenarioStepDependencies;
 import com.adobe.campaign.tests.integro.phased.permutational.StepDependencies;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
@@ -56,7 +57,10 @@ public abstract class Mutational {
                 String stepId = l_executingClass.getTypeName() + "." + stepName + "(" + phaseGroup + ")";
 
                 Method stepMethod = Arrays.stream(l_executingClass.getDeclaredMethods())
-                        .filter(dm -> dm.getName().equals(stepName)).findFirst().get();
+                        .filter(dm -> dm.getName().equals(stepName)).findFirst()
+                        .orElseThrow(() -> new PhasedTestConfigurationException(
+                                "Could not find step method \"" + stepName + "\" in class " + l_executingClass
+                                        .getTypeName()));
 
                 PhasedTestManager.storePhasedContext(ClassPathParser.fetchFullName(stepMethod), phaseGroup);
 

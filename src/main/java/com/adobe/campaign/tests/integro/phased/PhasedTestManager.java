@@ -79,7 +79,9 @@ public final class PhasedTestManager {
      */
     protected static String fetchMappingKeyWithMaxProviders(String in_className, Map<String, MethodMapping> in_methodMap) {
         return in_methodMap.entrySet().stream().filter(m -> m.getValue().declaredClass.getTypeName().equals(in_className))
-                .max(Comparator.comparingInt(m -> m.getValue().nrOfProviders)).get().getKey();
+                .max(Comparator.comparingInt(m -> m.getValue().nrOfProviders))
+                .orElseThrow(() -> new PhasedTestConfigurationException(
+                        "Could not find any method mapping for class " + in_className)).getKey();
     }
 
     /**

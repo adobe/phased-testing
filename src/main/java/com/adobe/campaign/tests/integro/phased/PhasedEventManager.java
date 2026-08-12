@@ -132,8 +132,11 @@ public class PhasedEventManager {
             log.error("Event Exception : The event {} for step {} caused an exception during start.", in_event, in_onAccountOfStep);
             try {
                 nie.threadFuture.get();
-            } catch (InterruptedException | ExecutionException ex) {
-                ex.getCause().printStackTrace();
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+                log.error("Interrupted while waiting for event {} for step {} to start.", in_event, in_onAccountOfStep, ex);
+            } catch (ExecutionException ex) {
+                log.error("The event {} for step {} caused an exception during start.", in_event, in_onAccountOfStep, ex.getCause());
             }
         }
 
@@ -213,8 +216,7 @@ public class PhasedEventManager {
             nie.waitTillFinished();
         } catch (Exception e) {
             log.error("The waitTillFinished method for event {} caused an exception in the context of step {}.",
-                    in_event, in_onAccountOfStep);
-            e.printStackTrace();
+                    in_event, in_onAccountOfStep, e);
             nie.threadFuture.cancel(true);
         }
     }
@@ -224,8 +226,7 @@ public class PhasedEventManager {
         l_activeEvent.tearDownEvent();
         } catch (Exception e) {
             log.error("The tearDownEvent method for event {} caused an exception of type {} in the context of step {}.",
-                    in_event, e.getCause(), in_onAccountOfStep);
-            e.printStackTrace();
+                    in_event, e.getCause(), in_onAccountOfStep, e);
             l_activeEvent.threadFuture.cancel(true);
         }
     }
