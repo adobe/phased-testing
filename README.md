@@ -83,7 +83,7 @@ The mutational test methods help solve problems such as:
 <!-- TOC -->
  
 ## Architecture
-As of version 10.0.0, this repository is a multi-module Maven build. There are two ways to *author* a
+As of version 9.0.0, this repository is a multi-module Maven build. There are two ways to *author* a
 mutational test scenario, sharing one common engine:
 
 ```
@@ -170,7 +170,7 @@ This is particularily usefull for covering all the possible paths a functional s
 ## Installation
 This version runs with the TestNG runner. You can use this library by including it in your project.
 
-As of version 10.0.0, the project is split into multiple Maven modules sharing a common core engine
+As of version 9.0.0, the project is split into multiple Maven modules sharing a common core engine
 (`phased-testing-core`), so that the annotation-driven "Phased Testing" authoring model and the
 inheritance/template-method-driven "Mutational Testing" authoring model can be released and depended on
 independently. `phased-testing-core` is a transitive dependency of both and does not need to be declared
@@ -185,7 +185,7 @@ If you write tests using the classic `@PhasedTest` annotation model (`PhasedTest
  <dependency>
     <groupId>com.adobe.campaign.tests.phased</groupId>
     <artifactId>phased-testing-testng</artifactId>
-    <version>10.0.0</version>
+    <version>9.0.0</version>
 </dependency>
 ```
 
@@ -196,7 +196,7 @@ If you write tests using the `Mutational` base class (inheritance/template-metho
  <dependency>
     <groupId>com.adobe.campaign.tests.phased</groupId>
     <artifactId>phased-testing-mutational</artifactId>
-    <version>10.0.0</version>
+    <version>9.0.0</version>
 </dependency>
 ```
 
