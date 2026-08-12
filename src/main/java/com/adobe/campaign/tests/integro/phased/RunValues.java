@@ -8,6 +8,8 @@
  */
 package com.adobe.campaign.tests.integro.phased;
 
+import java.util.Objects;
+
 public class RunValues {
     private ExecutionMode executionMode;
     private String behavior;
@@ -40,6 +42,11 @@ public class RunValues {
             return false;
         }
         return getBehavior().equals(runValues.getBehavior());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(executionMode, behavior);
     }
 
     @Override
