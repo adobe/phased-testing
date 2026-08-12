@@ -27,6 +27,7 @@ public class MyNonInterruptiveEvent extends NonInterruptiveEvent {
                 try {
                     Thread.sleep(WAIT_TIME_MS);
                 } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
                     throw new RuntimeException(e);
                 }
             }
@@ -54,6 +55,7 @@ public class MyNonInterruptiveEvent extends NonInterruptiveEvent {
                 this.eventThread.join();
             }
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             throw new RuntimeException(e);
         }
 
