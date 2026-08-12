@@ -28,7 +28,7 @@ jobs:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       # Check out Git repository
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       # Set up environment with Java and Maven
       - name: Set up JDK
