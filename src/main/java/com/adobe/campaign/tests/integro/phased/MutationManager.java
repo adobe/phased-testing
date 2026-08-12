@@ -9,12 +9,16 @@
 package com.adobe.campaign.tests.integro.phased;
 
 import com.adobe.campaign.tests.integro.phased.spi.MutationMode;
+import com.adobe.campaign.tests.integro.phased.stepdependencies.StepDependencies;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
 import org.testng.ITestNGMethod;
 import org.testng.ITestResult;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 public class MutationManager {
@@ -189,5 +193,52 @@ public class MutationManager {
      */
     public static Object[][] fetchProvidersSingle(ITestNGMethod in_method) {
         return new Object[][] {{ PhasedTestManager.STD_PHASED_GROUP_SINGLE }};
+    }
+
+    /**
+     * Returns the provider for shuffling tests, in the context of Mutational tests.
+     * <p>
+     * Author : gandomi
+     *
+     * @param in_method The step/method for which we want to fond out the data provider
+     * @return A two-dimensional array of all the data providers attached to the current step/method
+     */
+    public static Object[][] fetchProvidersShuffled(ITestNGMethod in_method) {
+        String l_candidateMethod = PhasedTestManager
+                .fetchMappingKeyWithMaxProviders(in_method.getTestClass().getRealClass().getTypeName(),
+                        PhasedTestManager.getMethodMap());
+        return fetchProvidersShuffled(l_candidateMethod, ExecutionMode.getCurrentMode().fetchRunValues());
+    }
+
+    /**
+     * Returns the provider for shuffling tests. For the {@link ExecutionMode#PERMUTATIONAL} execution mode, the
+     * values are the possible permutations of the scenario's steps. For any other execution mode, this delegates
+     * to {@link PhasedTestManager#fetchProvidersShuffled(String, RunValues)}.
+     * <p>
+     * Author : gandomi
+     *
+     * @param in_methodFullName The full name of the method used for identifying it in the phase context
+     * @param in_runMode        The mode in which the mutational tests are executed
+     * @return A two-dimensional array of all the data providers attached to the current step/method
+     */
+    public static Object[][] fetchProvidersShuffled(String in_methodFullName, RunValues in_runMode) {
+        if (!in_runMode.getExecutionMode().equals(ExecutionMode.PERMUTATIONAL)) {
+            return PhasedTestManager.fetchProvidersShuffled(in_methodFullName, in_runMode);
+        }
+
+        final MethodMapping l_methodMapping = PhasedTestManager.getMethodMap().get(in_methodFullName);
+
+        Map<String, List<StepDependencies>> l_permutations = PhasedTestManager.getStepDependencies()
+                .get(l_methodMapping.declaredClass.getTypeName()).fetchScenarioPermutations();
+        Object[][] l_objectArrayPhased = new Object[l_permutations.size()][1];
+        int i = 0;
+        for (Entry<String, List<StepDependencies>> entry : l_permutations.entrySet()) {
+            l_objectArrayPhased[i][0] = entry.getKey();
+            i++;
+        }
+
+        Object[][] l_userDefinedDataProviders = PhasedTestManager.fetchDataProviderValues(l_methodMapping.declaredClass);
+
+        return PhasedTestManager.dataProvidersCrossJoin(l_objectArrayPhased, l_userDefinedDataProviders);
     }
 }

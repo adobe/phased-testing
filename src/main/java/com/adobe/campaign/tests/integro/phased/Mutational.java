@@ -9,8 +9,8 @@
 package com.adobe.campaign.tests.integro.phased;
 
 import com.adobe.campaign.tests.integro.phased.exceptions.PhasedTestConfigurationException;
-import com.adobe.campaign.tests.integro.phased.permutational.ScenarioStepDependencies;
-import com.adobe.campaign.tests.integro.phased.permutational.StepDependencies;
+import com.adobe.campaign.tests.integro.phased.stepdependencies.ScenarioStepDependencies;
+import com.adobe.campaign.tests.integro.phased.stepdependencies.StepDependencies;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
 import org.testng.annotations.Test;
 import org.testng.internal.TestResult;

@@ -6,7 +6,7 @@
  * accordance with the terms of the Adobe license agreement accompanying
  * it.
  */
-package com.adobe.campaign.tests.integro.phased.permutational;
+package com.adobe.campaign.tests.integro.phased.stepdependencies;
 
 import java.util.HashSet;
 import java.util.Set;

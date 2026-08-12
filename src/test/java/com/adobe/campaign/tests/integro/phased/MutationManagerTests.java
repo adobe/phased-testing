@@ -13,8 +13,12 @@ import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_F_Shuffle;
 import com.adobe.campaign.tests.integro.phased.data.PhasedSeries_H_ShuffledClassWithError;
 import com.adobe.campaign.tests.integro.phased.mutational.data.ie.MutationalTestSingleRun;
 import com.adobe.campaign.tests.integro.phased.mutational.data.nested.MutationalTestParent;
+import com.adobe.campaign.tests.integro.phased.mutational.data.permutational.MultipleProducerConsumer;
+import com.adobe.campaign.tests.integro.phased.mutational.data.permutational.ShoppingCartDemo;
 import com.adobe.campaign.tests.integro.phased.mutational.data.simple1.PhasedChild1;
 import com.adobe.campaign.tests.integro.phased.mutational.data.simple1.PhasedChild2;
+import com.adobe.campaign.tests.integro.phased.stepdependencies.ScenarioStepDependencies;
+import com.adobe.campaign.tests.integro.phased.stepdependencies.ScenarioStepDependencyFactory;
 import com.adobe.campaign.tests.integro.phased.utils.ClassPathParser;
 import com.adobe.campaign.tests.integro.phased.utils.GeneralTestUtils;
 import com.adobe.campaign.tests.integro.phased.utils.MockTestTools;
@@ -28,6 +32,7 @@ import org.testng.annotations.Test;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -312,5 +317,85 @@ public class MutationManagerTests {
 
     }
 
+    //Permutational
+    @Test
+    public void testCreateDataProviderData_permutational() throws SecurityException, NoSuchMethodException {
+        Phases l_currentPhase = Phases.PERMUTATIONAL;
+        Map<Class<?>, List<String>> l_myMap = new HashMap<>();
+
+        Method method1 = MultipleProducerConsumer.class.getMethod("ccccc", String.class);
+        Method method2 = MultipleProducerConsumer.class.getMethod("bbbbb", String.class);
+        Method method3 = MultipleProducerConsumer.class.getMethod("aaaaa", String.class);
+
+        l_myMap.put(MultipleProducerConsumer.class,
+                Arrays.asList(ClassPathParser.fetchFullName(method1), ClassPathParser.fetchFullName(method2),
+                        ClassPathParser.fetchFullName(method3)));
+
+        ScenarioStepDependencies l_scenario = ScenarioStepDependencyFactory.listMethodCalls(MultipleProducerConsumer.class);
+        PhasedTestManager.setStepDependencies(Collections.singletonMap(l_scenario.getScenarioName(), l_scenario));
+
+        Map<String, MethodMapping> l_result = PhasedTestManager.generatePhasedProviders(l_myMap,
+                l_currentPhase.fetchRunValues());
+
+        assertThat("we need to have the expected key", l_result.containsKey(ClassPathParser.fetchFullName(method1)));
+        assertThat("The first method should have three entries", l_result.get(ClassPathParser.fetchFullName(method1)).nrOfProviders, equalTo(3));
+
+        assertThat("The second method should have three entries", l_result.get(ClassPathParser.fetchFullName(method2)).nrOfProviders, equalTo(3));
+
+        assertThat("The third method should have three entries", l_result.get(ClassPathParser.fetchFullName(method3)).totalClassMethods,
+                equalTo(3));
+
+        Object[][] l_providerPerm = MutationManager.fetchProvidersShuffled(ClassPathParser.fetchFullName(method1), l_currentPhase.fetchRunValues());
+
+        assertThat(l_providerPerm.length, equalTo(2));
+
+        List<String> l_providers = Arrays.asList((String) l_providerPerm[0][0],(String) l_providerPerm[1][0]);
+
+        assertThat(l_providers, Matchers.containsInAnyOrder(Matchers.startsWith("PERMUTATIONAL_bbccaa"), Matchers.startsWith("PERMUTATIONAL_ccbbaa")));
+
+        assertThat(l_providers, Matchers.containsInAnyOrder(Matchers.endsWith("_1-2"), Matchers.endsWith("_2-2")));
+
+    }
+
+    @Test
+    public void testCreateDataProviderData_permutationalShoppingCart() throws SecurityException, NoSuchMethodException {
+        Phases l_currentPhase = Phases.PERMUTATIONAL;
+        Map<Class<?>, List<String>> l_myMap = new HashMap<>();
+
+        var testClass = ShoppingCartDemo.class;
+        Method method1 = testClass.getMethod("loginToSite", String.class);
+        Method method2 = testClass.getMethod("searchProduct", String.class);
+        Method method3 = testClass.getMethod("addProductToCart", String.class);
+        Method method4 = testClass.getMethod("checkout", String.class);
+
+
+        l_myMap.put(ShoppingCartDemo.class,
+                Arrays.asList(ClassPathParser.fetchFullName(method1), ClassPathParser.fetchFullName(method2),
+                        ClassPathParser.fetchFullName(method3), ClassPathParser.fetchFullName(method4)));
+
+        ScenarioStepDependencies l_scenario = ScenarioStepDependencyFactory.listMethodCalls(testClass);
+        PhasedTestManager.setStepDependencies(Collections.singletonMap(l_scenario.getScenarioName(), l_scenario));
+
+        Map<String, MethodMapping> l_result = PhasedTestManager.generatePhasedProviders(l_myMap,
+                l_currentPhase.fetchRunValues());
+
+        assertThat("we need to have the expected key", l_result.containsKey(ClassPathParser.fetchFullName(method1)));
+        assertThat("The first method should have three entries", l_result.get(ClassPathParser.fetchFullName(method1)).nrOfProviders, equalTo(4));
+
+        assertThat("The second method should have three entries", l_result.get(ClassPathParser.fetchFullName(method2)).nrOfProviders, equalTo(4));
+
+        assertThat("The third method should have three entries", l_result.get(ClassPathParser.fetchFullName(method3)).totalClassMethods,
+                equalTo(4));
+
+        Object[][] l_providerPerm = MutationManager.fetchProvidersShuffled(ClassPathParser.fetchFullName(method1), l_currentPhase.fetchRunValues());
+
+        assertThat(l_providerPerm.length, equalTo(3));
+
+        List<String> l_providers = Arrays.asList((String) l_providerPerm[0][0],(String) l_providerPerm[1][0],(String) l_providerPerm[2][0]);
+
+        assertThat(l_providers, Matchers.containsInAnyOrder(Matchers.startsWith("PERMUTATIONAL_stleat"),
+                Matchers.startsWith("PERMUTATIONAL_lestat"), Matchers.startsWith("PERMUTATIONAL_statle")));
+
+    }
 
 }

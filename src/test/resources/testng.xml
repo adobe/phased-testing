@@ -16,7 +16,7 @@
             <package name="com.adobe.campaign.tests.integro.phased" />
             <package name="com.adobe.campaign.tests.integro.phased.internal" />
             <package name="com.adobe.campaign.tests.integro.phased.utils" />
-            <package name="com.adobe.campaign.tests.integro.phased.permutational" />
+            <package name="com.adobe.campaign.tests.integro.phased.stepdependencies" />
         </packages>
     </test>
 </suite> <!-- Default suite -->

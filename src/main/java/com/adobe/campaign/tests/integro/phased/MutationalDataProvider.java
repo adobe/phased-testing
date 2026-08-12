@@ -24,7 +24,7 @@ public class MutationalDataProvider {
 
         log.info(tm.getTestClass().getRealClass().getTypeName());
 
-        return PhasedTestManager.fetchProvidersShuffled(tm);
+        return MutationManager.fetchProvidersShuffled(tm);
     }
 
     @DataProvider(name = MUTATIONAL_SINGLE)
