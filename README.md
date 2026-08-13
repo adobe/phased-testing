@@ -89,15 +89,14 @@ The mutational test methods help solve problems such as:
 As of version 9.0.0, this repository is a multi-module Maven build. There are two ways to *author* a
 mutational test scenario, sharing one common engine:
 
-```
-phased-testing-core          (shared engine: scenario/step management, execution modes,
-                               produce/consume, events, reporting — no authoring-model opinion)
-        ^                            ^
-        |                            |
-phased-testing-testng      mutational-testing
-(annotation-driven authoring:  (inheritance/template-method authoring:
- @PhasedTest, @PhaseEvent,      extend `Mutational`, plain step methods,
- PhasedTestListener)            MutationListener)
+```mermaid
+graph BT
+    core["<b>phased-testing-core</b><br/>shared engine: scenario/step management,<br/>execution modes, produce/consume,<br/>events, reporting — no authoring-model opinion"]
+    testng["<b>phased-testing-testng</b><br/>annotation-driven authoring:<br/>@PhasedTest, @PhaseEvent,<br/>PhasedTestListener"]
+    mutational["<b>mutational-testing</b><br/>inheritance/template-method authoring:<br/>extend Mutational, plain step methods,<br/>MutationListener"]
+
+    testng --> core
+    mutational --> core
 ```
 
 * **`phased-testing-testng`** is the original, annotation-driven authoring style: you write a plain class,
