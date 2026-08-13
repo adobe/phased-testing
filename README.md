@@ -42,6 +42,7 @@ As of version 9.0.0, this repository is a multi-module Maven build — see the [
   * [Writing a Mutational Test](#writing-a-mutational-test)
     * [Defining a scenario](#defining-a-scenario)
     * [Permutations](#permutations-1)
+    * [Non-Interruptive Events](#non-interruptive-events-2)
   * [Execution Modes and Configuration](#execution-modes-and-configuration)
     * [Execution Modes](#execution-modes)
       * [STANDARD Execution Mode](#standard-execution-mode)
@@ -183,6 +184,10 @@ We have a standard demo that can be accessed through the [Phased Test Demo](http
 
 ## Wrapping a Secnario around an Event
 One of the main features of Phased Testing is the ability to wrap a scenario around an event or a problem. This is done by performing a number of iterations and injecting the event at different stages of the execution of that scenario.
+
+> The code examples in this chapter use the annotation-driven Phased Test style for brevity. Mutational
+> Tests share the exact same execution modes and event semantics — only the class-authoring shape differs.
+> See [Writing a Mutational Test](#writing-a-mutational-test) for the equivalent, self-contained examples.
 
 We have three modes of execution of a Phased Test:
 * Default Mode
@@ -609,6 +614,24 @@ The [PERMUTATIONAL execution mode](#permuational-execution-mode) is the feature 
 Mutational Testing: instead of picking a single valid step order, it identifies every dependency between
 steps (via `produce`/`consume`) and re-executes the scenario once per valid permutation of that order. See
 [Permutations](#permutations) for the underlying concept.
+
+### Non-Interruptive Events
+Events for Mutational Tests use the exact same `NonInterruptiveEvent` API described in
+[Writing a Non-Interruptive Event](#writing-a-non-interruptive-event) — nothing changes there.
+
+Binding an event to a scenario is different, though: since a Mutational Test's step methods are plain
+methods (not annotated `@Test`/`@PhaseEvent`), the annotation-based binding options
+([`@PhaseEvent`](#attaching-an-event-using-the-phaseevent-annotation),
+[`@PhasedTest(eventClasses = ...)`](#attaching-an-event-using-the-phasedtest-annotation)) don't apply.
+Only the two system-property-based options do:
+* [Attaching an Event to the Test Suite](#attaching-an-event-to-the-test-suite) — `MUTATIONAL.EVENTS.NONINTERRUPTIVE`
+* [Targeting an Event to a Specific Step](#targeting-an-event-to-a-specific-step) — `MUTATIONAL.EVENTS.NONINTERRUPTIVE` + `MUTATIONAL.EVENTS.TARGET`
+
+Given `ShoppingCartScenario` from [Defining a scenario](#defining-a-scenario), targeting the event
+`com.adobe.campaign.tests.integro.phased.data.events.MyNonInterruptiveEvent` at the `addProductToCart` step
+looks like:
+
+```mvn clean test -DMUTATIONAL.EVENTS.NONINTERRUPTIVE=com.adobe.campaign.tests.integro.phased.data.events.MyNonInterruptiveEvent -DMUTATIONAL.EVENTS.TARGET=ShoppingCartScenario#addProductToCart```
 
 ## Execution Modes and Configuration
 This chapter covers the shared engine configuration used by both authoring styles — Phased and
