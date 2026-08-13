@@ -12,6 +12,12 @@ The mutational test methods help solve problems such as:
 * Chaos testing
 * End-User testing
 
+This root document covers the **concepts** shared by both authoring styles, and the **shared engine
+reference** (execution modes, run-time configuration, reporting, data management). The two authoring guides
+live with their modules:
+* [Mutational Testing](mutational-testing/README.md) — the recommended, inheritance-based style.
+* [Phased Testing (TestNG)](phased-testing-testng/README.md) — the legacy, annotation-driven style.
+
 ## Table of Contents
 <!-- TOC -->
   * [Architecture](#architecture)
@@ -20,27 +26,13 @@ The mutational test methods help solve problems such as:
       * [Interruptive Events](#interruptive-events)
       * [Non-Interruptive Events](#non-interruptive-events)
     * [Permutations](#permutations)
+    * [None](#none)
+  * [Authoring a Scenario](#authoring-a-scenario)
+    * [Which module do I use?](#which-module-do-i-use)
   * [Installation](#installation)
     * [Maven](#maven)
   * [Demo](#demo)
-  * [Wrapping a Secnario around an Event](#wrapping-a-secnario-around-an-event)
-    * [Default Mode](#default-mode)
-    * [Single Execution Mode](#single-execution-mode)
-    * [Shuffled Execution Mode](#shuffled-execution-mode)
   * [Event Management and Execution](#event-management-and-execution)
-  * [Writing a Phased Test](#writing-a-phased-test)
-    * [Setting Execution Modes](#setting-execution-modes)
-      * [Shuffled Mode](#shuffled-mode)
-      * [Single Run Mode](#single-run-mode)
-    * [Local Execution](#local-execution)
-    * [Non-Interruptive Events](#non-interruptive-events-1)
-      * [Writing a Non-Interruptive Event](#writing-a-non-interruptive-event)
-      * [Binding an Event to a Scenario](#binding-an-event-to-a-scenario)
-    * [Before- and After-Phase Actions](#before--and-after-phase-actions)
-    * [Nested Design Pattern](#nested-design-pattern)
-  * [Writing a Mutational Test](#writing-a-mutational-test)
-    * [Defining a scenario](#defining-a-scenario)
-    * [Permutations](#permutations-1)
   * [Execution Modes and Configuration](#execution-modes-and-configuration)
     * [Execution Modes](#execution-modes)
       * [STANDARD Execution Mode](#standard-execution-mode)
@@ -77,8 +69,6 @@ The mutational test methods help solve problems such as:
     * [Report By Phase Group and Scenario](#report-by-phase-group-and-scenario)
       * [Configuring Merged Reports](#configuring-merged-reports)
     * [Raw Reports](#raw-reports)
-  * [Misc](#misc)
-    * [Data Providers](#data-providers)
   * [Known Issues and Limitations](#known-issues-and-limitations)
     * [Parallel Testing](#parallel-testing)
     * [Retry Mechanisms](#retry-mechanisms)
@@ -99,13 +89,13 @@ graph BT
     mutational --> core
 ```
 
-* **`phased-testing-testng`** is the original, annotation-driven authoring style: you write a plain class,
-  annotate it `@PhasedTest`, and TestNG discovers and runs each `@Test` step method directly. This is
-  documented in [Writing a Phased Test](#writing-a-phased-test).
-* **`mutational-testing`** is a newer, inheritance/template-method authoring style: your test class
+* **`mutational-testing`** is the recommended, inheritance/template-method authoring style: your test class
   extends `Mutational`, its step methods are plain (non-`@Test`) methods, and a single template method
   drives their execution — including running them in every valid permutation. This is documented in
-  [Writing a Mutational Test](#writing-a-mutational-test).
+  [Mutational Testing](mutational-testing/README.md).
+* **`phased-testing-testng`** is the original, annotation-driven authoring style: you write a plain class,
+  annotate it `@PhasedTest`, and TestNG discovers and runs each `@Test` step method directly. This is
+  documented in [Phased Testing (TestNG)](phased-testing-testng/README.md).
 * Both styles share the same underlying engine (`phased-testing-core`): the same execution modes, the same
   `produce`/`consume` context API, the same event model, and the same reporting.
 
@@ -124,9 +114,9 @@ The mutational test methods help solve problems such as:
 Mutations are currently of the following types:
 * Events: Events taking place during the execution of tests
 * Permutations: The user may take a different path than originally intended
-* Standard : The normal execution of tests (no mutations)
+* None : The normal execution of tests (no mutations)
 
-![Mutation Tests Possibilities](diagrams/PhasedDiagrams-Mutational Tests.drawio.png)
+![Mutation Tests Possibilities](diagrams/PhasedDiagrams-Mutational%20Tests.drawio.png)
 
 Our philosophy is that normal tests should be able to run as they are, but when needed, they should be able to adapt to the situation. A test will be executed as usual on a day-to-day basis, and will test a given functionality. However, when required, it will adapt, and change the way it is executed, in order to help us better test our products.   
 
@@ -169,6 +159,39 @@ Mutationa testing allows us to make sure that all possible permutations of a sce
 
 This is particularily usefull for covering all the possible paths a functional scenario can take.  
 
+### None
+None refers to the absence of a mutation. A scenario that is not currently being affected by an Event or a Permutation runs exactly as it was written, i.e. in its normal, unmutated order.
+
+This is the default state of any scenario, and is internally represented by `ExecutionMode.STANDARD`. Every scenario can run in this mode day-to-day, and only mutates into an Event or a Permutation when the corresponding conditions are triggered.
+
+## Authoring a Scenario
+Whatever mutation a scenario is subject to, the authoring model underneath is the same: **a scenario is a
+class, and its steps are the methods of that class.** This is the one structural invariant shared by both
+authoring styles. Because steps are clearly separated methods with clear boundaries, the engine can reorder
+them, interrupt between them, and inject events around them.
+
+Steps communicate through a shared context using `PhasedTestManager.produce(...)` and
+`PhasedTestManager.consume(...)`. This produce/consume relationship is what lets the engine store state
+across an interruption, and what it analyses to work out which orderings of a scenario are valid.
+
+The two modules differ only in *how you declare that class and those steps*:
+
+### Which module do I use?
+
+| | [Mutational Testing](mutational-testing/README.md) *(recommended)* | [Phased Testing (TestNG)](phased-testing-testng/README.md) *(legacy)* |
+|---|---|---|
+| Authoring style | Inheritance / template-method | Annotation-driven |
+| Test class | `extends Mutational` | Plain class annotated `@PhasedTest` |
+| Steps | Plain public methods (no `@Test`) | Discovered as TestNG `@Test` methods |
+| Step execution | Driven reflectively by `Mutational.scenario(...)` | Run directly by TestNG |
+| Listener | `MutationListener` | `PhasedTestListener` |
+| Step ordering | Always code-detected from produce/consume | Alphabetical by default, code-detected opt-in |
+| Permutations | First-class | Not the primary use case |
+| Artifact | `mutational-testing` | `phased-testing-testng` |
+
+Both share the same core engine, so the execution modes, run-time configuration, reporting and data
+management below apply identically regardless of the module you pick.
+
 ## Installation
 This version runs with the TestNG runner. You can use this library by including it in your project.
 
@@ -179,17 +202,6 @@ independently. `phased-testing-core` is a transitive dependency of both and does
 explicitly.
 
 ### Maven
-
-If you write tests using the classic `@PhasedTest` annotation model (`PhasedTest`, `@PhaseEvent`,
-`PhasedTestListener`, `PhasedDataProvider`), add:
-
-```
- <dependency>
-    <groupId>com.adobe.campaign.tests.phased</groupId>
-    <artifactId>phased-testing-testng</artifactId>
-    <version>9.0.0</version>
-</dependency>
-```
 
 If you write tests using the `Mutational` base class (inheritance/template-method model, permutations,
 `MutationListener`), add:
@@ -202,102 +214,21 @@ If you write tests using the `Mutational` base class (inheritance/template-metho
 </dependency>
 ```
 
+If you write tests using the classic `@PhasedTest` annotation model (`PhasedTest`, `@PhaseEvent`,
+`PhasedTestListener`, `PhasedDataProvider`), add:
+
+```
+ <dependency>
+    <groupId>com.adobe.campaign.tests.phased</groupId>
+    <artifactId>phased-testing-testng</artifactId>
+    <version>9.0.0</version>
+</dependency>
+```
+
 You can declare both dependencies together if your project uses both authoring styles.
 
 ## Demo
 We have a standard demo that can be accessed through the [Phased Test Demo](https://github.com/baubakg/phased-test-demo).
-
-## Wrapping a Secnario around an Event
-One of the main features of Phased Testing is the ability to wrap a scenario around an event or a problem. This is done by performing a number of iterations and injecting the event at different stages of the execution of that scenario.
-
-We have three modes of execution of a Phased Test:
-* Default Mode
-* Single Mode
-* Shuffled Mode
-
-### Default Mode
-The steps of each scenario are executed like any other scenario in a linear predicted fashion.
-
-### Single Execution Mode
-Single Execution Mode is used only when a workflow will always be interrupted at a given stage. This is particularly relevant when your scenario will expect a time concuming external process to finish. In this case we execute all steps till the Phase End marker. When in Consumer mode, we execute the rest of the steps.
-
-![The Single Execution Mode](diagrams/PhasedDiagrams-SingleRun-H.png)
-
-The diagram above represents what will be executed by the following code:
-
-```java
-@Test
-@PhasedTest
-public class ShuffledTest {
-
-    public void step1(String val) {
-        PhasedTestManager.produce("step1Val","A");
-    }
-
-    public void step2(String val) {
-        String l_fetchedValue = PhasedTestManager.consume("step1Val");
-        PhasedTestManager.produce("step2Val",l_fetchedValue + "B");
-        
-    }
-    
-    @PhaseEvent
-
-    public void step3(String val) {
-        String l_fetchedValue = PhasedTestManager.consume("step2Val");
-        assertEquals(l_fetchedValue, "AB");
-    }
-}
-```
-
-### Shuffled Execution Mode
-The concept of “shuffling” involves the multiple re-executions of a scenario, based on a stimulus or a requirement. In the case of Upgrades, the shuffling is based on the possible interruptions a scenario can be subject to whenever an upgrade happens.
-
-Each re-execution or iteration is identified by what we call a Shuffle Group. The Shuffle Group also acts as a context in which the steps have a relationship and share context variables.
-
-The code below will react differently depending on the PHASE/Execution mode it is subject to :
-
-```java
-@Test
-@PhasedTest
-public class ShuffledTest {
-
-    public void step1(String val) {
-        PhasedTestManager.produce("A1");
-    }
-
-    public void step2(String val) {
-        String l_fetchedValue = PhasedTestManager.consume("A1");
-        PhasedTestManager.produce("B1",l_fetchedValue + "B");
-        
-    }
-
-    public void step3(String val) {
-        String l_fetchedValue = PhasedTestManager.consume("B1");
-        assertEquals(l_fetchedValue, "AB");
-    }
-}
-```
-
-##### Shuffled - Interruptive
-When a shuffled test is executed in an interruptive mode (Phases PRODUCER and CONSUMER), we execute all the possible ordered combinations interruptions the scenario can be subject to. Example Given a test with three steps, in Producer State, we :
-1. Execute all the three steps
-2. Execute the first two steps
-3. Execute the first step only
-
-When in Consumer state we :
-1. Execute the two last steps
-2. Execute the last step
-3. Execute all the steps
-
-![The Shuffled Execution Mode](diagrams/PhasedDiagrams-Shuffle-H.png)
-
-
-##### Shuffled - Non-Interruptive 
-As of version 8, we are introducing the asynchronous phase mode. Asynchronous phases are destined for non-interruptive events. They allow you to inject an event during the execution of the steps of a scenario. An asynchronous execution of a shuffled test, will shuffle the test, but will for each phase group execute, in parallel, the given event for each step.
-
-Example:
-
-![Asynchronous Execution Mode](diagrams/PhasedDiagrams-Parallel-Non-Interruptive-Event.drawio.png)
 
 ## Event Management and Execution
 Events are an important topic, and have to be correctly covered. An event in Mutational Testing contains three parts:
@@ -312,329 +243,10 @@ For now we identify two different event wrappings:
 
 There are other wrappings, and we will eventually publish them at a later time.
 
-## Writing a Phased Test
-This is the annotation-driven authoring model, provided by the `phased-testing-testng` module. Your test
-class is a plain TestNG class discovered and run directly by TestNG.
-
-You need to register `PhasedTestListener` for phased tests to be recognized, either on your suite in
-`testng.xml`:
-
-```xml
-<suite name="My Suite">
-    <listeners>
-        <listener class-name="com.adobe.campaign.tests.integro.phased.PhasedTestListener"/>
-    </listeners>
-    ...
-</suite>
-```
-
-or with the `@Listeners` annotation on your test class.
-
-The Phased Testing is activated using two annotations:
-* **@PhasedTest** : Class level annotation. Allows you to control how the test should be executed
-* **@PhaseEvent** : Method level annotation. By setting it you tell the system at which step does the phase event happen. The tests will stop at that point.
-
-Moreover, you need to :
-* Make your methods accept at least one argument
-* Due to the TestNG standards, the methods will be executed, by default in an alphabetical order. So prefixing the methods with their step number is a good practice. 
-
-Note : As of version 7.0.11, we now have the possibility to let the framework pick the order for us.
-
-### Setting Execution Modes
-
-#### Shuffled Mode
-In order for a test scenario to be executed in shuffle mode you need to add the following annotation at the class level `@PhasedTest`
-
-#### Single Run Mode
-In order for a test scenario to be executed in shuffle mode you simply need to set the annotation `@PhaseEvent` somewhere along its steps.  The location of this annotation is where you expect the interruption to occur..
-
-Optionally if you consider that the scenario can never be run as non-phased, you need also include:  `@PhasedTest(executeInactive = false)`. When executeInactive is false, the Single Run scenario will only run when in Phases.
-
-### Local Execution
-Ideally you should set the default data provider on your tests. This allows you to execute the test locally without needing to force the Phased Test listener.
-
-```
-@Test( dataProvider = PhasedDataProvider.DEFAULT, dataProviderClass = PhasedDataProvider.class)
-@PhasedTest
-public class MyPhasedTest {
-}
-```
-
-However, whenever the Phased Test Listener discovers a Phased Test, it will add the necessary data providers needed for running the test. But, ideally it is best to set the default providers in orrder to not lose the possibility of local execution.
-
-### Non-Interruptive Events
-In the case of non-interruptive events there are a few things to consider:
-* Writing an Event
-* Binding an Event to a Scenario
-
-#### Writing a Non-Interruptive Event
-In order have some level of predictability for non-interruptive events, we have defined an api for non-interruptive events. For an event to be able to be used by the Phased Tests it needs to inherit from the abstract class `com.adobe.campaign.tests.integro.phased.NonInterruptiveEvent` which extends `Runnable`.
-
-In the example before we have created an event `NonInterruptiveEventExample`:
-```java
-public class NonInterruptiveEventExample extends NonInterruptiveEvent {
-  @Override
-  public boolean startEvent() {
-    return false;
-  }
-
-  @Override
-  public boolean isFinished() {
-    return false;
-  }
-
-  @Override
-  public boolean waitTillFinished() {
-    return false;
-  }
-}
-```
-
-As you can see we have to implement three methods:
-* `startEvent` starts the event.
-* `isFinished` allow the system to see if the event we declared has finished.
-* `waitTillFinished` waits until the event has finished.
-
-In order to define these event you will need to implement these methods, as you who are defining the event have the best knowledge on how these event will work.
-
-##### Performing Event Cleanup Actions
-At times the simple execution of an event is not sufficient. We need to perform an event clean up action to reset the system to a stable state. For this we allow you to define a 'tearDownEven' actions for an event. This means that after an event has been finished, we perform an additional set of actions before the next step is executed. To make use of this you need to override the method `tearDownEvent` in your event. The framework will then execute this action right before the next step is triggered.
-
-```java
-@Override
-public boolean tearDownEvent() {
-        // Perform actions
-        return true; //Return true if the actions were successful
-        }
-```
-
-#### Binding an Event to a Scenario
-In order for your scenario to interact with an event you will need to declare it. This can be done in three ways (in order of precedence) :
-* Phased Event Annotation
-* Phased Test Annotation
-* Test Suite Definition
-
-If you have the event declared in more than one level (for example on both the PhasedEvent and the PhasedTest annotation), it is the value with more precedence which is taken into account.
-
-##### Attaching an Event using the PhaseEvent Annotation
-The mode is only applicable to Single Run execution modes.
-
-In the case of single run scenarios, we can specify which phase event should be triggered on the annotation itself. This is by setting the `eventClasses` attribute for the `@PhaseEvent` annotation.
-
-In the example below the PhaseEvent is always executed at the step2 of the scenario. Here we have specified that when we are in asynchroous mode only the event `com.adobe.campaign.tests.integro.phased.data.events.MyNonInterruptiveEvent` should be executed. 
-```Java
-@PhasedTest
-@Test
-public class SingleRunScenarioWithEvent {
-
-    public void step1(String val) {
-        PhasedTestManager.produceInStep("A");
-    }
-
-    @PhaseEvent(eventClasses = {"com.adobe.campaign.tests.integro.phased.data.events.MyNonInterruptiveEvent"})
-    public void step2(String val) {
-        String l_fetchedValue = PhasedTestManager.consumeFromStep("step1");
-        PhasedTestManager.produceInStep(l_fetchedValue + "B");
-    }
-
-    public void step3(String val) {
-        String l_fetchedValue = PhasedTestManager.consumeFromStep("step2");
-
-        assertEquals(l_fetchedValue, "AB");
-    }
-}
-```
-
-##### Attaching an Event using the PhasedTest Annotation
-In this case we expect us to specify if a scenario is only subject to the same event. This will be done at the `@PhasedTest` annotation using the attribute `eventClasses`. When set we only use the specified event.
-
-```Java
-@PhasedTest(eventClasses = {"com.adobe.campaign.tests.integro.phased.data.events.MyNonInterruptiveEvent"})
-@Test
-public class ShuffledScenarioWithEvent {
-
-    public void step1(String val) {
-        PhasedTestManager.produce("step1Value","A");
-    }
-    
-    public void step2(String val) {
-        String l_fetchedValue = PhasedTestManager.consume("step1Value");
-        PhasedTestManager.produce("Step2Value", l_fetchedValue + "B");
-    }
-
-    public void step3(String val) {
-        String l_fetchedValue = PhasedTestManager.consume("Step2Value");
-
-        assertEquals(l_fetchedValue, "AB");
-    }
-}
-```
-
-##### Attaching an Event to the Test Suite
-In this case, we state that all scenarios should be using the same Event. We can activate this mode by setting the environment variable `MUTATIONAL.EVENTS.NONINTERRUPTIVE` to the event class.
-
-This works for both Shuffled and Single-Run tests. If we want to run all tests with the event `com.adobe.campaign.tests.integro.phased.data.events.MyNonInterruptiveEvent`, we enter:
-
-```mvn clean test -DMUTATIONAL.EVENTS.NONINTERRUPTIVE=com.adobe.campaign.tests.integro.phased.data.events.MyNonInterruptiveEvent```
-
-You can also add it as a property in your testng definition file.
-
-##### Targeting an Event to a Specific Step
-As of version 8.11.2, we can inject an event to a specific step of a Phased Scenario. This is done by:
-* Declaring an event by setting the variable `MUTATIONAL.EVENTS.NONINTERRUPTIVE`.
-* Identifying the step on which an event will occur. This is done by setting the variable `MUTATIONAL.EVENTS.TARGET`.
-
-The step should point to a method. For method `step1` in the class `a.b.c.ScenarioA` you can set:
-* `a.b.c.ScenarioA.step1`
-* `ScenarioA#step1`
-* `ScenarioA.step1`
-
-In the case of nested tests, for method `step1` in the class `a.b.c.ScenarioA`, and sub-class `NestedClassB` you need to use the `$` notation. It will look like:
-* `a.b.c.ScenarioA$NestedClassB.step1`
-* `ScenarioA$NestedClassB#step1`
-* `ScenarioA$NestedClassB.step1`
-
-Here is an example of running a specific event for a specific test:
-
-```mvn clean test -DMUTATIONAL.EVENTS.NONINTERRUPTIVE=com.adobe.campaign.tests.integro.phased.data.events.MyNonInterruptiveEvent -DMUTATIONAL.EVENTS.TARGET=ScenarioA$NestedClassB#step1 ```
-
-
-### Before- and After-Phase Actions
-We have introduced the possibility of defining Before and After Phases. This means that you can state if a method can be invoked before or after the phased tests are executed. These methods are only activated when we are in a Phase, and will not run when executed when we execute the scenarios in Non-Phased mode. 
-
-However, Before/After Phase methods are like any other Before/After method as, when invoked, they will affect all underlying tests, even if they are not Phased Tests.
-
-To activate this functionality you add the annotations `@BeforePhase` & `@AfterPhase` to a TestNG configuration method such as: **@BeforeSuite, @AfterSuite, @BeforeGroups, @AfterGroups, @BeforeTest and @AfterTest**.
-
-To your configuration method. Example:
-
-```java
-@BeforePhase
-@BeforeSuite
-public void myBeforePhaseSuite() {
-    //Perform actions
-}
-```
-
-In the example above the method `myBeforePhaseSuite` will be invoked in the beginning of the suite. By default, the BeforePhase method is invoked when we are in a Phase I.e. Producer or Consumer.
-
-You can configure this with the attribute `appliesToPhases`, which accepts an array of `Phases`. In the example below we are activating AfterPhase for the Consumer phase only.
-
-
- ```java
-@AfterPhase(appliesToPhases = {Phases.CONSUMER})
-@AfterSuite
-public void myAfterPhasedSuite() {
-    //Perform actions
-}
-```
-
-### Nested Design Pattern
-As of version 7.0.9 of Phased Testing which is based on the 7.5 of TestNG, we can now define nested Phased tests. This allows you to regroup the phased tests under the same class. Thus, you will have Phased Tests that resemble method based tests.
-
-Example:
-```java
-public class PhasedTestSeries_NestedContainer {
-  @Test
-  @PhasedTest
-  public class PhasedScenario1 {
-
-    public void step1(String val) {
-      PhasedTestManager.produce("myValX","A");
-    }
-
-    public void step2(String val) {
-      String l_fetchedValue = PhasedTestManager.consume("myValX");
-
-      assertEquals(l_fetchedValue, "A");
-    }
-  }
-
-  @Test
-  @PhasedTest
-  public class PhasedScenario2 {
-
-    public void step1(String val) {
-      PhasedTestManager.produce("MyVal1","AB");
-    }
-    
-    public void step2(String val) {
-      String l_fetchedValue = PhasedTestManager.consume("MyVal1");
-
-      assertEquals(l_fetchedValue, "AB");
-    }
-
-  }
-
-}
-```
-
-## Writing a Mutational Test
-This is the inheritance/template-method authoring model, provided by the `mutational-testing`
-module. Unlike a Phased Test, your test class isn't a plain TestNG class run directly by TestNG — it
-extends the abstract class `Mutational`, and a single template method on that base class (`scenario`)
-resolves the right step order and invokes your step methods one by one, reflectively.
-
-You need to register `MutationListener` for Mutational tests to be recognized, either on your suite in
-`testng.xml`:
-
-```xml
-<suite name="My Suite">
-    <listeners>
-        <listener class-name="com.adobe.campaign.tests.integro.phased.MutationListener"/>
-    </listeners>
-    ...
-</suite>
-```
-
-or with the `@Listeners` annotation on your test class.
-
-### Defining a scenario
-Extend `Mutational`, and write your steps as plain (non-`@Test`) public methods, each accepting a single
-`String` argument — the current phase/shuffle group. You still need a class-level `@Test` annotation (for
-grouping, same as any TestNG class), but you do **not** need `@PhasedTest`/`@PhaseEvent` — `Mutational`
-itself already carries the annotation wiring your steps need.
-
-```java
-@Test(groups = "checkout")
-public class ShoppingCartScenario extends Mutational {
-
-    public void loginToSite(String phaseGroup) {
-        PhasedTestManager.produce("authToken", "123456");
-    }
-
-    public void searchProduct(String phaseGroup) {
-        PhasedTestManager.produce("product", "product1");
-    }
-
-    public void addProductToCart(String phaseGroup) {
-        String product = PhasedTestManager.consume("product");
-        PhasedTestManager.produce("cart", "cart1");
-    }
-
-    public void checkout(String phaseGroup) {
-        PhasedTestManager.consume("authToken");
-        PhasedTestManager.consume("cart");
-    }
-}
-```
-
-Key differences from [Writing a Phased Test](#writing-a-phased-test):
-* Step methods are **not** annotated `@Test` individually — they're plain methods discovered via reflection
-  and invoked one by one by `Mutational.scenario(String)`.
-* Each step method must accept exactly one `String` argument — the current phase/shuffle group.
-* The `produce`/`consume` context API (`PhasedTestManager.produce`/`consume`) is exactly the same as in
-  Phased Testing, since both authoring styles share the same core engine.
-* Ordering between steps is always determined from code-detected dependencies between steps (via
-  `produce`/`consume`) — the same underlying mechanism Phased Tests can opt into via
-  [`PHASED.TESTS.DETECT.ORDER`](#phasedtestsdetectorder), but for Mutational tests it's not optional,
-  since there's no TestNG-native `@Test` method order to fall back on.
-
-### Permutations
-The [PERMUTATIONAL execution mode](#permuational-execution-mode) is the feature most specific to
-Mutational Testing: instead of picking a single valid step order, it identifies every dependency between
-steps (via `produce`/`consume`) and re-executes the scenario once per valid permutation of that order. See
-[Permutations](#permutations) for the underlying concept.
+How you attach an event to a scenario depends on the authoring style: the annotation-driven approach is
+covered in [Binding an Event to a Scenario](phased-testing-testng/README.md#binding-an-event-to-a-scenario),
+and the property-driven approach in
+[Non-Interruptive Events (Mutational)](mutational-testing/README.md#non-interruptive-events).
 
 ## Execution Modes and Configuration
 This chapter covers the shared engine configuration used by both authoring styles — Phased and
@@ -736,7 +348,7 @@ This property is passed whenever we want to specify a non-interruptive event at 
 As of version 9.0.0, this has been renamed to `MUTATIONAL.EVENTS.NONINTERRUPTIVE`. The old property name is still honored for backward compatibility (a deprecation warning is logged), but will be removed in a future major version.
 
 #### MUTATIONAL.EVENTS.TARGET
-This property allows us to inject an event into a specific step of a scenario, as described in [Targeting an Event to a Specific Step](#targeting-an-event-to-a-specific-step). The notation is either the standard method reference, or that of Surefire.
+This property allows us to inject an event into a specific step of a scenario, as described in [Targeting an Event to a Specific Step](phased-testing-testng/README.md#targeting-an-event-to-a-specific-step). The notation is either the standard method reference, or that of Surefire.
 
 #### PHASED.EVENTS.TARGET (DEPRECATED)
 As of version 9.0.0, this has been renamed to `MUTATIONAL.EVENTS.TARGET`. The old property name is still honored for backward compatibility (a deprecation warning is logged), but will be removed in a future major version.
@@ -869,14 +481,6 @@ The following configuration items can be added to the constructed name:
 We sometimes need to have an un polished report for debugging reasons. Therefore, we have introduced a raw report mode.By default, we only slightly modify how TestNG generates reports. As each step is a method, you will get one result per step. This will lead to a lot of results, but you will have the full overview of the evolution of the tests.
 
 To activate this report, you need to set the system property PHASED.TESTS.REPORT.BY.PHASE_GROUP to "false".
-
-## Misc
-In this chapter we will deal with miscellaneous issues related to Phased Tests
-
-### Data Providers
-We now allow for a user to also include data providers in connection to Phased Tests. The Data Provider parameters will, when executed in a Phased Test, be added to the test result.
-
-A configuration check is done in the beginning. The phased test steps are checked and their arguments are compared to the number of data providers + the injected data provider for phased tests. If the number of arguments does not correspond to the total number of data providers, a `PhasedTestConfigurationException` is thrown right at the beginning.
 
 ## Known Issues and Limitations
 In this chapter we will share the functionalities that yet need to be implemented or fixed in the Phased Testing system. In most cases these issues are items which have not yet been tested, and we yet do not know or have not specified how they should work when we are in a phased execution. 
