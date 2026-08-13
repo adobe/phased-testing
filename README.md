@@ -12,9 +12,10 @@ The mutational test methods help solve problems such as:
 * Chaos testing
 * End-User testing
 
+As of version 9.0.0, this repository is a multi-module Maven build — see the [Architecture overview](CONTRIBUTING.md#architecture) in CONTRIBUTING.md for how the modules fit together.
+
 ## Table of Contents
 <!-- TOC -->
-  * [Architecture](#architecture)
   * [Problem Statement](#problem-statement)
     * [Events](#events)
       * [Interruptive Events](#interruptive-events)
@@ -85,33 +86,6 @@ The mutational test methods help solve problems such as:
   * [Release Notes](#release-notes)
 <!-- TOC -->
  
-## Architecture
-As of version 9.0.0, this repository is a multi-module Maven build. There are two ways to *author* a
-mutational test scenario, sharing one common engine:
-
-```mermaid
-graph BT
-    core["phased-testing-core\nshared engine: scenario/step management,\nexecution modes, produce/consume,\nevents, reporting — no authoring-model opinion"]
-    testng["phased-testing-testng\nannotation-driven authoring:\n@PhasedTest, @PhaseEvent,\nPhasedTestListener"]
-    mutational["mutational-testing\ninheritance/template-method authoring:\nextend Mutational, plain step methods,\nMutationListener"]
-
-    testng --> core
-    mutational --> core
-```
-
-* **`phased-testing-testng`** is the original, annotation-driven authoring style: you write a plain class,
-  annotate it `@PhasedTest`, and TestNG discovers and runs each `@Test` step method directly. This is
-  documented in [Writing a Phased Test](#writing-a-phased-test).
-* **`mutational-testing`** is a newer, inheritance/template-method authoring style: your test class
-  extends `Mutational`, its step methods are plain (non-`@Test`) methods, and a single template method
-  drives their execution — including running them in every valid permutation. This is documented in
-  [Writing a Mutational Test](#writing-a-mutational-test).
-* Both styles share the same underlying engine (`phased-testing-core`): the same execution modes, the same
-  `produce`/`consume` context API, the same event model, and the same reporting.
-
-You only need to depend on the module matching the authoring style you use — see [Installation](#installation).
-Neither `phased-testing-testng` nor `mutational-testing` depends on the other.
-
 ## Problem Statement
 Mutational Tests (aka Phased Tests) is a framework, built upon TestNG, that allows test scenarios to "mutate". This means that a given scenario can, when needed,change its structure and order, i.e. “mutate”, to address the challenges that are imposed on it.
 
