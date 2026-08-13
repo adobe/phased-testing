@@ -92,9 +92,9 @@ mutational test scenario, sharing one common engine:
 ```
 phased-testing-core          (shared engine: scenario/step management, execution modes,
                                produce/consume, events, reporting — no authoring-model opinion)
-        ^                              ^
-        |                              |
-phased-testing-testng          phased-testing-mutational
+        ^                            ^
+        |                            |
+phased-testing-testng      mutational-testing
 (annotation-driven authoring:  (inheritance/template-method authoring:
  @PhasedTest, @PhaseEvent,      extend `Mutational`, plain step methods,
  PhasedTestListener)            MutationListener)
@@ -103,7 +103,7 @@ phased-testing-testng          phased-testing-mutational
 * **`phased-testing-testng`** is the original, annotation-driven authoring style: you write a plain class,
   annotate it `@PhasedTest`, and TestNG discovers and runs each `@Test` step method directly. This is
   documented in [Writing a Phased Test](#writing-a-phased-test).
-* **`phased-testing-mutational`** is a newer, inheritance/template-method authoring style: your test class
+* **`mutational-testing`** is a newer, inheritance/template-method authoring style: your test class
   extends `Mutational`, its step methods are plain (non-`@Test`) methods, and a single template method
   drives their execution — including running them in every valid permutation. This is documented in
   [Writing a Mutational Test](#writing-a-mutational-test).
@@ -111,7 +111,7 @@ phased-testing-testng          phased-testing-mutational
   `produce`/`consume` context API, the same event model, and the same reporting.
 
 You only need to depend on the module matching the authoring style you use — see [Installation](#installation).
-Neither `phased-testing-testng` nor `phased-testing-mutational` depends on the other.
+Neither `phased-testing-testng` nor `mutational-testing` depends on the other.
 
 ## Problem Statement
 Mutational Tests (aka Phased Tests) is a framework, built upon TestNG, that allows test scenarios to "mutate". This means that a given scenario can, when needed,change its structure and order, i.e. “mutate”, to address the challenges that are imposed on it.
@@ -198,7 +198,7 @@ If you write tests using the `Mutational` base class (inheritance/template-metho
 ```
  <dependency>
     <groupId>com.adobe.campaign.tests.phased</groupId>
-    <artifactId>phased-testing-mutational</artifactId>
+    <artifactId>mutational-testing</artifactId>
     <version>9.0.0</version>
 </dependency>
 ```
@@ -571,7 +571,7 @@ public class PhasedTestSeries_NestedContainer {
 ```
 
 ## Writing a Mutational Test
-This is the inheritance/template-method authoring model, provided by the `phased-testing-mutational`
+This is the inheritance/template-method authoring model, provided by the `mutational-testing`
 module. Unlike a Phased Test, your test class isn't a plain TestNG class run directly by TestNG — it
 extends the abstract class `Mutational`, and a single template method on that base class (`scenario`)
 resolves the right step order and invokes your step methods one by one, reflectively.

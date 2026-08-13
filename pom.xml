@@ -51,7 +51,7 @@
         <module>phased-testing-core</module>
         <module>phased-testing-test-fixtures</module>
         <module>phased-testing-testng</module>
-        <module>phased-testing-mutational</module>
+        <module>mutational-testing</module>
         <module>phased-testing-report-aggregate</module>
     </modules>
     <build>

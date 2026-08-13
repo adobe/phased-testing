@@ -19,7 +19,7 @@
     <artifactId>phased-testing-test-fixtures</artifactId>
     <packaging>jar</packaging>
     <description>Shared test fixtures and helper utilities reused by both the phased-testing-testng and
-        phased-testing-mutational test suites. Internal to this repository's reactor build; never
+        mutational-testing test suites. Internal to this repository's reactor build; never
         deployed as a released artifact.</description>
     <name>${project.groupId}:${project.artifactId}</name>
     <properties>

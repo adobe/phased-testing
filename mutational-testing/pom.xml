@@ -16,7 +16,7 @@
         <version>9.0.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
-    <artifactId>phased-testing-mutational</artifactId>
+    <artifactId>mutational-testing</artifactId>
     <packaging>jar</packaging>
     <description>Mutational Testing: an inheritance/template-method-driven test-authoring model built on
         the phased-testing-core engine, supporting event-driven and permutation-driven scenario
