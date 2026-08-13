@@ -91,9 +91,9 @@ mutational test scenario, sharing one common engine:
 
 ```mermaid
 graph BT
-    core["<b>phased-testing-core</b><br/>shared engine: scenario/step management,<br/>execution modes, produce/consume,<br/>events, reporting — no authoring-model opinion"]
-    testng["<b>phased-testing-testng</b><br/>annotation-driven authoring:<br/>@PhasedTest, @PhaseEvent,<br/>PhasedTestListener"]
-    mutational["<b>mutational-testing</b><br/>inheritance/template-method authoring:<br/>extend Mutational, plain step methods,<br/>MutationListener"]
+    core["phased-testing-core\nshared engine: scenario/step management,\nexecution modes, produce/consume,\nevents, reporting — no authoring-model opinion"]
+    testng["phased-testing-testng\nannotation-driven authoring:\n@PhasedTest, @PhaseEvent,\nPhasedTestListener"]
+    mutational["mutational-testing\ninheritance/template-method authoring:\nextend Mutational, plain step methods,\nMutationListener"]
 
     testng --> core
     mutational --> core
