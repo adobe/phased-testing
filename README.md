@@ -49,14 +49,13 @@ live with their modules:
     - [PHASED.TESTS.PHASE (DEPRECATED)](#phasedtestsphase-deprecated)
     - [MUTATIONAL.EVENTS.NONINTERRUPTIVE](#mutationaleventsnoninterruptive)
     - [MUTATIONAL.EVENTS.TARGET](#mutationaleventstarget)
-    - [PHASED.TESTS.DATABROKER](#phasedtestsdatabroker)
-    - [PHASED.TESTS.STORAGE.PATH](#phasedtestsstoragepath)
-    - [PHASED.TESTS.OUTPUT.DIR](#phasedtestsoutputdir)
-    - [PHASED.TESTS.RETRY.DISABLED](#phasedtestsretrydisabled)
-    - [PHASED.TESTS.REPORT.BY.PHASE_GROUP](#phasedtestsreportbyphase_group)
-    - [PHASED.TESTS.CODE.ROOT](#phasedtestscoderoot)
-    - [PHASED.TESTS.DETECT.ORDER](#phasedtestsdetectorder)
-    - [PHASED.TESTS.NONPHASED.LEGACY](#phasedtestsnonphasedlegacy)
+    - [MUTATIONAL.TESTS.DATABROKER](#mutationaltestsdatabroker)
+    - [MUTATIONAL.TESTS.STORAGE.PATH](#mutationalteststoragepath)
+    - [MUTATIONAL.TESTS.OUTPUT.DIR](#mutationaltestsoutputdir)
+    - [MUTATIONAL.TESTS.RETRY.DISABLED](#mutationaltestsretrydisabled)
+    - [MUTATIONAL.TESTS.REPORT.BY.PHASE_GROUP](#mutationaltestsreportbyphase_group)
+    - [MUTATIONAL.TESTS.CODE.ROOT](#mutationaltestscoderoot)
+    - [MUTATIONAL.TESTS.DETECT.ORDER](#mutationaltestsdetectorder)
   - [Executing a CONSUMER phase based on the PRODUCED Data](#executing-a-consumer-phase-based-on-the-produced-data)
   - [Execution Order](#execution-order)
   - [Running Nested Phased Tests](#running-nested-phased-tests)
@@ -340,14 +339,13 @@ We have the following system properties:
 - PHASED.TESTS.PHASE (Deprecated)
 - MUTATIONAL.EVENTS.NONINTERRUPTIVE
 - MUTATIONAL.EVENTS.TARGET
-- PHASED.TESTS.DATABROKER
-- PHASED.TESTS.STORAGE.PATH
-- PHASED.TESTS.OUTPUT.DIR
-- PHASED.TESTS.RETRY.DISABLED
-- PHASED.TESTS.REPORT.BY.PHASE_GROUP
-- PHASED.TESTS.CODE.ROOT
-- PHASED.TESTS.DETECT.ORDER
-- PHASED.TESTS.NONPHASED.LEGACY
+- MUTATIONAL.TESTS.DATABROKER
+- MUTATIONAL.TESTS.STORAGE.PATH
+- MUTATIONAL.TESTS.OUTPUT.DIR
+- MUTATIONAL.TESTS.RETRY.DISABLED
+- MUTATIONAL.TESTS.REPORT.BY.PHASE_GROUP
+- MUTATIONAL.TESTS.CODE.ROOT
+- MUTATIONAL.TESTS.DETECT.ORDER
 
 #### MUTATIONAL.EXECUTION.MODE
 
@@ -382,39 +380,47 @@ This property allows us to inject an event into a specific step of a scenario, a
 
 This property was previously called `PHASED.EVENTS.TARGET` (as of version 9.0.0). The old property name is still honored for backward compatibility (a deprecation warning is logged), but will be removed in a future major version.
 
-#### PHASED.TESTS.DATABROKER
+#### MUTATIONAL.TESTS.DATABROKER
 
 This parameter allows you to tell the PhaseTestManager which DataBroker implementation you want to use. The is usually a full class path (package name + class name). More on this will be dealt with in the chapter on Phased Data Broker.
 
-#### PHASED.TESTS.STORAGE.PATH
+This property was previously called `PHASED.TESTS.DATABROKER`. The old property name is still honored for backward compatibility (a deprecation warning is logged), but will be removed in a future major version.
+
+#### MUTATIONAL.TESTS.STORAGE.PATH
 
 This is the path in which the Phased Data is stored, and fetched. If not set, the path /phased_output/phased_tests/phaseData.properties will be used.
 
-#### PHASED.TESTS.OUTPUT.DIR
+This property was previously called `PHASED.TESTS.STORAGE.PATH`. The old property name is still honored for backward compatibility (a deprecation warning is logged), but will be removed in a future major version.
+
+#### MUTATIONAL.TESTS.OUTPUT.DIR
 
 By default, Phased Test data is stored under the directory phased_output. You can override this by setting this system property. If not set, the default directory phased_output will be used.
 
-#### PHASED.TESTS.RETRY.DISABLED
+This property was previously called `PHASED.TESTS.OUTPUT.DIR`. The old property name is still honored for backward compatibility (a deprecation warning is logged), but will be removed in a future major version.
+
+#### MUTATIONAL.TESTS.RETRY.DISABLED
 
 By default, we deactivate retry analyzer for the phased tests. However, if you really want to use your retry listener, we can stop the phase test listener from deactivating it.
 
-#### PHASED.TESTS.REPORT.BY.PHASE_GROUP
+This property was previously called `PHASED.TESTS.RETRY.DISABLED`. The old property name is still honored for backward compatibility (a deprecation warning is logged), but will be removed in a future major version.
+
+#### MUTATIONAL.TESTS.REPORT.BY.PHASE_GROUP
 
 By default, we do not modify reports. Each step in a scenario is reported as is. We have introduced a "Report By Phase Group" functionality, which is activated with this property.
 
-#### PHASED.TESTS.CODE.ROOT
+This property was previously called `PHASED.TESTS.REPORT.BY.PHASE_GROUP`. The old property name is still honored for backward compatibility (a deprecation warning is logged), but will be removed in a future major version.
+
+#### MUTATIONAL.TESTS.CODE.ROOT
 
 As of version 7.0.11, we will be detecting the order based on the code. These rules are deduced by analyzing the test code. Since it is not easy to deduce, we require the user to set the root directory from whoch the sources can be found. This directory should point to le location from which the first package directory starts.
 
-#### PHASED.TESTS.DETECT.ORDER
+This property was previously called `PHASED.TESTS.CODE.ROOT`. The old property name is still honored for backward compatibility (a deprecation warning is logged), but will be removed in a future major version.
+
+#### MUTATIONAL.TESTS.DETECT.ORDER
 
 As of version 7.0.11, we will be detecting the order based on the code. In 7.0.11, whenever this system property is set (the value is not important in this version), we execute the steps of a scenario based on their position within the class.
 
-#### PHASED.TESTS.NONPHASED.LEGACY
-
-For versions < 8.0.0 we had a bug where the default execution mode was executed in a phase group called "phased-data-provider-single". This was incorrect, and as of version 8.0.0 the default execution mode of a phased test is "phased-default". Due to backward compatibility, we allow users to keep the old mode if they chose to.
-
-This property is deprecated, as it exists only to opt back into the old buggy behavior. A warning is logged at suite start if it is set.
+This property was previously called `PHASED.TESTS.DETECT.ORDER`. The old property name is still honored for backward compatibility (a deprecation warning is logged), but will be removed in a future major version.
 
 ### Executing a CONSUMER phase based on the PRODUCED Data
 
@@ -426,7 +432,7 @@ For this, as of version 7.0.9, we have introduced the functionality that allows 
 
 By default, the phased tests, being implemented in TestNG follow the same rules as that test framework. This means that up to version 7.0.10 (included), the execution of the steps in a scenario follows an alphabetical rule.
 
-As of version 8 we have implemented code based order. Whenever the system property, PHASED.TESTS.DETECT.ORDER is set, the steps are executed in the order the way we declared in the code. By default, we expect the code to be in maven where the tests are in the directory src/test/java. However, this can be overriden by setting the execution property PHASED.TESTS.CODE.ROOT.
+As of version 8 we have implemented code based order. Whenever the system property, MUTATIONAL.TESTS.DETECT.ORDER is set, the steps are executed in the order the way we declared in the code. By default, we expect the code to be in maven where the tests are in the directory src/test/java. However, this can be overriden by setting the execution property MUTATIONAL.TESTS.CODE.ROOT.
 
 ### Running Nested Phased Tests
 
@@ -481,7 +487,7 @@ At the end of the producer phase we store all the phase data in a properties fil
 
 When going to the consumer state all you need to do is to make sure that the file is available.
 
-You can override the directory by setting the system property _PHASED.TESTS.STORAGE.PATH_.
+You can override the directory by setting the system property _MUTATIONAL.TESTS.STORAGE.PATH_.
 
 #### Phased Data Broker
 
@@ -491,8 +497,8 @@ For this you need to define a Class that implements the interface com.adobe.camp
 
 The Phased Data Broker can then be attached to the test in three ways (in descending order):
 
-1. Setting a system property PHASED.TESTS.DATABROKER with the class full name.
-2. Configuring the property PHASED.TESTS.DATABROKER as a Test Suite parameter
+1. Setting a system property MUTATIONAL.TESTS.DATABROKER with the class full name.
+2. Configuring the property MUTATIONAL.TESTS.DATABROKER as a Test Suite parameter
 3. Programmatically by calling PhasedTestManager.setDataBroker()
 
 ## Reporting
@@ -540,7 +546,7 @@ The following configuration items can be added to the constructed name:
 
 We sometimes need to have an un polished report for debugging reasons. Therefore, we have introduced a raw report mode.By default, we only slightly modify how TestNG generates reports. As each step is a method, you will get one result per step. This will lead to a lot of results, but you will have the full overview of the evolution of the tests.
 
-To activate this report, you need to set the system property PHASED.TESTS.REPORT.BY.PHASE_GROUP to "false".
+To activate this report, you need to set the system property MUTATIONAL.TESTS.REPORT.BY.PHASE_GROUP to "false".
 
 ## Known Issues and Limitations
 
@@ -552,7 +558,7 @@ For now, we do not know how parallel execution will work with phased tests. So i
 
 ### Retry Mechanisms
 
-For now, we have not come around to deciding how retry should work in the case of phased tests. By default, we deactivate them on the phased tests unless the user specifically chooses to activate them by setting the system property `PHASED.TESTS.RETRY.DISABLED` to false.
+For now, we have not come around to deciding how retry should work in the case of phased tests. By default, we deactivate them on the phased tests unless the user specifically chooses to activate them by setting the system property `MUTATIONAL.TESTS.RETRY.DISABLED` to false.
 
 ## Release Notes
 

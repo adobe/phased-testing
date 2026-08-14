@@ -21,6 +21,7 @@ configuration, reporting and data management — all of which apply equally to t
     * [Setting Execution Modes](#setting-execution-modes)
       * [Shuffled Mode](#shuffled-mode)
       * [Single Run Mode](#single-run-mode)
+      * [PHASED.TESTS.NONPHASED.LEGACY (DEPRECATED)](#phasedtestsnonphasedlegacy-deprecated)
     * [Local Execution](#local-execution)
     * [Non-Interruptive Events](#non-interruptive-events)
       * [Writing a Non-Interruptive Event](#writing-a-non-interruptive-event)
@@ -159,6 +160,12 @@ In order for a test scenario to be executed in shuffle mode you need to add the 
 In order for a test scenario to be executed in single run mode you simply need to set the annotation `@PhaseEvent` somewhere along its steps. The location of this annotation is where you expect the interruption to occur.
 
 Optionally if you consider that the scenario can never be run as non-phased, you need also include:  `@PhasedTest(executeInactive = false)`. When executeInactive is false, the Single Run scenario will only run when in Phases.
+
+#### PHASED.TESTS.NONPHASED.LEGACY (DEPRECATED)
+
+For versions < 8.0.0 we had a bug where the default execution mode was executed in a phase group called "phased-data-provider-single". This was incorrect, and as of version 8.0.0 the default execution mode of a phased test is "phased-default". Due to backward compatibility, we allow users to keep the old mode if they chose to by setting this system property.
+
+This property is deprecated, as it exists only to opt back into the old buggy behavior. A warning is logged at suite start if it is set.
 
 ### Local Execution
 Whenever the Phased Test Listener discovers a Phased Test, it will automatically add the data provider needed for running the test, so in the standard case you don't need to declare one yourself:
