@@ -43,6 +43,9 @@ public class MutationListener
         log.debug("{} in alter - current Execution State is : {}", PhasedTestManager.PHASED_TEST_LOG_PREFIX
                 , ExecutionMode.getCurrentMode());
 
+        ConfigValueHandlerPhased.warnIfLegacyNamesAreUsed();
+        ConfigValueHandlerPhased.warnIfDeprecatedPropertiesAreUsed();
+
         // *** Import DataBroker ***
         String l_phasedDataBrokerClass = null;
         if (ConfigValueHandlerPhased.PROP_PHASED_TEST_DATABROKER.isSet()) {

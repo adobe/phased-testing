@@ -21,6 +21,7 @@ configuration, reporting and data management — all of which apply equally to t
     * [Setting Execution Modes](#setting-execution-modes)
       * [Shuffled Mode](#shuffled-mode)
       * [Single Run Mode](#single-run-mode)
+      * [PHASED.TESTS.NONPHASED.LEGACY (DEPRECATED)](#phasedtestsnonphasedlegacy-deprecated)
     * [Local Execution](#local-execution)
     * [Non-Interruptive Events](#non-interruptive-events)
       * [Writing a Non-Interruptive Event](#writing-a-non-interruptive-event)
@@ -160,6 +161,12 @@ In order for a test scenario to be executed in single run mode you simply need t
 
 Optionally if you consider that the scenario can never be run as non-phased, you need also include:  `@PhasedTest(executeInactive = false)`. When executeInactive is false, the Single Run scenario will only run when in Phases.
 
+#### PHASED.TESTS.NONPHASED.LEGACY (DEPRECATED)
+
+For versions < 8.0.0 we had a bug where the default execution mode was executed in a phase group called "phased-data-provider-single". This was incorrect, and as of version 8.0.0 the default execution mode of a phased test is "phased-default". Due to backward compatibility, we allow users to keep the old mode if they chose to by setting this system property.
+
+This property is deprecated, as it exists only to opt back into the old buggy behavior. A warning is logged at suite start if it is set.
+
 ### Local Execution
 Whenever the Phased Test Listener discovers a Phased Test, it will automatically add the data provider needed for running the test, so in the standard case you don't need to declare one yourself:
 
@@ -293,18 +300,18 @@ public class ShuffledScenarioWithEvent {
 ```
 
 ##### Attaching an Event to the Test Suite
-In this case, we state that all scenarios should be using the same Event. We can activate this mode by setting the environment variable `MUTATIONAL.EVENTS.NONINTERRUPTIVE` to the event class.
+In this case, we state that all scenarios should be using the same Event. We can activate this mode by setting the environment variable `PHASED.EVENTS.NONINTERRUPTIVE` to the event class.
 
 This works for both Shuffled and Single-Run tests. If we want to run all tests with the event `com.adobe.campaign.tests.integro.phased.data.events.MyNonInterruptiveEvent`, we enter:
 
-```mvn clean test -DMUTATIONAL.EVENTS.NONINTERRUPTIVE=com.adobe.campaign.tests.integro.phased.data.events.MyNonInterruptiveEvent```
+```mvn clean test -DPHASED.EVENTS.NONINTERRUPTIVE=com.adobe.campaign.tests.integro.phased.data.events.MyNonInterruptiveEvent```
 
 You can also add it as a property in your testng definition file.
 
 ##### Targeting an Event to a Specific Step
 As of version 8.11.2, we can inject an event to a specific step of a Phased Scenario. This is done by:
-* Declaring an event by setting the variable `MUTATIONAL.EVENTS.NONINTERRUPTIVE`.
-* Identifying the step on which an event will occur. This is done by setting the variable `MUTATIONAL.EVENTS.TARGET`.
+* Declaring an event by setting the variable `PHASED.EVENTS.NONINTERRUPTIVE`.
+* Identifying the step on which an event will occur. This is done by setting the variable `PHASED.EVENTS.TARGET`.
 
 The step should point to a method. For method `step1` in the class `a.b.c.ScenarioA` you can set:
 * `a.b.c.ScenarioA.step1`
@@ -318,7 +325,7 @@ In the case of nested tests, for method `step1` in the class `a.b.c.ScenarioA`, 
 
 Here is an example of running a specific event for a specific test:
 
-```mvn clean test -DMUTATIONAL.EVENTS.NONINTERRUPTIVE=com.adobe.campaign.tests.integro.phased.data.events.MyNonInterruptiveEvent -DMUTATIONAL.EVENTS.TARGET=ScenarioA$NestedClassB#step1 ```
+```mvn clean test -DPHASED.EVENTS.NONINTERRUPTIVE=com.adobe.campaign.tests.integro.phased.data.events.MyNonInterruptiveEvent -DPHASED.EVENTS.TARGET=ScenarioA$NestedClassB#step1 ```
 
 
 ### Before- and After-Phase Actions
