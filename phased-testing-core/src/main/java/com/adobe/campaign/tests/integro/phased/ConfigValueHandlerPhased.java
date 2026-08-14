@@ -16,15 +16,22 @@ import java.util.Arrays;
 public enum ConfigValueHandlerPhased {
     PROP_SELECTED_PHASE("PHASED.TESTS.PHASE", Phases.NON_PHASED.name(), false),
     EVENTS_NONINTERRUPTIVE("MUTATIONAL.EVENTS.NONINTERRUPTIVE", null, false, "PHASED.EVENTS.NONINTERRUPTIVE"),
-    PROP_PHASED_TEST_DATABROKER("PHASED.TESTS.DATABROKER", null, false),
-    PROP_PHASED_DATA_PATH("PHASED.TESTS.STORAGE.PATH", null, false),
-    PROP_OUTPUT_DIR("PHASED.TESTS.OUTPUT.DIR", PhasedTestManager.DEFAULT_CACHE_DIR,false),
-    PROP_DISABLE_RETRY("PHASED.TESTS.RETRY.DISABLED", "true", false),
-    PROP_MERGE_STEP_RESULTS("PHASED.TESTS.REPORT.BY.PHASE_GROUP","NOTSET", false),
-    PHASED_TEST_SOURCE_LOCATION("PHASED.TESTS.CODE.ROOT","/src/test/java", false),
-    PHASED_TEST_DETECT_ORDER("PHASED.TESTS.DETECT.ORDER", "false", false),
-    PHASED_TEST_NONPHASED_LEGACY( "PHASED.TESTS.NONPHASED.LEGACY", "false", false ),
-    PROP_SCENARIO_EXPORTED_PREFIX("PHASED.TESTS.STORAGE.SCENARIO.PREFIX", "[TC]", false),
+    PROP_PHASED_TEST_DATABROKER("MUTATIONAL.TESTS.DATABROKER", null, false, "PHASED.TESTS.DATABROKER"),
+    PROP_PHASED_DATA_PATH("MUTATIONAL.TESTS.STORAGE.PATH", null, false,
+            "PHASED.TESTS.STORAGE.PATH"),
+    PROP_OUTPUT_DIR("MUTATIONAL.TESTS.OUTPUT.DIR", PhasedTestManager.DEFAULT_CACHE_DIR, false,
+            "PHASED.TESTS.OUTPUT.DIR"),
+    PROP_DISABLE_RETRY("MUTATIONAL.TESTS.RETRY.DISABLED", "true", false,
+            "PHASED.TESTS.RETRY.DISABLED"),
+    PROP_MERGE_STEP_RESULTS("MUTATIONAL.TESTS.REPORT.BY.PHASE_GROUP", "NOTSET", false,
+            "PHASED.TESTS.REPORT.BY.PHASE_GROUP"),
+    PHASED_TEST_SOURCE_LOCATION("MUTATIONAL.TESTS.CODE.ROOT", "/src/test/java", false,
+            "PHASED.TESTS.CODE.ROOT"),
+    PHASED_TEST_DETECT_ORDER("MUTATIONAL.TESTS.DETECT.ORDER", "false", false,
+            "PHASED.TESTS.DETECT.ORDER"),
+    PHASED_TEST_NONPHASED_LEGACY("PHASED.TESTS.NONPHASED.LEGACY", "false", false),
+    PROP_SCENARIO_EXPORTED_PREFIX("MUTATIONAL.TESTS.STORAGE.SCENARIO.PREFIX", "[TC]", false,
+            "PHASED.TESTS.STORAGE.SCENARIO.PREFIX"),
     EVENT_TARGET("MUTATIONAL.EVENTS.TARGET", null, false, "PHASED.EVENTS.TARGET"),
     PROP_EXECUTION_MODE("MUTATIONAL.EXECUTION.MODE", "DEFAULT", false);
 
@@ -40,9 +47,11 @@ public enum ConfigValueHandlerPhased {
     }
 
     /**
-     * @param in_legacyPropertyName A previously used system property name for this config item, kept for
-     *                                   backward compatibility. Used as a fallback when the current
-     *                                   {@code systemName} is not set.
+     * @param in_legacyPropertyName A previously used system property name for this
+     *                              config item, kept for
+     *                              backward compatibility. Used as a fallback when
+     *                              the current
+     *                              {@code systemName} is not set.
      */
     ConfigValueHandlerPhased(String in_propertyName, String in_defaultValue, boolean in_requiredValue,
             String in_legacyPropertyName) {
@@ -53,7 +62,9 @@ public enum ConfigValueHandlerPhased {
     }
 
     /**
-     * Returns the value for our config element. If not in system, we return the default value.
+     * Returns the value for our config element. If not in system, we return the
+     * default value.
+     * 
      * @return The string value of the given property
      */
     public String fetchValue() {
@@ -68,6 +79,7 @@ public enum ConfigValueHandlerPhased {
 
     /**
      * Sets the given value to our property
+     * 
      * @param in_value set the value for the current config to this value
      */
     public void activate(String in_value) {
@@ -93,6 +105,7 @@ public enum ConfigValueHandlerPhased {
 
     /**
      * Checks if this config value is set
+     * 
      * @return true if the value for our config item is in the system
      */
     public boolean isSet() {
@@ -101,8 +114,10 @@ public enum ConfigValueHandlerPhased {
     }
 
     /**
-     * Scans all config values and logs a warning for each one whose legacy system property name is
-     * currently set, so that legacy usage is surfaced up front rather than only when the value is fetched.
+     * Scans all config values and logs a warning for each one whose legacy system
+     * property name is
+     * currently set, so that legacy usage is surfaced up front rather than only
+     * when the value is fetched.
      */
     public static void warnIfLegacyNamesAreUsed() {
         Arrays.stream(values())
@@ -113,6 +128,7 @@ public enum ConfigValueHandlerPhased {
 
     /**
      * Compares the value using equalsIgnoreCase
+     * 
      * @param in_value A value to compare the current one to
      * @return true if the given value is the same as the set one.
      */
