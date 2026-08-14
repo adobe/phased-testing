@@ -33,23 +33,23 @@ public enum ConfigValueHandlerPhased {
     public final String systemName;
     public final String defaultValue;
     public final boolean requiredValue;
-    public final String deprecatedSystemName;
+    public final String legacySystemName;
 
     ConfigValueHandlerPhased(String in_propertyName, String in_defaultValue, boolean in_requiredValue) {
         this(in_propertyName, in_defaultValue, in_requiredValue, null);
     }
 
     /**
-     * @param in_deprecatedPropertyName A previously used system property name for this config item, kept for
+     * @param in_legacyPropertyName A previously used system property name for this config item, kept for
      *                                   backward compatibility. Used as a fallback when the current
      *                                   {@code systemName} is not set.
      */
     ConfigValueHandlerPhased(String in_propertyName, String in_defaultValue, boolean in_requiredValue,
-            String in_deprecatedPropertyName) {
+            String in_legacyPropertyName) {
         systemName = in_propertyName;
         defaultValue = in_defaultValue;
         requiredValue = in_requiredValue;
-        deprecatedSystemName = in_deprecatedPropertyName;
+        legacySystemName = in_legacyPropertyName;
     }
 
     /**
@@ -57,11 +57,11 @@ public enum ConfigValueHandlerPhased {
      * @return The string value of the given property
      */
     public String fetchValue() {
-        if (deprecatedSystemName != null && System.getProperties().containsKey(deprecatedSystemName)
+        if (legacySystemName != null && System.getProperties().containsKey(legacySystemName)
                 && !System.getProperties().containsKey(systemName)) {
             log.warn("IMPORTANT: The property {} is DEPRECATED. Please use the property {} henceforth.",
-                    deprecatedSystemName, systemName);
-            return System.getProperty(deprecatedSystemName, defaultValue);
+                    legacySystemName, systemName);
+            return System.getProperty(legacySystemName, defaultValue);
         }
         return System.getProperty(this.systemName, this.defaultValue);
     }
@@ -79,8 +79,8 @@ public enum ConfigValueHandlerPhased {
      */
     public void reset() {
         System.clearProperty(this.systemName);
-        if (deprecatedSystemName != null) {
-            System.clearProperty(deprecatedSystemName);
+        if (legacySystemName != null) {
+            System.clearProperty(legacySystemName);
         }
     }
 
@@ -97,7 +97,18 @@ public enum ConfigValueHandlerPhased {
      */
     public boolean isSet() {
         return System.getProperties().containsKey(this.systemName)
-                || (deprecatedSystemName != null && System.getProperties().containsKey(deprecatedSystemName));
+                || (legacySystemName != null && System.getProperties().containsKey(legacySystemName));
+    }
+
+    /**
+     * Scans all config values and logs a warning for each one whose legacy system property name is
+     * currently set, so that legacy usage is surfaced up front rather than only when the value is fetched.
+     */
+    public static void warnIfLegacyNamesAreUsed() {
+        Arrays.stream(values())
+                .filter(v -> v.legacySystemName != null && System.getProperties().containsKey(v.legacySystemName))
+                .forEach(v -> log.warn("IMPORTANT: The property {} is DEPRECATED. Please use {} henceforth.",
+                        v.legacySystemName, v.systemName));
     }
 
     /**

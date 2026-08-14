@@ -81,26 +81,26 @@ public class TestConfigValueHandler {
     }
 
     @Test
-    public void testDeprecatedPropertyFallback() {
+    public void testLegacyPropertyFallback() {
         ConfigValueHandlerPhased eventItem = ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE;
 
         assertThat("The value should not be set yet", !eventItem.isSet());
 
-        System.setProperty(eventItem.deprecatedSystemName, "MyDeprecatedValue");
+        System.setProperty(eventItem.legacySystemName, "MyLegacyValue");
 
-        assertThat("isSet should honor the deprecated property name", eventItem.isSet());
-        assertThat("fetchValue should fall back to the deprecated property name", eventItem.fetchValue(),
-                equalTo("MyDeprecatedValue"));
+        assertThat("isSet should honor the legacy property name", eventItem.isSet());
+        assertThat("fetchValue should fall back to the legacy property name", eventItem.fetchValue(),
+                equalTo("MyLegacyValue"));
 
         eventItem.activate("MyNewValue");
 
-        assertThat("The new property name should take precedence over the deprecated one", eventItem.fetchValue(),
+        assertThat("The new property name should take precedence over the legacy one", eventItem.fetchValue(),
                 equalTo("MyNewValue"));
 
         eventItem.reset();
 
-        assertThat("reset() should clear both the new and the deprecated property", !eventItem.isSet());
-        assertThat(System.getProperty(eventItem.deprecatedSystemName), equalTo(null));
+        assertThat("reset() should clear both the new and the legacy property", !eventItem.isSet());
+        assertThat(System.getProperty(eventItem.legacySystemName), equalTo(null));
     }
 
     @Test
