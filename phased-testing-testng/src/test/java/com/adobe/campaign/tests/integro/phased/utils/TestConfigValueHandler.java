@@ -15,6 +15,7 @@ import org.testng.annotations.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
+import static org.hamcrest.Matchers.not;
 
 public class TestConfigValueHandler {
 
@@ -101,6 +102,24 @@ public class TestConfigValueHandler {
 
         assertThat("reset() should clear both the new and the legacy property", !eventItem.isSet());
         assertThat(System.getProperty(eventItem.legacySystemName), equalTo(null));
+    }
+
+    @Test
+    public void testDeprecatedProperties() {
+        assertThat("PROP_SELECTED_PHASE is deprecated in favor of MUTATIONAL.EXECUTION.MODE",
+                ConfigValueHandlerPhased.PROP_SELECTED_PHASE.deprecated);
+        assertThat("PROP_SELECTED_PHASE should explain why it is deprecated",
+                ConfigValueHandlerPhased.PROP_SELECTED_PHASE.description, not(isEmptyOrNullString()));
+
+        assertThat("PHASED_TEST_NONPHASED_LEGACY is a legacy backward-compatibility escape hatch",
+                ConfigValueHandlerPhased.PHASED_TEST_NONPHASED_LEGACY.deprecated);
+        assertThat("PHASED_TEST_NONPHASED_LEGACY should explain why it is deprecated",
+                ConfigValueHandlerPhased.PHASED_TEST_NONPHASED_LEGACY.description, not(isEmptyOrNullString()));
+
+        assertThat("EVENTS_NONINTERRUPTIVE is not itself deprecated, only its old name is",
+                !ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.deprecated);
+        assertThat("EVENTS_NONINTERRUPTIVE should still have a description",
+                ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.description, not(isEmptyOrNullString()));
     }
 
     @Test

@@ -368,6 +368,8 @@ We have four phased states:
 3. **ASYNCHRONOUS** : We execute an event during a phase.
 4. **NON_PHASED** : By default we execute all the steps in a phased test, unless the @PhasedTest has set the attribute **executeInactive** to "false"
 
+This property is superseded by `MUTATIONAL.EXECUTION.MODE` and is deprecated (not renamed — it is being removed, not replaced under a new name). A warning is logged at suite start if it is set.
+
 #### MUTATIONAL.EVENTS.NONINTERRUPTIVE
 
 This property is passed whenever we want to specify a non-interruptive event at run time. By passing the full name of the non-interruptive event, we can tell the system around which event our tests should be wrapped.
@@ -411,6 +413,8 @@ As of version 7.0.11, we will be detecting the order based on the code. In 7.0.1
 #### PHASED.TESTS.NONPHASED.LEGACY
 
 For versions < 8.0.0 we had a bug where the default execution mode was executed in a phase group called "phased-data-provider-single". This was incorrect, and as of version 8.0.0 the default execution mode of a phased test is "phased-default". Due to backward compatibility, we allow users to keep the old mode if they chose to.
+
+This property is deprecated, as it exists only to opt back into the old buggy behavior. A warning is logged at suite start if it is set.
 
 ### Executing a CONSUMER phase based on the PRODUCED Data
 

@@ -14,26 +14,43 @@ import org.apache.logging.log4j.Logger;
 import java.util.Arrays;
 
 public enum ConfigValueHandlerPhased {
-    PROP_SELECTED_PHASE("PHASED.TESTS.PHASE", Phases.NON_PHASED.name(), false),
-    EVENTS_NONINTERRUPTIVE("MUTATIONAL.EVENTS.NONINTERRUPTIVE", null, false, "PHASED.EVENTS.NONINTERRUPTIVE"),
-    PROP_PHASED_TEST_DATABROKER("MUTATIONAL.TESTS.DATABROKER", null, false, "PHASED.TESTS.DATABROKER"),
+    PROP_SELECTED_PHASE("PHASED.TESTS.PHASE", Phases.NON_PHASED.name(), false,
+            "Sets the current phase (PRODUCER, CONSUMER, ASYNCHRONOUS, NON_PHASED).",
+            true),
+    EVENTS_NONINTERRUPTIVE("MUTATIONAL.EVENTS.NONINTERRUPTIVE", null, false, "PHASED.EVENTS.NONINTERRUPTIVE",
+            "Specifies a non-interruptive event to wrap around test execution at run time."),
+    PROP_PHASED_TEST_DATABROKER("MUTATIONAL.TESTS.DATABROKER", null, false, "PHASED.TESTS.DATABROKER",
+            "The DataBroker implementation class to use for storing/fetching Phased Test data."),
     PROP_PHASED_DATA_PATH("MUTATIONAL.TESTS.STORAGE.PATH", null, false,
-            "PHASED.TESTS.STORAGE.PATH"),
+            "PHASED.TESTS.STORAGE.PATH",
+            "The path where Phased Test data is stored and fetched from."),
     PROP_OUTPUT_DIR("MUTATIONAL.TESTS.OUTPUT.DIR", PhasedTestManager.DEFAULT_CACHE_DIR, false,
-            "PHASED.TESTS.OUTPUT.DIR"),
+            "PHASED.TESTS.OUTPUT.DIR",
+            "Overrides the output directory where Phased Test data is stored."),
     PROP_DISABLE_RETRY("MUTATIONAL.TESTS.RETRY.DISABLED", "true", false,
-            "PHASED.TESTS.RETRY.DISABLED"),
+            "PHASED.TESTS.RETRY.DISABLED",
+            "Disables the TestNG retry analyzer for Phased Tests (enabled by default)."),
     PROP_MERGE_STEP_RESULTS("MUTATIONAL.TESTS.REPORT.BY.PHASE_GROUP", "NOTSET", false,
-            "PHASED.TESTS.REPORT.BY.PHASE_GROUP"),
+            "PHASED.TESTS.REPORT.BY.PHASE_GROUP",
+            "Activates 'Report By Phase Group' reporting, grouping step results by phase group."),
     PHASED_TEST_SOURCE_LOCATION("MUTATIONAL.TESTS.CODE.ROOT", "/src/test/java", false,
-            "PHASED.TESTS.CODE.ROOT"),
+            "PHASED.TESTS.CODE.ROOT",
+            "The root source directory used to detect code-based step execution order."),
     PHASED_TEST_DETECT_ORDER("MUTATIONAL.TESTS.DETECT.ORDER", "false", false,
-            "PHASED.TESTS.DETECT.ORDER"),
-    PHASED_TEST_NONPHASED_LEGACY("PHASED.TESTS.NONPHASED.LEGACY", "false", false),
+            "PHASED.TESTS.DETECT.ORDER",
+            "Activates code-based detection of step execution order within a scenario."),
+    PHASED_TEST_NONPHASED_LEGACY("PHASED.TESTS.NONPHASED.LEGACY", "false", false,
+            "Keeps the pre-8.0.0 default execution mode ('phased-data-provider-single') for backward "
+                    + "compatibility.",
+            true),
     PROP_SCENARIO_EXPORTED_PREFIX("MUTATIONAL.TESTS.STORAGE.SCENARIO.PREFIX", "[TC]", false,
-            "PHASED.TESTS.STORAGE.SCENARIO.PREFIX"),
-    EVENT_TARGET("MUTATIONAL.EVENTS.TARGET", null, false, "PHASED.EVENTS.TARGET"),
-    PROP_EXECUTION_MODE("MUTATIONAL.EXECUTION.MODE", "DEFAULT", false);
+            "PHASED.TESTS.STORAGE.SCENARIO.PREFIX",
+            "The prefix used for exported/stored scenario names."),
+    EVENT_TARGET("MUTATIONAL.EVENTS.TARGET", null, false, "PHASED.EVENTS.TARGET",
+            "Targets an event to a specific step of a scenario, given as a method reference."),
+    PROP_EXECUTION_MODE("MUTATIONAL.EXECUTION.MODE", "DEFAULT", false,
+            "Sets the Mutational Test execution mode (STANDARD, INTERRUPTIVE(PRODUCER/CONSUMER), "
+                    + "NON-INTERRUPTIVE, PERMUATIONAL).");
 
     private static final Logger log = LogManager.getLogger();
 
@@ -41,9 +58,12 @@ public enum ConfigValueHandlerPhased {
     public final String defaultValue;
     public final boolean requiredValue;
     public final String legacySystemName;
+    public final String description;
+    public final boolean deprecated;
 
-    ConfigValueHandlerPhased(String in_propertyName, String in_defaultValue, boolean in_requiredValue) {
-        this(in_propertyName, in_defaultValue, in_requiredValue, null);
+    ConfigValueHandlerPhased(String in_propertyName, String in_defaultValue, boolean in_requiredValue,
+            String in_description) {
+        this(in_propertyName, in_defaultValue, in_requiredValue, null, in_description, false);
     }
 
     /**
@@ -54,11 +74,32 @@ public enum ConfigValueHandlerPhased {
      *                              {@code systemName} is not set.
      */
     ConfigValueHandlerPhased(String in_propertyName, String in_defaultValue, boolean in_requiredValue,
-            String in_legacyPropertyName) {
+            String in_legacyPropertyName, String in_description) {
+        this(in_propertyName, in_defaultValue, in_requiredValue, in_legacyPropertyName, in_description, false);
+    }
+
+    /**
+     * @param in_description A description of what this config item does. When
+     *                        {@code in_deprecated} is {@code true}, this should
+     *                        explain why the property is deprecated (as opposed to
+     *                        renamed).
+     * @param in_deprecated   Whether this config item's usage itself is deprecated,
+     *                        as opposed to having been renamed (see
+     *                        {@link #legacySystemName}).
+     */
+    ConfigValueHandlerPhased(String in_propertyName, String in_defaultValue, boolean in_requiredValue,
+            String in_description, boolean in_deprecated) {
+        this(in_propertyName, in_defaultValue, in_requiredValue, null, in_description, in_deprecated);
+    }
+
+    ConfigValueHandlerPhased(String in_propertyName, String in_defaultValue, boolean in_requiredValue,
+            String in_legacyPropertyName, String in_description, boolean in_deprecated) {
         systemName = in_propertyName;
         defaultValue = in_defaultValue;
         requiredValue = in_requiredValue;
         legacySystemName = in_legacyPropertyName;
+        description = in_description;
+        deprecated = in_deprecated;
     }
 
     /**
@@ -124,6 +165,16 @@ public enum ConfigValueHandlerPhased {
                 .filter(v -> v.legacySystemName != null && System.getProperties().containsKey(v.legacySystemName))
                 .forEach(v -> log.warn("IMPORTANT: The property {} is DEPRECATED. Please use {} henceforth.",
                         v.legacySystemName, v.systemName));
+    }
+
+    /**
+     * Scans all config values and logs a warning for each one that is marked deprecated and currently set,
+     * so that usage of a property that is going away (as opposed to renamed) is surfaced up front.
+     */
+    public static void warnIfDeprecatedPropertiesAreUsed() {
+        Arrays.stream(values())
+                .filter(v -> v.deprecated && v.isSet())
+                .forEach(v -> log.warn("IMPORTANT: The property {} is DEPRECATED. {}", v.systemName, v.description));
     }
 
     /**

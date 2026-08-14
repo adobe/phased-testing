@@ -44,6 +44,7 @@ public class MutationListener
                 , ExecutionMode.getCurrentMode());
 
         ConfigValueHandlerPhased.warnIfLegacyNamesAreUsed();
+        ConfigValueHandlerPhased.warnIfDeprecatedPropertiesAreUsed();
 
         // *** Import DataBroker ***
         String l_phasedDataBrokerClass = null;

@@ -80,6 +80,19 @@ public class TestMutationListenerLegacyWarning {
     }
 
     @Test
+    public void testListenerWarnsWhenDeprecatedPropertyIsSet() {
+        System.setProperty(ConfigValueHandlerPhased.PROP_SELECTED_PHASE.systemName, "PRODUCER");
+
+        new MutationListener().alter(Collections.singletonList(new XmlSuite()));
+
+        List<LogEvent> l_warnings = getWarnEvents();
+        assertThat("A warning should be logged for the deprecated property in use", l_warnings, hasSize(1));
+        assertThat(l_warnings.get(0).getMessage().getFormattedMessage(),
+                equalTo("IMPORTANT: The property PHASED.TESTS.PHASE is DEPRECATED. "
+                        + ConfigValueHandlerPhased.PROP_SELECTED_PHASE.description));
+    }
+
+    @Test
     public void testListenerDoesNotWarnWhenOnlyCurrentPropertyIsSet() {
         System.setProperty(ConfigValueHandlerPhased.EVENTS_NONINTERRUPTIVE.systemName, "com.acme.MyEvent");
 
