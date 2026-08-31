@@ -1,6 +1,6 @@
 # Changelog
 
-## 9.0.0 - In-Progress
+## 9.0.0
 * **(breaking change)** [#224 Split the project into a multi-module project](https://github.com/adobe/phased-testing/issues/224). The project is now a multi-module Maven build: `phased-testing-core` (shared engine), `phased-testing-testng` (annotation-driven authoring, same artifact coordinates as before), and `mutational-testing` (new artifact, inheritance/template-method authoring). If you only use the classic `@PhasedTest` annotation model, no changes are required beyond bumping the version. If you use `Mutational`/`MutationListener`, you now need to add a dependency on `mutational-testing` explicitly — see [Installation](README.md#installation).
 * **(breaking change)** The internal package `com.adobe.campaign.tests.integro.phased.permutational` has been renamed to `com.adobe.campaign.tests.integro.phased.stepdependencies`. This only affects code that directly imports classes from that package (`ScenarioStepDependencies`, `ScenarioStepDependencyFactory`, `StepDependencies`), not typical library usage.
 * **(breaking change)** The exception `MutationRampUpException` has been renamed to `ExecutionModeConfigurationException`, since it is thrown for a generic invalid-execution-mode configuration error, unrelated to Mutational Testing specifically.
