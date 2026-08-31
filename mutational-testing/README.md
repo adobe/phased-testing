@@ -108,6 +108,12 @@ See [INTERRUPTIVE Execution Mode](../README.md#interruptive-execution-mode) for 
 phases are driven at execution time.
 
 ### Non-Interruptive Events
+See [Event Management and Execution](../README.md#event-management-and-execution) for how an event is
+[wrapped around a step](../README.md#wrapping-an-event-around-a-step) — the same shared-core `startEvent`/
+`finishEvent` calls apply here as in Phased Testing, driven from `Mutational.execute()`'s step loop rather
+than a TestNG listener — and the [`23`/`33` timing behaviors](../README.md#non-interruptive-execution-mode)
+that control it.
+
 Unlike interruptive events, non-interruptive events carry **no annotation** on a Mutational scenario. They
 are bound purely through execution properties, resolved by the core `ConfigValueHandler`. Where a
 [Phased Test](../phased-testing-testng/README.md#binding-an-event-to-a-scenario) can attach an event through

@@ -38,6 +38,7 @@ live with their modules:
   - [Maven](#maven)
 - [Demo](#demo)
 - [Event Management and Execution](#event-management-and-execution)
+  - [Wrapping an Event Around a Step](#wrapping-an-event-around-a-step)
 - [Execution Modes and Configuration](#execution-modes-and-configuration)
   - [Execution Modes](#execution-modes)
     - [STANDARD Execution Mode](#standard-execution-mode)
@@ -257,10 +258,52 @@ Events are an important topic, and have to be correctly covered. An event in Mut
 
 These parts of an event allow us to pilot the event injection around the scenario.
 
-For now we identify two different event wrappings:
-![Event Wrappings](diagrams/Murational-eventWrappings.png)
+The general goal is that an event is started alongside a step, and the scenario waits for
+the event to finish before it is allowed to affect a later point in the scenario:
 
-There are other wrappings, and we will eventually publish them at a later time.
+![Event Wrapping - Target](diagrams/PhasedDiagrams-asynchronousEventIntegrity.drawio.png)
+
+In practice there are several ways to pilot exactly *when* the event's completion is waited
+for and *when* its tear-down happens. Of the six wrappings identified in
+[#203](https://github.com/adobe/phased-testing/issues/203), two are currently implemented —
+`NIE_33` and `NIE_23`, see [#197](https://github.com/adobe/phased-testing/issues/197):
+
+![Event Wrappings - Implemented](diagrams/Murational-eventWrappings.png)
+
+The remaining four wrappings (`NIE_22`, `NIE_20`, `NIE_30`, `NIE_00`) are not yet
+implemented — see [#256](https://github.com/adobe/phased-testing/issues/256),
+[#257](https://github.com/adobe/phased-testing/issues/257),
+[#258](https://github.com/adobe/phased-testing/issues/258) and
+[#259](https://github.com/adobe/phased-testing/issues/259). The full table of all six
+wrappings, and which are implemented, is in
+[NON-INTERRUPTIVE execution mode](#non-interruptive-execution-mode).
+
+### Wrapping an Event Around a Step
+
+Regardless of authoring style, an event is wrapped around a single step by two calls into
+the shared core engine, keyed by the step's identity:
+
+- `PhasedEventManager.startEvent(...)` is called right **before** the step runs. It
+  instantiates and starts the `NonInterruptiveEvent`, and waits until it has left its initial
+  `DEFINED` state (i.e. it has begun running, or failed outright) before letting the step
+  proceed.
+- `PhasedEventManager.finishEvent(...)` is called right **after** the step finishes. It waits
+  for the event to report it has started (`waitTillStarted`), confirms it has finished
+  (`isFinished`), and then runs its `tearDownEvent` clean-up.
+
+Where exactly these two calls sit relative to the step's own execution — i.e. whether
+`finishEvent`'s wait happens before or after the step's body runs — is what the
+[NON-INTERRUPTIVE behaviors](#non-interruptive-execution-mode) (`23` vs `33`) control.
+
+Both authoring styles call the exact same core API, just from different places:
+
+- **Phased Testing (TestNG, annotation-driven)**: the `PhasedTestListener` calls
+  `startEvent` from `onTestStart`, before the step runs, and `finishEvent` from
+  `standardPostTestActions` (invoked by `onTestSuccess`/`onTestFailure`/`onTestSkipped`),
+  after the step runs.
+- **Mutational Testing (inheritance-based)**: `Mutational.execute()`'s step loop calls
+  `startEvent` immediately before invoking the step method, and `finishEvent` immediately
+  after, inline in the same loop — there is no listener involved.
 
 How you attach an event to a scenario depends on the authoring style: the annotation-driven approach is
 covered in [Binding an Event to a Scenario](phased-testing-testng/README.md#binding-an-event-to-a-scenario),
@@ -315,7 +358,25 @@ This execution mode is a good way of performing chaos testing.
 
 This mode is activated by setting the environment variable "MUTATIONAL.EXECUTION.MODE" to "NON-INTERRUPTIVE".
 
-The event can be piloted with the following behaviors:
+The event can be piloted with the following behaviors, passed in parenthesis, e.g.
+`NON-INTERRUPTIVE(33)`. These correspond to the six `NIE_xx` wrappings identified in
+[#203](https://github.com/adobe/phased-testing/issues/203) — only `33` and `23` are
+implemented today ([#197](https://github.com/adobe/phased-testing/issues/197)); the other
+four are tracked as separate issues:
+
+| Behavior | Implemented | Event Start | Event Finish (wait point) | Tear Down | Notes |
+| -------- | ----------- | ----------- | -------------------------- | --------- | ----- |
+| `33` (default) | ✅ Yes | Before the step | After/during the step | After the step | The event is started before the step runs, but the step does not wait for it. Once the step finishes, we wait for the event to confirm it has started, verify it has finished, and then tear it down, before moving on to the next step. |
+| `23` | ✅ Yes | Before the step | Before the step's body runs | After the step | Synchronous variant. Before the step is allowed to run, we force a wait for the event to finish starting up, regardless of whether the event itself runs synchronously or asynchronously. |
+| `22` | ❌ [#256](https://github.com/adobe/phased-testing/issues/256) | Before the step | Before the step's body runs | Before the step's body runs | Both the wait and the tear-down happen before the step runs. |
+| `20` | ❌ [#257](https://github.com/adobe/phased-testing/issues/257) | Before the step | Before the step's body runs | At the end of the scenario | The wait happens before the step, but tear-down is deferred to scenario end. |
+| `30` | ❌ [#258](https://github.com/adobe/phased-testing/issues/258) | Before the step | After the step | At the end of the scenario | Like `33`, but tear-down is deferred to scenario end instead of happening right after the step. |
+| `00` | ❌ [#259](https://github.com/adobe/phased-testing/issues/259) | Before the step | At the end of the scenario | At the end of the scenario | Neither the wait nor the tear-down are tied to any particular step — both happen once the scenario itself completes. |
+
+If no behavior is specified (plain `NON-INTERRUPTIVE`), the framework behaves like `33`.
+
+See [Event Management and Execution](#event-management-and-execution) for how these
+behaviors relate to the way an event is wrapped around a step.
 
 #### PERMUATIONAL Execution Mode
 
