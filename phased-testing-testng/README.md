@@ -213,7 +213,7 @@ public class NonInterruptiveEventExample extends NonInterruptiveEvent {
   }
 
   @Override
-  public boolean waitTillFinished() {
+  public boolean waitTillStarted() {
     return false;
   }
 }
@@ -222,7 +222,7 @@ public class NonInterruptiveEventExample extends NonInterruptiveEvent {
 As you can see we have to implement three methods:
 * `startEvent` starts the event.
 * `isFinished` allow the system to see if the event we declared has finished.
-* `waitTillFinished` waits until the event has finished.
+* `waitTillStarted` waits until the event has started, i.e. the startUp stage has been finalized.
 
 In order to define these event you will need to implement these methods, as you who are defining the event have the best knowledge on how these event will work.
 

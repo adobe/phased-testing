@@ -36,7 +36,7 @@ public class MyNonInterruptiveClosureEvent extends NonInterruptiveEvent {
     }
 
     @Override
-    public boolean waitTillFinished() {
+    public boolean waitTillStarted() {
 
         while (taskContainer != -1) {
             try {

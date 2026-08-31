@@ -252,7 +252,7 @@ We have a standard demo that can be accessed through the [Phased Test Demo](http
 Events are an important topic, and have to be correctly covered. An event in Mutational Testing contains three parts:
 
 - StartUp - the event is initiated.
-- waitTillFinished - the event has finished executing
+- waitTillStarted - the startUp stage has been finalized
 - tearDown - the system is set to a stable state
 
 These parts of an event allow us to pilot the event injection around the scenario.

@@ -85,7 +85,7 @@ public class TestPhasedNonInterruptive {
         assertThat("The event should be currently on-going", !nie.isFinished());
 
         //Stop event
-        assertThat("The event should no longer be on-going", nie.waitTillFinished());
+        assertThat("The event should no longer be on-going", nie.waitTillStarted());
         Date finish = new Date();
 
         //Make sure event is stopped
@@ -114,7 +114,7 @@ public class TestPhasedNonInterruptive {
         // assertThat("Make sure that this call is logged", nie.callList, Matchers.contains("testNonInterruptiveEventHelloWorld"));
 
         //Stop event
-        assertThat("The event should no longer be on-going", nie.waitTillFinished());
+        assertThat("The event should no longer be on-going", nie.waitTillStarted());
         Date finish = new Date();
 
         long executionWait = (long) MyNonInterruptiveEvent.WAIT_TIME_MS;

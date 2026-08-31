@@ -47,7 +47,7 @@ public class MyNonInterruptiveEvent extends NonInterruptiveEvent {
     }
 
     @Override
-    public boolean waitTillFinished() {
+    public boolean waitTillStarted() {
         log.info("finishing");
 
         try {

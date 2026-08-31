@@ -26,7 +26,7 @@ public class NI_Event2 extends NonInterruptiveEvent {
     }
 
     @Override
-    public boolean waitTillFinished() {
+    public boolean waitTillStarted() {
         return false;
     }
 }
