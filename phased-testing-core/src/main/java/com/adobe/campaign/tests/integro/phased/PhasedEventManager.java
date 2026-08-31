@@ -143,7 +143,7 @@ public class PhasedEventManager {
         //NON_INTERRUPTIVE 23
         if (ExecutionMode.NON_INTERRUPTIVE.fetchBehavior().startsWith("2")) {
             log.info("Forcing Event End {} BEFORE step {} has started.", in_event, in_onAccountOfStep);
-            performWaitTilFinish(in_event, in_onAccountOfStep, nie);
+            performWaitTillStarted(in_event, in_onAccountOfStep, nie);
         }
         return nie;
     }
@@ -191,7 +191,7 @@ public class PhasedEventManager {
 
         //if (Phases.NON_INTERRUPTIVE.fetchType().startsWith("3")) {
         //    log.info("Forcing Event End {} AFTER step {} has finished.", in_event, in_onAccountOfStep);
-        performWaitTilFinish(in_event, in_onAccountOfStep, l_activeEvent);
+        performWaitTillStarted(in_event, in_onAccountOfStep, l_activeEvent);
         //}
 
         if (!l_activeEvent.isFinished()) {
@@ -211,11 +211,11 @@ public class PhasedEventManager {
         return l_activeEvent;
     }
 
-    private static void performWaitTilFinish(String in_event, String in_onAccountOfStep, NonInterruptiveEvent nie) {
+    private static void performWaitTillStarted(String in_event, String in_onAccountOfStep, NonInterruptiveEvent nie) {
         try {
-            nie.waitTillFinished();
+            nie.waitTillStarted();
         } catch (Exception e) {
-            log.error("The waitTillFinished method for event {} caused an exception in the context of step {}.",
+            log.error("The waitTillStarted method for event {} caused an exception in the context of step {}.",
                     in_event, in_onAccountOfStep, e);
             nie.threadFuture.cancel(true);
         }

@@ -49,7 +49,7 @@ public class NIEMutationalSynchronousEventWithException extends NonInterruptiveE
     }
 
     @Override
-    public boolean waitTillFinished() {
+    public boolean waitTillStarted() {
         log.info("In WTF Setting synchronous value to {}", WTF_STEP_VALUE);
 
         if (exceptionPlace == 2) {

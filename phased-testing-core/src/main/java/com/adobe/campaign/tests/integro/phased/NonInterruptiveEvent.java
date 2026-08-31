@@ -29,10 +29,22 @@ public abstract class NonInterruptiveEvent implements Runnable {
     public abstract boolean isFinished();
 
     /**
+     * Waits until the event has started (i.e. the startUp stage has been finalized).
+     * @return true if the event successfully started
+     */
+    public boolean waitTillStarted() {
+        return waitTillFinished();
+    }
+
+    /**
      * Waits until the event has concluded
      * @return true if it successfully finished
+     * @deprecated Use {@link #waitTillStarted()} instead. This method will be removed in a future major version.
      */
-    public abstract boolean waitTillFinished();
+    @Deprecated(since = "9.0.0", forRemoval = true)
+    public boolean waitTillFinished() {
+        return true;
+    }
 
     public enum states {DEFINED , STARTED, FAILURE, FINISHED};
 

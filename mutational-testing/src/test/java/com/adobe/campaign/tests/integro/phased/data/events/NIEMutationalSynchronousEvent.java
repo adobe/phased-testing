@@ -44,7 +44,7 @@ public class NIEMutationalSynchronousEvent extends NonInterruptiveEvent {
     }
 
     @Override
-    public boolean waitTillFinished() {
+    public boolean waitTillStarted() {
         log.info("In WTF Setting synchronous value to {}", WTF_STEP_VALUE);
         TestMutationalNIE_Synchroneous.testElement = WTF_STEP_VALUE;
         return isFinished();

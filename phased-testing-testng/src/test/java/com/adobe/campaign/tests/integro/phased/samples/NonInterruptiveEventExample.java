@@ -22,7 +22,7 @@ public class NonInterruptiveEventExample extends NonInterruptiveEvent {
     }
 
     @Override
-    public boolean waitTillFinished() {
+    public boolean waitTillStarted() {
         return false;
     }
 }
