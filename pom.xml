@@ -12,7 +12,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.adobe.campaign.tests.phased</groupId>
     <artifactId>phased-testing-parent</artifactId>
-    <version>9.0.0</version>
+    <version>9.0.1-SNAPSHOT</version>
     <description>Parent for the Phased/Mutational Testing framework modules</description>
     <url>https://github.com/adobe/phased-testing</url>
     <packaging>pom</packaging>
@@ -35,7 +35,7 @@
         <connection>scm:git::https://github.com/adobe/phased-testing.git</connection>
         <developerConnection>scm:git:https://github.com/adobe/phased-testing.git</developerConnection>
         <url>https://github.com/adobe/phased-testing/tree/main</url>
-        <tag>phased-testing-parent-9.0.0</tag>
+        <tag>phased-testing-testng-7.0.8</tag>
     </scm>
     <distributionManagement>
         <snapshotRepository>
