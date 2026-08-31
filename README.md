@@ -264,19 +264,23 @@ the event to finish before it is allowed to affect a later point in the scenario
 ![Event Wrapping - Target](diagrams/PhasedDiagrams-asynchronousEventIntegrity.drawio.png)
 
 In practice there are several ways to pilot exactly *when* the event's completion is waited
-for and *when* its tear-down happens. Of the six wrappings identified in
-[#203](https://github.com/adobe/phased-testing/issues/203), two are currently implemented —
-`NIE_33` and `NIE_23`, see [#197](https://github.com/adobe/phased-testing/issues/197):
+for and *when* its tear-down happens. [#203](https://github.com/adobe/phased-testing/issues/203)
+identifies six such wrappings, referred to there as `NIE_xx` (e.g. `NIE_33`, `NIE_23`) — that
+naming is only used in the issue tracker and diagrams, **not** in actual configuration; at
+run time each wrapping is selected via the plain numeric behavior code, e.g.
+`NON-INTERRUPTIVE(33)` (see [NON-INTERRUPTIVE execution mode](#non-interruptive-execution-mode)
+for the full table and exact syntax).
+
+Of those six, behaviors `33` and `23` are currently implemented
+(see [#197](https://github.com/adobe/phased-testing/issues/197)):
 
 ![Event Wrappings - Implemented](diagrams/Murational-eventWrappings.png)
 
-The remaining four wrappings (`NIE_22`, `NIE_20`, `NIE_30`, `NIE_00`) are not yet
-implemented — see [#256](https://github.com/adobe/phased-testing/issues/256),
+The remaining four behaviors (`22`, `20`, `30`, `00`) are not yet implemented — see
+[#256](https://github.com/adobe/phased-testing/issues/256),
 [#257](https://github.com/adobe/phased-testing/issues/257),
 [#258](https://github.com/adobe/phased-testing/issues/258) and
-[#259](https://github.com/adobe/phased-testing/issues/259). The full table of all six
-wrappings, and which are implemented, is in
-[NON-INTERRUPTIVE execution mode](#non-interruptive-execution-mode).
+[#259](https://github.com/adobe/phased-testing/issues/259).
 
 ### Wrapping an Event Around a Step
 
@@ -358,11 +362,13 @@ This execution mode is a good way of performing chaos testing.
 
 This mode is activated by setting the environment variable "MUTATIONAL.EXECUTION.MODE" to "NON-INTERRUPTIVE".
 
-The event can be piloted with the following behaviors, passed in parenthesis, e.g.
-`NON-INTERRUPTIVE(33)`. These correspond to the six `NIE_xx` wrappings identified in
-[#203](https://github.com/adobe/phased-testing/issues/203) — only `33` and `23` are
-implemented today ([#197](https://github.com/adobe/phased-testing/issues/197)); the other
-four are tracked as separate issues:
+The event can be piloted with the following behaviors, passed as a plain number in
+parenthesis, e.g. `NON-INTERRUPTIVE(33)` (this is the actual, only supported syntax — the
+`NIE_xx` naming used in [#203](https://github.com/adobe/phased-testing/issues/203) and its
+diagrams is just shorthand for talking about these behaviors, not something you type into
+configuration). Only `33` and `23` are implemented today
+([#197](https://github.com/adobe/phased-testing/issues/197)); the other four are tracked as
+separate issues:
 
 | Behavior | Implemented | Event Start | Event Finish (wait point) | Tear Down | Notes |
 | -------- | ----------- | ----------- | -------------------------- | --------- | ----- |
