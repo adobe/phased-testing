@@ -272,7 +272,7 @@ exact syntax):
 Of those six, only behaviors `33` and `23` are currently implemented
 (see [#197](https://github.com/adobe/phased-testing/issues/197)):
 
-![Event Wrappings - Implemented](diagrams/Murational-eventWrappings.png)
+![Event Wrappings - Implemented](diagrams/Mutational-eventWrappings.png)
 
 The remaining four behaviors (`22`, `20`, `30`, `00`) are not yet implemented — see
 [#256](https://github.com/adobe/phased-testing/issues/256),
