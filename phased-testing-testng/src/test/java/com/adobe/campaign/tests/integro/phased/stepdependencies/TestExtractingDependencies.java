@@ -308,6 +308,29 @@ public class TestExtractingDependencies {
     }
 
     @Test
+    public void testFetchExtractingProduceConsumeWithDataProviderAndFactory()
+            throws NoSuchMethodException, SecurityException, IOException {
+
+        Class<ProducerConsumerWithDataProviderAndFactory> l_testClass = ProducerConsumerWithDataProviderAndFactory.class;
+
+        ScenarioStepDependencies dependencies = ScenarioStepDependencyFactory.listMethodCalls(l_testClass);
+
+        assertThat("We should have fetched the correct methods", dependencies.getStepDependencies().keySet(),
+                containsInAnyOrder("createInstances", "provideData", "bbbbb", "aaaa"));
+
+        assertThat("The @Factory method should be a config method",
+                dependencies.getStep("createInstances").isConfigMethod());
+        assertThat("The @DataProvider method should be a config method",
+                dependencies.getStep("provideData").isConfigMethod());
+        assertThat("This test should be a test", !dependencies.getStep("bbbbb").isConfigMethod());
+        assertThat("This test should be a test", !dependencies.getStep("aaaa").isConfigMethod());
+
+        assertThat("The ordered set should exclude @Factory and @DataProvider methods",
+                dependencies.fetchExecutionOrderList().stream().map(f -> f.getStepName()).collect(
+                        Collectors.toList()), contains("bbbbb", "aaaa"));
+    }
+
+    @Test
     public void testListMethodCalls_negativeFileNotFound()
             throws NoSuchMethodException, SecurityException, IOException {
 
