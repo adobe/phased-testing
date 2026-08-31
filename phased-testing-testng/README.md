@@ -193,7 +193,9 @@ In the case of non-interruptive events there are a few things to consider:
 * Binding an Event to a Scenario
 
 The event API itself (`NonInterruptiveEvent`) is part of the shared core engine — see
-[Event Management and Execution](../README.md#event-management-and-execution) for the underlying concept.
+[Event Management and Execution](../README.md#event-management-and-execution) for the underlying concept,
+including how an event is [wrapped around a step](../README.md#wrapping-an-event-around-a-step) and the
+[`23`/`33` timing behaviors](../README.md#non-interruptive-execution-mode) that control it.
 This section covers how you write an event and bind it to an annotation-driven Phased Test.
 
 #### Writing a Non-Interruptive Event
