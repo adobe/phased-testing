@@ -267,7 +267,7 @@ code shown next to it, e.g. `NON-INTERRUPTIVE(33)` — see
 [NON-INTERRUPTIVE execution mode](#non-interruptive-execution-mode) for the full table and
 exact syntax):
 
-![All Event Wrappings](diagrams/PhasedDiagrams-asynchronousEventIntegrity.drawio.png)
+![All Event Wrappings](diagrams/PhasedDiagrams-asynchronousEventIntegrity.png)
 
 Of those six, only behaviors `33` and `23` are currently implemented
 (see [#197](https://github.com/adobe/phased-testing/issues/197)):
