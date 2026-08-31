@@ -258,23 +258,21 @@ Events are an important topic, and have to be correctly covered. An event in Mut
 
 These parts of an event allow us to pilot the event injection around the scenario.
 
-The general goal is that an event is started alongside a step, and the scenario waits for
-the event to finish before it is allowed to affect a later point in the scenario:
+There are several ways to pilot exactly *when* an event's completion is waited for and
+*when* its tear-down happens relative to the step it targets.
+[#203](https://github.com/adobe/phased-testing/issues/203) identifies six such wrappings,
+numbered `1`-`6` below (this numbering is only used in the diagrams and issue tracker, not in
+actual configuration; at run time each wrapping is selected via the plain numeric behavior
+code shown next to it, e.g. `NON-INTERRUPTIVE(33)` — see
+[NON-INTERRUPTIVE execution mode](#non-interruptive-execution-mode) for the full table and
+exact syntax):
 
-![Event Wrapping - Target](diagrams/PhasedDiagrams-asynchronousEventIntegrity.drawio.png)
+![All Event Wrappings](diagrams/PhasedDiagrams-asynchronousEventIntegrity.png)
 
-In practice there are several ways to pilot exactly *when* the event's completion is waited
-for and *when* its tear-down happens. [#203](https://github.com/adobe/phased-testing/issues/203)
-identifies six such wrappings, referred to there as `NIE_xx` (e.g. `NIE_33`, `NIE_23`) — that
-naming is only used in the issue tracker and diagrams, **not** in actual configuration; at
-run time each wrapping is selected via the plain numeric behavior code, e.g.
-`NON-INTERRUPTIVE(33)` (see [NON-INTERRUPTIVE execution mode](#non-interruptive-execution-mode)
-for the full table and exact syntax).
-
-Of those six, behaviors `33` and `23` are currently implemented
+Of those six, only behaviors `33` and `23` are currently implemented
 (see [#197](https://github.com/adobe/phased-testing/issues/197)):
 
-![Event Wrappings - Implemented](diagrams/Murational-eventWrappings.png)
+![Event Wrappings - Implemented](diagrams/Mutational-eventWrappings.png)
 
 The remaining four behaviors (`22`, `20`, `30`, `00`) are not yet implemented — see
 [#256](https://github.com/adobe/phased-testing/issues/256),
