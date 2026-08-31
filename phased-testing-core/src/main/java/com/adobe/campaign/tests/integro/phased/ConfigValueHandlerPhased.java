@@ -50,7 +50,7 @@ public enum ConfigValueHandlerPhased {
             "Targets an event to a specific step of a scenario, given as a method reference."),
     PROP_EXECUTION_MODE("MUTATIONAL.EXECUTION.MODE", "DEFAULT", false,
             "Sets the Mutational Test execution mode (STANDARD, INTERRUPTIVE(PRODUCER/CONSUMER), "
-                    + "NON-INTERRUPTIVE, PERMUATIONAL).");
+                    + "NON-INTERRUPTIVE(23/33), PERMUATIONAL).");
 
     private static final Logger log = LogManager.getLogger();
 
