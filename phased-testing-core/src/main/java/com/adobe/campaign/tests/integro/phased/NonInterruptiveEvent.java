@@ -41,9 +41,9 @@ public abstract class NonInterruptiveEvent implements Runnable {
      * @return true if it successfully finished
      * @deprecated Use {@link #waitTillStarted()} instead. This method will be removed in a future major version.
      */
-    @Deprecated
+    @Deprecated(since = "9.0.0", forRemoval = true)
     public boolean waitTillFinished() {
-        return waitTillStarted();
+        return true;
     }
 
     public enum states {DEFINED , STARTED, FAILURE, FINISHED};
