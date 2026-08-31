@@ -29,7 +29,7 @@ public class ScenarioStepDependencyFactory {
     private static final List<Class> CONFIG_CLASSES = Arrays.asList(BeforeClass.class, BeforeMethod.class,
             BeforeSuite.class, BeforeGroups.class,
             BeforeTest.class, AfterClass.class, AfterMethod.class, AfterSuite.class, AfterGroups.class,
-            AfterTest.class);
+            AfterTest.class, DataProvider.class, Factory.class);
 
     /**
      * From a class, this method returns the methods, and what they produce / consume
