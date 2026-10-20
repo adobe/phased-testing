@@ -127,6 +127,30 @@ public class TestPhasedNonInterruptive {
                 lessThan(executionWait + 100));
     }
 
+    @Test(description = "A test to check the complete non-interruptive event lifecycle")
+    public void testNonInterruptiveEventLifecycle() {
+        String myEvent = MyNonInterruptiveEvent.class.getTypeName();
+        String stepName = "eventLifecycle";
+        NonInterruptiveEvent nie = new MyNonInterruptiveEvent();
+
+        assertThat("The event should be stopped before it starts",
+                nie.getState(), equalTo(NonInterruptiveEvent.states.DEFINED));
+        assertThat("The event should be finished before it starts", nie.isFinished());
+
+        NonInterruptiveEvent startedEvent = PhasedEventManager.startEvent(myEvent, stepName);
+        assertThat("The event should be started", startedEvent.getState(),
+                equalTo(NonInterruptiveEvent.states.STARTED));
+        assertThat("The event should be running", !startedEvent.isFinished());
+
+        assertThat("The event should finish when waited on", startedEvent.waitTillStarted());
+        assertThat("The event should be finished after waiting", startedEvent.isFinished());
+
+        NonInterruptiveEvent finishedEvent = PhasedEventManager.finishEvent(myEvent, stepName);
+        assertThat("The manager should return the same event", finishedEvent, equalTo(startedEvent));
+        assertThat("The event should have a finished state", finishedEvent.getState(),
+                equalTo(NonInterruptiveEvent.states.FINISHED));
+    }
+
     @Test
     public void eventManagerTests() {
         String myEvent = MyNonInterruptiveEvent.class.getTypeName();
