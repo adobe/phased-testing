@@ -298,7 +298,7 @@ public class PhasedTestListener
                                 Collectors.toList()));
 
         for (Entry<String, List<ITestResult>> each : l_phasedScenarios.entrySet()) {
-            log.info("{} Reducing Report for {}",PhasedTestManager.PHASED_TEST_LOG_PREFIX, each);
+            log.debug("{} Reducing Report for {}", PhasedTestManager.PHASED_TEST_LOG_PREFIX, each);
 
             //When the phase test scenario was not a success
             if (PhasedTestManager.getScenarioContext().get(each.getKey()).isPassed()) {
